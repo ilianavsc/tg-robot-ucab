@@ -1,0 +1,19 @@
+# Contraseñas y llaves: NUNCA se suben
+secretos.h
+*.env
+.env
+*serviceAccount*.json
+google-services.json
+GoogleService-Info.plist
+
+# Archivos temporales y de compilación
+.pio/
+build/
+.dart_tool/
+node_modules/
+__pycache__/
+.ipynb_checkpoints/
+*.tmp
+~$*
+.DS_Store
+Thumbs.db
