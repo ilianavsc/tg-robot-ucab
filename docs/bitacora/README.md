@@ -1,0 +1,3 @@
+# Bitácora
+
+Una nota corta por semana: qué hicimos, qué falló, qué sigue. Nombre del archivo: semana-03.md, semana-04.md...
