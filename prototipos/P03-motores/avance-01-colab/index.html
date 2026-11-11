@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P03 · Avance 1 · ¿Qué tan rápido va el robot?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../../assets/estilo.css">
+<style>
+.volver{font-size:15px;text-decoration:none;color:var(--suave)}
+h1 em{font-style:normal;color:var(--sale)}
+h1 strong{color:var(--llega)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px}
+.frase{font-family:var(--display);font-weight:500;font-size:clamp(21px,3vw,28px);line-height:1.3;background:var(--blanco);border:2px solid var(--tinta);border-radius:18px;padding:22px 26px;margin:0 0 44px;box-shadow:6px 6px 0 var(--tinta)}
+section{margin:0 0 48px}
+h2{font-family:var(--display);font-size:28px;margin:0 0 6px}
+.mesa{background:var(--blanco);border:2px solid var(--tinta);border-radius:18px;padding:16px;box-shadow:6px 6px 0 var(--tinta)}
+.mesa svg{width:100%;height:auto;display:block}
+.mesa text{font-family:"Atkinson Hyperlegible",sans-serif}
+.leyenda{display:flex;flex-wrap:wrap;gap:18px;font-size:15px;color:var(--suave);margin:10px 4px 0}
+.leyenda span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+.idea .nivel{font-family:var(--mono);font-weight:600;font-size:13px;color:var(--qos)}
+.idea h3{font-family:var(--display);font-size:21px;margin:4px 0 6px}
+.idea p{margin:0;font-size:16px;color:var(--suave)}
+.idea .cuenta{display:inline-block;margin-top:10px;font-family:var(--mono);font-size:13px;background:var(--papel);padding:3px 8px;border-radius:6px;color:var(--tinta)}
+.aviso-grande{background:var(--pend);border:2px solid var(--tinta);border-radius:16px;padding:18px 22px}
+.aviso-grande h3{font-family:var(--display);font-size:22px;margin:0 0 6px}
+.aviso-grande p{margin:0 0 8px}
+.aviso-grande p:last-child{margin:0}
+.captura{display:block;width:100%;height:auto;border-radius:10px;border:1.5px solid var(--punto)}
+details{background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;padding:14px 18px;margin-top:12px}
+summary{font-family:var(--display);font-weight:700;font-size:19px;cursor:pointer}
+pre{font-family:var(--mono);font-size:13.5px;background:var(--papel);border-radius:10px;padding:12px 14px;overflow-x:auto;line-height:1.5}
+.tabla{width:100%;border-collapse:collapse;font-size:16px;background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;overflow:hidden}
+.tabla th,.tabla td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--punto)}
+.tabla th{font-family:var(--mono);font-size:13px;color:var(--suave);font-weight:600}
+.tabla td.num{font-family:var(--mono)}
+.si{color:var(--sale);font-weight:700}.casi{color:#B97F0E;font-weight:700}.no{color:var(--llega);font-weight:700}
+</style>
+</head>
+<body data-pagina="prototipos" data-base="../../../">
+<header id="menu"></header>
+<main>
+<a class="volver" href="../../index.html">← Todos los prototipos</a>
+<p class="ceja">Prototipo P03 · Avance 1 · Google Colab</p>
+<h1>¿Qué tan rápido <em>va</em> el robot? <strong>Antes de comprar</strong></h1>
+<div class="chips">
+  <span class="chip">Fase I (adelanto de P03)</span>
+  <span class="chip">Google Colab · Python</span>
+  <span class="chip aviso">Estimado, falta medir</span>
+  <span class="chip">11 nov 2026</span>
+</div>
+
+<p class="frase">Cada vuelta de la rueda avanza 20,4 cm. El motor dice cuántas vueltas da por minuto. Multiplicamos y sale la velocidad.</p>
+
+<section aria-labelledby="t-barras">
+  <h2 id="t-barras">Los tres motores contra la meta</h2>
+  <p class="bajada">La franja violeta es la velocidad que pide el requisito RNF-03: entre 0,35 y 0,6 m/s.</p>
+  <div class="mesa">
+    <svg viewBox="0 0 780 330" role="img" aria-label="Velocidad de los motores de 100, 130 y 170 rpm. En el papel: 0,34, 0,44 y 0,58 m/s. En el robot, estimado: 0,20, 0,27 y 0,35 m/s. Meta entre 0,35 y 0,6 m/s.">
+      <rect x="440" y="20" width="214" height="270" fill="#6B4EE6" opacity=".12"/>
+      <line x1="440" y1="20" x2="440" y2="290" stroke="#6B4EE6" stroke-width="2" stroke-dasharray="5 4"/>
+      <line x1="654" y1="20" x2="654" y2="290" stroke="#6B4EE6" stroke-width="2" stroke-dasharray="5 4"/>
+      <text x="547" y="14" text-anchor="middle" font-size="13" fill="#6B4EE6" font-weight="700">META RNF-03</text>
+
+      <!-- 100 rpm -->
+      <text x="20" y="66" font-size="20" font-weight="700" fill="#14213D">100 rpm</text>
+      <rect x="140" y="38" width="291" height="24" rx="5" fill="#0F9D84"/>
+      <text x="438" y="56" font-size="14" fill="#14213D" font-family="JetBrains Mono">0,34</text>
+      <rect x="140" y="66" width="175" height="24" rx="5" fill="#F2603D"/>
+      <text x="322" y="84" font-size="14" fill="#14213D" font-family="JetBrains Mono">0,20</text>
+
+      <!-- 130 rpm -->
+      <text x="20" y="156" font-size="20" font-weight="700" fill="#14213D">130 rpm</text>
+      <rect x="140" y="128" width="379" height="24" rx="5" fill="#0F9D84"/>
+      <text x="526" y="146" font-size="14" fill="#14213D" font-family="JetBrains Mono">0,44</text>
+      <rect x="140" y="156" width="227" height="24" rx="5" fill="#F2603D"/>
+      <text x="374" y="174" font-size="14" fill="#14213D" font-family="JetBrains Mono">0,27</text>
+
+      <!-- 170 rpm -->
+      <text x="20" y="246" font-size="20" font-weight="700" fill="#14213D">170 rpm</text>
+      <rect x="140" y="218" width="496" height="24" rx="5" fill="#0F9D84"/>
+      <text x="643" y="236" font-size="14" fill="#14213D" font-family="JetBrains Mono">0,58</text>
+      <rect x="140" y="246" width="297" height="24" rx="5" fill="#F2603D"/>
+      <text x="444" y="264" font-size="14" fill="#14213D" font-family="JetBrains Mono">0,35</text>
+
+      <!-- eje -->
+      <line x1="140" y1="296" x2="740" y2="296" stroke="#14213D" stroke-width="2"/>
+      <g font-size="13" fill="#4A5A73" font-family="JetBrains Mono" text-anchor="middle">
+        <text x="140" y="316">0</text><text x="226" y="316">0,1</text><text x="311" y="316">0,2</text><text x="397" y="316">0,3</text>
+        <text x="483" y="316">0,4</text><text x="569" y="316">0,5</text><text x="654" y="316">0,6</text><text x="740" y="316">0,7 m/s</text>
+      </g>
+    </svg>
+    <div class="leyenda">
+      <span style="--c:#0F9D84">En el papel: 12 V y sin peso (lo que corriste en Colab)</span>
+      <span style="--c:#F2603D">En el robot: estimado con batería, L298N y peso</span>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="t-hallazgo">
+  <div class="aviso-grande">
+    <h3 id="t-hallazgo">Lo que descubrimos</h3>
+    <p>El número del fabricante es con 12 V y el motor sin peso. En el robot al motor le llegan unos 9 V (la batería da 11 V y el L298N se come 2 V) y además carga el peso del robot. Por eso va más lento.</p>
+    <p><b>Con 130 rpm el robot quedaría en 0,27 m/s, por debajo de la meta.</b> Con 170 rpm queda justo en 0,35 m/s. Un motor rápido se puede frenar con el código (PWM); uno lento no se puede acelerar.</p>
+  </div>
+</section>
+
+<section aria-labelledby="t-ideas">
+  <h2 id="t-ideas">Las ideas clave</h2>
+  <div class="rejilla">
+    <div class="tarjeta idea"><span class="nivel">Concepto</span><h3>La rueda es una regla</h3><p>En una vuelta la rueda avanza lo que mide su borde: pi por el diámetro.</p><span class="cuenta">3,14 × 65 mm = 20,4 cm</span></div>
+    <div class="tarjeta idea"><span class="nivel">Concepto</span><h3>rpm = vueltas por minuto</h3><p>Se divide entre 60 para saber cuántas vueltas da en un segundo.</p><span class="cuenta">130 rpm ÷ 60 = 2,2 vueltas/s</span></div>
+    <div class="tarjeta idea"><span class="nivel">Concepto</span><h3>El papel es optimista</h3><p>Menos voltios y más peso hacen que el motor gire más lento de lo que dice la caja.</p><span class="cuenta">× 9/12 × 0,8 ≈ 60 %</span></div>
+  </div>
+</section>
+
+<section aria-labelledby="t-tabla">
+  <h2 id="t-tabla">Comparación rápida</h2>
+  <p class="bajada">Con el TB6612FNG se pierde menos voltaje (al motor llegan unos 10,6 V).</p>
+  <table class="tabla">
+    <thead><tr><th>Motor</th><th>Papel</th><th>Robot con L298N</th><th>Robot con TB6612FNG</th></tr></thead>
+    <tbody>
+      <tr><td>100 rpm</td><td class="num">0,34</td><td class="num no">0,20 ✗</td><td class="num no">0,24 ✗</td></tr>
+      <tr><td>130 rpm</td><td class="num">0,44</td><td class="num no">0,27 ✗</td><td class="num casi">0,31 casi</td></tr>
+      <tr><td>170 rpm</td><td class="num">0,58</td><td class="num casi">0,35 justo</td><td class="num si">0,41 ✓</td></tr>
+    </tbody>
+  </table>
+  <p class="suave" style="font-size:15px">Todo en m/s. Son estimados: el 80 % por peso es un supuesto que se confirma midiendo con el encoder en P03.</p>
+</section>
+
+<section aria-labelledby="t-evidencia">
+  <h2 id="t-evidencia">Evidencia</h2>
+  <p class="bajada">Primera celda corrida en Google Colab el 11 de noviembre de 2026.</p>
+  <div class="mesa"><img class="captura" src="evidencias/01-colab-velocidad-papel.png" alt="Celda de Colab con el cálculo y el resultado: 100 rpm 0,34 m/s, 130 rpm 0,44 m/s, 170 rpm 0,58 m/s"></div>
+  <details>
+    <summary>Ver el código (2 celdas)</summary>
+<pre>import math
+
+# Celda 1: en el papel (12 V, sin peso)
+diametro_rueda = 0.065   # metros (65 mm)
+
+for rpm in [100, 130, 170]:
+    velocidad = math.pi * diametro_rueda * rpm / 60
+    print(rpm, "rpm  ->", round(velocidad, 2), "m/s")
+
+# Celda 2: estimado en el robot
+voltaje_motor = 9      # con L298N
+voltaje_nominal = 12
+por_peso = 0.8
+
+for rpm in [100, 130, 170]:
+    papel = math.pi * diametro_rueda * rpm / 60
+    robot = papel * (voltaje_motor / voltaje_nominal) * por_peso
+    print(rpm, "rpm  ->", round(robot, 2), "m/s en el robot")</pre>
+    <p style="font-size:15px">Archivo: <a href="velocidad.py">velocidad.py</a></p>
+  </details>
+</section>
+
+<section aria-labelledby="t-sigue">
+  <h2 id="t-sigue">Qué sigue</h2>
+  <div class="filas">
+    <div class="fila"><span class="chip aviso">13 nov</span><div><b>Elegir la versión del motor y pedirla</b><br><span class="suave">Recomendado: 170 rpm.</span></div><span></span></div>
+    <div class="fila"><span class="chip pendiente">Semana 6</span><div><b>P03: medir la velocidad real con el encoder</b><br><span class="suave">Ahí se reemplaza el 80 % supuesto por el valor medido.</span></div><span></span></div>
+  </div>
+</section>
+</main>
+<footer id="pie"></footer>
+<script src="../../../datos/proyecto.js"></script>
+<script src="../../../assets/sitio.js"></script>
+</body>
+</html>

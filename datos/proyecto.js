@@ -48,7 +48,7 @@ window.TG = {
     { codigo: "P01", nombre: "Así se hablan el robot y la app", tema: "MQTT", semana: 3, estado: "hecho", url: "prototipos/P01-mqtt-base/" },
     { codigo: "H0", nombre: "Wi-Fi del laboratorio", tema: "Red", semana: 4, estado: "pendiente" },
     { codigo: "P02", nombre: "Los sentidos del robot", tema: "Sensores", semana: 5, estado: "pendiente" },
-    { codigo: "P03", nombre: "Motores que van parejo", tema: "PID", semana: 6, estado: "pendiente" },
+    { codigo: "P03", nombre: "Motores que van parejo", tema: "PID", semana: 6, estado: "pendiente", url: "prototipos/P03-motores/avance-01-colab/" },
     { codigo: "P04", nombre: "¿BLE o QR?", tema: "Ubicación", semana: 7, estado: "pendiente" },
     { codigo: "P05", nombre: "Robot virtual y puente", tema: "Firebase", semana: 9, estado: "pendiente" },
     { codigo: "P06", nombre: "Primera versión de la app", tema: "Flutter", semana: 10, estado: "pendiente" },
@@ -85,7 +85,7 @@ window.TG = {
     { id: "RF-11", tipo: "RF", texto: "Pedir usuario para entrar a la app", criterio: "Solo usuarios autorizados hacen pedidos", valida: ["P06"], estado: "pendiente", nota: "Definir roles en la entrevista" },
     { id: "RNF-01", tipo: "RNF", texto: "Bajo costo", criterio: "Total ≤ US$ ? (compras proyectadas: unos US$ 90, más lo que preste el laboratorio)", valida: ["Lista v1"], estado: "pendiente" },
     { id: "RNF-02", tipo: "RNF", texto: "Autonomía", criterio: "≥ ? min de trabajo continuo", valida: ["Entrevista"], estado: "pendiente" },
-    { id: "RNF-03", tipo: "RNF", texto: "Velocidad", criterio: "Entre 0,35 y 0,6 m/s", valida: ["P03"], estado: "pendiente", nota: "Motores de 100 a 170 rpm con ruedas de 65 mm" },
+    { id: "RNF-03", tipo: "RNF", texto: "Velocidad", criterio: "Entre 0,35 y 0,6 m/s", valida: ["P03"], estado: "pendiente", nota: "Cálculo en Colab: con L298N y peso, 130 rpm daría ~0,27 m/s y 170 rpm ~0,35 m/s. Ver P03 avance 1" },
     { id: "RNF-04", tipo: "RNF", texto: "Comunicación confiable", criterio: "0 pedidos perdidos; confirmación en ≤ ? s con el ESP32 real", valida: ["P01"], estado: "pendiente", nota: "En simulación: 0 perdidos, promedio 4,1 s con VPN" },
     { id: "RNF-05", tipo: "RNF", texto: "Seguridad de la comunicación", criterio: "Broker privado con usuario, contraseña y TLS para las pruebas finales", valida: ["Fase VI"], estado: "pendiente" },
     { id: "RNF-06", tipo: "RNF", texto: "Funcionar en la red del laboratorio", criterio: "El ESP32 llega al broker desde el Wi-Fi de la UCAB", valida: ["H0"], estado: "pendiente" },
@@ -118,7 +118,7 @@ window.TG = {
      estado: "por pedir" | "por comprar" | "preguntar al lab" | "corregido" | "abierta" | "listo" */
   materiales: [
     { componente: "Microcontrolador", eleccion: "ESP32-WROOM-32, DevKit de 30 pines", alternativa: "DevKit de 38 pines", porque: "Mismo chip que en Wokwi; 8 entradas analógicas ADC1", estado: "abierta", cuando: "Fase II (mapa de pines)" },
-    { componente: "Motores", eleccion: "JGA25-370, 12 V, con encoder, 100 a 170 rpm", alternativa: "Otra RPM del mismo modelo", porque: "Velocidad de 0,35 a 0,6 m/s; el encoder permite la odometría", estado: "por pedir", cuando: "Esta semana (Amazon)" },
+    { componente: "Motores", eleccion: "JGA25-370, 12 V, con encoder, 170 rpm (recomendado)", alternativa: "130 rpm si se usa TB6612FNG o se baja la meta de velocidad", porque: "Con batería, L298N y peso, 170 rpm llega a ~0,35 m/s; 130 rpm se queda en ~0,27. El encoder permite la odometría", estado: "por pedir", cuando: "Esta semana (Amazon)" },
     { componente: "Driver", eleccion: "L298N", alternativa: "TB6612FNG", porque: "El L298N pierde cerca de 2 V; el TB6612FNG es más eficiente pero aguanta poco más de 1 A por motor", estado: "abierta", cuando: "Con la corriente de arranque del motor" },
     { componente: "Batería", eleccion: "3 × 18650 de marca, en serie (3S)", alternativa: "LiPo 3S", porque: "Capacidad real y repuestos fáciles", estado: "por comprar", cuando: "Antes de fin de noviembre" },
     { componente: "BMS", eleccion: "3S con balanceo, ≥ 10 A", alternativa: "", porque: "Protege y equilibra las celdas", estado: "por comprar", cuando: "Antes de fin de noviembre" },
@@ -173,6 +173,7 @@ window.TG = {
       decision: "ESP32-WROOM-32 para el robot.",
       porque: "Es igual al de Wokwi, tiene Bluetooth (el S2 no) y suficientes pines (el C3 no).",
       evidencia: "hardware.html" },
+    { fecha: "", titulo: "Motores de 130 o 170 rpm", estado: "abierta", decision: "", porque: "El cálculo en Colab muestra que con 130 rpm el robot no llega a 0,35 m/s. Recomendado: 170 rpm (se frena con PWM). Hay que pedirlos el 13 nov.", evidencia: "prototipos/P03-motores/avance-01-colab/" },
     { fecha: "", titulo: "Placa de 30 o 38 pines", estado: "abierta", decision: "", porque: "Se decide con el mapa de pines en la Fase II.", evidencia: "" },
     { fecha: "", titulo: "Driver L298N o TB6612FNG", estado: "abierta", decision: "", porque: "Depende de la corriente de arranque de los motores.", evidencia: "" },
     { fecha: "", titulo: "Re-localización con BLE o con QR", estado: "abierta", decision: "", porque: "Se decide con la prueba P04 en la Fase II.", evidencia: "" },
@@ -182,8 +183,8 @@ window.TG = {
   /* Una entrada por semana, la más nueva primero */
   bitacora: [
     { semana: 3, fechas: "9 al 13 nov 2026",
-      hicimos: ["Plan de prototipos ajustado al cronograma", "Repositorio y sitio en GitHub", "Banco de pruebas en el navegador", "P01 cerrado: 7 de 7 pruebas, 50 de 50 pedidos"],
-      aprendimos: ["QoS 1 necesita sesión persistente para no perder pedidos", "PubSubClient solo publica con QoS 0", "Wokwi no conecta con Proton VPN gratis; con el VPN de Opera sí"],
+      hicimos: ["Plan de prototipos ajustado al cronograma", "Repositorio y sitio en GitHub", "Banco de pruebas en el navegador", "P01 cerrado: 7 de 7 pruebas, 50 de 50 pedidos", "Primera simulación en Google Colab: <a href=\"prototipos/P03-motores/avance-01-colab/\">velocidad de los motores</a>"],
+      aprendimos: ["QoS 1 necesita sesión persistente para no perder pedidos", "PubSubClient solo publica con QoS 0", "Wokwi no conecta con Proton VPN gratis; con el VPN de Opera sí", "Las rpm de la caja son con 12 V y sin peso; en el robot el motor va cerca de 40 % más lento"],
       sigue: ["Entrevistas en el laboratorio", "Pedir los motores", "Documento de requerimientos"] }
   ]
 };
