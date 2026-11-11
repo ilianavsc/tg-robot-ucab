@@ -80,6 +80,23 @@ footer{border-top:2px solid var(--tinta);padding-top:18px;font-size:15px;color:v
   .prueba .mini{grid-column:2;width:100%;height:110px}
 }
 @media (prefers-reduced-motion:reduce){button{transition:none}}
+.banco-link{display:block;text-decoration:none;color:var(--tinta);background:var(--tinta);color:var(--blanco);border-radius:18px;padding:22px 26px;box-shadow:6px 6px 0 var(--sale)}
+.banco-link .ceja{color:#B9C4D6}
+.banco-link h2{color:var(--blanco)}
+.banco-link:hover{transform:translate(-2px,-2px)}
+.codigo{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.pieza{background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;padding:16px 18px}
+.pieza .nivel{font-family:var(--mono);font-weight:600;font-size:13px;color:var(--qos)}
+.pieza p{margin:6px 0 10px;font-size:16px}
+.pieza pre{margin:0;background:var(--tinta);color:#E2F4F0;border-radius:10px;padding:10px 12px;font-family:var(--mono);font-size:12.5px;overflow-x:auto}
+.prueba.pend .marca{font-size:14px;font-family:var(--mono)}
+.prueba .marca{font-size:15px;font-family:var(--mono)}
+details.v1{margin-top:16px}
+.galeria{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.archivos{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.archivos li{background:var(--blanco);border-radius:12px;padding:10px 16px;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline}
+.archivos a,.archivos span{font-family:var(--mono);font-size:14px}
+.archivos small{color:var(--suave);font-size:14px}
 </style>
 </head>
 <body data-pagina="prototipos" data-base="../../">
@@ -92,7 +109,7 @@ footer{border-top:2px solid var(--tinta);padding-top:18px;font-size:15px;color:v
   <span class="chip">Fase I</span>
   <span class="chip">Simulado en Wokwi</span>
   <span class="chip pend">En pruebas</span>
-  <span class="chip">10 nov 2026</span>
+  <span class="chip">Versión 2 · 11 nov 2026</span>
 </div>
 
 <p class="frase">El robot y la app nunca se hablan directo: los dos le entregan sus mensajes a un cartero central (el broker), y él los reparte a quien los esté esperando.</p>
@@ -166,28 +183,72 @@ footer{border-top:2px solid var(--tinta);padding-top:18px;font-size:15px;color:v
   </ul>
 </section>
 
+<section aria-labelledby="t-banco">
+  <a class="banco-link" href="banco.html">
+    <span class="ceja" style="margin:0">Herramienta</span>
+    <h2 id="t-banco" style="margin:2px 0 4px">Pruébalo tú: banco de pruebas →</h2>
+    <p style="margin:0">Una página que se conecta al mismo cartero, envía pedidos, cuenta las respuestas del robot y mide cuánto tardan. Ábrela al lado de Wokwi.</p>
+  </a>
+</section>
+
+<section aria-labelledby="t-codigo">
+  <h2 id="t-codigo">El código explicado</h2>
+  <p class="bajada">El programa del ESP32 tiene 6 partes. Cada tarjeta dice qué hace esa parte, en simple.</p>
+  <div class="codigo">
+    <div class="pieza"><span class="nivel">1 · Red y broker</span><p>Le dice al robot a qué Wi-Fi conectarse y dónde está el cartero.</p><pre><code>const char* BROKER = "broker.hivemq.com";</code></pre></div>
+    <div class="pieza"><span class="nivel">2 · Buzones</span><p>Los nombres de los 5 tópicos. Todos empiezan igual para que sean solo nuestros.</p><pre><code>const char* T_ORDENES = "ucab-tg-sf/robot/ordenes";</code></pre></div>
+    <div class="pieza"><span class="nivel">3 · Memoria</span><p>Contadores de pedidos, estados y alarmas, y una fila de pedidos que faltan por confirmar.</p><pre><code>String idsPendientes[60];</code></pre></div>
+    <div class="pieza"><span class="nivel">4 · Al llegar un pedido</span><p>Lee el número del pedido y lo anota en la fila. No responde ahí mismo: responde en el ciclo principal, que es más seguro.</p><pre><code>String id = leerId(mensaje);</code></pre></div>
+    <div class="pieza"><span class="nivel">5 · Conectarse</span><p>Se conecta, avisa "en línea" y deja su última voluntad: si desaparece, el cartero avisa "desconectado".</p><pre><code>mqtt.setWill(T_CONEXION, "desconectado", true, 1);</code></pre></div>
+    <div class="pieza"><span class="nivel">6 · Ciclo principal</span><p>Se repite sin parar: reconecta si hace falta, confirma pedidos, envía el estado cada 2 s y la alarma cuando escribes <b>a</b>.</p><pre><code>mqtt.publish(T_ALERTAS, alarma, false, 2);</code></pre></div>
+  </div>
+  <p class="nota" style="background:#E2F4F0">Cambio de la versión 2: la confirmación ahora devuelve el número del pedido (por ejemplo <code>P-0007</code>) y cada mensaje lleva un contador. Así se puede medir el tiempo de cada respuesta y detectar si algo se pierde o se repite.</p>
+</section>
+
 <section aria-labelledby="t-pruebas">
   <h2 id="t-pruebas">Qué probamos</h2>
-  <p class="bajada">Toca cada imagen para verla grande.</p>
-  <div class="pruebas">
-    <div class="prueba"><span class="marca" aria-label="Pasó">✓</span><p>El robot avisa cómo está cada 2 segundos<br><small>Llegan mensajes al buzón estado con QoS 0.</small></p><img class="mini" src="evidencias/01-estado-qos0-mqttx.png" alt="MQTTX recibiendo el estado del robot" data-pie="MQTTX recibe el estado del robot con QoS 0."></div>
-    <div class="prueba"><span class="marca" aria-label="Pasó">✓</span><p>Al conectarse, el robot dice "en línea"<br><small>Queda guardado en el buzón conexión.</small></p><img class="mini" src="evidencias/02-conexion-en-linea.jpg" alt="Mensaje en línea en MQTTX" data-pie="El robot avisa que está en línea."></div>
-    <div class="prueba"><span class="marca" aria-label="Pasó">✓</span><p>Si el robot se apaga, el cartero avisa "desconectado"<br><small>Es la última voluntad (LWT). Llegó en pocos segundos.</small></p><img class="mini" src="evidencias/03-lwt-desconectado.jpg" alt="Mensaje desconectado en MQTTX" data-pie="Al pausar Wokwi, el broker avisó solo que el robot se desconectó."></div>
-    <div class="prueba"><span class="marca" aria-label="Pasó">✓</span><p>El robot se vuelve a conectar solo<br><small>En Wokwi aparece dos veces "Conectando al broker... listo".</small></p><img class="mini" src="evidencias/04-wokwi-reconexion.png" alt="Monitor de Wokwi con reconexión" data-pie="El ESP32 simulado se reconecta al broker sin ayuda."></div>
-    <div class="prueba"><span class="marca" aria-label="Pasó">✓</span><p>El robot recibe un pedido<br><small>"Orden #1: Resistencia 1k, 5 unidades, estante A3".</small></p><img class="mini" src="evidencias/05-wokwi-orden-recibida.png" alt="Monitor de Wokwi mostrando la orden recibida" data-pie="El robot recibe el pedido enviado desde MQTTX."></div>
-    <div class="prueba"><span class="marca" aria-label="Pasó">✓</span><p>El robot confirma "recibí tu pedido"<br><small>Llega al buzón ordenes/ack y el estado pasa a 1 pedido.</small></p><img class="mini" src="evidencias/06-mqttx-orden-y-ack.png" alt="MQTTX con el pedido y la confirmación" data-pie="Pedido enviado (verde) y confirmación del robot con QoS 1."></div>
-    <div class="prueba pend"><span class="marca" aria-label="Pendiente">…</span><p>La alarma llega con entrega única (QoS 2)<br><small>Pendiente.</small></p></div>
-    <div class="prueba pend"><span class="marca" aria-label="Pendiente">…</span><p>50 pedidos seguidos sin perder ninguno<br><small>Pendiente.</small></p></div>
+  <p class="bajada">Siete pruebas, de la más simple a la más exigente. Toca cada imagen para verla grande.</p>
+  <div class="pruebas" id="lista-pruebas">
+    <div class="prueba pend"><span class="marca" aria-label="Pendiente">T1</span><p>El robot se conecta y avisa "en línea"<br><small>Pendiente.</small></p></div>
+    <div class="prueba pend"><span class="marca" aria-label="Pendiente">T2</span><p>Envía su estado cada 2 segundos (QoS 0)<br><small>Pendiente.</small></p></div>
+    <div class="prueba pend"><span class="marca" aria-label="Pendiente">T3</span><p>Recibe un pedido y lo confirma con su número (QoS 1)<br><small>Pendiente.</small></p></div>
+    <div class="prueba pend"><span class="marca" aria-label="Pendiente">T4</span><p>50 pedidos seguidos sin perder ninguno<br><small>Pendiente. Criterio: 50 de 50.</small></p></div>
+    <div class="prueba pend"><span class="marca" aria-label="Pendiente">T5</span><p>10 alarmas con entrega única (QoS 2)<br><small>Pendiente. Criterio: 10 recibidas, ninguna repetida.</small></p></div>
+    <div class="prueba pend"><span class="marca" aria-label="Pendiente">T6</span><p>Si el robot se apaga, el cartero avisa "desconectado"<br><small>Pendiente. Criterio: en menos de 30 s.</small></p></div>
+    <div class="prueba pend"><span class="marca" aria-label="Pendiente">T7</span><p>El robot vuelve y se reconecta solo<br><small>Pendiente.</small></p></div>
   </div>
-  <p class="nota">Ojo: la confirmación tardó unos 8 segundos. Es por el simulador, que corre más lento que la realidad. El tiempo real lo medimos con el ESP32 físico.</p>
+  <details class="v1">
+    <summary>Primera versión (10 nov 2026)</summary>
+    <p>La primera prueba se hizo con MQTTX. Pasaron el estado, el aviso "en línea", el aviso "desconectado", la reconexión y un pedido con su confirmación (tardó unos 8 s por el simulador).</p>
+    <div class="galeria">
+      <img class="mini" src="evidencias/v1/01-estado-qos0-mqttx.png" alt="MQTTX recibiendo el estado del robot" data-pie="Versión 1: MQTTX recibe el estado del robot con QoS 0.">
+      <img class="mini" src="evidencias/v1/02-conexion-en-linea.jpg" alt="Mensaje en línea en MQTTX" data-pie="Versión 1: el robot avisa que está en línea.">
+      <img class="mini" src="evidencias/v1/03-lwt-desconectado.jpg" alt="Mensaje desconectado en MQTTX" data-pie="Versión 1: al pausar Wokwi, el broker avisó que el robot se desconectó.">
+      <img class="mini" src="evidencias/v1/04-wokwi-reconexion.png" alt="Monitor de Wokwi con reconexión" data-pie="Versión 1: el ESP32 se reconecta solo.">
+      <img class="mini" src="evidencias/v1/05-wokwi-orden-recibida.png" alt="Monitor de Wokwi con la orden recibida" data-pie="Versión 1: el robot recibe el pedido.">
+      <img class="mini" src="evidencias/v1/06-mqttx-orden-y-ack.png" alt="MQTTX con el pedido y la confirmación" data-pie="Versión 1: pedido y confirmación con QoS 1.">
+    </div>
+  </details>
 </section>
 
 <section aria-labelledby="t-falta">
   <h2 id="t-falta">Lo que falta</h2>
   <div class="falta">
-    <div><h3>En el simulador</h3><ul><li>Probar la alarma con QoS 2.</li><li>Enviar 50 pedidos seguidos y contar que lleguen los 50.</li></ul></div>
+    <div><h3>En el simulador</h3><ul><li>Hacer las 7 pruebas de la versión 2 con el banco de pruebas.</li><li>Guardar capturas, GIF y el archivo CSV de resultados.</li></ul></div>
     <div><h3>Con el robot real</h3><ul><li>Medir el tiempo real entre pedido y confirmación.</li><li>Conectarse desde el Wi-Fi del laboratorio.</li><li>Usar un cartero privado, con clave, para las pruebas finales.</li></ul></div>
   </div>
+</section>
+
+<section aria-labelledby="t-archivos">
+  <h2 id="t-archivos">Archivos</h2>
+  <ul class="archivos">
+    <li><a href="codigo/sketch.ino">codigo/sketch.ino</a><small>El programa del ESP32, versión 2</small></li>
+    <li><a href="codigo/diagram.json">codigo/diagram.json</a><small>La placa en Wokwi</small></li>
+    <li><a href="codigo/libraries.txt">codigo/libraries.txt</a><small>Librería usada: MQTT de Joel Gaehwiler</small></li>
+    <li><a href="banco.html">banco.html</a><small>El banco de pruebas</small></li>
+    <li><a href="codigo/v1/sketch.ino">codigo/v1/sketch.ino</a><small>El programa de la versión 1</small></li>
+    <li><span>Proyecto en Wokwi</span><small>Enlace pendiente</small></li>
+  </ul>
 </section>
 
 <section>
@@ -195,12 +256,12 @@ footer{border-top:2px solid var(--tinta);padding-top:18px;font-size:15px;color:v
     <summary>Para los curiosos: lo técnico</summary>
     <ul>
       <li>Placa: ESP32 DevKit C v4 simulada en Wokwi, red <code>Wokwi-GUEST</code>.</li>
-      <li>Broker: <code>broker.hivemq.com</code>, puerto 1883 (público, solo para desarrollo).</li>
+      <li>Broker: <code>broker.hivemq.com</code>, puerto 1883 para el ESP32 y 8884 (WebSocket seguro) para el banco de pruebas. Es público: solo para desarrollo.</li>
       <li>Librería: <code>MQTT</code> de Joel Gaehwiler. Se descartó PubSubClient porque solo publica con QoS 0.</li>
       <li>Keep alive de 10 s y última voluntad en <code>robot/conexion</code> con QoS 1 y retenido.</li>
-      <li>Cliente de prueba: MQTTX suscrito a <code>ucab-tg-sf/robot/#</code> con QoS 2.</li>
+      <li>El tiempo de respuesta se mide en el banco: desde que sale el pedido hasta que llega su confirmación (ida y vuelta).</li>
     </ul>
-    <p>Código: <a href="codigo/sketch.ino">sketch.ino</a> · Ficha completa: <a href="README.md">README.md</a></p>
+    <p>Ficha completa: <a href="README.md">README.md</a></p>
   </details>
 </section>
 

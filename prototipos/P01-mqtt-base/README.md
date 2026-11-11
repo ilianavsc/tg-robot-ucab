@@ -1,72 +1,70 @@
 # P01 MQTT base
 
 **Fase:** I (Revisión y levantamiento)
-**Responsable:** Iliana Semprun
+**Responsables:** Iliana Semprun y Andrea Ferrer
 **Tarea en GitHub:** #2
-**Fecha:** 10/11/2026
+**Versión:** 2 (11/11/2026). Versión 1: 10/11/2026.
 
-👉 **Versión visual y fácil de entender:** [index.html](index.html) (o en GitHub Pages: https://ilianavsc.github.io/tg-robot-ucab/prototipos/P01-mqtt-base/)
+👉 **Versión visual:** [index.html](index.html) · **Banco de pruebas:** [banco.html](banco.html)
+
+## En una frase
+El robot y la app nunca se hablan directo: los dos le entregan sus mensajes a un cartero central (el broker), y él los reparte a quien los esté esperando.
+
+## La comparación
+MQTT funciona como un correo: hay buzones con nombre (tópicos), cartas normales (QoS 0), certificadas (QoS 1) y de entrega única (QoS 2), y una carta firmada que el cartero entrega si el robot desaparece (última voluntad, LWT).
 
 ## 1. Objetivo
-Comunicar el ESP32 con el broker MQTT. Es la base de todo el sistema: por aquí viajan el estado del robot, las órdenes de la app y las alertas.
+Comunicar el ESP32 con el broker MQTT. Es la base de todo el sistema: por aquí viajan el estado del robot, los pedidos de la app y las alarmas.
 
 ## 2. Requisito que valida
-- El robot recibe órdenes y confirma que las recibió.
+- El robot recibe pedidos y confirma cada uno con su número.
 - El robot informa su estado de forma periódica.
 - El sistema sabe cuándo el robot se desconecta.
-- Las alertas viajan con la máxima garantía de entrega (QoS 2).
+- Las alarmas llegan una sola vez (QoS 2).
 
-## 3. Simulador y enlace
-- **Wokwi** (ESP32 DevKit C v4, red `Wokwi-GUEST`). Proyecto: `P01-mqtt-base` (pegar aquí el enlace de Wokwi)
-- **Broker:** `broker.hivemq.com`, puerto 1883 (público, solo para desarrollo)
-- **Cliente de prueba:** MQTTX, suscrito a `ucab-tg-sf/robot/#` con QoS 2
-- **Librería:** `MQTT` de Joel Gaehwiler (soporta QoS 0, 1 y 2). Se descartó PubSubClient porque solo publica con QoS 0.
+## 3. Simulador y herramientas
+- **Wokwi:** ESP32 DevKit C v4, red `Wokwi-GUEST`. Enlace del proyecto: (pendiente)
+- **Broker:** `broker.hivemq.com`, puerto 1883 (ESP32) y 8884 WebSocket seguro (banco). Público, solo para desarrollo.
+- **Banco de pruebas:** [banco.html](banco.html), en el navegador. Envía pedidos, cuenta respuestas, mide tiempos y descarga CSV.
+- **Librería:** `MQTT` de Joel Gaehwiler (QoS 0, 1 y 2). Se descartó PubSubClient porque solo publica con QoS 0.
 
-Código en `codigo/` (`sketch.ino`, `diagram.json`, `libraries.txt`).
+Código en `codigo/`: `sketch.ino` (versión 2), `diagram.json`, `libraries.txt`. La versión 1 está en `codigo/v1/`.
 
-## 4. Cómo se prueba
+## 4. Cómo se prueba (protocolo)
 1. Abrir el proyecto en Wokwi y presionar ▶️.
-2. En MQTTX, conectarse a `broker.hivemq.com:1883` y suscribirse a `ucab-tg-sf/robot/#` con QoS 2.
-3. Ver que llegue el estado cada 2 s.
-4. Publicar en `ucab-tg-sf/robot/ordenes` con QoS 1:
-   `{"id":"P-0001","componente":"Resistencia 1k","cantidad":5,"estante":"A3"}`
-5. Ver la confirmación en `ucab-tg-sf/robot/ordenes/ack`.
-6. Detener o pausar la simulación y ver el aviso `desconectado` en `ucab-tg-sf/robot/conexion`.
-7. Escribir `a` en el monitor de Wokwi y ver la alerta en `ucab-tg-sf/robot/alertas`.
+2. Abrir el banco de pruebas y tocar **Conectar al broker**.
+3. Hacer las pruebas T1 a T7 en orden y guardar las evidencias en `evidencias/`.
 
-Tópicos usados: ver `docs/arquitectura/topicos-mqtt.md`.
+## 5. Criterios de éxito
+| Prueba | Qué se mide | Criterio |
+|---|---|---|
+| T1 | Aviso "en línea" al conectar | Llega con QoS 1 y retenido |
+| T2 | Estado periódico (QoS 0) | Uno cada 2 s aprox. (en Wokwi puede ser más lento) |
+| T3 | Un pedido y su confirmación (QoS 1) | La confirmación trae el mismo número de pedido |
+| T4 | 50 pedidos seguidos | 50 de 50 confirmados |
+| T5 | 10 alarmas (QoS 2) | 10 recibidas, ninguna repetida |
+| T6 | Aviso "desconectado" (LWT) | En menos de 30 s |
+| T7 | Reconexión | Vuelve a decir "en línea" solo |
 
-## 5. Criterio de éxito
-- Se envían 50 órdenes con QoS 1 y llegan las 50.
-- Al detener la simulación aparece "desconectado" en menos de 30 s.
-- La alerta llega con QoS 2.
-
-## 6. Resultado
-
+## 6. Resultado (versión 2)
 | Prueba | Resultado | Evidencia |
 |---|---|---|
-| Estado periódico con QoS 0 | ✅ Pasó | `01-estado-qos0-mqttx.png` |
-| Aviso "en linea" al conectar (retenido, QoS 1) | ✅ Pasó | `02-conexion-en-linea.jpg` |
-| Aviso "desconectado" (LWT) al pausar la simulación | ✅ Pasó (llegó en pocos segundos) | `03-lwt-desconectado.jpg` |
-| Reconexión automática al broker | ✅ Pasó | `04-wokwi-reconexion.png` |
-| Orden recibida con QoS 1 | ✅ Pasó | `05-wokwi-orden-recibida.png` |
-| Confirmación (ack) con QoS 1 y estado actualizado | ✅ Pasó | `06-mqttx-orden-y-ack.png` |
-| Alerta con QoS 2 | ⏳ Pendiente | |
-| 50 órdenes seguidas sin pérdida | ⏳ Pendiente | |
+| T1 a T7 | ⏳ Pendientes | |
 
-**Observación:** la confirmación llegó unos 8 s después de la orden. Wokwi corre más lento que el tiempo real, así que este tiempo no representa al robot real.
+**Versión 1 (10/11/2026):** pasaron estado, "en línea", "desconectado", reconexión y un pedido con confirmación. Evidencias en `evidencias/v1/`. La confirmación tardó unos 8 s porque Wokwi corre más lento que el tiempo real.
 
 ## 7. Qué se reutiliza en el robot real
 - El árbol de tópicos y su QoS.
-- Las funciones de conexión, reconexión y última voluntad (LWT).
-- La forma de recibir órdenes y confirmarlas.
+- Las funciones de conexión, reconexión y última voluntad.
+- La forma de recibir pedidos y confirmarlos con su número.
+- El banco de pruebas, que sirve igual con el ESP32 físico.
 
 ## 8. Qué falta validar con hardware
-- Tiempo real de respuesta (orden → confirmación) con el ESP32 físico.
-- Conexión desde el Wi‑Fi del laboratorio (H0).
-- Cambiar a un broker privado con usuario, contraseña y TLS para las pruebas finales.
+- Tiempo real de respuesta (pedido → confirmación) con el ESP32 físico.
+- Conexión desde el Wi-Fi del laboratorio (H0).
+- Broker privado con usuario, contraseña y TLS para las pruebas finales.
 
 ## 9. Para el tomo
 - Tabla de tópicos y QoS (arquitectura de comunicación).
-- Tabla de resultados de esta ficha.
-- Capturas de MQTTX como figuras de la validación de la comunicación.
+- Tabla de criterios y resultados de esta ficha.
+- Gráfica de tiempos de los 50 pedidos (sale del banco de pruebas) y el CSV.

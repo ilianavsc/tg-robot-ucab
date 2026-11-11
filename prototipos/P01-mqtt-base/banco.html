@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P01 · Banco de pruebas MQTT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/estilo.css">
+<style>
+.volver{font-size:15px;text-decoration:none;color:var(--suave)}
+button{font-family:var(--texto);font-weight:700;font-size:16px;padding:10px 16px;border-radius:12px;border:2px solid var(--tinta);background:var(--blanco);color:var(--tinta);cursor:pointer}
+button:hover{transform:translateY(-1px)}
+button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+button.principal{background:var(--tinta);color:var(--blanco)}
+button.llega{background:var(--llega);border-color:var(--llega);color:var(--blanco)}
+.barra-con{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.luz{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:14px;padding:6px 12px;border-radius:999px;background:var(--blanco);border:1.5px solid var(--punto)}
+.luz i{width:10px;height:10px;border-radius:50%;background:#B8C3CF}
+.luz.ok i{background:var(--sale)} .luz.mal i{background:var(--llega)} .luz.espera i{background:var(--pend)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.tile .num{font-family:var(--display);font-weight:700;font-size:38px;line-height:1.05}
+.tile .num small{font-size:15px;font-weight:500;color:var(--suave)}
+.tile p{margin:2px 0 0;font-size:14px;color:var(--suave)}
+.prueba{display:grid;gap:12px}
+.prueba .cab{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:baseline}
+.campos{display:flex;flex-wrap:wrap;gap:14px;align-items:end}
+.campos label{font-size:14px;color:var(--suave);display:grid;gap:4px}
+.campos input{font-family:var(--mono);font-size:15px;padding:8px 10px;border-radius:10px;border:2px solid var(--tinta);width:120px}
+.progreso{height:12px;border-radius:999px;background:var(--papel);overflow:hidden;border:1.5px solid var(--punto)}
+.progreso div{height:100%;width:0;background:var(--qos);transition:width .2s}
+.resultado{font-family:var(--display);font-size:22px;font-weight:500;margin:0}
+.resultado b{color:var(--sale)} .resultado b.mal{color:var(--llega)}
+.grafica svg{width:100%;height:auto;display:block}
+.registro{font-family:var(--mono);font-size:13px;min-height:60px;max-height:340px;overflow:auto;background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;padding:6px 0}
+.registro div{display:grid;grid-template-columns:96px 200px 1fr;gap:10px;padding:5px 14px;border-bottom:1px solid var(--papel)}
+.registro .tp{font-weight:600}
+.ayuda{background:var(--pend);border-radius:12px;padding:10px 14px;font-size:15px;margin:0}
+.paso{font-family:var(--mono);font-size:13px;color:var(--suave)}
+@media (max-width:640px){.registro div{grid-template-columns:1fr}}
+</style>
+</head>
+<body data-pagina="prototipos" data-base="../../">
+<header id="menu"></header>
+<main>
+<a class="volver" href="index.html">← Volver a P01</a>
+<p class="ceja">Prototipo P01 · Banco de pruebas</p>
+<h1>Probar el robot <em>desde el navegador</em></h1>
+<p class="bajada">Abre esta página al lado de Wokwi. Se conecta al mismo cartero (broker HiveMQ), envía pedidos, escucha todo lo que dice el robot y mide los tiempos. Al final descargas los resultados para el tomo.</p>
+
+<section>
+  <div class="tarjeta sombra barra-con">
+    <button class="principal" id="b-conectar" type="button">Conectar al broker</button>
+    <span class="luz" id="luz-broker"><i></i>Banco: sin conectar</span>
+    <span class="luz" id="luz-robot"><i></i>Robot: sin datos</span>
+  </div>
+</section>
+
+<section aria-labelledby="t-vivo">
+  <h2 id="t-vivo">En vivo</h2>
+  <div class="tiles">
+    <div class="tarjeta tile"><div class="num" id="n-estado">0</div><p>mensajes de estado (QoS 0)</p><p id="ritmo">ritmo: sin datos</p></div>
+    <div class="tarjeta tile"><div class="num" id="n-pedidos">0 <small>/ 0</small></div><p>pedidos confirmados / enviados (QoS 1)</p></div>
+    <div class="tarjeta tile"><div class="num" id="n-alarmas">0</div><p>alarmas recibidas (QoS 2)</p><p id="dup-alarmas">repetidas: 0</p></div>
+    <div class="tarjeta tile"><div class="num" id="n-ultimo">-</div><p>desde el último estado</p></div>
+  </div>
+</section>
+
+<section aria-labelledby="t-uno">
+  <div class="tarjeta prueba">
+    <div class="cab"><h2 id="t-uno">Un pedido</h2><span class="paso">Prueba T3</span></div>
+    <p class="bajada" style="margin:0">Envía un pedido de ejemplo y mide cuánto tarda la confirmación del robot.</p>
+    <div><button class="llega" id="b-uno" type="button" disabled>Enviar un pedido</button></div>
+    <p class="resultado" id="r-uno">Todavía no se envía ninguno.</p>
+  </div>
+</section>
+
+<section aria-labelledby="t-lote">
+  <div class="tarjeta sombra prueba">
+    <div class="cab"><h2 id="t-lote">Pedidos seguidos</h2><span class="paso">Prueba T4</span></div>
+    <p class="bajada" style="margin:0">Envía muchos pedidos uno tras otro y cuenta cuántos confirma el robot. El criterio de éxito es 50 de 50.</p>
+    <div class="campos">
+      <label>Cantidad<input id="lote-n" type="number" min="1" max="200" value="50"></label>
+      <label>Cada (ms)<input id="lote-ms" type="number" min="100" max="10000" value="1000"></label>
+      <button class="llega" id="b-lote" type="button" disabled>Iniciar prueba</button>
+      <button id="b-csv" type="button" disabled>Descargar resultados (CSV)</button>
+    </div>
+    <div class="progreso" aria-hidden="true"><div id="prog"></div></div>
+    <p class="resultado" id="r-lote">Sin resultados todavía.</p>
+    <div class="grafica" id="grafica"></div>
+  </div>
+</section>
+
+<section aria-labelledby="t-alarma">
+  <div class="tarjeta prueba">
+    <div class="cab"><h2 id="t-alarma">Alarmas</h2><span class="paso">Prueba T5</span></div>
+    <p class="ayuda">En el monitor de Wokwi escribe la letra <b>a</b> y presiona Enter, 10 veces. Aquí se cuentan, y si alguna llega repetida se marca.</p>
+    <p class="resultado" id="r-alarma">0 alarmas recibidas.</p>
+  </div>
+</section>
+
+<section aria-labelledby="t-desc">
+  <div class="tarjeta prueba">
+    <div class="cab"><h2 id="t-desc">Desconexión</h2><span class="paso">Pruebas T6 y T7</span></div>
+    <p class="ayuda">Detén la simulación en Wokwi (botón cuadrado). El cartero debe avisar "desconectado" solo. Luego vuelve a iniciarla y debe decir "en línea".</p>
+    <p class="resultado" id="r-desc">Esperando.</p>
+  </div>
+</section>
+
+<section aria-labelledby="t-reg">
+  <div class="cab" style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px">
+    <h2 id="t-reg">Todo lo que pasa por los buzones</h2>
+    <button id="b-csv2" type="button">Descargar registro (CSV)</button>
+  </div>
+  <p class="bajada">Los últimos 200 mensajes, el más nuevo arriba.</p>
+  <div class="registro" id="registro" aria-live="off"></div>
+</section>
+</main>
+<footer id="pie"></footer>
+
+<script src="../../datos/proyecto.js"></script>
+<script src="../../assets/sitio.js"></script>
+<script src="https://unpkg.com/mqtt@5/dist/mqtt.min.js"></script>
+<script>
+(function(){
+  var URL_BROKER = "wss://broker.hivemq.com:8884/mqtt";
+  var BASE = "ucab-tg-sf/robot/";
+  var COLOR = { estado: "#0F9D84", ordenes: "#F2603D", "ordenes/ack": "#0F9D84", alertas: "#6B4EE6", conexion: "#B07A0E" };
+  var $ = function(id){ return document.getElementById(id); };
+  var cliente = null, inicioSesion = Date.now();
+  var estados = 0, primerEstado = null, ultimoEstado = null;
+  var pedidos = {}, ordenPedidos = [], contador = 0, lote = null;
+  var alarmasVistas = {}, alarmas = 0, repetidas = 0;
+  var registro = [], ultimaConexion = null;
+
+  function hora(ms){ var d = new Date(ms); return d.toLocaleTimeString("es-VE", {hour12:false}) + "." + String(d.getMilliseconds()).padStart(3, "0"); }
+  function luz(id, clase, texto){ var e = $(id); e.className = "luz " + clase; e.innerHTML = "<i></i>" + texto; }
+  function seg(ms){ return (ms / 1000).toFixed(ms < 10000 ? 1 : 0) + " s"; }
+
+  function anotar(topico, texto, extra){
+    registro.unshift({ t: Date.now(), topico: topico, texto: texto, extra: extra || "" });
+    if (registro.length > 200) registro.pop();
+    var corto = topico.replace(BASE, "");
+    var fila = document.createElement("div");
+    fila.innerHTML = "<span>" + hora(Date.now()) + '</span><span class="tp" style="color:' + (COLOR[corto] || "#14213D") + '">' + corto + (extra ? " · " + extra : "") + "</span><span></span>";
+    fila.lastChild.textContent = texto;
+    var caja = $("registro"); caja.insertBefore(fila, caja.firstChild);
+    while (caja.children.length > 200) caja.removeChild(caja.lastChild);
+  }
+
+  function actualizarContadores(){
+    var conf = ordenPedidos.filter(function(id){ return pedidos[id].ack; }).length;
+    $("n-pedidos").innerHTML = conf + " <small>/ " + ordenPedidos.length + "</small>";
+    $("n-estado").textContent = estados;
+    if (estados > 1) $("ritmo").textContent = "ritmo: uno cada " + seg((ultimoEstado - primerEstado) / (estados - 1));
+    $("n-alarmas").textContent = alarmas;
+    $("dup-alarmas").textContent = "repetidas: " + repetidas;
+  }
+  setInterval(function(){ if (ultimoEstado) $("n-ultimo").textContent = seg(Date.now() - ultimoEstado); }, 500);
+
+  function conectar(){
+    if (cliente) { cliente.end(true); cliente = null; }
+    luz("luz-broker", "espera", "Banco: conectando...");
+    cliente = mqtt.connect(URL_BROKER, { clientId: "banco-p01-" + Math.random().toString(16).slice(2, 8), clean: true, connectTimeout: 8000, reconnectPeriod: 3000, keepalive: 30 });
+    cliente.on("connect", function(){
+      luz("luz-broker", "ok", "Banco: conectado");
+      cliente.subscribe(BASE + "#", { qos: 2 });
+      $("b-uno").disabled = false; $("b-lote").disabled = false;
+      $("b-conectar").textContent = "Reconectar";
+    });
+    cliente.on("reconnect", function(){ luz("luz-broker", "espera", "Banco: reconectando..."); });
+    cliente.on("close", function(){ luz("luz-broker", "mal", "Banco: sin conexión"); });
+    cliente.on("error", function(e){ luz("luz-broker", "mal", "Banco: error"); anotar("banco", String(e && e.message || e)); });
+    cliente.on("message", recibir);
+  }
+
+  function recibir(topico, carga, paquete){
+    var texto = carga.toString(), ahora = Date.now(), corto = topico.replace(BASE, "");
+    var extra = "QoS " + paquete.qos + (paquete.retain ? " · retenido" : "");
+    anotar(topico, texto, extra);
+    var datos = null; try { datos = JSON.parse(texto); } catch (e) {}
+
+    if (corto === "estado") {
+      estados++; if (!primerEstado) primerEstado = ahora; ultimoEstado = ahora;
+      luz("luz-robot", "ok", "Robot: en línea");
+    } else if (corto === "ordenes/ack" && datos && pedidos[datos.id]) {
+      var p = pedidos[datos.id];
+      if (p.ack) p.repetido = (p.repetido || 0) + 1;
+      else { p.ack = performance.now(); p.ackHora = ahora; p.latencia = Math.round(p.ack - p.envio); }
+      if (!lote && datos.id === "P-" + String(contador).padStart(4, "0") && !p.repetido) $("r-uno").innerHTML = "Confirmado <b>" + datos.id + "</b> en <b>" + p.latencia + " ms</b>.";
+      if (lote) revisarLote();
+    } else if (corto === "alertas") {
+      var clave = datos && datos.n !== undefined ? datos.n : texto;
+      if (alarmasVistas[clave]) repetidas++; else { alarmasVistas[clave] = true; alarmas++; }
+      $("r-alarma").innerHTML = "<b>" + alarmas + "</b> alarmas recibidas" + (repetidas ? ', <b class="mal">' + repetidas + " repetidas</b>." : ", ninguna repetida.");
+    } else if (corto === "conexion") {
+      if (texto.indexOf("desconectado") >= 0) {
+        luz("luz-robot", "mal", "Robot: desconectado");
+        if (!paquete.retain && ultimoEstado) $("r-desc").innerHTML = 'El cartero avisó <b class="mal">desconectado</b> ' + seg(ahora - ultimoEstado) + " después del último estado del robot.";
+        else if (paquete.retain) $("r-desc").textContent = "El último aviso guardado dice: desconectado.";
+      } else {
+        luz("luz-robot", "ok", "Robot: en línea");
+        if (!paquete.retain) $("r-desc").innerHTML = "El robot volvió: avisó <b>en línea</b> a las " + hora(ahora) + ".";
+      }
+    }
+    actualizarContadores();
+  }
+
+  function enviarPedido(componente){
+    contador++;
+    var id = "P-" + String(contador).padStart(4, "0");
+    var pedido = { id: id, componente: componente || "Resistencia 1k", cantidad: 5, estante: "A3" };
+    pedidos[id] = { id: id, envio: performance.now(), envioHora: Date.now() };
+    ordenPedidos.push(id);
+    cliente.publish(BASE + "ordenes", JSON.stringify(pedido), { qos: 1 });
+    actualizarContadores();
+    return id;
+  }
+
+  $("b-conectar").addEventListener("click", conectar);
+  $("b-uno").addEventListener("click", function(){
+    var id = enviarPedido();
+    $("r-uno").innerHTML = "Enviado <b>" + id + "</b>. Esperando la confirmación del robot...";
+  });
+
+  $("b-lote").addEventListener("click", function(){
+    var n = Math.max(1, Math.min(200, +$("lote-n").value || 50)), ms = Math.max(100, +$("lote-ms").value || 1000);
+    lote = { ids: [], total: n, inicio: Date.now(), fin: null };
+    $("b-lote").disabled = true; $("b-csv").disabled = true; $("grafica").innerHTML = "";
+    $("r-lote").textContent = "Enviando 0 de " + n + "...";
+    var i = 0;
+    var t = setInterval(function(){
+      lote.ids.push(enviarPedido("Prueba lote " + (i + 1)));
+      i++;
+      $("r-lote").textContent = "Enviando " + i + " de " + n + "...";
+      revisarLote();
+      if (i >= n) {
+        clearInterval(t);
+        $("r-lote").textContent = "Enviados los " + n + ". Esperando confirmaciones (hasta 2 minutos)...";
+        lote.limite = setTimeout(cerrarLote, 120000);
+      }
+    }, ms);
+  });
+
+  function revisarLote(){
+    if (!lote || lote.fin) return;
+    var conf = lote.ids.filter(function(id){ return pedidos[id].ack; }).length;
+    $("prog").style.width = (conf / lote.total * 100) + "%";
+    if (lote.ids.length === lote.total && conf === lote.total) cerrarLote();
+  }
+
+  function cerrarLote(){
+    if (!lote || lote.fin) return;
+    clearTimeout(lote.limite); lote.fin = Date.now();
+    var ok = lote.ids.filter(function(id){ return pedidos[id].ack; });
+    var lat = ok.map(function(id){ return pedidos[id].latencia; });
+    var rep = lote.ids.reduce(function(s, id){ return s + (pedidos[id].repetido || 0); }, 0);
+    var prom = lat.length ? Math.round(lat.reduce(function(a, b){ return a + b; }, 0) / lat.length) : 0;
+    var perdidos = lote.total - ok.length;
+    $("r-lote").innerHTML = "<b" + (perdidos ? ' class="mal"' : "") + ">" + ok.length + " de " + lote.total + "</b> confirmados" +
+      (perdidos ? ' · <b class="mal">' + perdidos + " sin confirmar</b>" : " · ninguno perdido") +
+      (lat.length ? " · tiempo: mín " + Math.min.apply(null, lat) + " ms, promedio " + prom + " ms, máx " + Math.max.apply(null, lat) + " ms" : "") +
+      (rep ? " · " + rep + " confirmaciones repetidas" : "");
+    $("prog").style.width = (ok.length / lote.total * 100) + "%";
+    dibujar(lote.ids, prom);
+    $("b-lote").disabled = false; $("b-csv").disabled = false;
+  }
+
+  function dibujar(ids, prom){
+    var W = 900, H = 240, L = 56, B = 34, T = 16, max = 1;
+    ids.forEach(function(id){ if (pedidos[id].latencia > max) max = pedidos[id].latencia; });
+    max = Math.ceil(max * 1.1);
+    var bw = (W - L - 10) / ids.length, y = function(v){ return H - B - (v / max) * (H - B - T); };
+    var s = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Tiempo de confirmación de cada pedido">';
+    for (var k = 0; k <= 4; k++) { var v = Math.round(max * k / 4), yy = y(v);
+      s += '<line x1="' + L + '" x2="' + (W - 10) + '" y1="' + yy + '" y2="' + yy + '" stroke="#E2E8E6"/><text x="' + (L - 8) + '" y="' + (yy + 4) + '" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#4A5A73">' + v + "</text>"; }
+    ids.forEach(function(id, i){
+      var p = pedidos[id], x = L + i * bw + bw * 0.15, w = Math.max(bw * 0.7, 1.5);
+      if (p.latencia !== undefined) s += '<rect x="' + x + '" y="' + y(p.latencia) + '" width="' + w + '" height="' + (H - B - y(p.latencia)) + '" rx="2" fill="#0F9D84"><title>' + id + ": " + p.latencia + " ms</title></rect>";
+      else s += '<text x="' + (x + w / 2) + '" y="' + (H - B - 6) + '" text-anchor="middle" font-size="13" font-weight="700" fill="#F2603D">×<title>' + id + ": sin confirmar</title></text>";
+    });
+    if (prom) s += '<line x1="' + L + '" x2="' + (W - 10) + '" y1="' + y(prom) + '" y2="' + y(prom) + '" stroke="#6B4EE6" stroke-width="1.5" stroke-dasharray="5 4"/><text x="' + (W - 12) + '" y="' + (y(prom) - 6) + '" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11.5" fill="#6B4EE6">promedio ' + prom + " ms</text>";
+    s += '<text x="' + L + '" y="' + (H - 10) + '" font-family="JetBrains Mono, monospace" font-size="11" fill="#4A5A73">pedido 1</text><text x="' + (W - 10) + '" y="' + (H - 10) + '" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#4A5A73">pedido ' + ids.length + "</text>";
+    s += '<text x="12" y="' + (T + 2) + '" font-family="JetBrains Mono, monospace" font-size="11" fill="#4A5A73">ms</text></svg>';
+    $("grafica").innerHTML = s;
+  }
+
+  function descargar(nombre, filas){
+    var csv = filas.map(function(f){ return f.map(function(c){ c = String(c === undefined ? "" : c); return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(","); }).join("\n");
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
+    a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
+  }
+  $("b-csv").addEventListener("click", function(){
+    if (!lote) return;
+    var filas = [["pedido", "enviado", "confirmado", "tiempo_ms", "confirmaciones_repetidas"]];
+    lote.ids.forEach(function(id){ var p = pedidos[id];
+      filas.push([id, new Date(p.envioHora).toISOString(), p.ackHora ? new Date(p.ackHora).toISOString() : "", p.latencia, p.repetido || 0]); });
+    descargar("p01-pedidos-seguidos.csv", filas);
+  });
+  $("b-csv2").addEventListener("click", function(){
+    var filas = [["hora", "topico", "detalle", "mensaje"]];
+    registro.slice().reverse().forEach(function(r){ filas.push([new Date(r.t).toISOString(), r.topico, r.extra, r.texto]); });
+    descargar("p01-registro-mensajes.csv", filas);
+  });
+})();
+</script>
+</body>
+</html>
