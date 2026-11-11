@@ -3,7 +3,8 @@
 **Fase:** I (Revisión y levantamiento)
 **Responsables:** Iliana Semprun y Andrea Ferrer
 **Tarea en GitHub:** #2
-**Versión:** 2 (11/11/2026). Versión 1: 10/11/2026.
+**Versión:** 2.1 (11/11/2026). Versión 1: 10/11/2026.
+**Estado:** cerrado, 7 de 7 pruebas pasadas.
 
 👉 **Versión visual:** [index.html](index.html) · **Banco de pruebas:** [banco.html](banco.html)
 
@@ -23,12 +24,13 @@ Comunicar el ESP32 con el broker MQTT. Es la base de todo el sistema: por aquí 
 - Las alarmas llegan una sola vez (QoS 2).
 
 ## 3. Simulador y herramientas
-- **Wokwi:** ESP32 DevKit C v4, red `Wokwi-GUEST`. Enlace del proyecto: (pendiente)
+- **Wokwi:** ESP32 DevKit C v4, red `Wokwi-GUEST`. Proyecto: https://wokwi.com/projects/480338785084042241
+- **Red:** con Proton VPN (plan gratis) el Wi-Fi simulado no conectó; con el VPN de Opera sí.
 - **Broker:** `broker.hivemq.com`, puerto 1883 (ESP32) y 8884 WebSocket seguro (banco). Público, solo para desarrollo.
 - **Banco de pruebas:** [banco.html](banco.html), en el navegador. Envía pedidos, cuenta respuestas, mide tiempos y descarga CSV.
 - **Librería:** `MQTT` de Joel Gaehwiler (QoS 0, 1 y 2). Se descartó PubSubClient porque solo publica con QoS 0.
 
-Código en `codigo/`: `sketch.ino` (versión 2), `diagram.json`, `libraries.txt`. La versión 1 está en `codigo/v1/`.
+Código en `codigo/`: `sketch.ino` (versión 2.1), `diagram.json`, `libraries.txt`. La versión 1 está en `codigo/v1/`.
 
 ## 4. Cómo se prueba (protocolo)
 1. Abrir el proyecto en Wokwi y presionar ▶️.
@@ -46,12 +48,25 @@ Código en `codigo/`: `sketch.ino` (versión 2), `diagram.json`, `libraries.txt`
 | T6 | Aviso "desconectado" (LWT) | En menos de 30 s |
 | T7 | Reconexión | Vuelve a decir "en línea" solo |
 
-## 6. Resultado (versión 2)
+## 6. Resultado (versión 2.1, 11/11/2026)
 | Prueba | Resultado | Evidencia |
 |---|---|---|
-| T1 a T7 | ⏳ Pendientes | |
+| T1 | ✅ Robot en línea | `evidencias/01-T1-T2-en-linea-y-estado.png` |
+| T2 | ✅ 34 estados, uno cada 2,0 s | `evidencias/01-T1-T2-en-linea-y-estado.png` |
+| T3 | ✅ P-0001 confirmado en 899 ms (versión 1: ~8 s) | `evidencias/02-T3-un-pedido.png` |
+| T4 | ✅ 50 de 50 · mín 678 ms, prom 4133 ms, mediana 4294 ms, máx 8023 ms | `evidencias/04-T4-v2.1-50-de-50.png`, `datos/T4-v2.1-50-de-50.csv` |
+| T5 | ✅ 10 alarmas, ninguna repetida | `evidencias/05-T5-10-alarmas.png`, `datos/registro-mensajes-T4-a-T7.csv` |
+| T6 | ✅ "desconectado" a los 22 s (teoría: 1,5 × 15 s = 22,5 s) | `evidencias/06-T6-desconectado-22s.png` |
+| T7 | ✅ "en línea" otra vez y estado desde 1 | `evidencias/07-T7-en-linea-otra-vez.png` |
 
-**Versión 1 (10/11/2026):** pasaron estado, "en línea", "desconectado", reconexión y un pedido con confirmación. Evidencias en `evidencias/v1/`. La confirmación tardó unos 8 s porque Wokwi corre más lento que el tiempo real.
+### Hallazgo: el intento fallido de T4 (versión 2)
+- **Qué pasó:** 13 de 50 confirmados, 37 perdidos (`datos/T4-v2-intento-13-de-50.csv`, `evidencias/03-T4-intento-v2-13-de-50.png`).
+- **Causa:** con VPN el broker tardaba más de 1 s; la librería espera 1 s por defecto y, si no llega la respuesta, cierra la conexión. Como el robot entraba con sesión limpia, el broker no guardaba los pedidos que llegaban mientras estaba desconectado.
+- **Arreglo (versión 2.1):** `mqtt.setOptions(15, false, 10000)` → keep alive 15 s, sesión persistente y espera de 10 s.
+- **Lección:** QoS 1 garantiza la entrega solo mientras la sesión existe. Hacen falta QoS 1 y sesión persistente juntos.
+- **Sobre los tiempos:** crecen a lo largo de la prueba porque se envió 1 pedido por segundo, más rápido de lo que responde el robot simulado con VPN (se forma una fila). No se perdió ninguno.
+
+**Versión 1 (10/11/2026):** pasaron estado, "en línea", "desconectado", reconexión y un pedido con confirmación. Evidencias en `evidencias/v1/`.
 
 ## 7. Qué se reutiliza en el robot real
 - El árbol de tópicos y su QoS.

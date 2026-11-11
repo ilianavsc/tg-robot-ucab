@@ -45,7 +45,7 @@ window.TG = {
 
   /* estado: "hecho" | "pruebas" | "pendiente" */
   prototipos: [
-    { codigo: "P01", nombre: "Así se hablan el robot y la app", tema: "MQTT", semana: 3, estado: "pruebas", url: "prototipos/P01-mqtt-base/" },
+    { codigo: "P01", nombre: "Así se hablan el robot y la app", tema: "MQTT", semana: 3, estado: "hecho", url: "prototipos/P01-mqtt-base/" },
     { codigo: "H0", nombre: "Wi-Fi del laboratorio", tema: "Red", semana: 4, estado: "pendiente" },
     { codigo: "P02", nombre: "Los sentidos del robot", tema: "Sensores", semana: 5, estado: "pendiente" },
     { codigo: "P03", nombre: "Motores que van parejo", tema: "PID", semana: 6, estado: "pendiente" },
@@ -62,7 +62,7 @@ window.TG = {
 
   /* Lo que hay que hacer ya. hecho: true cuando se cumpla */
   pendientes: [
-    { que: "Cerrar P01: alarma con QoS 2 y 50 órdenes seguidas", fecha: "2026-11-13", hecho: false },
+    { que: "Cerrar P01: alarma con QoS 2 y 50 órdenes seguidas", fecha: "2026-11-13", hecho: true },
     { que: "Confirmar con el laboratorio qué componentes tienen", fecha: "2026-11-13", hecho: false },
     { que: "Pedir los motores por Amazon", fecha: "2026-11-13", hecho: false },
     { que: "Entrevistas y observación en el laboratorio + prueba H0", fecha: "2026-11-18", hecho: false },
@@ -72,8 +72,8 @@ window.TG = {
   /* Una entrada por semana, la más nueva primero */
   bitacora: [
     { semana: 3, fechas: "9 al 13 nov 2026",
-      hicimos: ["Plan de prototipos ajustado al cronograma", "Repositorio y sitio en GitHub", "P01 MQTT base funcionando en Wokwi"],
-      aprendimos: ["PubSubClient solo publica con QoS 0", "Wokwi se pausa si la pestaña queda oculta"],
-      sigue: ["Cerrar P01", "Entrevistas en el laboratorio", "Pedir los motores"] }
+      hicimos: ["Plan de prototipos ajustado al cronograma", "Repositorio y sitio en GitHub", "Banco de pruebas en el navegador", "P01 cerrado: 7 de 7 pruebas, 50 de 50 pedidos"],
+      aprendimos: ["QoS 1 necesita sesión persistente para no perder pedidos", "PubSubClient solo publica con QoS 0", "Wokwi no conecta con Proton VPN gratis; con el VPN de Opera sí"],
+      sigue: ["Entrevistas en el laboratorio", "Pedir los motores", "Documento de requerimientos"] }
   ]
 };
