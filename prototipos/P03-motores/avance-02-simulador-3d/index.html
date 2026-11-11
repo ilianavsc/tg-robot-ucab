@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P03 · Avance 2 · Simulador 3D de la tracción</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../../assets/estilo.css">
+<style>
+.volver{font-size:15px;text-decoration:none;color:var(--suave)}
+h1 em{font-style:normal;color:var(--sale)}
+h1 strong{color:var(--llega)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px}
+.frase{font-family:var(--display);font-weight:500;font-size:clamp(21px,3vw,28px);line-height:1.3;background:var(--blanco);border:2px solid var(--tinta);border-radius:18px;padding:22px 26px;margin:0 0 30px;box-shadow:6px 6px 0 var(--tinta)}
+section{margin:0 0 48px}
+h2{font-family:var(--display);font-size:28px;margin:0 0 6px}
+.portada{display:block;position:relative;border:2px solid var(--tinta);border-radius:18px;overflow:hidden;box-shadow:6px 6px 0 var(--tinta);background:var(--blanco);text-decoration:none}
+.portada img{display:block;width:100%;height:auto}
+.portada .abrir{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--display);font-weight:700;font-size:clamp(18px,2.6vw,26px);color:var(--blanco);background:var(--llega);border:2px solid var(--tinta);border-radius:999px;padding:14px 26px;box-shadow:4px 4px 0 var(--tinta);white-space:nowrap;transition:transform .15s}
+.portada:hover .abrir{transform:translate(-50%,-50%) scale(1.04)}
+.pasos{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.pasos li{background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;padding:14px 16px}
+.pasos b{display:block;font-family:var(--display);font-size:19px;margin-bottom:2px}
+.pasos span{font-size:16px;color:var(--suave)}
+.pasos kbd{font-family:var(--mono);font-size:13px;background:var(--papel);border:1px solid var(--punto);border-radius:5px;padding:1px 6px}
+.idea .nivel{font-family:var(--mono);font-weight:600;font-size:13px;color:var(--c)}
+.idea h3{font-family:var(--display);font-size:21px;margin:4px 0 6px}
+.idea p{margin:0;font-size:16px;color:var(--suave)}
+.galeria{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.galeria figure{margin:0;background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;overflow:hidden}
+.galeria img{display:block;width:100%;height:auto;cursor:zoom-in}
+.galeria figcaption{padding:10px 14px;font-size:15px}
+dialog{border:none;border-radius:16px;padding:12px;max-width:min(1400px,96vw);background:var(--blanco)}
+dialog::backdrop{background:rgba(20,33,61,.7)}
+dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
+.tabla{width:100%;border-collapse:collapse;font-size:16px;background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;overflow:hidden}
+.tabla th,.tabla td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--punto);vertical-align:top}
+.tabla th{font-family:var(--mono);font-size:13px;color:var(--suave);font-weight:600}
+.tabla td:last-child{font-family:var(--mono);font-size:14px}
+.aviso-grande{background:var(--pend);border:2px solid var(--tinta);border-radius:16px;padding:18px 22px}
+.aviso-grande p{margin:0 0 8px}.aviso-grande p:last-child{margin:0}
+</style>
+</head>
+<body data-pagina="prototipos" data-base="../../../">
+<header id="menu"></header>
+<main>
+<a class="volver" href="../../index.html">← Todos los prototipos</a>
+<p class="ceja">Prototipo P03 · Avance 2 · Simulador 3D</p>
+<h1>Cómo se mueve <em>el robot</em>, <strong>pieza por pieza</strong></h1>
+<div class="chips">
+  <span class="chip">Fase I (adelanto de P03)</span>
+  <span class="chip">three.js · kit teardown</span>
+  <span class="chip aviso">Simulado, falta medir</span>
+  <span class="chip">11 nov 2026</span>
+</div>
+
+<p class="frase">El ESP32 manda órdenes, el puente H las convierte en fuerza, la caja la reduce y el encoder avisa cuánto giró la rueda. Aquí se ve todo eso a la vez.</p>
+
+<section>
+  <a class="portada" href="simulador.html">
+    <img src="evidencias/01-avanza-heroe.png" alt="Simulador 3D: el robot avanzando a 0,35 m/s con los paneles del ESP32, el puente H, el motor y el encoder">
+    <span class="abrir">Abrir el simulador ▶</span>
+  </a>
+  <p class="suave" style="font-size:15px;margin-top:14px">Funciona sin internet, en una sola página. Mejor en computadora. En teléfono, gíralo de lado.</p>
+</section>
+
+<section aria-labelledby="t-usar">
+  <h2 id="t-usar">Cómo usarlo</h2>
+  <p class="bajada">Si no lo tocas, hace un recorrido solo. Al tocar cualquier cosa, lo manejas tú.</p>
+  <ol class="pasos">
+    <li><b>Elige una maniobra</b><span>Avanzar, girar, retroceder o frenar. También con las flechas <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd>.</span></li>
+    <li><b>Mueve la fuerza</b><span>La barra de PWM. Mira cómo cambian el voltaje, las rpm y la velocidad.</span></li>
+    <li><b>Cambia las piezas</b><span>L298N o TB6612FNG, motor de 130 o 170 rpm. La barra de la meta dice si llega.</span></li>
+    <li><b>Mira por dentro</b><span>Vista MOTOR con RAYOS X: imanes, engranes y el imán del encoder.</span></li>
+  </ol>
+</section>
+
+<section aria-labelledby="t-ideas">
+  <h2 id="t-ideas">Lo que se aprende</h2>
+  <div class="rejilla">
+    <div class="tarjeta idea" style="--c:var(--qos)"><span class="nivel">01 · El cerebro</span><h3>Sentido y fuerza</h3><p>Por cada motor, dos pines dicen el sentido (IN) y uno la fuerza (PWM). El ESP32 prende y apaga el motor 20 000 veces por segundo.</p></div>
+    <div class="tarjeta idea" style="--c:var(--llega)"><span class="nivel">02 · El puente H</span><h3>Cuatro interruptores</h3><p>Cerrando S1 y S4 la corriente cruza el motor en un sentido; con S2 y S3, en el otro. Con S3 y S4 frena.</p></div>
+    <div class="tarjeta idea" style="--c:var(--llega)"><span class="nivel">03 · El músculo</span><h3>La caja reduce</h3><p>Adentro el motor gira a unas 3 500 rpm. La caja 1:34 lo baja a unas 100 rpm en la rueda, con más fuerza.</p></div>
+    <div class="tarjeta idea" style="--c:var(--sale)"><span class="nivel">04 · El aviso</span><h3>El encoder cuenta</h3><p>11 pulsos por vuelta del motor × 34 = 374 por vuelta de rueda. Con las dos señales A y B salen 1 496 cuentas y el sentido.</p></div>
+  </div>
+</section>
+
+<section aria-labelledby="t-numeros">
+  <h2 id="t-numeros">De dónde salen los números</h2>
+  <p class="bajada">Todo lo que se ve sale de una sola fórmula, la misma del <a href="../avance-01-colab/">avance 1 en Colab</a>.</p>
+  <table class="tabla">
+    <thead><tr><th>Dato</th><th>Valor</th></tr></thead>
+    <tbody>
+      <tr><td>Batería 3S nominal</td><td>11,1 V</td></tr>
+      <tr><td>Caída del driver</td><td>L298N 2,1 V · TB6612FNG 0,5 V</td></tr>
+      <tr><td>Motor 370 sin caja, 12 V</td><td>6 000 rpm</td></tr>
+      <tr><td>Caja (versión 170 rpm / 130 rpm)</td><td>1:34 / 1:46</td></tr>
+      <tr><td>Peso del robot (supuesto)</td><td>80 % de la velocidad sin carga</td></tr>
+      <tr><td>Encoder</td><td>11 pulsos por vuelta del motor, canales A y B</td></tr>
+      <tr><td>Rueda y distancia entre ruedas</td><td>Ø 65 mm · 180 mm</td></tr>
+      <tr><td>Resultado con L298N, 170 rpm, PWM 100 %</td><td>9,0 V · 102 rpm · 0,35 m/s · 636 Hz</td></tr>
+    </tbody>
+  </table>
+  <p class="suave" style="font-size:15px">La corriente es aproximada (0,1 A sin carga, 1,2 A bloqueado a 12 V). Los pines son una propuesta: se confirman con el mapa de pines de la Fase II.</p>
+</section>
+
+<section aria-labelledby="t-evid">
+  <h2 id="t-evid">Evidencias</h2>
+  <p class="bajada">Capturas del simulador. Toca una para verla grande.</p>
+  <div class="galeria">
+    <figure><img src="evidencias/01-avanza-heroe.png" alt="El robot avanzando con todas las etiquetas"><figcaption><b>Avanza a 0,35 m/s.</b> L298N, 170 rpm, PWM 100 %: justo en la meta.</figcaption></figure>
+    <figure><img src="evidencias/02-motor-rayos-x.png" alt="Vista del motor con rayos X: imán del encoder, sensores Hall, motor y engranes"><figcaption><b>El motor por dentro.</b> Imán de 22 polos, sensores Hall encendidos, engranes de la caja.</figcaption></figure>
+    <figure><img src="evidencias/03-gira-derecha.png" alt="El robot girando sobre su eje a la derecha"><figcaption><b>Gira a la derecha.</b> Una rueda hacia adelante y otra hacia atrás: gira en el sitio.</figcaption></figure>
+    <figure><img src="evidencias/04-despiece.png" alt="Despiece del robot: ruedas, cajas, motores y encoders separados"><figcaption><b>Despiece.</b> Cada pieza se separa por su eje para ver el orden.</figcaption></figure>
+  </div>
+</section>
+
+<section aria-labelledby="t-limite">
+  <div class="aviso-grande">
+    <h2 id="t-limite" style="font-size:22px">Lo que el simulador no sabe</h2>
+    <p>Usa números del fabricante y un supuesto de peso. No sabe cuánto pesa de verdad el robot, cómo patinan las ruedas ni cuánto cambia la batería al descargarse.</p>
+    <p>Por eso P03, en la semana 6, mide con el encoder real y reemplaza el 80 % supuesto por el valor medido.</p>
+  </div>
+</section>
+
+<section aria-labelledby="t-cod">
+  <h2 id="t-cod">El código</h2>
+  <ul>
+    <li><a href="codigo/model.js">model.js</a>: las fórmulas (voltaje, rpm, velocidad, encoder).</li>
+    <li><a href="codigo/robot.js">robot.js</a>: el robot en 3D, en metros reales.</li>
+    <li><a href="codigo/console.js">console.js</a> y <a href="codigo/live.js">live.js</a>: los paneles, los botones y el recorrido.</li>
+    <li><a href="codigo/stage.js">stage.js</a>: luz, sombras y el piso del laboratorio.</li>
+  </ul>
+  <p class="suave" style="font-size:15px">Hecho con el kit <a href="https://github.com/elvarofficial/teardown">teardown</a> (licencia MIT, ver <a href="codigo/LICENSE-teardown.txt">LICENSE</a>) y three.js. Para reconstruirlo: <code>node sims/build.mjs ./robot-traccion</code> desde la carpeta del kit.</p>
+</section>
+</main>
+<dialog id="grande"><img alt=""><form method="dialog" style="text-align:right;margin-top:8px"><button style="font:700 15px var(--texto);padding:8px 14px;border-radius:10px;border:2px solid var(--tinta);background:var(--blanco);cursor:pointer">Cerrar</button></form></dialog>
+<footer id="pie"></footer>
+<script src="../../../datos/proyecto.js"></script>
+<script src="../../../assets/sitio.js"></script>
+<script>
+document.querySelectorAll('.galeria img').forEach(function(im){ im.addEventListener('click', function(){ var d = document.getElementById('grande'); d.querySelector('img').src = im.src; d.querySelector('img').alt = im.alt; d.showModal(); }); });
+</script>
+</body>
+</html>
