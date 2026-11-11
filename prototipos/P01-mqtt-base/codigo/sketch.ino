@@ -1,4 +1,4 @@
-// P01 MQTT base, version 2 - Trabajo de Grado Robot UCAB
+// P01 MQTT base, version 2.1 - Trabajo de Grado Robot UCAB
 // Iliana Semprun y Andrea Ferrer
 //
 // Que hace:
@@ -83,7 +83,9 @@ void setup() {
   Serial.begin(115200);
   conectarWiFi();
   mqtt.begin(BROKER, 1883, red);
-  mqtt.setKeepAlive(10);                              // revisa la conexion cada 10 s
+  // keepAlive 15 s, sesion persistente (el broker guarda los pedidos si el robot se cae)
+  // y espera hasta 10 s las respuestas del broker antes de cortar (red lenta con VPN)
+  mqtt.setOptions(15, false, 10000);
   mqtt.setWill(T_CONEXION, "desconectado", true, 1);  // ultima voluntad (LWT)
   mqtt.onMessage(alRecibirMensaje);
   conectarMQTT();
