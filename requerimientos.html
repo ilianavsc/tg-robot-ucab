@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TG Robot UCAB · Requerimientos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/estilo.css">
+<style>
+.visita{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.visita ol{margin:6px 0 12px;padding-left:22px;font-size:16px}
+.visita h4{font-family:var(--mono);font-size:13px;color:var(--qos);margin:12px 0 2px;text-transform:uppercase;letter-spacing:.03em}
+.hoja{width:100%;border-collapse:collapse;font-size:15px}
+.hoja th,.hoja td{border-bottom:1.5px solid var(--punto);padding:8px 6px;text-align:left;vertical-align:top}
+.hoja th{font-family:var(--mono);font-size:12.5px;color:var(--suave);font-weight:600}
+.hoja td:last-child{width:34%;border-left:1.5px dashed var(--punto)}
+button.imprimir{font-family:var(--texto);font-weight:700;font-size:15px;padding:9px 14px;border-radius:12px;border:2px solid var(--tinta);background:var(--blanco);cursor:pointer}
+@media print{body.solo-visita main > *:not(#visita){display:none!important}}
+</style>
+</head>
+<body data-pagina="requerimientos" data-base="">
+<header id="menu"></header>
+<main>
+<p class="ceja">Requerimientos · hito de la Fase I</p>
+<h1>Qué debe hacer <em>el robot</em></h1>
+<p class="bajada">Cada requerimiento tiene un criterio que se puede medir y el prototipo que lo comprueba. Lo resaltado en amarillo se define en la visita al laboratorio.</p>
+<div class="tarjeta sombra" style="margin-bottom:34px">
+  <p class="ceja" style="margin-top:0">Avance</p>
+  <div class="cifra" id="cifra" style="font-family:var(--display);font-weight:700;font-size:36px"></div>
+  <div class="barra"><div id="barra-val"></div></div>
+  <p class="suave" style="margin:0;font-size:15px" id="sub"></p>
+</div>
+
+<section aria-labelledby="t-rf"><h2 id="t-rf">Funcionales: lo que hace</h2><p class="bajada">Las acciones del sistema.</p><div class="filas" id="rf"></div></section>
+<section aria-labelledby="t-rnf"><h2 id="t-rnf">No funcionales: cómo lo hace</h2><p class="bajada">Costo, autonomía, velocidad, confiabilidad y seguridad.</p><div class="filas" id="rnf"></div></section>
+
+<section id="visita" aria-labelledby="t-visita">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px">
+    <h2 id="t-visita">Para la visita al laboratorio</h2>
+    <button class="imprimir no-imprimir" type="button" id="b-imprimir">Imprimir esta parte</button>
+  </div>
+  <p class="bajada">Entrevista de unos 20 minutos y una vuelta midiendo. Lleven cinta métrica, el teléfono para fotos (con permiso) y el ESP32 para la prueba H0.</p>
+  <div class="visita">
+    <div class="tarjeta"><h3>Guía de entrevista</h3><div id="entrevista"></div></div>
+    <div class="tarjeta"><h3>Hoja de observación</h3><table class="hoja"><thead><tr><th>Aspecto</th><th>Qué anotar</th><th>Dato</th></tr></thead><tbody id="observacion"></tbody></table></div>
+  </div>
+</section>
+<p class="suave no-imprimir" style="font-size:15px">Documento completo: <a href="docs/requerimientos/borrador-requerimientos.md">borrador-requerimientos.md</a></p>
+</main>
+<footer id="pie"></footer>
+<script src="datos/proyecto.js"></script>
+<script src="assets/sitio.js"></script>
+<script>
+(function(){
+  var R = TG.requerimientos, val = R.filter(function(r){ return r.estado === "validado"; }).length;
+  document.getElementById("cifra").innerHTML = val + ' <small style="font-size:16px;font-weight:500;color:var(--suave)">de ' + R.length + " validados</small>";
+  document.getElementById("barra-val").style.width = (val / R.length * 100) + "%";
+  var datos = R.filter(function(r){ return r.criterio.indexOf("?") >= 0; }).length;
+  document.getElementById("sub").textContent = datos + " requerimientos esperan un dato de la visita al laboratorio.";
+  var protos = {}; TG.prototipos.forEach(function(p){ protos[p.codigo] = p; });
+  function fila(r){
+    var crit = r.criterio.replace(/\?/g, '<span class="dato">?</span>');
+    var chips = r.valida.map(function(v){ var p = protos[v];
+      var c = '<span class="chip ' + (p ? p.estado : "pendiente") + '">' + v + "</span>";
+      return p && p.url ? '<a href="' + p.url + '" style="text-decoration:none">' + c + "</a>" : c; }).join("");
+    return '<div class="fila' + (r.estado === "validado" ? "" : " pend") + '"><span class="id">' + r.id + "</span><div><h3>" + r.texto + "</h3><p>" + crit + "</p>" +
+      (r.nota ? '<p style="margin-top:4px;font-size:14px">' + r.nota + "</p>" : "") + '<div class="chips-mini">' + chips + "</div></div>" +
+      '<span class="chip ' + (r.estado === "validado" ? "hecho" : "pendiente") + '">' + (r.estado === "validado" ? "validado" : "pendiente") + "</span></div>";
+  }
+  document.getElementById("rf").innerHTML = R.filter(function(r){ return r.tipo === "RF"; }).map(fila).join("");
+  document.getElementById("rnf").innerHTML = R.filter(function(r){ return r.tipo === "RNF"; }).map(fila).join("");
+  var n = 0;
+  document.getElementById("entrevista").innerHTML = TG.entrevista.map(function(g){
+    return "<h4>" + g.grupo + '</h4><ol start="' + (n + 1) + '">' + g.preguntas.map(function(q){ n++; return "<li>" + q + "</li>"; }).join("") + "</ol>"; }).join("");
+  document.getElementById("observacion").innerHTML = TG.observacion.map(function(o){ return "<tr><td><b>" + o[0] + "</b></td><td>" + o[1] + "</td><td></td></tr>"; }).join("");
+  document.getElementById("b-imprimir").addEventListener("click", function(){
+    document.body.classList.add("solo-visita"); window.print();
+    setTimeout(function(){ document.body.classList.remove("solo-visita"); }, 500);
+  });
+})();
+</script>
+</body>
+</html>

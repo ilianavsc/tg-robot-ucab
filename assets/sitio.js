@@ -50,10 +50,11 @@
     ["inicio", "Inicio", "index.html"],
     ["cronograma", "Cronograma", "cronograma.html"],
     ["prototipos", "Prototipos", "prototipos/index.html"],
-    ["bitacora", "Bitácora", null],
-    ["decisiones", "Decisiones", null],
-    ["hardware", "Hardware", null],
-    ["arquitectura", "Arquitectura", null]
+    ["requerimientos", "Requerimientos", "requerimientos.html"],
+    ["hardware", "Hardware", "hardware.html"],
+    ["arquitectura", "Arquitectura", "arquitectura.html"],
+    ["decisiones", "Decisiones", "decisiones.html"],
+    ["bitacora", "Bitácora", "bitacora.html"]
   ];
   var menu = document.getElementById("menu");
   if (menu) {

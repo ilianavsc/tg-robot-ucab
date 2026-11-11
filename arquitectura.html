@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TG Robot UCAB · Arquitectura</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/estilo.css">
+<style>
+.diagrama{padding:14px}
+.diagrama .desliza{overflow-x:auto}
+.diagrama svg{min-width:760px;width:100%;height:auto;display:block}
+.pasos{margin:0;padding-left:0;list-style:none;display:grid;gap:10px;counter-reset:p}
+.pasos li{counter-increment:p;display:grid;grid-template-columns:40px 1fr;gap:12px;background:var(--blanco);border-radius:12px;padding:12px 16px;font-size:16px}
+.pasos li::before{content:counter(p);font-family:var(--display);font-weight:700;font-size:24px;line-height:1.1;color:var(--llega)}
+.buzones{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.buzones li{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:12px;align-items:center;background:var(--blanco);border-radius:12px;padding:12px 16px;border-left:6px solid var(--c)}
+.buzones code{font-family:var(--mono);font-size:14px;overflow-wrap:anywhere}
+.buzones small{color:var(--suave);font-size:14px}
+@media (max-width:640px){.buzones li{grid-template-columns:1fr}}
+</style>
+</head>
+<body data-pagina="arquitectura" data-base="">
+<header id="menu"></header>
+<main>
+<p class="ceja">Arquitectura</p>
+<h1>El sistema <em>completo</em></h1>
+<p class="bajada">Cinco piezas que se pasan mensajes. Las de borde verde ya funcionan (en simulación); las punteadas vienen en las próximas fases.</p>
+
+<section aria-labelledby="t-mapa">
+  <h2 id="t-mapa">El mapa</h2>
+  <div class="tarjeta sombra diagrama"><div class="desliza">
+  <svg viewBox="0 0 1000 330" role="img" aria-label="El robot habla con el broker por MQTT; el puente pasa los mensajes a Firebase; la app lee Firebase; el banco de pruebas se conecta al broker">
+    <defs><marker id="fl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#14213D"/></marker></defs>
+    <g font-family="Atkinson Hyperlegible, sans-serif" font-size="13" fill="#4A5A73">
+      <line x1="174" y1="110" x2="226" y2="110" stroke="#14213D" stroke-width="1.6" marker-start="url(#fl)" marker-end="url(#fl)"/>
+      <text x="200" y="98" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">MQTT</text>
+      <line x1="381" y1="110" x2="433" y2="110" stroke="#14213D" stroke-width="1.6" stroke-dasharray="5 4" marker-start="url(#fl)" marker-end="url(#fl)"/>
+      <text x="407" y="98" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5">MQTT</text>
+      <line x1="588" y1="110" x2="640" y2="110" stroke="#14213D" stroke-width="1.6" stroke-dasharray="5 4" marker-start="url(#fl)" marker-end="url(#fl)"/>
+      <line x1="795" y1="110" x2="847" y2="110" stroke="#14213D" stroke-width="1.6" stroke-dasharray="5 4" marker-start="url(#fl)" marker-end="url(#fl)"/>
+      <line x1="303" y1="160" x2="303" y2="218" stroke="#14213D" stroke-width="1.6" marker-start="url(#fl)" marker-end="url(#fl)"/>
+      <text x="312" y="194" font-family="JetBrains Mono, monospace" font-size="11.5">WebSocket</text>
+    </g>
+    <g font-family="Bricolage Grotesque, sans-serif">
+      <rect x="20" y="60" width="152" height="100" rx="14" fill="#E2F4F0" stroke="#0F9D84" stroke-width="2.5"/>
+      <text x="96" y="100" text-anchor="middle" font-weight="700" font-size="17" fill="#14213D">Robot</text>
+      <text x="96" y="122" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" fill="#4A5A73">ESP32 · P01</text>
+      <text x="96" y="140" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#0F9D84">funciona</text>
+
+      <rect x="227" y="60" width="152" height="100" rx="14" fill="#E2F4F0" stroke="#0F9D84" stroke-width="2.5"/>
+      <text x="303" y="100" text-anchor="middle" font-weight="700" font-size="17" fill="#14213D">Broker</text>
+      <text x="303" y="122" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" fill="#4A5A73">HiveMQ (cartero)</text>
+      <text x="303" y="140" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#0F9D84">funciona</text>
+
+      <rect x="434" y="60" width="152" height="100" rx="14" fill="#FFFFFF" stroke="#4A5A73" stroke-width="2" stroke-dasharray="6 4"/>
+      <text x="510" y="100" text-anchor="middle" font-weight="700" font-size="17" fill="#14213D">Puente</text>
+      <text x="510" y="122" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" fill="#4A5A73">MQTT a Firebase</text>
+      <text x="510" y="140" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#4A5A73">P05 · Fase III</text>
+
+      <rect x="641" y="60" width="152" height="100" rx="14" fill="#FFFFFF" stroke="#4A5A73" stroke-width="2" stroke-dasharray="6 4"/>
+      <text x="717" y="100" text-anchor="middle" font-weight="700" font-size="17" fill="#14213D">Firebase</text>
+      <text x="717" y="122" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" fill="#4A5A73">datos, usuarios, avisos</text>
+      <text x="717" y="140" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#4A5A73">P05 · Fase III</text>
+
+      <rect x="848" y="60" width="132" height="100" rx="14" fill="#FDE8E2" stroke="#4A5A73" stroke-width="2" stroke-dasharray="6 4"/>
+      <text x="914" y="100" text-anchor="middle" font-weight="700" font-size="17" fill="#14213D">App</text>
+      <text x="914" y="122" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" fill="#4A5A73">Flutter</text>
+      <text x="914" y="140" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#4A5A73">P06 y P10</text>
+
+      <rect x="217" y="220" width="172" height="86" rx="14" fill="#E2F4F0" stroke="#0F9D84" stroke-width="2.5"/>
+      <text x="303" y="256" text-anchor="middle" font-weight="700" font-size="16" fill="#14213D">Banco de pruebas</text>
+      <text x="303" y="278" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11.5" fill="#4A5A73">en el navegador</text>
+      <text x="303" y="295" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#0F9D84">funciona</text>
+    </g>
+  </svg></div></div>
+</section>
+
+<section aria-labelledby="t-viaje">
+  <h2 id="t-viaje">Cómo viaja un pedido</h2>
+  <p class="bajada">Así funcionará cuando estén todas las piezas.</p>
+  <ol class="pasos">
+    <li><span>Un estudiante pide "5 resistencias de 1k" en la app.</span></li>
+    <li><span>La app guarda el pedido en Firebase.</span></li>
+    <li><span>El puente lo ve y lo deja en el buzón <code class="mono">robot/ordenes</code> del broker (QoS 1).</span></li>
+    <li><span>El robot lo recibe y responde "recibí P-0007" en <code class="mono">robot/ordenes/ack</code>.</span></li>
+    <li><span>Mientras trabaja, envía su estado cada 2 s; si alguien lo levanta, envía una alarma (QoS 2).</span></li>
+    <li><span>El puente pasa todo a Firebase y la app muestra el avance y las notificaciones.</span></li>
+  </ol>
+</section>
+
+<section aria-labelledby="t-buzones">
+  <h2 id="t-buzones">Los buzones (tópicos MQTT)</h2>
+  <ul class="buzones">
+    <li style="--c:#0F9D84"><code>ucab-tg-sf/robot/estado</code><small>Robot → app · QoS 0 · cómo está el robot, cada 2 s</small></li>
+    <li style="--c:#F2603D"><code>ucab-tg-sf/robot/ordenes</code><small>App → robot · QoS 1 · pedidos de componentes</small></li>
+    <li style="--c:#0F9D84"><code>ucab-tg-sf/robot/ordenes/ack</code><small>Robot → app · QoS 1 · "recibí el pedido P-…"</small></li>
+    <li style="--c:#6B4EE6"><code>ucab-tg-sf/robot/alertas</code><small>Robot → app · QoS 2 · alarmas</small></li>
+    <li style="--c:#F2B33D"><code>ucab-tg-sf/robot/conexion</code><small>Robot y broker · QoS 1 retenido · "en línea" o "desconectado"</small></li>
+  </ul>
+  <p class="suave" style="font-size:15px">Detalle técnico: <a href="docs/arquitectura/topicos-mqtt.md">topicos-mqtt.md</a> · Probado en <a href="prototipos/P01-mqtt-base/">P01</a>.</p>
+</section>
+</main>
+<footer id="pie"></footer>
+<script src="datos/proyecto.js"></script>
+<script src="assets/sitio.js"></script>
+</body>
+</html>

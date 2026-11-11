@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TG Robot UCAB · Hardware</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/estilo.css">
+<style>
+.chip.urgente{background:var(--llega);border-color:var(--llega);color:#fff}
+.chip.abierta{border-style:dashed;border-color:var(--qos);color:var(--qos);background:transparent}
+.chip.lab{background:var(--blanco);border-color:var(--suave);color:var(--tinta)}
+.compras{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:paso}
+.compras li{display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start;background:var(--blanco);border-radius:14px;padding:14px 16px;border-left:6px solid var(--pend)}
+.compras li.ya{border-left-color:var(--llega)}
+.compras .n{font-family:var(--display);font-weight:700;font-size:28px;line-height:1}
+.compras b{display:block;font-family:var(--display);font-size:18px}
+.compras span{font-size:15px;color:var(--suave)}
+.mat{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.pieza-hw{background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;padding:16px 18px;display:grid;gap:6px;align-content:start}
+.pieza-hw .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.pieza-hw .comp{font-family:var(--mono);font-size:12.5px;color:var(--suave);text-transform:uppercase;letter-spacing:.03em}
+.pieza-hw h3{font-size:18px;margin:0}
+.pieza-hw p{margin:0;font-size:15px}
+.pieza-hw .alt{font-size:14px;color:var(--suave)}
+.pieza-hw .cuando{font-family:var(--mono);font-size:12.5px;color:var(--suave)}
+</style>
+</head>
+<body data-pagina="hardware" data-base="">
+<header id="menu"></header>
+<main>
+<p class="ceja">Hardware · matriz v2</p>
+<h1>Las piezas <em>del robot</em></h1>
+<p class="bajada">Qué elegimos, qué alternativa hay, por qué, y cómo va cada compra. Las decisiones abiertas se cierran con pruebas, no con suposiciones.</p>
+<div class="resumen" id="resumen"></div>
+
+<section aria-labelledby="t-compras">
+  <h2 id="t-compras">Orden de compra</h2>
+  <p class="bajada">Primero lo que tarda en llegar o no se puede simular; al final lo que ya probamos en el simulador.</p>
+  <ol class="compras">
+    <li class="ya"><span class="n">1</span><div><b>Esta semana</b><span>Motores con encoder (Amazon). Preguntar al laboratorio qué componentes prestan, sobre todo el ESP32.</span></div></li>
+    <li><span class="n">2</span><div><b>Antes de fin de noviembre</b><span>Todo lo de la batería: pilas de marca, BMS con balanceo, porta pilas y cargador.</span></div></li>
+    <li><span class="n">3</span><div><b>Inicio de diciembre</b><span>Ruedas, acoples metálicos, rueda loca y tornillos. Filamento solo si la Escuela no lo pone.</span></div></li>
+    <li><span class="n">4</span><div><b>Antes del 18 de diciembre</b><span>Sensores, driver y regulador que el laboratorio no tenga, más fusible, cables y resistencias.</span></div></li>
+    <li><span class="n">5</span><div><b>Febrero (Fase IV)</b><span>Balizas BLE con sus cargadores, o lector de QR si así lo decide P04.</span></div></li>
+  </ol>
+</section>
+
+<section aria-labelledby="t-mat">
+  <h2 id="t-mat">Matriz de hardware</h2>
+  <div class="leyenda-chips"><span class="chip urgente">por pedir</span><span class="chip aviso">por comprar</span><span class="chip lab">preguntar al lab</span><span class="chip abierta">abierta</span><span class="chip hecho">corregido</span></div>
+  <div class="mat" id="mat"></div>
+</section>
+<p class="suave" style="font-size:15px">Lista de materiales v1 con precios: <a href="hardware/materiales/lista-materiales-v1.xlsx">lista-materiales-v1.xlsx</a> · Registro de cambios: <a href="hardware/materiales/CAMBIOS.md">CAMBIOS.md</a></p>
+</main>
+<footer id="pie"></footer>
+<script src="datos/proyecto.js"></script>
+<script src="assets/sitio.js"></script>
+<script>
+(function(){
+  var clase = { "por pedir": "urgente", "por comprar": "aviso", "preguntar al lab": "lab", "abierta": "abierta", "corregido": "hecho", "listo": "hecho" };
+  var M = TG.materiales, cuenta = {};
+  M.forEach(function(m){ cuenta[m.estado] = (cuenta[m.estado] || 0) + 1; });
+  document.getElementById("resumen").innerHTML = Object.keys(clase).filter(function(k){ return cuenta[k]; }).map(function(k){
+    return '<span class="chip ' + clase[k] + '" style="font-size:14px;padding:6px 12px">' + cuenta[k] + " " + k + "</span>"; }).join("");
+  document.getElementById("mat").innerHTML = M.map(function(m){
+    var eleccion = m.eleccion.replace(/\?/g, '<span class="dato">?</span>');
+    return '<div class="pieza-hw"><div class="top"><span class="comp">' + m.componente + '</span><span class="chip ' + clase[m.estado] + '">' + m.estado + "</span></div><h3>" + eleccion + "</h3><p>" + m.porque + "</p>" +
+      (m.alternativa ? '<p class="alt">Alternativa: ' + m.alternativa + "</p>" : "") + (m.cuando ? '<p class="cuando">' + m.cuando + "</p>" : "") + "</div>"; }).join("");
+})();
+</script>
+</body>
+</html>

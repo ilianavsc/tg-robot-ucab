@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TG Robot UCAB · Decisiones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/estilo.css">
+<style>
+.linea-dec{position:relative;display:grid;gap:14px;padding-left:28px}
+.linea-dec::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:3px;background:var(--punto);border-radius:2px}
+.dec{position:relative;background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;padding:16px 18px}
+.dec::before{content:"";position:absolute;left:-27px;top:20px;width:14px;height:14px;border-radius:50%;background:var(--sale);border:3px solid var(--papel)}
+.dec .fecha{font-family:var(--mono);font-size:12.5px;color:var(--suave)}
+.dec h3{margin:2px 0 6px}
+.dec p{margin:0 0 6px;font-size:16px}
+.dec .por{color:var(--suave);font-size:15.5px}
+.dec a{font-size:14.5px}
+.abiertas{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.abierta-c{border:2px dashed var(--qos);border-radius:14px;padding:16px 18px;background:transparent}
+.abierta-c h3{margin:0 0 6px;font-size:19px}
+.abierta-c p{margin:0;font-size:15px;color:var(--suave)}
+</style>
+</head>
+<body data-pagina="decisiones" data-base="">
+<header id="menu"></header>
+<main>
+<p class="ceja">Decisiones</p>
+<h1>Qué elegimos <em>y por qué</em></h1>
+<p class="bajada">Cada decisión con su razón y, cuando existe, la prueba que la respalda. Esto es lo que el jurado querrá entender.</p>
+
+<section aria-labelledby="t-abiertas">
+  <h2 id="t-abiertas">Por decidir</h2>
+  <p class="bajada">Se cierran con datos de las pruebas o de la visita al laboratorio.</p>
+  <div class="abiertas" id="abiertas"></div>
+</section>
+
+<section aria-labelledby="t-tomadas">
+  <h2 id="t-tomadas">Tomadas</h2>
+  <p class="bajada">La más nueva arriba.</p>
+  <div class="linea-dec" id="tomadas"></div>
+</section>
+</main>
+<footer id="pie"></footer>
+<script src="datos/proyecto.js"></script>
+<script src="assets/sitio.js"></script>
+<script>
+(function(){
+  var U = TGU, D = TG.decisiones;
+  document.getElementById("abiertas").innerHTML = D.filter(function(d){ return d.estado === "abierta"; }).map(function(d){
+    return '<div class="abierta-c"><h3>' + d.titulo + "</h3><p>" + d.porque + "</p></div>"; }).join("");
+  document.getElementById("tomadas").innerHTML = D.filter(function(d){ return d.estado === "tomada"; }).map(function(d){
+    return '<article class="dec"><span class="fecha">' + U.largo(U.fecha(d.fecha)) + "</span><h3>" + d.titulo + "</h3><p>" + d.decision + '</p><p class="por"><b>Por qué:</b> ' + d.porque + "</p>" +
+      (d.evidencia ? '<a href="' + d.evidencia + '">Ver la evidencia →</a>' : "") + "</article>"; }).join("");
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TG Robot UCAB · Bitácora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/estilo.css">
+<style>
+.semana{background:var(--blanco);border:2px solid var(--tinta);border-radius:16px;padding:20px 22px;box-shadow:6px 6px 0 var(--tinta);margin-bottom:22px}
+.semana .cab{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin-bottom:12px}
+.semana .num{font-family:var(--display);font-weight:700;font-size:34px;line-height:1}
+.semana .fechas{font-family:var(--mono);font-size:13px;color:var(--suave)}
+.cols3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.col{border-top:5px solid var(--c);padding-top:8px}
+.col h3{font-size:18px;margin:0 0 4px}
+.col ul{margin:0;padding-left:20px;font-size:16px}
+</style>
+</head>
+<body data-pagina="bitacora" data-base="">
+<header id="menu"></header>
+<main>
+<p class="ceja">Bitácora</p>
+<h1>Semana a semana, <em>qué pasó</em></h1>
+<p class="bajada">Qué hicimos, qué aprendimos y qué sigue. La semana más nueva arriba.</p>
+<div id="semanas"></div>
+<p class="suave" style="font-size:15px">Notas completas en <a href="docs/bitacora/">docs/bitacora</a>.</p>
+</main>
+<footer id="pie"></footer>
+<script src="datos/proyecto.js"></script>
+<script src="assets/sitio.js"></script>
+<script>
+(function(){
+  function col(t, c, xs){ return '<div class="col" style="--c:' + c + '"><h3>' + t + "</h3><ul>" + xs.map(function(x){ return "<li>" + x + "</li>"; }).join("") + "</ul></div>"; }
+  document.getElementById("semanas").innerHTML = TG.bitacora.map(function(b){
+    var f = TGU.faseDe(TGU.inicioSemana(b.semana));
+    return '<article class="semana"><div class="cab"><span class="num">Semana ' + b.semana + '</span><span class="fechas">' + b.fechas + " · Fase " + f.id + "</span></div>" +
+      '<div class="cols3">' + col("Hicimos", "#0F9D84", b.hicimos) + col("Aprendimos", "#6B4EE6", b.aprendimos) + col("Sigue", "#F2B33D", b.sigue) + "</div></article>"; }).join("");
+})();
+</script>
+</body>
+</html>

@@ -56,3 +56,20 @@ section{margin:0 0 52px}
   #menu ul{flex-wrap:nowrap}
   #menu a,#menu .pronto{white-space:nowrap;font-size:14px;padding:4px 9px}
 }
+
+/* Piezas compartidas por las páginas de contenido */
+.resumen{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 26px}
+.barra{height:14px;border-radius:999px;background:var(--blanco);border:2px solid var(--tinta);overflow:hidden;margin:6px 0 4px}
+.barra div{height:100%;background:var(--sale)}
+.filas{display:grid;gap:10px}
+.fila{display:grid;grid-template-columns:86px 1fr auto;gap:14px;align-items:start;background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;padding:14px 16px}
+.fila.pend{border-color:var(--punto)}
+.fila .id{font-family:var(--mono);font-weight:600;font-size:14px;padding-top:2px}
+.fila h3{font-size:18px;margin:0 0 4px}
+.fila p{margin:0;font-size:15.5px;color:var(--suave)}
+.fila .chips-mini{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.dato{background:var(--pend);border-radius:4px;padding:0 4px;font-weight:700;color:var(--tinta)}
+.chip.dash{border-style:dashed}
+.leyenda-chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px;color:var(--suave);margin:0 0 14px}
+@media (max-width:640px){.fila{grid-template-columns:1fr}}
+@media print{#menu,#pie,.no-imprimir{display:none!important}body{background:#fff}.tarjeta,.fila{box-shadow:none!important}}
