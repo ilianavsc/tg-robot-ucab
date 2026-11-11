@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robot UCAB · Bitácora de prototipos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--papel:#EEF3F1;--punto:#CBD8D3;--tinta:#14213D;--suave:#4A5A73;--sale:#0F9D84;--llega:#F2603D;--pend:#F2B33D;--blanco:#FFFFFF}
+*{box-sizing:border-box}
+body{margin:0;background:var(--papel);background-image:radial-gradient(var(--punto) 1.2px,transparent 1.2px);background-size:22px 22px;color:var(--tinta);font-family:"Atkinson Hyperlegible",system-ui,sans-serif;font-size:18px;line-height:1.6}
+main{max-width:980px;margin:0 auto;padding:48px 20px 80px}
+.ceja{font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.04em;color:var(--suave);margin:0 0 8px}
+h1{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:clamp(38px,6vw,62px);line-height:1.02;letter-spacing:-.02em;margin:0 0 14px}
+h1 em{font-style:normal;color:var(--sale)}
+.intro{max-width:640px;color:var(--suave);margin:0 0 36px}
+h2{font-family:"Bricolage Grotesque",sans-serif;font-size:26px;margin:36px 0 12px}
+.lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.proto{display:block;text-decoration:none;color:var(--tinta);background:var(--blanco);border:2px solid var(--tinta);border-radius:16px;padding:16px 18px;transition:transform .12s}
+a.proto{box-shadow:5px 5px 0 var(--tinta)}
+a.proto:hover{transform:translate(-2px,-2px)}
+a.proto:focus-visible{outline:3px solid #6B4EE6;outline-offset:3px}
+.proto.gris{border-style:dashed;border-color:var(--suave);color:var(--suave);background:transparent}
+.cod{font-family:"JetBrains Mono",monospace;font-weight:600;font-size:14px}
+.proto h3{font-family:"Bricolage Grotesque",sans-serif;font-size:21px;margin:2px 0 6px}
+.proto p{margin:0;font-size:15px;color:var(--suave)}
+.estado{display:inline-block;margin-top:10px;font-family:"JetBrains Mono",monospace;font-size:12px;padding:3px 9px;border-radius:999px;background:var(--papel)}
+.estado.ya{background:var(--pend)}
+footer{margin-top:56px;border-top:2px solid var(--tinta);padding-top:18px;font-size:15px;color:var(--suave)}
+@media (prefers-reduced-motion:reduce){.proto{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<p class="ceja">TRABAJO DE GRADO · INGENIERÍA EN TELECOMUNICACIONES · UCAB</p>
+<h1>Un robot que <em>busca y trae</em> componentes del laboratorio</h1>
+<p class="intro">Aquí guardamos cada prototipo: qué hace, cómo funciona explicado en simple, y las pruebas que demuestran que funciona.</p>
+
+<h2>Fase I · Revisión y levantamiento</h2>
+<div class="lista">
+  <a class="proto" href="prototipos/P01-mqtt-base/index.html"><span class="cod">P01</span><h3>Así se hablan el robot y la app</h3><p>Mensajes entre el robot y la app con MQTT, simulado en Wokwi.</p><span class="estado ya">En pruebas</span></a>
+  <div class="proto gris"><span class="cod">H0</span><h3>Wi-Fi del laboratorio</h3><p>Qué red usará el robot.</p><span class="estado">Pendiente</span></div>
+</div>
+
+<h2>Fase II · Diseño del sistema</h2>
+<div class="lista">
+  <div class="proto gris"><span class="cod">P02</span><h3>Los sentidos del robot</h3><p>Ultrasonido y acelerómetro en Wokwi.</p><span class="estado">Pendiente</span></div>
+  <div class="proto gris"><span class="cod">P03</span><h3>Motores que van parejo</h3><p>Control PID de velocidad.</p><span class="estado">Pendiente</span></div>
+  <div class="proto gris"><span class="cod">P04</span><h3>¿BLE o QR?</h3><p>Cómo sabe el robot dónde está.</p><span class="estado">Pendiente</span></div>
+</div>
+
+<footer>Iliana Semprun y Andrea Ferrer · Tutor: Ing. Biagio Cante · <a href="https://github.com/ilianavsc/tg-robot-ucab">Repositorio en GitHub</a></footer>
+</main>
+</body>
+</html>

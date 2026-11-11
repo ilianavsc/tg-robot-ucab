@@ -3,6 +3,15 @@
 **Fase:** 
 **Responsable:** 
 **Tarea en GitHub:** #
+**Fecha:** 
+
+👉 **Versión visual:** [index.html](index.html)
+
+## En una frase
+(qué hace, explicado para alguien que no es ingeniero)
+
+## La comparación
+(con qué cosa de la vida diaria se parece)
 
 ## 1. Objetivo
 
@@ -15,7 +24,9 @@
 ## 5. Criterio de éxito
 
 ## 6. Resultado
-(pasó o no pasó, con datos)
+| Prueba | Resultado | Evidencia |
+|---|---|---|
+|  |  |  |
 
 ## 7. Qué se reutiliza en el robot real
 

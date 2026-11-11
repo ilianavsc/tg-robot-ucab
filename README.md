@@ -5,6 +5,11 @@ Trabajo de Grado, Ingeniería en Telecomunicaciones, UCAB.
 **Autoras:** Iliana Vanessa Semprun Cascitelli y Andrea Valentina Ferrer Pinto
 **Tutor:** Ing. Biagio Domenico Cante Mata
 
+## Sitio del proyecto
+👉 **https://ilianavsc.github.io/tg-robot-ucab/**
+
+Cada prototipo tiene una página visual que se entiende en 30 segundos, con sus pruebas y capturas.
+
 ## Resumen
 Robot móvil de bajo costo que busca y transporta componentes electrónicos dentro del laboratorio, con una app para hacer pedidos y recibir alertas.
 Control con ESP32, navegación por línea con fusión de sensores, comunicación MQTT y app en Flutter con Firebase.
@@ -28,7 +33,7 @@ Pausa por exámenes: 11 al 16 ene 2027 (no se cuenta como semana).
 | Código | Nombre | Fase | Estado |
 |---|---|---|---|
 | P00 | Repositorio | I | En curso |
-| P01 | MQTT base | I | Pendiente |
+| P01 | MQTT base | I | En pruebas |
 | H0 | Wi-Fi del laboratorio | I | Pendiente |
 | P02 | Sensores | II | Pendiente |
 | P03 | PID de velocidad | II | Pendiente |
@@ -44,7 +49,8 @@ Pausa por exámenes: 11 al 16 ene 2027 (no se cuenta como semana).
 
 ## Carpetas
 - `docs/` cronograma, requerimientos, arquitectura, bitácora y tomo
-- `prototipos/` una carpeta por prototipo con su ficha
+- `index.html` portada del sitio
+- `prototipos/` una carpeta por prototipo con su página visual (`index.html`), su ficha (`README.md`), `codigo/` y `evidencias/`
 - `firmware/` código final del ESP32
 - `puente/` script MQTT a Firebase
 - `app/` proyecto Flutter
@@ -58,3 +64,4 @@ Pausa por exámenes: 11 al 16 ene 2027 (no se cuenta como semana).
 4. Al terminar: Pull Request y la otra revisa.
 5. Commits así: `tipo: qué hiciste (#tarea)`. Tipos: feat, fix, docs, test, chore.
 6. Nunca subir contraseñas ni llaves.
+7. Cada prototipo termina con su página visual y su ficha llenas.

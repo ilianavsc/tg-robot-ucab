@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pxx · Título simple del prototipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#EEF3F1; --punto:#CBD8D3; --tinta:#14213D; --suave:#4A5A73;
+  --sale:#0F9D84; --llega:#F2603D; --qos:#6B4EE6; --pend:#F2B33D; --blanco:#FFFFFF;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;
+  --texto:"Atkinson Hyperlegible",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--papel);background-image:radial-gradient(var(--punto) 1.2px,transparent 1.2px);background-size:22px 22px;color:var(--tinta);font-family:var(--texto);font-size:18px;line-height:1.6}
+main{max-width:980px;margin:0 auto;padding:40px 20px 80px}
+a{color:var(--qos)}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--qos);outline-offset:3px;border-radius:6px}
+.volver{font-size:15px;text-decoration:none;color:var(--suave)}
+.ceja{font-family:var(--mono);font-size:13px;letter-spacing:.04em;color:var(--suave);margin:28px 0 8px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(38px,6vw,64px);line-height:1.02;margin:0 0 18px;letter-spacing:-.02em}
+h1 em{font-style:normal;color:var(--sale)}
+h1 strong{color:var(--llega);font-weight:700}
+h2{font-family:var(--display);font-weight:700;font-size:28px;margin:0 0 6px;letter-spacing:-.01em}
+.bajada{color:var(--suave);margin:0 0 18px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:30px}
+.chip{font-family:var(--mono);font-size:13px;padding:5px 11px;border-radius:999px;background:var(--blanco);border:1.5px solid var(--tinta)}
+.chip.pend{background:var(--pend);border-color:var(--pend)}
+.frase{font-family:var(--display);font-weight:500;font-size:clamp(22px,3vw,30px);line-height:1.3;background:var(--blanco);border:2px solid var(--tinta);border-radius:18px;padding:24px 28px;margin:0 0 48px;box-shadow:6px 6px 0 var(--tinta)}
+section{margin:0 0 52px}
+.mesa{background:var(--blanco);border:2px solid var(--tinta);border-radius:18px;padding:18px 18px 14px;box-shadow:6px 6px 0 var(--tinta)}
+.mesa svg{width:100%;height:auto;display:block}
+.botones{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 12px}
+button{font-family:var(--texto);font-weight:700;font-size:16px;padding:10px 16px;border-radius:12px;border:2px solid var(--tinta);background:var(--blanco);color:var(--tinta);cursor:pointer;transition:transform .12s}
+button:hover{transform:translateY(-2px)}
+button.llega{background:var(--llega);border-color:var(--llega);color:var(--blanco)}
+button.qos{background:var(--qos);border-color:var(--qos);color:var(--blanco)}
+.registro{font-family:var(--mono);font-size:14px;background:var(--papel);border-radius:10px;padding:10px 14px;min-height:46px;margin:0}
+.leyenda{display:flex;flex-wrap:wrap;gap:18px;font-size:15px;color:var(--suave);margin-top:10px}
+.leyenda span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+.envios{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.envio{background:var(--blanco);border:2px solid var(--tinta);border-radius:16px;padding:18px 20px}
+.envio .nivel{font-family:var(--mono);font-weight:600;font-size:14px;color:var(--qos)}
+.envio h3{font-family:var(--display);font-size:22px;margin:4px 0 6px}
+.envio p{margin:0;font-size:16px;color:var(--suave)}
+.envio .uso{display:inline-block;margin-top:10px;font-family:var(--mono);font-size:13px;background:var(--papel);padding:3px 8px;border-radius:6px;color:var(--tinta)}
+.buzones{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.buzones li{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:12px;align-items:center;background:var(--blanco);border-radius:12px;padding:12px 16px;border-left:6px solid var(--c)}
+.buzones code{font-family:var(--mono);font-size:14px;overflow-wrap:anywhere}
+.buzones small{display:block;color:var(--suave);font-size:14px}
+.pruebas{display:grid;gap:12px}
+.prueba{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;padding:12px 14px}
+.marca{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-weight:700;font-size:22px;color:var(--blanco);background:var(--sale)}
+.prueba.pend .marca{background:var(--pend);color:var(--tinta)}
+.prueba p{margin:0}
+.prueba small{color:var(--suave);font-size:15px}
+.mini{width:120px;height:72px;object-fit:cover;object-position:top left;border-radius:8px;border:1.5px solid var(--punto);cursor:zoom-in;display:block}
+.nota{background:var(--pend);border-radius:14px;padding:14px 18px;margin-top:16px;font-size:16px}
+.falta{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.falta div{background:var(--blanco);border-radius:14px;padding:16px 18px;border:2px dashed var(--suave)}
+.falta h3{font-family:var(--display);font-size:20px;margin:0 0 8px}
+.falta ul{margin:0;padding-left:20px;font-size:16px}
+details{background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;padding:14px 18px}
+summary{font-family:var(--display);font-weight:700;font-size:20px;cursor:pointer}
+details p,details li{font-size:16px}
+details code{font-family:var(--mono);font-size:14px;background:var(--papel);padding:1px 6px;border-radius:4px}
+dialog{border:none;border-radius:16px;padding:12px;max-width:min(1100px,94vw);background:var(--blanco)}
+dialog::backdrop{background:rgba(20,33,61,.7)}
+dialog img{max-width:100%;max-height:80vh;display:block;border-radius:8px}
+dialog p{margin:10px 4px 2px;font-size:16px}
+footer{border-top:2px solid var(--tinta);padding-top:18px;font-size:15px;color:var(--suave)}
+@media (max-width:600px){
+  .buzones li{grid-template-columns:1fr}
+  .prueba{grid-template-columns:44px 1fr}
+  .prueba .mini{grid-column:2;width:100%;height:110px}
+}
+@media (prefers-reduced-motion:reduce){button{transition:none}}
+.dibujo-vacio{border:2px dashed var(--suave);border-radius:12px;padding:40px;text-align:center;color:var(--suave)}
+</style>
+</head>
+<body>
+<main>
+<a class="volver" href="../../index.html">← Todos los prototipos</a>
+<p class="ceja">TRABAJO DE GRADO · ROBOT UCAB · PROTOTIPO Pxx</p>
+<h1>Título simple, <em>palabra verde</em> y <strong>palabra coral</strong></h1>
+<div class="chips">
+  <span class="chip">Fase X</span>
+  <span class="chip">Simulado en ...</span>
+  <span class="chip pend">En pruebas</span>
+  <span class="chip">dd mmm aaaa</span>
+</div>
+
+<p class="frase">EN UNA FRASE: qué hace este prototipo, explicado como para alguien que no es ingeniero.</p>
+
+<section aria-labelledby="t-mesa">
+  <h2 id="t-mesa">Míralo funcionar</h2>
+  <p class="bajada">LA COMPARACIÓN: con qué cosa de la vida diaria se parece.</p>
+  <div class="mesa">
+    <div class="dibujo-vacio">Aquí va el dibujo o la animación del prototipo.</div>
+    <p class="registro">Texto corto que explica lo que se ve en el dibujo.</p>
+  </div>
+</section>
+
+<section aria-labelledby="t-ideas">
+  <h2 id="t-ideas">Las ideas clave</h2>
+  <p class="bajada">Máximo 3 tarjetas. Cada una es un concepto nuevo explicado en simple.</p>
+  <div class="envios">
+    <div class="envio"><span class="nivel">Concepto</span><h3>Nombre simple</h3><p>Explicación en 2 líneas.</p><span class="uso">dónde se usa</span></div>
+    <div class="envio"><span class="nivel">Concepto</span><h3>Nombre simple</h3><p>Explicación en 2 líneas.</p><span class="uso">dónde se usa</span></div>
+    <div class="envio"><span class="nivel">Concepto</span><h3>Nombre simple</h3><p>Explicación en 2 líneas.</p><span class="uso">dónde se usa</span></div>
+  </div>
+</section>
+
+<section aria-labelledby="t-pruebas">
+  <h2 id="t-pruebas">Qué probamos</h2>
+  <p class="bajada">Toca cada imagen para verla grande.</p>
+  <div class="pruebas">
+    <div class="prueba"><span class="marca" aria-label="Pasó">✓</span><p>Lo que se probó, en simple<br><small>Detalle corto del resultado.</small></p><img class="mini" src="evidencias/01-nombre.png" alt="Descripción de la captura" data-pie="Pie de foto para la imagen grande."></div>
+    <div class="prueba pend"><span class="marca" aria-label="Pendiente">…</span><p>Prueba que falta<br><small>Pendiente.</small></p></div>
+  </div>
+</section>
+
+<section aria-labelledby="t-falta">
+  <h2 id="t-falta">Lo que falta</h2>
+  <div class="falta">
+    <div><h3>En el simulador</h3><ul><li>...</li></ul></div>
+    <div><h3>Con el robot real</h3><ul><li>...</li></ul></div>
+  </div>
+</section>
+
+<section>
+  <details>
+    <summary>Para los curiosos: lo técnico</summary>
+    <ul><li>Placa, simulador, librerías y parámetros.</li></ul>
+    <p>Código: <a href="codigo/">codigo/</a> · Ficha completa: <a href="README.md">README.md</a></p>
+  </details>
+</section>
+
+<footer>Iliana Semprun y Andrea Ferrer · Ingeniería en Telecomunicaciones, UCAB · Tutor: Ing. Biagio Cante</footer>
+</main>
+
+<dialog id="visor"><img id="visor-img" alt=""><p id="visor-pie"></p><form method="dialog"><button type="submit">Cerrar</button></form></dialog>
+<script>
+document.querySelectorAll(".mini").forEach(function(img){
+  var visor=document.getElementById("visor");img.tabIndex=0;
+  function abrir(){document.getElementById("visor-img").src=img.src;document.getElementById("visor-img").alt=img.alt;document.getElementById("visor-pie").textContent=img.dataset.pie||"";visor.showModal();}
+  img.addEventListener("click",abrir);
+  img.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();abrir();}});
+});
+</script>
+</body>
+</html>
