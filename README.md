@@ -26,14 +26,14 @@ Control con ESP32, navegación por línea con fusión de sensores, comunicación
 | VI | Integración y alertas | 19 abr al 7 may 2027 | Pendiente |
 | VII | Pruebas y redacción final | 10 may al 11 jun 2027 | Pendiente |
 
-Pausa por exámenes: 11 al 16 ene 2027 (no se cuenta como semana).
+La semana de parciales (11 al 16 ene 2027) es semana extra de trabajo de la Fase III.
 
 ## Prototipos
 
 | Código | Nombre | Fase | Estado |
 |---|---|---|---|
 | P00 | Repositorio | I | En curso |
-| P01 | MQTT base | I | En pruebas |
+| P01 | MQTT base | I | Hecho |
 | H0 | Wi-Fi del laboratorio | I | Pendiente |
 | P02 | Sensores | II | Pendiente |
 | P03 | PID de velocidad | II | Pendiente |

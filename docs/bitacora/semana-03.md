@@ -4,13 +4,17 @@
 - Plan de prototipos ajustado al cronograma.
 - Revisión de la lista de materiales (versión 1).
 - Repositorio en GitHub con estructura, 7 etapas, etiquetas y tareas de la Fase I.
-- P01 MQTT base en Wokwi: estado, órdenes, confirmación, aviso de desconexión y reconexión funcionando.
+- Sitio del proyecto reestructurado: inicio, cronograma, menú compartido y datos en un solo archivo.
+- Banco de pruebas en el navegador para enviar pedidos y medir tiempos.
+- P01 cerrado: 7 de 7 pruebas con evidencias y 50 de 50 pedidos confirmados.
 
 ## Qué falló o aprendimos
+- QoS 1 necesita sesión persistente para no perder pedidos.
+- PubSubClient solo publica con QoS 0; usamos la librería MQTT de Joel Gaehwiler.
+- Wokwi no conecta con Proton VPN gratis; con el VPN de Opera sí.
 - Wokwi pausa la simulación si la pestaña queda oculta: el broker avisó "desconectado" (sirvió para probar el LWT).
-- La librería PubSubClient solo publica con QoS 0; usamos la librería MQTT de Joel Gaehwiler.
 
 ## Qué sigue
-- P01: probar la alerta con QoS 2 y las 50 órdenes seguidas.
-- Invitar a Andrea al repositorio.
-- Confirmar con el laboratorio qué componentes tienen y pedir los motores.
+- Entrevistas en el laboratorio.
+- Pedir los motores.
+- Documento de requerimientos.
