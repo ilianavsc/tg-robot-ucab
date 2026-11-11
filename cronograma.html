@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TG Robot UCAB · Cronograma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/estilo.css">
+<style>
+.linea{padding:16px 10px 10px}
+.desliza{overflow-x:auto}
+.desliza svg{min-width:820px;width:100%;height:auto;display:block}
+.leyenda{display:flex;flex-wrap:wrap;gap:16px;font-size:14px;color:var(--suave);padding:6px 12px 2px}
+.leyenda i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.fases{display:grid;gap:14px}
+.fase{display:grid;grid-template-columns:110px 1fr;gap:18px;background:var(--blanco);border:2px solid var(--tinta);border-radius:16px;padding:18px 20px;border-left-width:10px}
+.fase.hecha{border-left-color:var(--sale)}
+.fase.en-curso{border-left-color:var(--qos);box-shadow:6px 6px 0 var(--tinta)}
+.fase.por-venir{border-color:var(--punto);border-left-color:var(--suave)}
+.fase .num{font-family:var(--display);font-weight:700;font-size:44px;line-height:1}
+.fase .num small{display:block;font-family:var(--mono);font-weight:400;font-size:12.5px;color:var(--suave);margin-top:6px}
+.fase h3{margin:0 0 4px}
+.fase .fechas{font-family:var(--mono);font-size:13px;color:var(--suave);margin:0 0 8px}
+.fase p{margin:0 0 10px;font-size:16px}
+.hito{display:inline-block;background:var(--papel);border-radius:8px;padding:6px 10px;font-size:15px}
+.hito b{font-family:var(--mono);font-size:12.5px;color:var(--suave);font-weight:600;margin-right:6px}
+.protos{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.protos a,.protos span{text-decoration:none}
+.eventos{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+@media (max-width:600px){.fase{grid-template-columns:1fr;gap:6px}}
+</style>
+</head>
+<body data-pagina="cronograma" data-base="">
+<header id="menu"></header>
+<main>
+<p class="ceja">Cronograma · 32 semanas</p>
+<h1>De la idea al robot <em>en 7 fases</em></h1>
+<p class="bajada" id="resumen"></p>
+
+<section aria-labelledby="t-linea">
+  <h2 id="t-linea">La línea de tiempo</h2>
+  <p class="bajada">La línea coral es hoy. Pasa el mouse sobre un prototipo para ver su nombre.</p>
+  <div class="tarjeta sombra linea">
+    <div class="desliza"><svg id="linea" role="img" aria-label="Línea de tiempo del Trabajo de Grado, de octubre 2026 a junio 2027"></svg></div>
+    <div class="leyenda">
+      <span><i style="background:#0F9D84"></i>Hecho</span>
+      <span><i style="background:#6B4EE6"></i>En curso</span>
+      <span><i style="background:#FFFFFF;border:1.5px solid #14213D"></i>Por venir</span>
+      <span><i style="background:#F2B33D"></i>Ventana de oro</span>
+      <span><i style="background:#CBD8D3"></i>Pausa</span>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="t-fases">
+  <h2 id="t-fases">Las fases</h2>
+  <p class="bajada">Qué se hace en cada una, qué hay que entregar y qué prototipos le tocan.</p>
+  <div class="fases" id="fases"></div>
+</section>
+
+<section aria-labelledby="t-eventos">
+  <h2 id="t-eventos">Fechas especiales</h2>
+  <div class="eventos" id="eventos"></div>
+</section>
+</main>
+<footer id="pie"></footer>
+
+<script src="datos/proyecto.js"></script>
+<script src="assets/sitio.js"></script>
+<script>
+(function(){
+  var U = TGU, D = TG, hoy = U.hoy(), s = U.semana(hoy), fase = U.faseDe(hoy);
+  var NS = "http://www.w3.org/2000/svg";
+  var ini = U.fecha(D.inicio), fin = U.fecha(D.fin), X0 = 120, X1 = 980;
+  function x(d){ return X0 + (d - ini) / (fin - ini) * (X1 - X0); }
+  function claseEstado(e){ return e.replace(" ", "-"); }
+
+  document.getElementById("resumen").innerHTML = s.pausa ? "Hoy estamos en la pausa por exámenes."
+    : "Hoy vamos en la <b>semana " + s.n + " de " + D.totalSemanas + "</b>, fase " + fase.id + " (" + fase.nombre + "). El TG termina el " + U.largo(fin) + ".";
+
+  var svg = document.getElementById("linea");
+  var protoFilas = [0, 1, 2], H = 330;
+  svg.setAttribute("viewBox", "0 0 1000 " + H);
+  var out = "";
+  function t(x0, y0, txt, extra){ return '<text x="' + x0 + '" y="' + y0 + '" ' + (extra || "") + ">" + txt + "</text>"; }
+
+  // meses
+  var MES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  for (var d = new Date(2026, 10, 1, 12); d <= fin; d = new Date(d.getFullYear(), d.getMonth() + 1, 1, 12)) {
+    var xm = x(d);
+    out += '<line x1="' + xm + '" x2="' + xm + '" y1="34" y2="' + (H - 14) + '" stroke="#CBD8D3" stroke-width="1"/>';
+    out += t(xm + 4, 26, MES[d.getMonth()] + (d.getMonth() === 0 || d.getMonth() === 10 ? " " + d.getFullYear() : ""), 'font-family="JetBrains Mono, monospace" font-size="12" fill="#4A5A73"');
+  }
+  // etiquetas de fila
+  var etq = 'font-family="Bricolage Grotesque, sans-serif" font-weight="700" font-size="15" fill="#14213D"';
+  out += t(14, 88, "Fases", etq) + t(14, 152, "Fechas", etq) + t(14, 222, "Prototipos", etq);
+
+  // fases
+  D.fases.forEach(function(f){
+    var a = x(U.fecha(f.inicio)), b = x(new Date(U.fecha(f.fin).getTime() + 2 * 864e5)), e = U.estadoFase(f, hoy);
+    var fill = e === "hecha" ? "#0F9D84" : e === "en curso" ? "#6B4EE6" : "#FFFFFF";
+    var ink = e === "por venir" ? "#14213D" : "#FFFFFF";
+    out += '<g><title>Fase ' + f.id + ": " + f.nombre + " (" + U.corto(U.fecha(f.inicio)) + " al " + U.corto(U.fecha(f.fin)) + ')</title><rect x="' + (a + 1.5) + '" y="62" width="' + (b - a - 3) + '" height="44" rx="8" fill="' + fill + '" stroke="#14213D" stroke-width="1.5"/>';
+    out += t(a + 10, 89, f.id, 'font-family="Bricolage Grotesque, sans-serif" font-weight="700" font-size="17" fill="' + ink + '"');
+    var cabe = Math.floor((b - a - 26 - f.id.length * 11) / 7.2), primera = f.nombre.split(" ")[0];
+    var nom = f.nombre.length <= cabe ? f.nombre : (primera.length <= cabe ? primera : "");
+    if (nom) out += t(a + 10 + f.id.length * 11 + 8, 89, nom, 'font-size="13" fill="' + ink + '"');
+    out += "</g>";
+  });
+  // eventos
+  D.eventos.forEach(function(ev){
+    var a = x(U.fecha(ev.inicio)), b = x(new Date(U.fecha(ev.fin).getTime() + 864e5));
+    var fill = ev.tipo === "oro" ? "#F2B33D" : "#CBD8D3";
+    out += '<g><title>' + ev.nombre + ": " + ev.nota + '</title><rect x="' + a + '" y="132" width="' + Math.max(b - a, 6) + '" height="30" rx="6" fill="' + fill + '"/>';
+    out += t(a + (ev.tipo === "oro" ? 8 : -4), ev.tipo === "oro" ? 152 : 180, ev.tipo === "oro" ? "Ventana de oro" : "Exámenes", 'font-size="12.5" fill="#14213D"' + (ev.tipo === "oro" ? "" : ' text-anchor="middle"'));
+    out += "</g>";
+  });
+  // prototipos (tres alturas para que no se pisen)
+  D.prototipos.forEach(function(p, i){
+    var px = x(U.inicioSemana(p.semana)) + 10, py = 210 + (i % 3) * 36;
+    var fill = p.estado === "hecho" ? "#0F9D84" : p.estado === "pruebas" ? "#6B4EE6" : "#FFFFFF";
+    var g = '<g><title>' + p.codigo + ": " + p.nombre + " (semana " + p.semana + ')</title><path d="M' + px + " " + (py - 9) + " l9 9 l-9 9 l-9 -9 z" + '" fill="' + fill + '" stroke="#14213D" stroke-width="1.5"/>' +
+      t(px + 13, py + 5, p.codigo, 'font-family="JetBrains Mono, monospace" font-size="12" font-weight="600" fill="#14213D"') + "</g>";
+    out += p.url ? '<a href="' + p.url + '">' + g + "</a>" : g;
+  });
+  // hoy
+  if (hoy >= ini && hoy <= fin) {
+    var xh = x(hoy);
+    out += '<line x1="' + xh + '" x2="' + xh + '" y1="40" y2="' + (H - 10) + '" stroke="#F2603D" stroke-width="2.5"/>';
+    out += '<rect x="' + (xh - 22) + '" y="36" width="44" height="20" rx="10" fill="#F2603D"/>' + t(xh, 50, "hoy", 'text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="600" fill="#FFFFFF"');
+  }
+  svg.innerHTML = out;
+
+  // tarjetas de fase
+  document.getElementById("fases").innerHTML = D.fases.map(function(f){
+    var e = U.estadoFase(f, hoy);
+    var protos = D.prototipos.filter(function(p){ return U.faseDe(U.inicioSemana(p.semana)).id === f.id; });
+    return '<article class="fase ' + claseEstado(e) + '"><div class="num">' + f.id + "<small>Semanas " + f.semanas + '</small></div><div>' +
+      '<span class="chip ' + claseEstado(e) + '" style="float:right">' + e + "</span><h3>" + f.nombre + '</h3><p class="fechas">' +
+      U.corto(U.fecha(f.inicio)) + " al " + U.largo(U.fecha(f.fin)) + "</p><p>" + f.que + '</p><span class="hito"><b>HITO</b>' + f.hito + "</span>" +
+      (protos.length ? '<div class="protos">' + protos.map(function(p){
+        var c = '<span class="chip ' + p.estado + '" title="' + p.nombre + '">' + p.codigo + " · " + p.tema + "</span>";
+        return p.url ? '<a href="' + p.url + '">' + c + "</a>" : c;
+      }).join("") + "</div>" : "") + "</div></article>";
+  }).join("");
+
+  document.getElementById("eventos").innerHTML = D.eventos.map(function(ev){
+    return '<div class="tarjeta"><span class="chip ' + (ev.tipo === "oro" ? "aviso" : "pendiente") + '">' + U.corto(U.fecha(ev.inicio)) + " al " + U.largo(U.fecha(ev.fin)) + "</span><h3 style=\"margin-top:10px\">" + ev.nombre + '</h3><p style="margin:0;font-size:16px" class="suave">' + ev.nota + "</p></div>";
+  }).join("");
+})();
+</script>
+</body>
+</html>

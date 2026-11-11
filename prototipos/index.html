@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TG Robot UCAB · Prototipos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/estilo.css">
+<style>
+.lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.proto{display:block;text-decoration:none;color:var(--tinta);background:var(--blanco);border:2px solid var(--tinta);border-radius:16px;padding:16px 18px;transition:transform .12s}
+a.proto{box-shadow:5px 5px 0 var(--tinta)}
+a.proto:hover{transform:translate(-2px,-2px)}
+.proto.pendiente{border-style:dashed;border-color:var(--suave);background:transparent;color:var(--suave)}
+.proto .cod{font-family:var(--mono);font-weight:600;font-size:14px}
+.proto h3{margin:2px 0 6px}
+.proto p{margin:0 0 10px;font-size:15px;color:var(--suave)}
+.fase-titulo{font-family:var(--display);font-size:22px;margin:30px 0 12px}
+</style>
+</head>
+<body data-pagina="prototipos" data-base="../">
+<header id="menu"></header>
+<main>
+<p class="ceja">Prototipos</p>
+<h1>Cada prueba, <em>explicada en simple</em></h1>
+<p class="bajada">P = prototipo en simulador. H = prueba con hardware real. Los que tienen borde punteado todavía no empiezan.</p>
+<div id="por-fase"></div>
+</main>
+<footer id="pie"></footer>
+<script src="../datos/proyecto.js"></script>
+<script src="../assets/sitio.js"></script>
+<script>
+(function(){
+  var U = TGU, D = TG, html = "";
+  D.fases.forEach(function(f){
+    var ps = D.prototipos.filter(function(p){ return U.faseDe(U.inicioSemana(p.semana)).id === f.id; });
+    if (!ps.length) return;
+    html += '<h2 class="fase-titulo">Fase ' + f.id + " · " + f.nombre + '</h2><div class="lista">';
+    ps.forEach(function(p){
+      var et = p.estado === "pruebas" ? "En pruebas" : p.estado === "hecho" ? "Hecho" : "Pendiente";
+      var inner = '<span class="cod">' + p.codigo + " · " + p.tema + "</span><h3>" + p.nombre + "</h3><p>Semana " + p.semana + " · desde el " + U.corto(U.inicioSemana(p.semana)) + '</p><span class="chip ' + p.estado + '">' + et + "</span>";
+      html += p.url ? '<a class="proto" href="../' + p.url + '">' + inner + "</a>" : '<div class="proto pendiente">' + inner + "</div>";
+    });
+    html += "</div>";
+  });
+  document.getElementById("por-fase").innerHTML = html;
+})();
+</script>
+</body>
+</html>

@@ -3,55 +3,150 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Robot UCAB · Bitácora de prototipos</title>
+<title>TG Robot UCAB · Inicio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/estilo.css">
 <style>
-:root{--papel:#EEF3F1;--punto:#CBD8D3;--tinta:#14213D;--suave:#4A5A73;--sale:#0F9D84;--llega:#F2603D;--pend:#F2B33D;--blanco:#FFFFFF}
-*{box-sizing:border-box}
-body{margin:0;background:var(--papel);background-image:radial-gradient(var(--punto) 1.2px,transparent 1.2px);background-size:22px 22px;color:var(--tinta);font-family:"Atkinson Hyperlegible",system-ui,sans-serif;font-size:18px;line-height:1.6}
-main{max-width:980px;margin:0 auto;padding:48px 20px 80px}
-.ceja{font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.04em;color:var(--suave);margin:0 0 8px}
-h1{font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:clamp(38px,6vw,62px);line-height:1.02;letter-spacing:-.02em;margin:0 0 14px}
-h1 em{font-style:normal;color:var(--sale)}
-.intro{max-width:640px;color:var(--suave);margin:0 0 36px}
-h2{font-family:"Bricolage Grotesque",sans-serif;font-size:26px;margin:36px 0 12px}
-.lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
-.proto{display:block;text-decoration:none;color:var(--tinta);background:var(--blanco);border:2px solid var(--tinta);border-radius:16px;padding:16px 18px;transition:transform .12s}
-a.proto{box-shadow:5px 5px 0 var(--tinta)}
-a.proto:hover{transform:translate(-2px,-2px)}
-a.proto:focus-visible{outline:3px solid #6B4EE6;outline-offset:3px}
-.proto.gris{border-style:dashed;border-color:var(--suave);color:var(--suave);background:transparent}
-.cod{font-family:"JetBrains Mono",monospace;font-weight:600;font-size:14px}
-.proto h3{font-family:"Bricolage Grotesque",sans-serif;font-size:21px;margin:2px 0 6px}
-.proto p{margin:0;font-size:15px;color:var(--suave)}
-.estado{display:inline-block;margin-top:10px;font-family:"JetBrains Mono",monospace;font-size:12px;padding:3px 9px;border-radius:999px;background:var(--papel)}
-.estado.ya{background:var(--pend)}
-footer{margin-top:56px;border-top:2px solid var(--tinta);padding-top:18px;font-size:15px;color:var(--suave)}
-@media (prefers-reduced-motion:reduce){.proto{transition:none}}
+.reloj{padding:26px 26px 20px}
+.reloj-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:18px}
+.semana-num{font-family:var(--display);font-weight:700;font-size:clamp(44px,8vw,80px);line-height:1;letter-spacing:-.03em}
+.semana-num span{color:var(--suave);font-weight:500;font-size:.45em;letter-spacing:0}
+.fase-actual{font-family:var(--display);font-size:22px;font-weight:500}
+.fase-actual b{color:var(--qos)}
+.tira{display:flex;gap:10px;align-items:flex-start}
+.grupo{display:flex;flex-direction:column;gap:6px;flex:var(--n) 1 0;min-width:0}
+.celdas{display:flex;gap:3px}
+.celda{flex:1;height:34px;border-radius:5px;background:var(--papel);border:1.5px solid var(--punto)}
+.celda.hecho{background:var(--sale);border-color:var(--sale)}
+.celda.hoy{background:var(--llega);border-color:var(--llega);height:44px;margin-top:-5px}
+.grupo .rom{font-family:var(--mono);font-size:12px;color:var(--suave);text-align:center}
+.grupo.actual .rom{color:var(--tinta);font-weight:600}
+.leyenda-reloj{display:flex;flex-wrap:wrap;gap:16px;font-size:14px;color:var(--suave);margin-top:14px}
+.leyenda-reloj i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.cifra{font-family:var(--display);font-weight:700;font-size:40px;line-height:1.05;margin:4px 0}
+.cifra small{font-size:16px;font-weight:500;color:var(--suave)}
+.puntos{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 6px}
+.puntos span{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--suave)}
+.puntos .pruebas{background:var(--qos);border-color:var(--qos)}
+.puntos .hecho{background:var(--sale);border-color:var(--sale)}
+.lista-pend{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.lista-pend li{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center;background:var(--blanco);border-radius:12px;padding:12px 16px;border-left:6px solid var(--pend)}
+.lista-pend li.hecho{border-left-color:var(--sale);color:var(--suave);text-decoration:line-through}
+.lista-pend .cuando{font-family:var(--mono);font-size:13px}
+.lista-pend .tarde{color:var(--llega);font-weight:600}
+.avance ul{margin:6px 0 0;padding-left:20px;font-size:16px}
+.avance .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.ir{display:block;text-decoration:none;color:var(--tinta);transition:transform .12s}
+a.ir:hover{transform:translate(-2px,-2px)}
+.ir p{margin:0;font-size:15px;color:var(--suave)}
+.ir.pronto{border-style:dashed;border-color:var(--suave);background:transparent;color:var(--suave);box-shadow:none}
+@media (max-width:640px){.celda{height:26px}.celda.hoy{height:34px}.tira{gap:6px}.lista-pend li{grid-template-columns:1fr}}
 </style>
 </head>
-<body>
+<body data-pagina="inicio" data-base="">
+<header id="menu"></header>
 <main>
-<p class="ceja">TRABAJO DE GRADO · INGENIERÍA EN TELECOMUNICACIONES · UCAB</p>
+<p class="ceja">Trabajo de Grado · Ingeniería en Telecomunicaciones · UCAB</p>
 <h1>Un robot que <em>busca y trae</em> componentes del laboratorio</h1>
-<p class="intro">Aquí guardamos cada prototipo: qué hace, cómo funciona explicado en simple, y las pruebas que demuestran que funciona.</p>
+<p class="bajada">Así va el proyecto hoy. Esta página se actualiza sola con la fecha.</p>
 
-<h2>Fase I · Revisión y levantamiento</h2>
-<div class="lista">
-  <a class="proto" href="prototipos/P01-mqtt-base/index.html"><span class="cod">P01</span><h3>Así se hablan el robot y la app</h3><p>Mensajes entre el robot y la app con MQTT, simulado en Wokwi.</p><span class="estado ya">En pruebas</span></a>
-  <div class="proto gris"><span class="cod">H0</span><h3>Wi-Fi del laboratorio</h3><p>Qué red usará el robot.</p><span class="estado">Pendiente</span></div>
-</div>
+<section aria-labelledby="t-reloj">
+  <h2 id="t-reloj" class="sr" hidden>En qué semana vamos</h2>
+  <div class="tarjeta sombra reloj">
+    <div class="reloj-top">
+      <div class="semana-num" id="semana-num"></div>
+      <div class="fase-actual" id="fase-actual"></div>
+    </div>
+    <div class="tira" id="tira" role="img" aria-label="Avance de las 32 semanas del Trabajo de Grado"></div>
+    <div class="leyenda-reloj">
+      <span><i style="background:#0F9D84"></i>Semanas pasadas</span>
+      <span><i style="background:#F2603D"></i>Esta semana</span>
+      <span><i style="background:#EEF3F1;border:1.5px solid #CBD8D3"></i>Por venir</span>
+    </div>
+  </div>
+</section>
 
-<h2>Fase II · Diseño del sistema</h2>
-<div class="lista">
-  <div class="proto gris"><span class="cod">P02</span><h3>Los sentidos del robot</h3><p>Ultrasonido y acelerómetro en Wokwi.</p><span class="estado">Pendiente</span></div>
-  <div class="proto gris"><span class="cod">P03</span><h3>Motores que van parejo</h3><p>Control PID de velocidad.</p><span class="estado">Pendiente</span></div>
-  <div class="proto gris"><span class="cod">P04</span><h3>¿BLE o QR?</h3><p>Cómo sabe el robot dónde está.</p><span class="estado">Pendiente</span></div>
-</div>
+<section aria-labelledby="t-resumen">
+  <h2 id="t-resumen">De un vistazo</h2>
+  <div class="rejilla">
+    <div class="tarjeta"><p class="ceja" style="margin-top:0">Próximo hito</p><div class="cifra" id="hito-dias"></div><p id="hito-texto" style="margin:0"></p></div>
+    <div class="tarjeta"><p class="ceja" style="margin-top:0">Prototipos</p><div class="cifra" id="proto-cifra"></div><div class="puntos" id="proto-puntos"></div><p style="margin:0;font-size:15px"><a href="prototipos/index.html">Ver todos los prototipos</a></p></div>
+    <div class="tarjeta"><p class="ceja" style="margin-top:0">Qué toca en esta fase</p><p id="fase-que" style="margin:0;font-size:16px"></p></div>
+  </div>
+</section>
 
-<footer>Iliana Semprun y Andrea Ferrer · Tutor: Ing. Biagio Cante · <a href="https://github.com/ilianavsc/tg-robot-ucab">Repositorio en GitHub</a></footer>
+<section aria-labelledby="t-pend">
+  <h2 id="t-pend">Para estos días</h2>
+  <p class="bajada">Lo que hay que cerrar pronto. En rojo, lo que ya pasó de fecha.</p>
+  <ul class="lista-pend" id="pendientes"></ul>
+</section>
+
+<section aria-labelledby="t-avance">
+  <h2 id="t-avance">Último avance</h2>
+  <div class="tarjeta avance" id="avance"></div>
+</section>
+
+<section aria-labelledby="t-explora">
+  <h2 id="t-explora">Explora</h2>
+  <div class="rejilla">
+    <a class="tarjeta sombra ir" href="cronograma.html"><h3>Cronograma</h3><p>Las 32 semanas y las 7 fases en una línea de tiempo.</p></a>
+    <a class="tarjeta sombra ir" href="prototipos/index.html"><h3>Prototipos</h3><p>Cada prueba explicada en simple, con sus evidencias.</p></a>
+    <div class="tarjeta ir pronto"><h3>Bitácora</h3><p>Pronto: qué hicimos cada semana.</p></div>
+    <div class="tarjeta ir pronto"><h3>Decisiones</h3><p>Pronto: qué elegimos y por qué.</p></div>
+    <div class="tarjeta ir pronto"><h3>Hardware</h3><p>Pronto: materiales, costos y estado de compras.</p></div>
+    <div class="tarjeta ir pronto"><h3>Arquitectura</h3><p>Pronto: el sistema completo en un dibujo.</p></div>
+  </div>
+</section>
 </main>
+<footer id="pie"></footer>
+
+<script src="datos/proyecto.js"></script>
+<script src="assets/sitio.js"></script>
+<script>
+(function(){
+  var U = TGU, D = TG, hoy = U.hoy(), s = U.semana(hoy), fase = U.faseDe(hoy);
+  var n = s.pausa ? null : s.n;
+
+  document.getElementById("semana-num").innerHTML = s.pausa ? "Pausa <span>exámenes</span>"
+    : n === 0 ? "Pronto <span>empieza</span>" : "Semana " + n + " <span>de " + D.totalSemanas + "</span>";
+  document.getElementById("fase-actual").innerHTML = "Fase <b>" + fase.id + "</b> · " + fase.nombre;
+
+  var tira = document.getElementById("tira"), html = "";
+  D.fases.forEach(function(f){
+    var semanas = [];
+    for (var w = 1; w <= D.totalSemanas; w++) if (U.faseDe(U.inicioSemana(w)).id === f.id) semanas.push(w);
+    html += '<div class="grupo' + (f.id === fase.id ? " actual" : "") + '" style="--n:' + semanas.length + '"><div class="celdas">';
+    semanas.forEach(function(w){
+      var c = n && w < n ? "hecho" : (w === n ? "hoy" : "");
+      html += '<div class="celda ' + c + '" title="Semana ' + w + ' · desde el ' + U.corto(U.inicioSemana(w)) + '"></div>';
+    });
+    html += '</div><div class="rom">' + f.id + "</div></div>";
+  });
+  tira.innerHTML = html;
+
+  var fin = U.fecha(fase.fin), faltan = U.dias(hoy, fin);
+  document.getElementById("hito-dias").innerHTML = faltan >= 0 ? faltan + " <small>días</small>" : "Vencido";
+  document.getElementById("hito-texto").textContent = fase.hito + " · " + U.largo(fin);
+  document.getElementById("fase-que").textContent = fase.que;
+
+  var P = D.prototipos, listos = P.filter(function(p){return p.estado !== "pendiente";}).length;
+  document.getElementById("proto-cifra").innerHTML = listos + " <small>de " + P.length + " en marcha</small>";
+  document.getElementById("proto-puntos").innerHTML = P.map(function(p){
+    return '<span class="' + p.estado + '" title="' + p.codigo + " · " + p.nombre + '"></span>';
+  }).join("");
+
+  document.getElementById("pendientes").innerHTML = D.pendientes.map(function(p){
+    var f = U.fecha(p.fecha), tarde = !p.hecho && f < hoy;
+    return '<li class="' + (p.hecho ? "hecho" : "") + '"><span class="cuando' + (tarde ? " tarde" : "") + '">' + U.corto(f) + (tarde ? " · tarde" : "") + "</span><span>" + p.que + "</span></li>";
+  }).join("");
+
+  var b = D.bitacora[0];
+  function lista(t, xs){ return "<div><h3>" + t + "</h3><ul>" + xs.map(function(x){return "<li>" + x + "</li>";}).join("") + "</ul></div>"; }
+  document.getElementById("avance").innerHTML = '<p class="ceja" style="margin-top:0">Semana ' + b.semana + " · " + b.fechas + '</p><div class="cols">' +
+    lista("Hicimos", b.hicimos) + lista("Aprendimos", b.aprendimos) + lista("Sigue", b.sigue) + "</div>";
+})();
+</script>
 </body>
 </html>

@@ -1,0 +1,58 @@
+/* Identidad visual del sitio TG Robot UCAB
+   Cada color tiene un solo significado:
+   verde = hecho / sale del robot · coral = hoy / llega al robot
+   violeta = en curso / conceptos · amarillo = avisos y pendientes */
+:root{
+  --papel:#EEF3F1; --punto:#CBD8D3; --tinta:#14213D; --suave:#4A5A73;
+  --sale:#0F9D84; --llega:#F2603D; --qos:#6B4EE6; --pend:#F2B33D; --blanco:#FFFFFF;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;
+  --texto:"Atkinson Hyperlegible",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--papel);background-image:radial-gradient(var(--punto) 1.2px,transparent 1.2px);background-size:22px 22px;color:var(--tinta);font-family:var(--texto);font-size:18px;line-height:1.6}
+main{max-width:1040px;margin:0 auto;padding:28px 20px 72px}
+a{color:var(--qos)}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--qos);outline-offset:3px;border-radius:6px}
+
+/* Menú */
+#menu{position:sticky;top:0;z-index:5;background:rgba(238,243,241,.94);backdrop-filter:blur(4px);border-bottom:2px solid var(--tinta);display:flex;flex-wrap:wrap;align-items:center;gap:6px 22px;padding:10px 20px}
+#menu .menu-marca{font-family:var(--display);font-weight:700;font-size:19px;color:var(--tinta);text-decoration:none;display:flex;align-items:center;gap:8px}
+.punto-marca{width:14px;height:14px;border-radius:4px;background:var(--sale);box-shadow:4px 4px 0 var(--llega)}
+#menu ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px}
+#menu a,#menu .pronto{font-size:15px;padding:5px 10px;border-radius:8px;text-decoration:none;color:var(--tinta);display:block}
+#menu a:hover{background:var(--blanco)}
+#menu a[aria-current="page"]{background:var(--tinta);color:var(--blanco)}
+#menu .pronto{color:#8796A8;cursor:default}
+
+/* Tipografía */
+.ceja{font-family:var(--mono);font-size:13px;letter-spacing:.04em;color:var(--suave);margin:20px 0 8px;text-transform:uppercase}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(36px,6vw,60px);line-height:1.03;margin:0 0 14px;letter-spacing:-.02em}
+h1 em{font-style:normal;color:var(--sale)}
+h1 strong{color:var(--llega);font-weight:700}
+h2{font-family:var(--display);font-weight:700;font-size:28px;margin:0 0 6px;letter-spacing:-.01em}
+h3{font-family:var(--display);font-weight:700;font-size:21px;margin:0 0 6px}
+.bajada{color:var(--suave);margin:0 0 18px}
+section{margin:0 0 52px}
+
+/* Piezas */
+.tarjeta{background:var(--blanco);border:2px solid var(--tinta);border-radius:16px;padding:18px 20px}
+.sombra{box-shadow:6px 6px 0 var(--tinta)}
+.chip{display:inline-block;font-family:var(--mono);font-size:12.5px;padding:3px 10px;border-radius:999px;background:var(--blanco);border:1.5px solid var(--tinta);white-space:nowrap}
+.chip.hecho,.chip.hecha{background:var(--sale);border-color:var(--sale);color:var(--blanco)}
+.chip.en-curso,.chip.pruebas{background:var(--qos);border-color:var(--qos);color:var(--blanco)}
+.chip.pendiente,.chip.por-venir{background:transparent;border-color:var(--suave);color:var(--suave)}
+.chip.aviso{background:var(--pend);border-color:var(--pend)}
+.rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.mono{font-family:var(--mono)}
+.suave{color:var(--suave)}
+
+#pie{border-top:2px solid var(--tinta);margin:0 20px;padding:18px 0 40px;font-size:15px;color:var(--suave);max-width:1000px}
+@media (min-width:1080px){#pie{margin:0 auto}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:700px){
+  #menu{padding:8px 12px;gap:4px}
+  #menu nav{width:100%;overflow-x:auto;scrollbar-width:none}
+  #menu ul{flex-wrap:nowrap}
+  #menu a,#menu .pronto{white-space:nowrap;font-size:14px;padding:4px 9px}
+}

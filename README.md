@@ -49,7 +49,10 @@ Pausa por exámenes: 11 al 16 ene 2027 (no se cuenta como semana).
 
 ## Carpetas
 - `docs/` cronograma, requerimientos, arquitectura, bitácora y tomo
-- `index.html` portada del sitio
+- `index.html` inicio del sitio (semana actual, próximo hito, pendientes)
+- `cronograma.html` línea de tiempo de las 7 fases
+- `assets/` estilo y menú compartidos por todas las páginas
+- `datos/proyecto.js` **el único archivo que hay que editar para actualizar el sitio** (fases, prototipos, pendientes, bitácora)
 - `prototipos/` una carpeta por prototipo con su página visual (`index.html`), su ficha (`README.md`), `codigo/` y `evidencias/`
 - `firmware/` código final del ESP32
 - `puente/` script MQTT a Firebase

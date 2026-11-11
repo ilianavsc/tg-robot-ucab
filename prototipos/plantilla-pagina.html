@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/estilo.css">
 <style>
 :root{
   --papel:#EEF3F1; --punto:#CBD8D3; --tinta:#14213D; --suave:#4A5A73;
@@ -82,9 +83,10 @@ footer{border-top:2px solid var(--tinta);padding-top:18px;font-size:15px;color:v
 .dibujo-vacio{border:2px dashed var(--suave);border-radius:12px;padding:40px;text-align:center;color:var(--suave)}
 </style>
 </head>
-<body>
+<body data-pagina="prototipos" data-base="../../">
+<header id="menu"></header>
 <main>
-<a class="volver" href="../../index.html">← Todos los prototipos</a>
+<a class="volver" href="../index.html">← Todos los prototipos</a>
 <p class="ceja">TRABAJO DE GRADO · ROBOT UCAB · PROTOTIPO Pxx</p>
 <h1>Título simple, <em>palabra verde</em> y <strong>palabra coral</strong></h1>
 <div class="chips">
@@ -140,9 +142,11 @@ footer{border-top:2px solid var(--tinta);padding-top:18px;font-size:15px;color:v
   </details>
 </section>
 
-<footer>Iliana Semprun y Andrea Ferrer · Ingeniería en Telecomunicaciones, UCAB · Tutor: Ing. Biagio Cante</footer>
 </main>
+<footer id="pie"></footer>
 
+<script src="../../datos/proyecto.js"></script>
+<script src="../../assets/sitio.js"></script>
 <dialog id="visor"><img id="visor-img" alt=""><p id="visor-pie"></p><form method="dialog"><button type="submit">Cerrar</button></form></dialog>
 <script>
 document.querySelectorAll(".mini").forEach(function(img){

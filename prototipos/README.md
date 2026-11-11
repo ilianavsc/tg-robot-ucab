@@ -15,7 +15,7 @@ P = prototipo simulado. H = prueba con hardware real.
 ## Para crear uno nuevo
 1. Copiar `plantilla-pagina.html` como `index.html` dentro de la carpeta nueva.
 2. Copiar `plantilla-ficha.md` como `README.md`.
-3. Agregar el prototipo a la portada (`index.html` de la raíz).
+3. Agregarlo (o cambiar su estado) en `datos/proyecto.js`, en la lista `prototipos`. La portada, el cronograma y la lista de prototipos se actualizan solos.
 
 ## Reglas de la página visual
 - Arriba: título simple y una frase que lo explique para alguien que no es ingeniero.
