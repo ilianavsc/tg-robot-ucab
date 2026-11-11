@@ -107,9 +107,9 @@ a.ir:hover{transform:translate(-2px,-2px)}
 <script>
 (function(){
   var U = TGU, D = TG, hoy = U.hoy(), s = U.semana(hoy), fase = U.faseDe(hoy);
-  var n = s.pausa ? null : s.n;
+  var n = s.n;
 
-  document.getElementById("semana-num").innerHTML = s.pausa ? "Pausa <span>exámenes</span>"
+  document.getElementById("semana-num").innerHTML = s.extra ? "Semana extra <span>parciales</span>"
     : n === 0 ? "Pronto <span>empieza</span>" : "Semana " + n + " <span>de " + D.totalSemanas + "</span>";
   document.getElementById("fase-actual").innerHTML = "Fase <b>" + fase.id + "</b> · " + fase.nombre;
 

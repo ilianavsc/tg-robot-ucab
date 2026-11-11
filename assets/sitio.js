@@ -13,7 +13,8 @@
   function corto(d) { return d.getDate() + " " + MESES[d.getMonth()]; }
   function largo(d) { return corto(d) + " " + d.getFullYear(); }
 
-  /* Semanas del TG: la semana de exámenes (11 al 16 ene 2027) no se cuenta */
+  /* Semanas del TG: la numeración oficial no cuenta la semana de parciales (11 al 16 ene 2027).
+     Ahora es una semana extra de trabajo: se muestra como "semana 11 + extra" */
   var PAUSA_INI = fecha("2027-01-11"), PAUSA_FIN = fecha("2027-01-17");
   function inicioSemana(n) {
     var d = new Date(fecha(window.TG.inicio).getTime() + (n - 1) * 7 * DIA);
@@ -23,7 +24,7 @@
   function semana(d) {
     var ini = fecha(window.TG.inicio);
     if (d < ini) return { n: 0 };
-    if (d >= PAUSA_INI && d <= PAUSA_FIN) return { n: null, pausa: true };
+    if (d >= PAUSA_INI && d <= PAUSA_FIN) return { n: 11, extra: true };
     var n = Math.floor(dias(ini, d) / 7) + 1;
     if (d > PAUSA_FIN) n -= 1;
     return { n: Math.min(n, window.TG.totalSemanas) };

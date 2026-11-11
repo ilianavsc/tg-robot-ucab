@@ -37,8 +37,8 @@ window.TG = {
   ],
 
   eventos: [
-    { nombre: "Exámenes del 1er semestre", inicio: "2027-01-11", fin: "2027-01-16", tipo: "pausa",
-      nota: "Pausa del TG. Esta semana no se cuenta." },
+    { nombre: "Semana extra (parciales)", inicio: "2027-01-11", fin: "2027-01-16", tipo: "extra",
+      nota: "Era pausa por exámenes, pero seguimos trabajando: es una semana de ventaja para la Fase III." },
     { nombre: "Ventana de oro", inicio: "2027-03-15", fin: "2027-04-09", tipo: "oro",
       nota: "Sin clases: tiempo para el trabajo pesado." }
   ],
