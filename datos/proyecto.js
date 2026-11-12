@@ -120,7 +120,7 @@ window.TG = {
   materiales: [
     { componente: "Microcontrolador", eleccion: "3 × ESP32-WROOM-32 DevKit de 30 pines, USB-C, CP2102 (AITRIP, con placa de borneras)", alternativa: "Pedirla prestada al laboratorio", porque: "Mismo chip que en Wokwi; 8 entradas analógicas ADC1. Una va en el robot y dos como balizas de inicio y fin para calibrar tiempo y distancia (P04). Con la placa de borneras ocupa 6,3 × 6,6 cm", estado: "por pedir", cuando: "13 nov, en el mismo pedido de Amazon que los motores (US$ 19,99 las 3)", link: "https://www.amazon.com/dp/B0FBV7QGC4" },
     { componente: "Motores", eleccion: "2 kits Emoshayoga JGA25-371, 12 V, con encoder: Speed 200 (280 rpm sin carga, caja 1:21,3, 234 pulsos por vuelta de rueda)", alternativa: "Speed 130 (170 rpm sin carga, caja 1:35,5): más fuerza, pero con L298N queda justo en 0,35 m/s", porque: "Cada kit trae motor con encoder, soporte, rueda de 65 mm y acople. Con L298N y peso: ~0,57 m/s. En Mercado Libre no hay JGA25 de 12 V con encoder a buen precio", estado: "por pedir", cuando: "13 nov (Amazon, US$ 22,39 c/u, llega 27 nov)", link: "https://www.amazon.com/dp/B0H2JP84J7" },
-    { componente: "Driver", eleccion: "L298N", alternativa: "TB6612FNG", porque: "El L298N pierde cerca de 2 V; el TB6612FNG es más eficiente pero aguanta poco más de 1 A por motor", estado: "abierta", cuando: "Con la corriente de arranque del motor" },
+    { componente: "Driver", eleccion: "L298N (módulo rojo con disipador)", alternativa: "TB6612FNG", porque: "Pierde cerca de 2 V, pero aguanta 2 A por motor; cada motor Speed 200 pide hasta 1,8 A trabado, más de lo que soporta el TB6612FNG (1,2 A). Un solo módulo mueve los dos motores. Respaldo en Mercado Libre si el laboratorio no tiene (INNOVTRONIKS, 5 estrellas, más de 100 vendidos)", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov; si no hay, ML US$ 4", link: "https://articulo.mercadolibre.com.ve/MLV-580141623-l298n-l298-modulo-driver-motor-dc-y-motor-de-pasos-bipolar-_JM" },
     { componente: "Batería", eleccion: "3 × EVE INR18650-25P (2500 mAh, hasta 30 A), en serie (3S)", alternativa: "Samsung INR18650-35E (3500 mAh, US$ 10,50 c/u)", porque: "Marca real y aguanta de sobra el arranque de los motores (hasta 3,6 A los dos). Unas 3 h de autonomía estimada. Las de 9800 mAh son falsas", estado: "por comprar", cuando: "Antes de fin de noviembre (ML, US$ 4,80 c/u, vendedor TECNOPEPIN)", link: "https://articulo.mercadolibre.com.ve/MLV-1029451794-eve-inr18650-25p-2500mah-37v-pilas-recargables-cilindricas-_JM" },
     { componente: "Porta pilas", eleccion: "Porta pilas para 3 × 18650 con cables (2 unidades)", alternativa: "\"Porta Bateria Pila 18650 3s 11.1v Serie\" (ML, US$ 5,70)", porque: "Las pilas se encajan sin soldar. Por detrás se sueldan B1 y B2 del BMS en las láminas entre pila y pila. Al llegar: medir entre el cable rojo y el negro, debe dar 11 a 12,6 V (serie)", estado: "por comprar", cuando: "Mercado Libre, GLAXIAL SUMINISTROS (US$ 3,90 los 2; tienda en Chacaíto)", link: "https://articulo.mercadolibre.com.ve/MLV-918553422-porta-bateria-18650-x3-2-unidades-_JM" },
     { componente: "BMS", eleccion: "BMS 3S 12,6 V 25 A con balanceo (daier, 2 placas)", alternativa: "Mercado Libre: \"3s 25a Bms Carga Proteccion Balanceador\" (US$ 8,45), si se quiere armar la batería antes", porque: "Protege y equilibra las celdas. 25 A seguidos y 34-40 A de pico, de sobra para los 3,6 A de los motores. Corta cada pila entre 2,3 y 3,0 V: el ESP32 debe avisar antes, a 9,9 V en total. Después de conectarlo hay que cargarlo una vez para que dé salida", estado: "por pedir", cuando: "13 nov, en el mismo pedido de Amazon (US$ 9,59 las 2)", link: "https://www.amazon.com/dp/B07JMY631D" },
@@ -141,6 +141,10 @@ window.TG = {
   /* ---------- DECISIONES (la más nueva primero) ----------
      estado: "tomada" | "abierta" */
   decisiones: [
+    { fecha: "2026-11-11", titulo: "Driver L298N", estado: "tomada",
+      decision: "Usar un módulo L298N para los dos motores.",
+      porque: "Según la tabla del kit, cada motor Speed 200 pide hasta 1,8 A trabado; el TB6612FNG aguanta 1,2 A seguidos por motor y el L298N 2 A. Se acepta la pérdida de ~2 V: con Speed 200 el robot igual llega a ~0,57 m/s.",
+      evidencia: "prototipos/P03-motores/avance-02-simulador-3d/" },
     { fecha: "2026-11-11", titulo: "Motor Speed 200 (280 rpm sin carga)", estado: "tomada",
       decision: "2 kits Emoshayoga JGA25-371 de 12 V con encoder, versión Speed 200 (caja 1:21,3).",
       porque: "En el anuncio \"Speed\" es la velocidad con carga. Con L298N y el peso del robot da ~0,57 m/s, dentro de la meta de 0,35 a 0,6 m/s con cualquier driver, y se frena con PWM. Fuerza nominal 0,4 kg·cm contra ~0,2 kg·cm estimados en piso plano (se confirma en P03). Bloqueado pide 1,8 A por motor.",
@@ -189,8 +193,7 @@ window.TG = {
       decision: "ESP32-WROOM-32 para el robot.",
       porque: "Es igual al de Wokwi, tiene Bluetooth (el S2 no) y suficientes pines (el C3 no).",
       evidencia: "hardware.html" },
-        { fecha: "", titulo: "Driver L298N o TB6612FNG", estado: "abierta", decision: "", porque: "Depende de la corriente de arranque de los motores.", evidencia: "" },
-    { fecha: "", titulo: "Re-localización con BLE o con QR", estado: "abierta", decision: "", porque: "Se decide con la prueba P04 en la Fase II.", evidencia: "" },
+        { fecha: "", titulo: "Re-localización con BLE o con QR", estado: "abierta", decision: "", porque: "Se decide con la prueba P04 en la Fase II.", evidencia: "" },
     { fecha: "", titulo: "Bandeja o pinza", estado: "abierta", decision: "", porque: "Depende del pedido típico (entrevista en el laboratorio).", evidencia: "" }
   ],
 
