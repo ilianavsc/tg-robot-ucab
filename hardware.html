@@ -28,6 +28,17 @@
 .pieza-hw p{margin:0;font-size:15px}
 .pieza-hw .alt{font-size:14px;color:var(--suave)}
 .pieza-hw .cuando{font-family:var(--mono);font-size:12.5px;color:var(--suave)}
+.energia-paso{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.energia-paso li{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:start;background:var(--blanco);border-radius:12px;padding:12px 14px;border-left:6px solid var(--c,var(--llega))}
+.energia-paso .n{font-family:var(--display);font-weight:700;font-size:22px;line-height:1}
+.energia-paso b{display:block;font-family:var(--display);font-size:17px}
+.energia-paso span{font-size:15px;color:var(--suave)}
+.tabla-pines{width:100%;border-collapse:collapse;background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;overflow:hidden;font-size:15px}
+.tabla-pines th,.tabla-pines td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--punto)}
+.tabla-pines th{font-family:var(--mono);font-size:12.5px;color:var(--suave)}
+.tabla-pines td:first-child{font-family:var(--mono);font-weight:600;white-space:nowrap}
+.tabla-pines td.nota{color:var(--suave);font-size:14px}
+.tabla-pines tr[data-g] td:first-child{border-left:6px solid var(--g)}
 </style>
 </head>
 <body data-pagina="hardware" data-base="">
@@ -50,6 +61,25 @@
   </ol>
 </section>
 
+<section aria-labelledby="t-energia">
+  <h2 id="t-energia">Cómo se conecta la energía</h2>
+  <p class="bajada">En este orden. El puerto de carga va antes del interruptor: así se carga con el robot apagado.</p>
+  <ol class="energia-paso">
+    <li><span class="n">1</span><div><b>3 pilas en el porta pilas → BMS</b><span>B− (negativo de la pila 1), B1 (entre pila 1 y 2), B2 (entre pila 2 y 3), B+ (positivo de la pila 3).</span></div></li>
+    <li><span class="n">2</span><div><b>P+ del BMS → fusible de 3 A lento</b><span>Protege todo lo que viene después, también la carga.</span></div></li>
+    <li><span class="n">3</span><div><b>Después del fusible se divide en dos</b><span>Rama A: jack DC de carga (+). Rama B: interruptor.</span></div></li>
+    <li style="--c:var(--qos)"><span class="n">4</span><div><b>Interruptor → L298N (12 V) y LM2596 (entrada)</b><span>Y el divisor 100 kΩ / 22 kΩ al GPIO 32, para que no gaste batería con el robot apagado.</span></div></li>
+    <li style="--c:var(--qos)"><span class="n">5</span><div><b>LM2596 a 5,0 V → VIN del ESP32</b><span>Ajustarlo a 5 V antes de conectar. Del pin 3V3 del ESP32 salen sensores de línea, encoders, MPU6050 y ultrasónicos.</span></div></li>
+    <li style="--c:var(--tinta)"><span class="n">6</span><div><b>Tierra común</b><span>P− del BMS, jack (−), L298N, LM2596 y ESP32 unidos al mismo GND. Sin esto nada funciona.</span></div></li>
+  </ol>
+</section>
+
+<section aria-labelledby="t-pines">
+  <h2 id="t-pines">Pines del ESP32</h2>
+  <p class="bajada">Propuesta para el DevKit de 30 pines. Los sensores de línea y la batería van en ADC1, porque el ADC2 no lee con el Wi-Fi encendido.</p>
+  <table class="tabla-pines"><thead><tr><th>GPIO</th><th>Conectado a</th><th>Nota</th></tr></thead><tbody id="pines"></tbody></table>
+</section>
+
 <section aria-labelledby="t-mat">
   <h2 id="t-mat">Matriz de hardware</h2>
   <div class="leyenda-chips"><span class="chip urgente">por pedir</span><span class="chip aviso">por comprar</span><span class="chip lab">preguntar al lab</span><span class="chip abierta">abierta</span><span class="chip hecho">corregido</span></div>
@@ -68,6 +98,9 @@
   M.forEach(function(m){ cuenta[m.estado] = (cuenta[m.estado] || 0) + 1; });
   document.getElementById("resumen").innerHTML = Object.keys(clase).filter(function(k){ return cuenta[k]; }).map(function(k){
     return '<span class="chip ' + clase[k] + '" style="font-size:14px;padding:6px 12px">' + cuenta[k] + " " + k + "</span>"; }).join("");
+  var col = { sensor: "#F2B33D", energia: "#F2603D", control: "#6B4EE6", mov: "#0F9D84", libre: "#CBD8D3" };
+  document.getElementById("pines").innerHTML = (TG.pines || []).map(function(p){
+    return '<tr data-g style="--g:' + col[p.grupo] + '"><td>' + p.gpio + "</td><td>" + p.uso + '</td><td class="nota">' + p.nota + "</td></tr>"; }).join("");
   document.getElementById("mat").innerHTML = M.map(function(m){
     var eleccion = m.eleccion.replace(/\?/g, '<span class="dato">?</span>');
     return '<div class="pieza-hw"><div class="top"><span class="ico">' + TGI(m.componente) + '</span><span class="comp">' + m.componente + '</span><span class="chip ' + clase[m.estado] + '">' + m.estado + "</span></div><h3>" + eleccion + "</h3><p>" + m.porque + "</p>" +

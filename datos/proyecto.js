@@ -64,7 +64,7 @@ window.TG = {
   pendientes: [
     { que: "Cerrar P01: alarma con QoS 2 y 50 órdenes seguidas", fecha: "2026-11-13", hecho: true },
     { que: "Confirmar con el laboratorio qué componentes tienen", fecha: "2026-11-13", hecho: false },
-    { que: "Pedido de Amazon: 2 kits de motor (<a href=\"https://www.amazon.com/dp/B0H2JP84J7\">Emoshayoga JGA25-371</a>, Speed 200), 3 ESP32 (<a href=\"https://www.amazon.com/dp/B0FBV7QGC4\">AITRIP</a>), el BMS (<a href=\"https://www.amazon.com/dp/B07JMY631D\">daier 3S 25 A</a>), el cargador (<a href=\"https://www.amazon.com/dp/B07P8DMSZ8\">TalentCell 12,6 V</a>) y el puerto de carga (<a href=\"https://www.amazon.com/dp/B0DX1ZQ84K\">DC-022D</a>)", fecha: "2026-11-13", hecho: false },
+    { que: "Pedido de Amazon: 2 kits de motor (<a href=\"https://www.amazon.com/dp/B0H2JP84J7\">Emoshayoga JGA25-371</a>, Speed 200), 3 ESP32 (<a href=\"https://www.amazon.com/dp/B0FBV7QGC4\">AITRIP</a>), el BMS (<a href=\"https://www.amazon.com/dp/B07JMY631D\">daier 3S 25 A</a>), el cargador (<a href=\"https://www.amazon.com/dp/B07P8DMSZ8\">TalentCell 12,6 V</a>) el puerto de carga (<a href=\"https://www.amazon.com/dp/B0DX1ZQ84K\">DC-022D</a>) y 2 ultrasónicos (<a href=\"https://www.amazon.com/dp/B0GL8NJCVT\">HC-SR04P</a>). Total ~US$ 106 + 7 % de impuesto de Florida + courier; revisar que pese menos de 1 kg", fecha: "2026-11-13", hecho: false },
     { que: "Ajustar el Capítulo II (<a href=\"docs/tomo/capitulo-ii-cambios.md\">lista de cambios</a>)", fecha: "2026-11-13", hecho: false },
     { que: "Entrevistas y observación en el laboratorio + prueba H0", fecha: "2026-11-18", hecho: false },
     { que: "Documento de requerimientos y matriz de hardware v2", fecha: "2026-11-20", hecho: false }
@@ -128,20 +128,57 @@ window.TG = {
     { componente: "Puerto de carga", eleccion: "Jack DC hembra 5,5 × 2,1 mm de panel, roscado, con cables y tapa (DC-022D)", alternativa: "", porque: "Para enchufar el cargador al robot como una laptop. Se atornilla al chasis; rojo (+) y negro (-) van a P+ y P- del BMS. En Mercado Libre solo hay paquetes al mayor (US$ 36 a 110)", estado: "por pedir", cuando: "13 nov, en el pedido de Amazon (US$ 9,99, trae varios)", link: "https://www.amazon.com/dp/B0DX1ZQ84K" },
     { componente: "Regulador", eleccion: "LM2596 (step down) ajustado a 5 V antes de conectar", alternativa: "Versión con pantalla de voltaje (ML, US$ 7)", porque: "Alimenta el ESP32 y los ultrasónicos. Viene ajustado a cualquier voltaje: girar el potenciómetro midiendo la salida hasta 5,0 V antes de conectar el ESP32, o se quema. Respaldo en ML si el laboratorio no tiene (RAM15D, 4,9 estrellas, más de 100 vendidos)", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov; si no hay, ML US$ 2,45", link: "https://articulo.mercadolibre.com.ve/MLV-919789104-lm2596-modulo-reductor-convertidor-de-voltaje-dc-ajustable-_JM" },
     { componente: "Medición de batería", eleccion: "Divisor de 100 kΩ y 22 kΩ", alternativa: "INA219", porque: "Deja unos 2,3 V en el pin con la batería llena (1 kΩ y 2 kΩ dañaba el pin)", estado: "corregido", cuando: "" },
-    { componente: "Protección", eleccion: "Portafusible aéreo con cables + fusible de 3 A de acción lenta (soplado lento)", alternativa: "", porque: "Aguanta el pico de arranque de los motores. Va en el cable de la batería, sin placa. Ojo: muchos portafusibles aéreos blancos son para fusibles de 6 × 30 mm; el fusible debe ser del mismo tamaño que el portafusible", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov; si no hay, ML (Solo Carro, US$ 2,20; entrega a acordar)", link: "https://articulo.mercadolibre.com.ve/MLV-1027312578-portafusible-vidrio-1pz-_JM" },
+    { componente: "Protección", eleccion: "Portafusible aéreo con cables + fusible de 3 A de acción lenta (soplado lento / cerámica)", alternativa: "", porque: "Va justo después del BMS y protege también la carga. Aguanta el pico de arranque de los motores. El fusible debe ser del mismo tamaño que el portafusible (muchos aéreos blancos son de 6 × 30 mm, no de 5 × 20)", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov; si no hay: portafusible ML US$ 2,20 + fusible cerámica soplado lento ~US$ 2,94 (falta link)", link: "https://articulo.mercadolibre.com.ve/MLV-1027312578-portafusible-vidrio-1pz-_JM" },
     { componente: "Interruptor", eleccion: "Interruptor basculante redondo con luz, 20 A / 12 V", alternativa: "", porque: "Enciende y apaga el robot; va después del BMS y el fusible. Tiene 3 patas: entrada (+ de la batería), salida (hacia el robot) y tierra, que solo prende la lucecita", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov; si no hay, ML US$ 3,20 (entrega a acordar, Baruta)", link: "https://articulo.mercadolibre.com.ve/MLV-573931152-switch-interruptor-basculante-de-colores-20a12v-_JM" },
     { componente: "Sensores de línea", eleccion: "4 × módulo TCRT5000 azul de 4 pines (con salida A0) a 3,3 V en pines ADC1", alternativa: "QTR-8A", porque: "La salida A0 dice cuánto se salió de la línea (el PID sigue suave); los módulos negros de 3 pines solo dan sí/no. Los pines ADC2 no leen con el Wi-Fi encendido. Respaldo en ML si el laboratorio no tiene (SFV Security Factory, 5 estrellas; entrega a acordar, Naguanagua)", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov; si no hay, ML US$ 3,08 c/u (4 o 5)", link: "https://articulo.mercadolibre.com.ve/MLV-550874245-sensor-infrarrojo-tcrt5000-sensor-de-linea-_JM" },
-    { componente: "Obstáculos", eleccion: "2 × HC-SR04P (3 a 5,5 V)", alternativa: "HC-SR04 con divisor de 1 kΩ y 2 kΩ", porque: "Funciona a 3,3 V: va directo al ESP32, sin divisor. Respaldo en Amazon (2 piezas con cables, 4,5 estrellas); en ML el mismo par cuesta US$ 22,88", estado: "preguntar al lab", cuando: "Si el lab no tiene: Amazon US$ 6,79 las 2 (puede ir en el pedido del 13 nov)", link: "https://www.amazon.com/dp/B0GL8NJCVT" },
+    { componente: "Obstáculos", eleccion: "2 × HC-SR04P (3 a 5,5 V)", alternativa: "HC-SR04 de 5 V con divisor de 1 kΩ y 2 kΩ en el pin Echo", porque: "Funciona a 3,3 V: va directo al ESP32, sin divisor. Se compra en Amazon para no depender del laboratorio (2 piezas con cables, 4,5 estrellas); en ML el mismo par cuesta US$ 22,88", estado: "por pedir", cuando: "13 nov, en el pedido de Amazon (US$ 6,79 las 2)", link: "https://www.amazon.com/dp/B0GL8NJCVT" },
     { componente: "Movimiento y alarma", eleccion: "MPU6050 (GY-521)", alternativa: "", porque: "Odometría y detección de levantamiento. Respaldo en ML si el laboratorio no tiene (INNOVTRONIKS, el mismo vendedor del L298N; 5 estrellas)", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov; si no hay, ML US$ 5,50", link: "https://articulo.mercadolibre.com.ve/MLV-701887425-giroscopio-gy-521-mpu-6050-modulo-acelerometro-_JM" },
+    { componente: "Cables y montaje", eleccion: "Cable 18–20 AWG (1–2 m) para batería y motores, cable 22–24 AWG para B1/B2, pines header, termoencogible, estaño y pelacables", alternativa: "", porque: "El cable grueso lleva la corriente de los motores; el fino basta para el balanceo del BMS y las señales", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov" },
     { componente: "Ruedas", eleccion: "65 mm con acople metálico de 4 mm, incluidas en el kit de motor", alternativa: "Cubo impreso en PLA", porque: "Las de Mercado Libre eran para eje TT y no encajaban en el eje D de 4 mm", estado: "corregido", cuando: "Llegan con los motores", link: "https://www.amazon.com/dp/B0H2JP84J7" },
     { componente: "Rueda loca", eleccion: "Altura igual al eje de las ruedas", alternativa: "", porque: "Mantiene los TCRT5000 a pocos mm del piso", estado: "por comprar", cuando: "Inicio de diciembre" },
     { componente: "Re-localización", eleccion: "ESP32-C3 SuperMini como balizas BLE", alternativa: "Lector de QR (GM65)", porque: "Se decide con la prueba P04", estado: "abierta", cuando: "Fase II (P04); compra en febrero" },
     { componente: "Mecanismo de carga", eleccion: "? (bandeja o pinza)", alternativa: "", porque: "Depende del pedido típico (entrevista)", estado: "abierta", cuando: "Después de la entrevista" }
   ],
 
+  /* ---------- PINES DEL ESP32 (DevKit de 30 pines, propuesta) ---------- */
+  pines: [
+    { gpio: "36 (VP)", uso: "Sensor de línea 1 (A0)", grupo: "sensor", nota: "ADC1, solo entrada" },
+    { gpio: "39 (VN)", uso: "Sensor de línea 2 (A0)", grupo: "sensor", nota: "ADC1, solo entrada" },
+    { gpio: "34", uso: "Sensor de línea 3 (A0)", grupo: "sensor", nota: "ADC1, solo entrada" },
+    { gpio: "35", uso: "Sensor de línea 4 (A0)", grupo: "sensor", nota: "ADC1, solo entrada" },
+    { gpio: "32", uso: "Batería (divisor 100 kΩ / 22 kΩ)", grupo: "energia", nota: "ADC1; 12,6 V → 2,27 V" },
+    { gpio: "33", uso: "Ultrasónico frontal: ECHO", grupo: "sensor", nota: "ADC1 usado como entrada digital" },
+    { gpio: "23", uso: "Ultrasónico frontal: TRIG", grupo: "sensor", nota: "" },
+    { gpio: "5", uso: "Ultrasónico 2: TRIG", grupo: "sensor", nota: "Pin de arranque: debe estar en alto al encender (lo está)" },
+    { gpio: "15", uso: "Ultrasónico 2: ECHO", grupo: "sensor", nota: "Pin de arranque: en bajo solo apaga los mensajes de arranque" },
+    { gpio: "25", uso: "Motor izq.: ENA (PWM)", grupo: "control", nota: "Quitar el puente ENA del L298N" },
+    { gpio: "26", uso: "Motor izq.: IN1", grupo: "control", nota: "" },
+    { gpio: "27", uso: "Motor izq.: IN2", grupo: "control", nota: "" },
+    { gpio: "14", uso: "Motor der.: ENB (PWM)", grupo: "control", nota: "Quitar el puente ENB del L298N" },
+    { gpio: "4", uso: "Motor der.: IN3", grupo: "control", nota: "" },
+    { gpio: "13", uso: "Motor der.: IN4", grupo: "control", nota: "" },
+    { gpio: "18", uso: "Encoder izq.: A", grupo: "mov", nota: "Contador de pulsos (PCNT)" },
+    { gpio: "19", uso: "Encoder izq.: B", grupo: "mov", nota: "" },
+    { gpio: "16", uso: "Encoder der.: A", grupo: "mov", nota: "Contador de pulsos (PCNT)" },
+    { gpio: "17", uso: "Encoder der.: B", grupo: "mov", nota: "" },
+    { gpio: "21", uso: "MPU6050: SDA", grupo: "sensor", nota: "I2C" },
+    { gpio: "22", uso: "MPU6050: SCL", grupo: "sensor", nota: "I2C" },
+    { gpio: "2", uso: "MPU6050: INT (opcional)", grupo: "sensor", nota: "Tiene el LED de la placa; parpadea con la alarma" },
+    { gpio: "12", uso: "Libre (evitar)", grupo: "libre", nota: "Si está en alto al encender, el ESP32 no arranca" },
+    { gpio: "1 y 3", uso: "Libres (USB serie)", grupo: "libre", nota: "Para programar y el monitor serie" }
+  ],
+
   /* ---------- DECISIONES (la más nueva primero) ----------
      estado: "tomada" | "abierta" */
   decisiones: [
+    { fecha: "2026-11-11", titulo: "Ultrasónicos HC-SR04P en el pedido de Amazon", estado: "tomada",
+      decision: "Comprar 2 HC-SR04P (3,3 V) en Amazon en vez de esperar al laboratorio.",
+      porque: "Son necesarios para detectar obstáculos, la visita al laboratorio es después del pedido y cuestan US$ 6,79 el par. A 3,3 V van directo al ESP32, sin divisor.",
+      evidencia: "hardware.html" },
+    { fecha: "2026-11-11", titulo: "Asignación de pines del ESP32", estado: "tomada",
+      decision: "4 sensores de línea y la batería en ADC1 (36, 39, 34, 35, 32); motores en 25, 26, 27, 14, 4, 13; encoders en 18, 19, 16, 17; I2C en 21 y 22; ultrasónicos en 23/33 y 5/15.",
+      porque: "El ADC2 no lee con el Wi-Fi encendido. Se evita el GPIO 12 (impide el arranque) y se dejan libres 1 y 3 para programar.",
+      evidencia: "hardware.html#t-pines" },
     { fecha: "2026-11-11", titulo: "Driver L298N", estado: "tomada",
       decision: "Usar un módulo L298N para los dos motores.",
       porque: "Según la tabla del kit, cada motor Speed 200 pide hasta 1,8 A trabado; el TB6612FNG aguanta 1,2 A seguidos por motor y el L298N 2 A. Se acepta la pérdida de ~2 V: con Speed 200 el robot igual llega a ~0,57 m/s.",

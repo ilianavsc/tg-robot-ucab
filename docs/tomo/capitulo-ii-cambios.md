@@ -9,3 +9,4 @@ Revisión del 11/11/2026. Se aplican cuando terminemos de definir y probar (plaz
 5. **Temas que faltan:** motorreductor (velocidad sin carga vs con carga), ejemplo de la ecuación (4) con el motor elegido (11 × 21,3 × 4 = 937 cuentas por vuelta, ~0,22 mm), radio compartida Wi-Fi/BLE en el ESP32, ADC2 no lee con Wi-Fi, BMS con balanceo.
 6. **Detalles:** antecedentes más recientes y cercanos al tema; norma de CONATEL de equipos de uso libre en 2,4 GHz; términos básicos (puente H, BMS, Keep Alive, LWT, trilateración, "modo de respaldo"); unificar 3,6 V por pila (10,8 V) entre el capítulo, el sitio y el simulador.
 7. **Posibles según lo que se decida:** marcas de cinta en la línea como re-localización; balizas de inicio y fin para calibrar tiempo y distancia.
+8. **Objetivo 2 y Figura 4:** ver [objetivo-2-seleccion-hardware.md](objetivo-2-seleccion-hardware.md).
