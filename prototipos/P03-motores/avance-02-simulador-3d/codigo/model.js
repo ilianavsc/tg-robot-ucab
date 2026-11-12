@@ -10,15 +10,16 @@ export const R = {
   carga: 0.8, // velocidad con peso / sin peso (supuesto, se mide en P03)
   rpmMotor12: 6000, // motor 370 antes de la caja, 12 V, sin carga
   ppr: 11, // pulsos por vuelta del motor, por canal
-  i0: 0.1, // corriente sin carga (A)
-  istall: 1.2, // corriente de bloqueo a 12 V (A)
+  i0: 0.07, // corriente sin carga (A), tabla del fabricante
+  istall: 1.8, // corriente de bloqueo a 12 V (A), tabla del fabricante
   pwmHz: 20000,
   meta: [0.35, 0.6], // RNF-03 (m/s)
 };
 
+// Claves = "Speed" del anuncio (rpm con carga). rpm12 = sin carga a 12 V. Tabla del kit Emoshayoga JGA25-371.
 export const MOTORES = {
-  170: {rpm12: 170, ratio: 34},
-  130: {rpm12: 130, ratio: 46},
+  200: {rpm12: 280, ratio: 21.3},
+  130: {rpm12: 170, ratio: 35.5},
 };
 
 // Pines: propuesta, se confirma con el mapa de pines de la Fase II

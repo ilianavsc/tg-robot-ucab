@@ -150,8 +150,8 @@ export function createConsole(app) {
   bt('l298n', 'L298N', 660, 735, 84);
   bt('tb6612', 'TB6612FNG', 750, 735, 96);
   add(`<div class="sm" style="position:absolute;left:574px;top:784px">MOTOR</div>`);
-  bt('m130', '130 RPM', 660, 777, 84);
-  bt('m170', '170 RPM', 750, 777, 96);
+  bt('m130', 'SPEED 130', 660, 777, 84);
+  bt('m170', 'SPEED 200', 750, 777, 96);
   const piezasNote = add(`<div style="position:absolute;left:574px;top:816px;width:272px;font-size:12px;line-height:1.35;color:${C.mute}"></div>`);
 
   panel(872, 702, 330, 170, 'VISTAS', '07', C.violet);
@@ -269,7 +269,7 @@ export function createConsole(app) {
     btn.l298n.classList.toggle('on', s.driver === 'l298n');
     btn.tb6612.classList.toggle('on', s.driver === 'tb6612');
     btn.m130.classList.toggle('on', s.variante === 130);
-    btn.m170.classList.toggle('on', s.variante === 170);
+    btn.m170.classList.toggle('on', s.variante === 200);
     // slider
     slFill.style.width = `${300 * s.duty}px`;
     slKnob.style.left = `${150 + 300 * s.duty}px`;
@@ -315,7 +315,7 @@ export function createConsole(app) {
     const vDisp = mm.vDisp;
     filas.volt.innerHTML = `${f1(Math.abs(mm.v))} V <span style="color:${C.mute};font-weight:400">de ${f1(vDisp)}</span>`;
     filas.rpmM.textContent = `${miles(Math.abs(s.izq.rpm) * mm.ratio)} rpm`;
-    filas.caja.textContent = `1 : ${mm.ratio}`;
+    filas.caja.textContent = `1 : ${String(mm.ratio).replace('.', ',')}`;
     filas.rpmR.textContent = `${miles(Math.abs(s.izq.rpm))} rpm`;
     filas.amp.textContent = `≈ ${f2(mm.corriente)} A`;
     meta.innerHTML = metaBar(s.vMax);
@@ -323,13 +323,15 @@ export function createConsole(app) {
     motNote.innerHTML =
       s.duty < 0.999
         ? `Con ${Math.round(s.duty * 100)} % de PWM. Sube a 100 % para ver el máximo.`
+        : s.vMax > R.meta[1]
+        ? `<b style="color:${C.teal}">Pasa la meta.</b> Se limita con el PWM. El driver pierde ${f1(R.drop[s.driver])} V.`
         : ok
         ? `<b style="color:${C.teal}">Llega a la meta.</b> El driver pierde ${f1(R.drop[s.driver])} V.`
         : `<b style="color:${C.coral}">No llega a la meta.</b> El driver pierde ${f1(R.drop[s.driver])} V.`;
     // encoder
     scope.innerHTML = scopePath(s.scope, s.izq.hz);
     enc.hz.textContent = `${miles(s.izq.hz)} Hz`;
-    enc.vuelta.textContent = `${s.porVuelta} × 4 = ${miles(s.porVuelta * 4)}`;
+    enc.vuelta.textContent = `${miles(s.porVuelta)} × 4 = ${miles(s.porVuelta * 4)}`;
     enc.cuenta.textContent = `${miles(s.izq.cuenta)} / ${miles(s.der.cuenta)}`;
     // notas
     piezasNote.innerHTML = s.driver === 'l298n' ? `L298N: barato y aguanta 2 A, pero se come ${f1(R.drop.l298n)} V.` : `TB6612FNG: pierde solo ${f1(R.drop.tb6612)} V, pero aguanta 1,2 A por motor.`;

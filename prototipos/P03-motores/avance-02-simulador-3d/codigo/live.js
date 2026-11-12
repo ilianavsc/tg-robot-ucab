@@ -130,7 +130,7 @@ export function runLive() {
       man: 'frenar',
       duty: 0.75,
       driver: 'l298n',
-      variante: 170,
+      variante: 200,
       view: 'heroe',
       viewAt0: T,
       display: {etiquetas: 1, rayos: 0, despiece: 0, cables: 1, girar: 0},
@@ -169,7 +169,7 @@ export function runLive() {
       if (k === 'despiece' && S.display.despiece) S.man = 'frenar';
     } else if (k === 'l298n' || k === 'tb6612') S.driver = k;
     else if (k === 'm130') S.variante = 130;
-    else if (k === 'm170') S.variante = 170;
+    else if (k === 'm170') S.variante = 200;
   };
 
   // ------------------------------------------------------------ el recorrido

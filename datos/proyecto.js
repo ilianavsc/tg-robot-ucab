@@ -64,7 +64,7 @@ window.TG = {
   pendientes: [
     { que: "Cerrar P01: alarma con QoS 2 y 50 órdenes seguidas", fecha: "2026-11-13", hecho: true },
     { que: "Confirmar con el laboratorio qué componentes tienen", fecha: "2026-11-13", hecho: false },
-    { que: "Pedido de Amazon: 2 kits de motor (<a href=\"https://www.amazon.com/dp/B0H2JP84J7\">Emoshayoga JGA25-371</a>, Speed 200 o 130) y 3 ESP32 (<a href=\"https://www.amazon.com/dp/B0FBV7QGC4\">AITRIP</a>)", fecha: "2026-11-13", hecho: false },
+    { que: "Pedido de Amazon: 2 kits de motor (<a href=\"https://www.amazon.com/dp/B0H2JP84J7\">Emoshayoga JGA25-371</a>, Speed 200) y 3 ESP32 (<a href=\"https://www.amazon.com/dp/B0FBV7QGC4\">AITRIP</a>)", fecha: "2026-11-13", hecho: false },
     { que: "Entrevistas y observación en el laboratorio + prueba H0", fecha: "2026-11-18", hecho: false },
     { que: "Documento de requerimientos y matriz de hardware v2", fecha: "2026-11-20", hecho: false }
   ],
@@ -85,7 +85,7 @@ window.TG = {
     { id: "RF-11", tipo: "RF", texto: "Pedir usuario para entrar a la app", criterio: "Solo usuarios autorizados hacen pedidos", valida: ["P06"], estado: "pendiente", nota: "Definir roles en la entrevista" },
     { id: "RNF-01", tipo: "RNF", texto: "Bajo costo", criterio: "Total ≤ US$ ? (compras proyectadas: unos US$ 90, más lo que preste el laboratorio)", valida: ["Lista v1"], estado: "pendiente" },
     { id: "RNF-02", tipo: "RNF", texto: "Autonomía", criterio: "≥ ? min de trabajo continuo", valida: ["Entrevista"], estado: "pendiente" },
-    { id: "RNF-03", tipo: "RNF", texto: "Velocidad", criterio: "Entre 0,35 y 0,6 m/s", valida: ["P03"], estado: "pendiente", nota: "Cálculo en Colab: con L298N y peso, 130 rpm daría ~0,27 m/s y 170 rpm ~0,35 m/s. Ver P03 avance 1" },
+    { id: "RNF-03", tipo: "RNF", texto: "Velocidad", criterio: "Entre 0,35 y 0,6 m/s", valida: ["P03"], estado: "pendiente", nota: "Motor elegido: Speed 200 (280 rpm sin carga). Estimado con L298N y peso: ~0,57 m/s. Ver P03 avances 1 y 2" },
     { id: "RNF-04", tipo: "RNF", texto: "Comunicación confiable", criterio: "0 pedidos perdidos; confirmación en ≤ ? s con el ESP32 real", valida: ["P01"], estado: "pendiente", nota: "En simulación: 0 perdidos, promedio 4,1 s con VPN" },
     { id: "RNF-05", tipo: "RNF", texto: "Seguridad de la comunicación", criterio: "Broker privado con usuario, contraseña y TLS para las pruebas finales", valida: ["Fase VI"], estado: "pendiente" },
     { id: "RNF-06", tipo: "RNF", texto: "Funcionar en la red del laboratorio", criterio: "El ESP32 llega al broker desde el Wi-Fi de la UCAB", valida: ["H0"], estado: "pendiente" },
@@ -118,7 +118,7 @@ window.TG = {
      estado: "por pedir" | "por comprar" | "preguntar al lab" | "corregido" | "abierta" | "listo" */
   materiales: [
     { componente: "Microcontrolador", eleccion: "3 × ESP32-WROOM-32 DevKit de 30 pines, USB-C, CP2102 (AITRIP, con placa de borneras)", alternativa: "Pedirla prestada al laboratorio", porque: "Mismo chip que en Wokwi; 8 entradas analógicas ADC1. Una va en el robot y dos como balizas de inicio y fin para calibrar tiempo y distancia (P04). Con la placa de borneras ocupa 6,3 × 6,6 cm", estado: "por pedir", cuando: "13 nov, en el mismo pedido de Amazon que los motores (US$ 19,99 las 3)", link: "https://www.amazon.com/dp/B0FBV7QGC4" },
-    { componente: "Motores", eleccion: "2 kits Emoshayoga JGA25-371, 12 V, con encoder: Speed 200 (280 rpm sin carga, caja 1:21,3)", alternativa: "Speed 130 (170 rpm sin carga, caja 1:35,5): más fuerza, pero con L298N queda justo en 0,35 m/s", porque: "Cada kit trae motor con encoder, soporte, rueda de 65 mm y acople. Con L298N y peso: ~0,57 m/s. En Mercado Libre no hay JGA25 de 12 V con encoder a buen precio", estado: "por pedir", cuando: "13 nov (Amazon, US$ 22,39 c/u, llega 27 nov)", link: "https://www.amazon.com/dp/B0H2JP84J7" },
+    { componente: "Motores", eleccion: "2 kits Emoshayoga JGA25-371, 12 V, con encoder: Speed 200 (280 rpm sin carga, caja 1:21,3, 234 pulsos por vuelta de rueda)", alternativa: "Speed 130 (170 rpm sin carga, caja 1:35,5): más fuerza, pero con L298N queda justo en 0,35 m/s", porque: "Cada kit trae motor con encoder, soporte, rueda de 65 mm y acople. Con L298N y peso: ~0,57 m/s. En Mercado Libre no hay JGA25 de 12 V con encoder a buen precio", estado: "por pedir", cuando: "13 nov (Amazon, US$ 22,39 c/u, llega 27 nov)", link: "https://www.amazon.com/dp/B0H2JP84J7" },
     { componente: "Driver", eleccion: "L298N", alternativa: "TB6612FNG", porque: "El L298N pierde cerca de 2 V; el TB6612FNG es más eficiente pero aguanta poco más de 1 A por motor", estado: "abierta", cuando: "Con la corriente de arranque del motor" },
     { componente: "Batería", eleccion: "3 × EVE INR18650-25P (2500 mAh, hasta 30 A), en serie (3S)", alternativa: "Samsung INR18650-35E (3500 mAh, US$ 10,50 c/u)", porque: "Marca real y aguanta de sobra el arranque de los motores (hasta 3,6 A los dos). Unas 3 h de autonomía estimada. Las de 9800 mAh son falsas", estado: "por comprar", cuando: "Antes de fin de noviembre (ML, US$ 4,80 c/u, vendedor TECNOPEPIN)", link: "https://articulo.mercadolibre.com.ve/MLV-1029451794-eve-inr18650-25p-2500mah-37v-pilas-recargables-cilindricas-_JM" },
     { componente: "BMS", eleccion: "3S con balanceo, ≥ 10 A", alternativa: "", porque: "Protege y equilibra las celdas", estado: "por comprar", cuando: "Antes de fin de noviembre" },
@@ -137,6 +137,10 @@ window.TG = {
   /* ---------- DECISIONES (la más nueva primero) ----------
      estado: "tomada" | "abierta" */
   decisiones: [
+    { fecha: "2026-11-11", titulo: "Motor Speed 200 (280 rpm sin carga)", estado: "tomada",
+      decision: "2 kits Emoshayoga JGA25-371 de 12 V con encoder, versión Speed 200 (caja 1:21,3).",
+      porque: "En el anuncio \"Speed\" es la velocidad con carga. Con L298N y el peso del robot da ~0,57 m/s, dentro de la meta de 0,35 a 0,6 m/s con cualquier driver, y se frena con PWM. Fuerza nominal 0,4 kg·cm contra ~0,2 kg·cm estimados en piso plano (se confirma en P03). Bloqueado pide 1,8 A por motor.",
+      evidencia: "prototipos/P03-motores/avance-02-simulador-3d/" },
     { fecha: "2026-11-11", titulo: "Tres ESP32: robot y dos balizas", estado: "tomada",
       decision: "Comprar un paquete de 3 ESP32-WROOM-32 de 30 pines: una en el robot, una baliza al inicio y otra al final del recorrido.",
       porque: "Las balizas marcan el tiempo de cada recorrido (velocidad real, RNF-03), calibran la distancia de los encoders entre dos puntos medidos y permiten la prueba P04 sin comprar más. La orientación la miden el MPU6050 y los encoders, no las balizas. Si en P04 gana el QR, quedan de repuesto y para pruebas en la mesa.",
@@ -181,7 +185,6 @@ window.TG = {
       decision: "ESP32-WROOM-32 para el robot.",
       porque: "Es igual al de Wokwi, tiene Bluetooth (el S2 no) y suficientes pines (el C3 no).",
       evidencia: "hardware.html" },
-    { fecha: "", titulo: "Versión del motor: Speed 200 o Speed 130", estado: "abierta", decision: "", porque: "En el anuncio, \"Speed\" es la velocidad con carga: Speed 130 = 170 rpm sin carga (~0,35 m/s con L298N) y Speed 200 = 280 rpm sin carga (~0,57 m/s). Recomendado: Speed 200 (se frena con PWM; fuerza estimada suficiente en piso plano). <a href=\"https://www.amazon.com/dp/B0H2JP84J7\">Ver el kit</a>.", evidencia: "prototipos/P03-motores/avance-01-colab/" },
         { fecha: "", titulo: "Driver L298N o TB6612FNG", estado: "abierta", decision: "", porque: "Depende de la corriente de arranque de los motores.", evidencia: "" },
     { fecha: "", titulo: "Re-localización con BLE o con QR", estado: "abierta", decision: "", porque: "Se decide con la prueba P04 en la Fase II.", evidencia: "" },
     { fecha: "", titulo: "Bandeja o pinza", estado: "abierta", decision: "", porque: "Depende del pedido típico (entrevista en el laboratorio).", evidencia: "" }
