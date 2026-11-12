@@ -36,7 +36,7 @@ La semana de parciales (11 al 16 ene 2027) es semana extra de trabajo de la Fase
 | P01 | MQTT base | I | Hecho |
 | H0 | Wi-Fi del laboratorio | I | Pendiente |
 | P02 | Sensores | II | Pendiente |
-| P03 | PID de velocidad | II | Pendiente |
+| P03 | PID de velocidad | II | Avances 1 y 2 adelantados |
 | P04 | BLE o QR | II | Pendiente |
 | P05 | Robot virtual y puente | III | Pendiente |
 | P06 | App esqueleto | III | Pendiente |
@@ -48,17 +48,14 @@ La semana de parciales (11 al 16 ene 2027) es semana extra de trabajo de la Fase
 | P12 | Protocolo y estadística | VI | Pendiente |
 
 ## Carpetas
-- `docs/` cronograma, requerimientos, arquitectura, bitácora y tomo
-- `index.html` inicio del sitio (semana actual, próximo hito, pendientes)
-- `cronograma.html` línea de tiempo de las 7 fases
+- `index.html` y las demás páginas de la raíz: el sitio (inicio, cronograma, prototipos, requerimientos, hardware, arquitectura, decisiones y bitácora)
+- `datos/proyecto.js` **el único archivo que hay que editar para actualizar el sitio** (fases, prototipos, pendientes, decisiones, bitácora)
 - `assets/` estilo y menú compartidos por todas las páginas
-- `datos/proyecto.js` **el único archivo que hay que editar para actualizar el sitio** (fases, prototipos, pendientes, bitácora)
-- `prototipos/` una carpeta por prototipo con su página visual (`index.html`), su ficha (`README.md`), `codigo/` y `evidencias/`
-- `firmware/` código final del ESP32
-- `puente/` script MQTT a Firebase
-- `app/` proyecto Flutter
-- `hardware/` CAD, esquemáticos y lista de materiales
-- `pruebas/` protocolos, datos y análisis
+- `prototipos/` una carpeta por prototipo con su página visual (`index.html`), `codigo/` y `evidencias/`
+- `docs/requerimientos/` borrador del documento de requerimientos (hito de la Fase I)
+- `hardware/materiales/` lista de materiales y registro de cambios
+
+Las carpetas del firmware final, la app, el puente MQTT a Firebase, el CAD y los esquemáticos se crean cuando tengan contenido.
 
 ## Reglas de trabajo
 1. Cada tarea tiene una sola responsable.
