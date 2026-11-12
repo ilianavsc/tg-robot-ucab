@@ -133,7 +133,7 @@ window.TG = {
     { componente: "Sensores de línea", eleccion: "4 × módulo TCRT5000 azul de 4 pines (con salida A0) a 3,3 V en pines ADC1", alternativa: "QTR-8A", porque: "La salida A0 dice cuánto se salió de la línea (el PID sigue suave); los módulos negros de 3 pines solo dan sí/no. Los pines ADC2 no leen con el Wi-Fi encendido. Respaldo en ML si el laboratorio no tiene (SFV Security Factory, 5 estrellas; entrega a acordar, Naguanagua)", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov; si no hay, ML US$ 3,08 c/u (4 o 5)", link: "https://articulo.mercadolibre.com.ve/MLV-550874245-sensor-infrarrojo-tcrt5000-sensor-de-linea-_JM" },
     { componente: "Obstáculos", eleccion: "2 × HC-SR04P (3 a 5,5 V)", alternativa: "HC-SR04 de 5 V con divisor de 1 kΩ y 2 kΩ en el pin Echo", porque: "Funciona a 3,3 V: va directo al ESP32, sin divisor. Se compra en Amazon para no depender del laboratorio (2 piezas con cables, 4,5 estrellas); en ML el mismo par cuesta US$ 22,88", estado: "por pedir", cuando: "13 nov, en el pedido de Amazon (US$ 6,79 las 2)", link: "https://www.amazon.com/dp/B0GL8NJCVT" },
     { componente: "Movimiento y alarma", eleccion: "MPU6050 (GY-521)", alternativa: "", porque: "Odometría y detección de levantamiento. Respaldo en ML si el laboratorio no tiene (INNOVTRONIKS, el mismo vendedor del L298N; 5 estrellas)", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov; si no hay, ML US$ 5,50", link: "https://articulo.mercadolibre.com.ve/MLV-701887425-giroscopio-gy-521-mpu-6050-modulo-acelerometro-_JM" },
-    { componente: "Cables y montaje", eleccion: "Cable 18–20 AWG (1–2 m) para batería y motores, cable 22–24 AWG para B1/B2, pines header, termoencogible, estaño y pelacables", alternativa: "", porque: "El cable grueso lleva la corriente de los motores; el fino basta para el balanceo del BMS y las señales", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov" },
+    { componente: "Cables y montaje", eleccion: "Resistencias 100 kΩ y 22 kΩ, condensadores 100 nF y 470 µF, cable 18 y 22 AWG, jumpers, placa perforada, tornillería M3, estaño y termoencogible", alternativa: "", porque: "El cable grueso lleva la corriente de los motores; el fino basta para el balanceo del BMS y las señales", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov" },
     { componente: "Ruedas", eleccion: "65 mm con acople metálico de 4 mm, incluidas en el kit de motor", alternativa: "Cubo impreso en PLA", porque: "Las de Mercado Libre eran para eje TT y no encajaban en el eje D de 4 mm", estado: "corregido", cuando: "Llegan con los motores", link: "https://www.amazon.com/dp/B0H2JP84J7" },
     { componente: "Rueda loca", eleccion: "Altura igual al eje de las ruedas", alternativa: "", porque: "Mantiene los TCRT5000 a pocos mm del piso", estado: "por comprar", cuando: "Inicio de diciembre" },
     { componente: "Re-localización", eleccion: "ESP32-C3 SuperMini como balizas BLE", alternativa: "Lector de QR (GM65)", porque: "Se decide con la prueba P04", estado: "abierta", cuando: "Fase II (P04); compra en febrero" },
@@ -157,7 +157,36 @@ window.TG = {
     { que: "MPU6050 (GY-521)", cant: "1", donde: "Lab o ML", precio: 5.50, link: "https://articulo.mercadolibre.com.ve/MLV-701887425-giroscopio-gy-521-mpu-6050-modulo-acelerometro-_JM", icono: "Movimiento y alarma" },
     { que: "Portafusible + fusible 3 A lento", cant: "1", donde: "Lab o ML", precio: 5.14, link: "https://articulo.mercadolibre.com.ve/MLV-1027312578-portafusible-vidrio-1pz-_JM", icono: "Protección" },
     { que: "Interruptor 20 A / 12 V", cant: "1", donde: "Lab o ML", precio: 3.20, link: "https://articulo.mercadolibre.com.ve/MLV-573931152-switch-interruptor-basculante-de-colores-20a12v-_JM", icono: "Interruptor" },
-    { que: "Cables, header, termoencogible, estaño, resistencias", cant: "—", donde: "Lab", precio: null, link: "", icono: "Cables y montaje" },
+    { que: "Materiales de montaje", cant: "ver lista", donde: "Lab", precio: null, link: "", icono: "Cables y montaje",
+      detalle: [
+        ["Resistencias (1/4 W, película metálica, 1 %)", [
+          ["1", "100 kΩ", "Divisor de la batería: del + de la batería al GPIO 32"],
+          ["1", "22 kΩ", "Divisor de la batería: del GPIO 32 a GND (12,6 V quedan en 2,27 V)"],
+          ["4", "10 kΩ", "Pull-up de los encoders, solo si el kit no los trae"],
+          ["2 + 2", "1 kΩ y 2 kΩ", "Solo si el laboratorio da HC-SR04 de 5 V: divisor del pin Echo"]]],
+        ["Condensadores", [
+          ["4", "100 nF cerámico (marcado 104)", "Uno en las 2 patas de cada motor y uno en el divisor, contra el ruido"],
+          ["1", "470 µF electrolítico, 25 V", "En la entrada de 12 V del L298N: absorbe los picos de los motores"],
+          ["1", "100 µF electrolítico, 16 V", "En la salida de 5 V del LM2596 (VIN del ESP32)"]]],
+        ["Cables", [
+          ["1 m rojo + 1 m negro", "Cable 18 AWG flexible (silicona)", "Batería → BMS → fusible → interruptor → L298N"],
+          ["1 m rojo + 1 m negro", "Cable 22 AWG", "LM2596 → ESP32, B1 y B2 del BMS, divisor"],
+          ["40 + 40", "Jumpers Dupont de 20 cm, macho-hembra y hembra-hembra", "Señales: sensores, ultrasónicos, MPU6050 y L298N"]]],
+        ["Montaje", [
+          ["1", "Placa perforada 5 × 7 cm", "Divisor, condensadores y reparto de 5 V y GND"],
+          ["2", "Tira de pines header macho 1 × 40 (2,54 mm)", "Para la placa perforada"],
+          ["4", "Bornera de tornillo de 2 pines (5 mm)", "Reparto de 12 V y GND"],
+          ["12 / 20 / 20", "Separadores M3 × 10 mm / tornillos M3 × 8 mm / tuercas M3", "Fijar las placas al chasis"],
+          ["20", "Bridas pequeñas", "Ordenar los cables"],
+          ["1 rollo", "Cinta aislante negra de 19 mm", "La línea que sigue el robot"],
+          ["1 par", "Conector XT30 (opcional)", "Desconectar la batería sin cortar cables"]]],
+        ["Para soldar", [
+          ["1 tubo", "Estaño 0,8 mm, 60/40 con flux", ""],
+          ["1 surtido", "Termoencogible de 2 a 6 mm", "Aislar empalmes y los cables B1/B2"],
+          ["1", "Flux en pasta (opcional)", "Ayuda a soldar en las láminas del porta pilas"]]],
+        ["Herramientas", [
+          ["—", "Cautín de 40 a 60 W, multímetro, pelacables, alicate de corte, pistola de calor o encendedor", ""]]]
+      ] },
     { que: "Rueda loca", cant: "1", donde: "Después", precio: null, link: "", icono: "Rueda loca" }
   ],
 

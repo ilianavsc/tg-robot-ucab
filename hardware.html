@@ -60,6 +60,15 @@
 details.caja{background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;padding:14px 18px}
 details.caja summary{font-family:var(--display);font-weight:700;font-size:21px;cursor:pointer}
 details.caja[open] summary{margin-bottom:10px}
+.item .det{grid-column:1/-1;margin:4px 0 2px;display:grid;gap:12px}
+.item .det h4{font-family:var(--mono);font-size:12.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--suave);margin:0 0 4px}
+.item .det table{width:100%;border-collapse:collapse;font-size:14.5px;table-layout:fixed}
+.item .det td{padding:5px 8px;border-top:1px solid var(--punto);vertical-align:top}
+.item .det td:first-child{font-family:var(--mono);font-size:13px;width:150px}
+.item .det td:nth-child(2){width:40%}
+@media (max-width:640px){.item .det td:first-child{width:80px}}
+.item .det td:nth-child(2){font-weight:700}
+.item .det td:last-child{color:var(--suave)}
 </style>
 </head>
 <body data-pagina="hardware" data-base="">
@@ -119,7 +128,8 @@ details.caja[open] summary{margin-bottom:10px}
   var amz = suma("Amazon"), ml = suma("Mercado Libre"), lab = suma("Lab o ML");
   var fila = function(c){
     return '<div class="item" style="--d:' + colD[c.donde] + '"><span class="ico">' + TGI(c.icono) + '</span><div><b>' + c.que + '</b><small>Cantidad: ' + c.cant + '</small></div><div class="pr">' +
-      (c.precio ? usd(c.precio) : "—") + (c.link ? '<a href="' + c.link + '" target="_blank" rel="noopener">Ver ↗</a>' : "") + "</div></div>"; };
+      (c.precio ? usd(c.precio) : "—") + (c.link ? '<a href="' + c.link + '" target="_blank" rel="noopener">Ver ↗</a>' : "") + "</div>" +
+      (c.detalle ? '<div class="det">' + c.detalle.map(function(g){ return "<div><h4>" + g[0] + "</h4><table>" + g[1].map(function(r){ return "<tr><td>" + r[0] + "</td><td>" + r[1] + "</td><td>" + r[2] + "</td></tr>"; }).join("") + "</table></div>"; }).join("") + "</div>" : "") + "</div>"; };
   var GR = [
     ["Amazon", "Un solo pedido, antes del 13 nov", usd(amz) + " + impuesto y courier ≈ " + usd(amz * 1.07 + 29)],
     ["Mercado Libre", "Las pilas no pueden ir por courier", usd(ml)],
