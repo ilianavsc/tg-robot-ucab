@@ -1,6 +1,10 @@
 # Capítulo II: cambios pendientes
 
-Revisión del 11/11/2026. Se aplican cuando terminemos de definir y probar (plazo: 13/11/2026).
+Revisión del 11/11/2026. **Aplicados el 12/11/2026** en una versión de Word con control de cambios (autor "Claude"), salvo lo marcado como comentario.
+
+Quedan como comentarios en el Word, para decidir con el tutor: tiempo verbal de lo que aún no existe (autonomía, chasis), norma de CONATEL de uso libre en 2,4 GHz, antecedentes más recientes y las referencias nuevas que hay que agregar (kit de motor, L298, biblioteca MQTT, guía de ESP-IDF).
+
+No se cambió: 3,6 V por pila (es lo correcto para la EVE 25P); el sitio usa 3,7 V y se unifica después.
 
 1. **MQTT 3.1.1 en el prototipo.** La librería del ESP32 (MQTT de Joel Gaehwiler) usa 3.1.1: explicar *Clean Session* y dejar 5.0 como contexto (Clean Start, Session Expiry y Will Delay son de 5.0).
 2. **Tabla 7 de tópicos.** Prefijo `ucab-tg-sf/robot/` y 5 tópicos: estado (QoS 0), ordenes (QoS 1), ordenes/ack (QoS 1), alertas (QoS 2), conexion (QoS 1, retenido, LWT). Agregar el resultado de P01: 50 de 50 pedidos confirmados con QoS 1 y sesión persistente.
