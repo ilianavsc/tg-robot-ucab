@@ -64,7 +64,7 @@ window.TG = {
   pendientes: [
     { que: "Cerrar P01: alarma con QoS 2 y 50 órdenes seguidas", fecha: "2026-11-13", hecho: true },
     { que: "Confirmar con el laboratorio qué componentes tienen", fecha: "2026-11-13", hecho: false },
-    { que: "Pedido de Amazon: 2 kits de motor (<a href=\"https://www.amazon.com/dp/B0H2JP84J7\">Emoshayoga JGA25-371</a>, Speed 200) , 3 ESP32 (<a href=\"https://www.amazon.com/dp/B0FBV7QGC4\">AITRIP</a>), el BMS (<a href=\"https://www.amazon.com/dp/B07JMY631D\">daier 3S 25 A</a>) y el cargador (<a href=\"https://www.amazon.com/dp/B07P8DMSZ8\">TalentCell 12,6 V</a>)", fecha: "2026-11-13", hecho: false },
+    { que: "Pedido de Amazon: 2 kits de motor (<a href=\"https://www.amazon.com/dp/B0H2JP84J7\">Emoshayoga JGA25-371</a>, Speed 200), 3 ESP32 (<a href=\"https://www.amazon.com/dp/B0FBV7QGC4\">AITRIP</a>), el BMS (<a href=\"https://www.amazon.com/dp/B07JMY631D\">daier 3S 25 A</a>) y el cargador (<a href=\"https://www.amazon.com/dp/B07P8DMSZ8\">TalentCell 12,6 V</a>)", fecha: "2026-11-13", hecho: false },
     { que: "Ajustar el Capítulo II (<a href=\"docs/tomo/capitulo-ii-cambios.md\">lista de cambios</a>)", fecha: "2026-11-13", hecho: false },
     { que: "Entrevistas y observación en el laboratorio + prueba H0", fecha: "2026-11-18", hecho: false },
     { que: "Documento de requerimientos y matriz de hardware v2", fecha: "2026-11-20", hecho: false }
