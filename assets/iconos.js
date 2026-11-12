@@ -31,6 +31,8 @@
       '<path d="M5 22a11 11 0 0 1 22 0"/><path d="M16 22l6-7" stroke="' + C.energia + '" stroke-width="2.2"/><circle cx="16" cy="22" r="1.8" fill="#14213D" stroke="none"/><path d="M8 17l1.5 1M24 17l-1.5 1M16 11v2"/>',
     "Protección":
       '<rect x="8" y="11" width="16" height="10" rx="2"/><path d="M3 16h5M24 16h5"/><path d="M11 16c2-3 3 3 5 0s3 3 5 0" stroke="' + C.energia + '" stroke-width="2"/>',
+    "Interruptor":
+      '<rect x="6" y="9" width="20" height="14" rx="4"/><path d="M11 23l-1 4M21 23l1 4"/><path d="M10 18l12-5" stroke="' + C.energia + '" stroke-width="2.6"/>',
     "Sensores de línea":
       '<rect x="3" y="7" width="26" height="9" rx="2"/><circle cx="8" cy="11.5" r="1.6"/><circle cx="13" cy="11.5" r="1.6"/><circle cx="19" cy="11.5" r="1.6"/><circle cx="24" cy="11.5" r="1.6"/>' +
       '<path d="M3 25h26" stroke="#14213D" stroke-width="4"/><path d="M13 18v3M19 18v3" stroke="' + C.sensor + '" stroke-width="2"/>',
