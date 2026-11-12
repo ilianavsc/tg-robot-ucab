@@ -64,7 +64,7 @@ window.TG = {
   pendientes: [
     { que: "Cerrar P01: alarma con QoS 2 y 50 órdenes seguidas", fecha: "2026-11-13", hecho: true },
     { que: "Confirmar con el laboratorio qué componentes tienen", fecha: "2026-11-13", hecho: false },
-    { que: "Pedir 2 kits de motor por Amazon (<a href=\"https://www.amazon.com/dp/B0H2JP84J7\">Emoshayoga JGA25-371</a>, Speed 200 o 130)", fecha: "2026-11-13", hecho: false },
+    { que: "Pedido de Amazon: 2 kits de motor (<a href=\"https://www.amazon.com/dp/B0H2JP84J7\">Emoshayoga JGA25-371</a>, Speed 200 o 130) y 3 ESP32 (<a href=\"https://www.amazon.com/dp/B0FBV7QGC4\">AITRIP</a>)", fecha: "2026-11-13", hecho: false },
     { que: "Entrevistas y observación en el laboratorio + prueba H0", fecha: "2026-11-18", hecho: false },
     { que: "Documento de requerimientos y matriz de hardware v2", fecha: "2026-11-20", hecho: false }
   ],
@@ -117,7 +117,7 @@ window.TG = {
   /* ---------- HARDWARE (matriz v2) ----------
      estado: "por pedir" | "por comprar" | "preguntar al lab" | "corregido" | "abierta" | "listo" */
   materiales: [
-    { componente: "Microcontrolador", eleccion: "ESP32-WROOM-32, DevKit de 30 pines", alternativa: "DevKit de 38 pines", porque: "Mismo chip que en Wokwi; 8 entradas analógicas ADC1", estado: "abierta", cuando: "Fase II (mapa de pines)" },
+    { componente: "Microcontrolador", eleccion: "3 × ESP32-WROOM-32 DevKit de 30 pines, USB-C, CP2102 (AITRIP, con placa de borneras)", alternativa: "Pedirla prestada al laboratorio", porque: "Mismo chip que en Wokwi; 8 entradas analógicas ADC1. Una va en el robot y dos como balizas de inicio y fin para calibrar tiempo y distancia (P04). Con la placa de borneras ocupa 6,3 × 6,6 cm", estado: "por pedir", cuando: "13 nov, en el mismo pedido de Amazon que los motores (US$ 19,99 las 3)", link: "https://www.amazon.com/dp/B0FBV7QGC4" },
     { componente: "Motores", eleccion: "2 kits Emoshayoga JGA25-371, 12 V, con encoder: Speed 200 (280 rpm sin carga, caja 1:21,3)", alternativa: "Speed 130 (170 rpm sin carga, caja 1:35,5): más fuerza, pero con L298N queda justo en 0,35 m/s", porque: "Cada kit trae motor con encoder, soporte, rueda de 65 mm y acople. Con L298N y peso: ~0,57 m/s. En Mercado Libre no hay JGA25 de 12 V con encoder a buen precio", estado: "por pedir", cuando: "13 nov (Amazon, US$ 22,39 c/u, llega 27 nov)", link: "https://www.amazon.com/dp/B0H2JP84J7" },
     { componente: "Driver", eleccion: "L298N", alternativa: "TB6612FNG", porque: "El L298N pierde cerca de 2 V; el TB6612FNG es más eficiente pero aguanta poco más de 1 A por motor", estado: "abierta", cuando: "Con la corriente de arranque del motor" },
     { componente: "Batería", eleccion: "3 × EVE INR18650-25P (2500 mAh, hasta 30 A), en serie (3S)", alternativa: "Samsung INR18650-35E (3500 mAh, US$ 10,50 c/u)", porque: "Marca real y aguanta de sobra el arranque de los motores (hasta 3,6 A los dos). Unas 3 h de autonomía estimada. Las de 9800 mAh son falsas", estado: "por comprar", cuando: "Antes de fin de noviembre (ML, US$ 4,80 c/u, vendedor TECNOPEPIN)", link: "https://articulo.mercadolibre.com.ve/MLV-1029451794-eve-inr18650-25p-2500mah-37v-pilas-recargables-cilindricas-_JM" },
@@ -137,6 +137,14 @@ window.TG = {
   /* ---------- DECISIONES (la más nueva primero) ----------
      estado: "tomada" | "abierta" */
   decisiones: [
+    { fecha: "2026-11-11", titulo: "Tres ESP32: robot y dos balizas", estado: "tomada",
+      decision: "Comprar un paquete de 3 ESP32-WROOM-32 de 30 pines: una en el robot, una baliza al inicio y otra al final del recorrido.",
+      porque: "Las balizas marcan el tiempo de cada recorrido (velocidad real, RNF-03), calibran la distancia de los encoders entre dos puntos medidos y permiten la prueba P04 sin comprar más. La orientación la miden el MPU6050 y los encoders, no las balizas. Si en P04 gana el QR, quedan de repuesto y para pruebas en la mesa.",
+      evidencia: "hardware.html" },
+    { fecha: "2026-11-11", titulo: "ESP32 de 30 pines", estado: "tomada",
+      decision: "DevKit de 30 pines con USB-C y CP2102.",
+      porque: "Alcanzan los pines ADC1 para los sensores de línea y es la versión del paquete con placa de borneras, que evita cables sueltos en el robot.",
+      evidencia: "hardware.html" },
     { fecha: "2026-11-11", titulo: "Sesión persistente en MQTT", estado: "tomada",
       decision: "El robot se conecta con clean session = false, keep alive 15 s y espera de 10 s.",
       porque: "Con sesión limpia se perdieron 37 de 50 pedidos cuando la red fue lenta. Con sesión persistente: 50 de 50.",
@@ -174,8 +182,7 @@ window.TG = {
       porque: "Es igual al de Wokwi, tiene Bluetooth (el S2 no) y suficientes pines (el C3 no).",
       evidencia: "hardware.html" },
     { fecha: "", titulo: "Versión del motor: Speed 200 o Speed 130", estado: "abierta", decision: "", porque: "En el anuncio, \"Speed\" es la velocidad con carga: Speed 130 = 170 rpm sin carga (~0,35 m/s con L298N) y Speed 200 = 280 rpm sin carga (~0,57 m/s). Recomendado: Speed 200 (se frena con PWM; fuerza estimada suficiente en piso plano). <a href=\"https://www.amazon.com/dp/B0H2JP84J7\">Ver el kit</a>.", evidencia: "prototipos/P03-motores/avance-01-colab/" },
-    { fecha: "", titulo: "Placa de 30 o 38 pines", estado: "abierta", decision: "", porque: "Se decide con el mapa de pines en la Fase II.", evidencia: "" },
-    { fecha: "", titulo: "Driver L298N o TB6612FNG", estado: "abierta", decision: "", porque: "Depende de la corriente de arranque de los motores.", evidencia: "" },
+        { fecha: "", titulo: "Driver L298N o TB6612FNG", estado: "abierta", decision: "", porque: "Depende de la corriente de arranque de los motores.", evidencia: "" },
     { fecha: "", titulo: "Re-localización con BLE o con QR", estado: "abierta", decision: "", porque: "Se decide con la prueba P04 en la Fase II.", evidencia: "" },
     { fecha: "", titulo: "Bandeja o pinza", estado: "abierta", decision: "", porque: "Depende del pedido típico (entrevista en el laboratorio).", evidencia: "" }
   ],
