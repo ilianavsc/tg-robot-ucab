@@ -64,7 +64,7 @@ window.TG = {
   pendientes: [
     { que: "Cerrar P01: alarma con QoS 2 y 50 órdenes seguidas", fecha: "2026-11-13", hecho: true },
     { que: "Confirmar con el laboratorio qué componentes tienen", fecha: "2026-11-13", hecho: false },
-    { que: "Pedir los motores por Amazon", fecha: "2026-11-13", hecho: false },
+    { que: "Pedir 2 kits de motor por Amazon (<a href=\"https://www.amazon.com/dp/B0H2JP84J7\">Emoshayoga JGA25-371</a>, Speed 200 o 130)", fecha: "2026-11-13", hecho: false },
     { que: "Entrevistas y observación en el laboratorio + prueba H0", fecha: "2026-11-18", hecho: false },
     { que: "Documento de requerimientos y matriz de hardware v2", fecha: "2026-11-20", hecho: false }
   ],
@@ -118,7 +118,7 @@ window.TG = {
      estado: "por pedir" | "por comprar" | "preguntar al lab" | "corregido" | "abierta" | "listo" */
   materiales: [
     { componente: "Microcontrolador", eleccion: "ESP32-WROOM-32, DevKit de 30 pines", alternativa: "DevKit de 38 pines", porque: "Mismo chip que en Wokwi; 8 entradas analógicas ADC1", estado: "abierta", cuando: "Fase II (mapa de pines)" },
-    { componente: "Motores", eleccion: "JGA25-370, 12 V, con encoder, 170 rpm (recomendado)", alternativa: "130 rpm si se usa TB6612FNG o se baja la meta de velocidad", porque: "Con batería, L298N y peso, 170 rpm llega a ~0,35 m/s; 130 rpm se queda en ~0,27. El encoder permite la odometría", estado: "por pedir", cuando: "Esta semana (Amazon)" },
+    { componente: "Motores", eleccion: "2 kits Emoshayoga JGA25-371, 12 V, con encoder: Speed 200 (280 rpm sin carga, caja 1:21,3)", alternativa: "Speed 130 (170 rpm sin carga, caja 1:35,5): más fuerza, pero con L298N queda justo en 0,35 m/s", porque: "Cada kit trae motor con encoder, soporte, rueda de 65 mm y acople. Con L298N y peso: ~0,57 m/s. En Mercado Libre no hay JGA25 de 12 V con encoder a buen precio", estado: "por pedir", cuando: "13 nov (Amazon, US$ 22,39 c/u, llega 27 nov)", link: "https://www.amazon.com/dp/B0H2JP84J7" },
     { componente: "Driver", eleccion: "L298N", alternativa: "TB6612FNG", porque: "El L298N pierde cerca de 2 V; el TB6612FNG es más eficiente pero aguanta poco más de 1 A por motor", estado: "abierta", cuando: "Con la corriente de arranque del motor" },
     { componente: "Batería", eleccion: "3 × 18650 de marca, en serie (3S)", alternativa: "LiPo 3S", porque: "Capacidad real y repuestos fáciles", estado: "por comprar", cuando: "Antes de fin de noviembre" },
     { componente: "BMS", eleccion: "3S con balanceo, ≥ 10 A", alternativa: "", porque: "Protege y equilibra las celdas", estado: "por comprar", cuando: "Antes de fin de noviembre" },
@@ -128,7 +128,7 @@ window.TG = {
     { componente: "Sensores de línea", eleccion: "4 × TCRT5000 a 3,3 V en pines ADC1", alternativa: "QTR-8A", porque: "Los pines ADC2 no leen con el Wi-Fi encendido", estado: "preguntar al lab", cuando: "Antes del 18 dic" },
     { componente: "Obstáculos", eleccion: "2 × HC-SR04P (3,3 V)", alternativa: "HC-SR04 con divisor de 1 kΩ y 2 kΩ", porque: "Evita los 5 V en el pin del ESP32", estado: "preguntar al lab", cuando: "Antes del 18 dic" },
     { componente: "Movimiento y alarma", eleccion: "MPU6050 (GY-521)", alternativa: "", porque: "Odometría y detección de levantamiento", estado: "preguntar al lab", cuando: "Antes del 18 dic" },
-    { componente: "Ruedas", eleccion: "65 mm con acople metálico de 4 mm", alternativa: "Cubo impreso en PLA", porque: "El cubo impreso suele patinar en el eje", estado: "por comprar", cuando: "Inicio de diciembre" },
+    { componente: "Ruedas", eleccion: "65 mm con acople metálico de 4 mm, incluidas en el kit de motor", alternativa: "Cubo impreso en PLA", porque: "Las de Mercado Libre eran para eje TT y no encajaban en el eje D de 4 mm", estado: "corregido", cuando: "Llegan con los motores", link: "https://www.amazon.com/dp/B0H2JP84J7" },
     { componente: "Rueda loca", eleccion: "Altura igual al eje de las ruedas", alternativa: "", porque: "Mantiene los TCRT5000 a pocos mm del piso", estado: "por comprar", cuando: "Inicio de diciembre" },
     { componente: "Re-localización", eleccion: "ESP32-C3 SuperMini como balizas BLE", alternativa: "Lector de QR (GM65)", porque: "Se decide con la prueba P04", estado: "abierta", cuando: "Fase II (P04); compra en febrero" },
     { componente: "Mecanismo de carga", eleccion: "? (bandeja o pinza)", alternativa: "", porque: "Depende del pedido típico (entrevista)", estado: "abierta", cuando: "Después de la entrevista" }
@@ -173,7 +173,7 @@ window.TG = {
       decision: "ESP32-WROOM-32 para el robot.",
       porque: "Es igual al de Wokwi, tiene Bluetooth (el S2 no) y suficientes pines (el C3 no).",
       evidencia: "hardware.html" },
-    { fecha: "", titulo: "Motores de 130 o 170 rpm", estado: "abierta", decision: "", porque: "El cálculo en Colab muestra que con 130 rpm el robot no llega a 0,35 m/s. Recomendado: 170 rpm (se frena con PWM). Hay que pedirlos el 13 nov.", evidencia: "prototipos/P03-motores/avance-01-colab/" },
+    { fecha: "", titulo: "Versión del motor: Speed 200 o Speed 130", estado: "abierta", decision: "", porque: "En el anuncio, \"Speed\" es la velocidad con carga: Speed 130 = 170 rpm sin carga (~0,35 m/s con L298N) y Speed 200 = 280 rpm sin carga (~0,57 m/s). Recomendado: Speed 200 (se frena con PWM; fuerza estimada suficiente en piso plano). <a href=\"https://www.amazon.com/dp/B0H2JP84J7\">Ver el kit</a>.", evidencia: "prototipos/P03-motores/avance-01-colab/" },
     { fecha: "", titulo: "Placa de 30 o 38 pines", estado: "abierta", decision: "", porque: "Se decide con el mapa de pines en la Fase II.", evidencia: "" },
     { fecha: "", titulo: "Driver L298N o TB6612FNG", estado: "abierta", decision: "", porque: "Depende de la corriente de arranque de los motores.", evidencia: "" },
     { fecha: "", titulo: "Re-localización con BLE o con QR", estado: "abierta", decision: "", porque: "Se decide con la prueba P04 en la Fase II.", evidencia: "" },

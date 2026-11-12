@@ -68,7 +68,7 @@
   document.getElementById("mat").innerHTML = M.map(function(m){
     var eleccion = m.eleccion.replace(/\?/g, '<span class="dato">?</span>');
     return '<div class="pieza-hw"><div class="top"><span class="comp">' + m.componente + '</span><span class="chip ' + clase[m.estado] + '">' + m.estado + "</span></div><h3>" + eleccion + "</h3><p>" + m.porque + "</p>" +
-      (m.alternativa ? '<p class="alt">Alternativa: ' + m.alternativa + "</p>" : "") + (m.cuando ? '<p class="cuando">' + m.cuando + "</p>" : "") + "</div>"; }).join("");
+      (m.alternativa ? '<p class="alt">Alternativa: ' + m.alternativa + "</p>" : "") + (m.cuando ? '<p class="cuando">' + m.cuando + "</p>" : "") + (m.link ? '<p class="cuando"><a href="' + m.link + '" target="_blank" rel="noopener">Ver en la tienda ↗</a></p>' : "") + "</div>"; }).join("");
 })();
 </script>
 </body>
