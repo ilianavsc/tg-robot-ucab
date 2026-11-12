@@ -39,53 +39,67 @@
 .tabla-pines td:first-child{font-family:var(--mono);font-weight:600;white-space:nowrap}
 .tabla-pines td.nota{color:var(--suave);font-size:14px}
 .tabla-pines tr[data-g] td:first-child{border-left:6px solid var(--g)}
+.totales{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 14px}
+.totales .t{background:var(--blanco);border:2px solid var(--tinta);border-radius:12px;padding:8px 14px}
+.totales .t b{display:block;font-family:var(--display);font-size:22px}
+.totales .t span{font-family:var(--mono);font-size:12px;color:var(--suave)}
+.lista{display:grid;gap:8px;margin-bottom:12px}
+.item{display:grid;grid-template-columns:46px 1fr auto;gap:12px;align-items:center;background:var(--blanco);border-radius:12px;padding:8px 14px 8px 8px;border-left:6px solid var(--d)}
+.item .ico{width:46px;height:46px;border-radius:12px;background:var(--papel);display:grid;place-items:center}
+.item b{font-family:var(--display);font-size:16.5px;display:block;line-height:1.25}
+.item small{font-family:var(--mono);font-size:12px;color:var(--suave)}
+.item .pr{text-align:right;font-family:var(--mono);font-size:14px;font-weight:600;white-space:nowrap}
+.item .pr a{display:block;font-weight:400;font-size:12.5px}
+.pieza-hw details summary{font-family:var(--mono);font-size:12.5px;color:var(--qos);cursor:pointer}
+.pieza-hw details p{margin:6px 0 0}
+details.caja{background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;padding:14px 18px}
+details.caja summary{font-family:var(--display);font-weight:700;font-size:21px;cursor:pointer}
+details.caja[open] summary{margin-bottom:10px}
 </style>
 </head>
 <body data-pagina="hardware" data-base="">
 <header id="menu"></header>
 <main>
-<p class="ceja">Hardware · matriz v2</p>
+<p class="ceja">Hardware</p>
 <h1>Las piezas <em>del robot</em></h1>
-<p class="bajada">Qué elegimos, qué alternativa hay, por qué, y cómo va cada compra. Las decisiones abiertas se cierran con pruebas, no con suposiciones.</p>
-<div class="resumen" id="resumen"></div>
+<p class="bajada">Qué compramos, dónde y cuánto cuesta. Toca "Detalles" para ver el porqué de cada pieza.</p>
 
-<section aria-labelledby="t-compras">
-  <h2 id="t-compras">Orden de compra</h2>
-  <p class="bajada">Primero lo que tarda en llegar o no se puede simular; al final lo que ya probamos en el simulador.</p>
-  <ol class="compras">
-    <li class="ya"><span class="n">1</span><div><b>Esta semana</b><span>Motores con encoder (Amazon). Preguntar al laboratorio qué componentes prestan, sobre todo el ESP32.</span></div></li>
-    <li><span class="n">2</span><div><b>Antes de fin de noviembre</b><span>Todo lo de la batería: pilas de marca, BMS con balanceo, porta pilas y cargador.</span></div></li>
-    <li><span class="n">3</span><div><b>Inicio de diciembre</b><span>Ruedas, acoples metálicos, rueda loca y tornillos. Filamento solo si la Escuela no lo pone.</span></div></li>
-    <li><span class="n">4</span><div><b>Antes del 18 de diciembre</b><span>Sensores, driver y regulador que el laboratorio no tenga, más fusible, cables y resistencias.</span></div></li>
-    <li><span class="n">5</span><div><b>Febrero (Fase IV)</b><span>Balizas BLE con sus cargadores, o lector de QR si así lo decide P04.</span></div></li>
-  </ol>
-</section>
-
-<section aria-labelledby="t-energia">
-  <h2 id="t-energia">Cómo se conecta la energía</h2>
-  <p class="bajada">En este orden. El puerto de carga va antes del interruptor: así se carga con el robot apagado.</p>
-  <ol class="energia-paso">
-    <li><span class="n">1</span><div><b>3 pilas en el porta pilas → BMS</b><span>B− (negativo de la pila 1), B1 (entre pila 1 y 2), B2 (entre pila 2 y 3), B+ (positivo de la pila 3).</span></div></li>
-    <li><span class="n">2</span><div><b>P+ del BMS → fusible de 3 A lento</b><span>Protege todo lo que viene después, también la carga.</span></div></li>
-    <li><span class="n">3</span><div><b>Después del fusible se divide en dos</b><span>Rama A: jack DC de carga (+). Rama B: interruptor.</span></div></li>
-    <li style="--c:var(--qos)"><span class="n">4</span><div><b>Interruptor → L298N (12 V) y LM2596 (entrada)</b><span>Y el divisor 100 kΩ / 22 kΩ al GPIO 32, para que no gaste batería con el robot apagado.</span></div></li>
-    <li style="--c:var(--qos)"><span class="n">5</span><div><b>LM2596 a 5,0 V → VIN del ESP32</b><span>Ajustarlo a 5 V antes de conectar. Del pin 3V3 del ESP32 salen sensores de línea, encoders, MPU6050 y ultrasónicos.</span></div></li>
-    <li style="--c:var(--tinta)"><span class="n">6</span><div><b>Tierra común</b><span>P− del BMS, jack (−), L298N, LM2596 y ESP32 unidos al mismo GND. Sin esto nada funciona.</span></div></li>
-  </ol>
-</section>
-
-<section aria-labelledby="t-pines">
-  <h2 id="t-pines">Pines del ESP32</h2>
-  <p class="bajada">Propuesta para el DevKit de 30 pines. Los sensores de línea y la batería van en ADC1, porque el ADC2 no lee con el Wi-Fi encendido.</p>
-  <table class="tabla-pines"><thead><tr><th>GPIO</th><th>Conectado a</th><th>Nota</th></tr></thead><tbody id="pines"></tbody></table>
+<section aria-labelledby="t-lista">
+  <h2 id="t-lista">Lista de compra</h2>
+  <div class="totales" id="totales"></div>
+  <div class="lista" id="lista"></div>
+  <p class="suave" style="font-size:14px">"Lab o ML": primero se pide al laboratorio (visita del 16 al 18 nov); si no hay, se compra el link. Amazon: sumar 7 % de impuesto de Florida y el courier (US$ 0,032 por gramo; revisar que el paquete pese menos de 1 kg).</p>
 </section>
 
 <section aria-labelledby="t-mat">
-  <h2 id="t-mat">Matriz de hardware</h2>
-  <div class="leyenda-chips"><span class="chip urgente">por pedir</span><span class="chip aviso">por comprar</span><span class="chip lab">preguntar al lab</span><span class="chip abierta">abierta</span><span class="chip hecho">corregido</span></div>
+  <h2 id="t-mat">Detalles de cada pieza</h2>
   <div class="mat" id="mat"></div>
 </section>
-<p class="suave" style="font-size:15px">Lista de materiales v1 con precios: <a href="hardware/materiales/lista-materiales-v1.xlsx">lista-materiales-v1.xlsx</a> · Registro de cambios: <a href="hardware/materiales/CAMBIOS.md">CAMBIOS.md</a></p>
+
+<section>
+  <details class="caja">
+    <summary>Cómo se conecta la energía</summary>
+    <p class="suave" style="font-size:15px">El puerto de carga va antes del interruptor: así se carga con el robot apagado.</p>
+    <ol class="energia-paso">
+      <li><span class="n">1</span><div><b>3 pilas → BMS</b><span>B− (negativo de la pila 1), B1 (entre pila 1 y 2), B2 (entre pila 2 y 3), B+ (positivo de la pila 3).</span></div></li>
+      <li><span class="n">2</span><div><b>P+ del BMS → fusible de 3 A lento</b><span>Protege todo lo que viene después, también la carga.</span></div></li>
+      <li><span class="n">3</span><div><b>Del fusible salen dos ramas</b><span>Rama A: jack de carga (+). Rama B: interruptor.</span></div></li>
+      <li style="--c:var(--qos)"><span class="n">4</span><div><b>Interruptor → L298N, LM2596 y divisor de batería</b><span>El divisor 100 kΩ / 22 kΩ va al GPIO 32.</span></div></li>
+      <li style="--c:var(--qos)"><span class="n">5</span><div><b>LM2596 a 5,0 V → VIN del ESP32</b><span>Ajustarlo a 5 V antes de conectar. Del pin 3V3 salen sensores, encoders, MPU6050 y ultrasónicos.</span></div></li>
+      <li style="--c:var(--tinta)"><span class="n">6</span><div><b>Tierra común</b><span>Todos los GND unidos: BMS (P−), jack, L298N, LM2596 y ESP32.</span></div></li>
+    </ol>
+  </details>
+</section>
+
+<section>
+  <details class="caja" id="t-pines">
+    <summary>Pines del ESP32</summary>
+    <p class="suave" style="font-size:15px">DevKit de 30 pines. Sensores de línea y batería en ADC1, porque el ADC2 no lee con el Wi-Fi encendido.</p>
+    <table class="tabla-pines"><thead><tr><th>GPIO</th><th>Conectado a</th><th>Nota</th></tr></thead><tbody id="pines"></tbody></table>
+  </details>
+</section>
+
+<p class="suave" style="font-size:15px">Lista de materiales v1: <a href="hardware/materiales/lista-materiales-v1.xlsx">lista-materiales-v1.xlsx</a> · Registro de cambios: <a href="hardware/materiales/CAMBIOS.md">CAMBIOS.md</a></p>
 </main>
 <footer id="pie"></footer>
 <script src="datos/proyecto.js"></script>
@@ -94,17 +108,25 @@
 <script>
 (function(){
   var clase = { "por pedir": "urgente", "por comprar": "aviso", "preguntar al lab": "lab", "abierta": "abierta", "corregido": "hecho", "listo": "hecho" };
-  var M = TG.materiales, cuenta = {};
-  M.forEach(function(m){ cuenta[m.estado] = (cuenta[m.estado] || 0) + 1; });
-  document.getElementById("resumen").innerHTML = Object.keys(clase).filter(function(k){ return cuenta[k]; }).map(function(k){
-    return '<span class="chip ' + clase[k] + '" style="font-size:14px;padding:6px 12px">' + cuenta[k] + " " + k + "</span>"; }).join("");
+  var colD = { "Amazon": "#F2603D", "Mercado Libre": "#F2B33D", "Lab o ML": "#6B4EE6", "Lab": "#CBD8D3", "Después": "#CBD8D3" };
+  var usd = function(x){ return "US$ " + x.toFixed(2).replace(".", ","); };
+  var C = TG.compras || [];
+  var suma = function(d){ return C.filter(function(c){ return c.donde === d && c.precio; }).reduce(function(a, c){ return a + c.precio; }, 0); };
+  var amz = suma("Amazon"), ml = suma("Mercado Libre"), lab = suma("Lab o ML");
+  document.getElementById("totales").innerHTML =
+    '<div class="t"><span>AMAZON</span><b>' + usd(amz) + '</b><span>~' + usd(amz * 1.07 + 29) + ' con impuesto y courier</span></div>' +
+    '<div class="t"><span>MERCADO LIBRE</span><b>' + usd(ml) + '</b></div>' +
+    '<div class="t"><span>SI EL LAB NO TIENE</span><b>+' + usd(lab) + '</b></div>';
+  document.getElementById("lista").innerHTML = C.map(function(c){
+    return '<div class="item" style="--d:' + colD[c.donde] + '"><span class="ico">' + TGI(c.icono) + '</span><div><b>' + c.que + '</b><small>' + c.cant + ' · ' + c.donde + '</small></div><div class="pr">' +
+      (c.precio ? usd(c.precio) : "—") + (c.link ? '<a href="' + c.link + '" target="_blank" rel="noopener">Ver ↗</a>' : "") + "</div></div>"; }).join("");
   var col = { sensor: "#F2B33D", energia: "#F2603D", control: "#6B4EE6", mov: "#0F9D84", libre: "#CBD8D3" };
   document.getElementById("pines").innerHTML = (TG.pines || []).map(function(p){
     return '<tr data-g style="--g:' + col[p.grupo] + '"><td>' + p.gpio + "</td><td>" + p.uso + '</td><td class="nota">' + p.nota + "</td></tr>"; }).join("");
-  document.getElementById("mat").innerHTML = M.map(function(m){
+  document.getElementById("mat").innerHTML = TG.materiales.map(function(m){
     var eleccion = m.eleccion.replace(/\?/g, '<span class="dato">?</span>');
-    return '<div class="pieza-hw"><div class="top"><span class="ico">' + TGI(m.componente) + '</span><span class="comp">' + m.componente + '</span><span class="chip ' + clase[m.estado] + '">' + m.estado + "</span></div><h3>" + eleccion + "</h3><p>" + m.porque + "</p>" +
-      (m.alternativa ? '<p class="alt">Alternativa: ' + m.alternativa + "</p>" : "") + (m.cuando ? '<p class="cuando">' + m.cuando + "</p>" : "") + (m.link ? '<p class="cuando"><a href="' + m.link + '" target="_blank" rel="noopener">Ver en la tienda ↗</a></p>' : "") + "</div>"; }).join("");
+    return '<div class="pieza-hw"><div class="top"><span class="ico">' + TGI(m.componente) + '</span><span class="comp">' + m.componente + '</span><span class="chip ' + clase[m.estado] + '">' + m.estado + "</span></div><h3>" + eleccion + "</h3>" +
+      '<details><summary>Detalles</summary><p>' + m.porque + "</p>" + (m.alternativa ? '<p class="alt">Alternativa: ' + m.alternativa + "</p>" : "") + (m.cuando ? '<p class="cuando">' + m.cuando + "</p>" : "") + "</details></div>"; }).join("");
 })();
 </script>
 </body>

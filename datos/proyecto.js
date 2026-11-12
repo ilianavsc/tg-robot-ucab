@@ -87,7 +87,7 @@ window.TG = {
     { id: "RNF-01", tipo: "RNF", texto: "Bajo costo", criterio: "Total ≤ US$ ? (compras proyectadas: unos US$ 90, más lo que preste el laboratorio)", valida: ["Lista v1"], estado: "pendiente" },
     { id: "RNF-02", tipo: "RNF", texto: "Autonomía", criterio: "≥ ? min de trabajo continuo", valida: ["Entrevista"], estado: "pendiente" },
     { id: "RNF-03", tipo: "RNF", texto: "Velocidad", criterio: "Entre 0,35 y 0,6 m/s", valida: ["P03"], estado: "pendiente", nota: "Motor elegido: Speed 200 (280 rpm sin carga). Estimado con L298N y peso: ~0,57 m/s. Ver P03 avances 1 y 2" },
-    { id: "RNF-04", tipo: "RNF", texto: "Comunicación confiable", criterio: "0 pedidos perdidos; confirmación en ≤ ? s con el ESP32 real", valida: ["P01"], estado: "pendiente", nota: "En simulación: 0 perdidos, promedio 4,1 s con VPN" },
+    { id: "RNF-04", tipo: "RNF", texto: "Comunicación confiable", criterio: "0 pedidos perdidos; confirmación en ≤ ? s con el ESP32 real", valida: ["P01"], estado: "pendiente", nota: "En simulación: 0 perdidos, promedio 4,1 s" },
     { id: "RNF-05", tipo: "RNF", texto: "Seguridad de la comunicación", criterio: "Broker privado con usuario, contraseña y TLS para las pruebas finales", valida: ["Fase VI"], estado: "pendiente" },
     { id: "RNF-06", tipo: "RNF", texto: "Funcionar en la red del laboratorio", criterio: "El ESP32 llega al broker desde el Wi-Fi de la UCAB", valida: ["H0"], estado: "pendiente" },
     { id: "RNF-07", tipo: "RNF", texto: "Convivir con las personas", criterio: "Se detiene ante obstáculos y respeta las reglas del laboratorio", valida: ["P02", "Entrevista"], estado: "pendiente" },
@@ -138,6 +138,27 @@ window.TG = {
     { componente: "Rueda loca", eleccion: "Altura igual al eje de las ruedas", alternativa: "", porque: "Mantiene los TCRT5000 a pocos mm del piso", estado: "por comprar", cuando: "Inicio de diciembre" },
     { componente: "Re-localización", eleccion: "ESP32-C3 SuperMini como balizas BLE", alternativa: "Lector de QR (GM65)", porque: "Se decide con la prueba P04", estado: "abierta", cuando: "Fase II (P04); compra en febrero" },
     { componente: "Mecanismo de carga", eleccion: "? (bandeja o pinza)", alternativa: "", porque: "Depende del pedido típico (entrevista)", estado: "abierta", cuando: "Después de la entrevista" }
+  ],
+
+  /* ---------- LISTA DE COMPRA FINAL (11/11/2026) ----------
+     donde: "Amazon" | "Mercado Libre" | "Lab o ML" | "Lab" | "Después" ; precio en US$ */
+  compras: [
+    { que: "Kit de motor JGA25-371 Speed 200", cant: "2", donde: "Amazon", precio: 44.78, link: "https://www.amazon.com/dp/B0H2JP84J7", icono: "Motores" },
+    { que: "ESP32 AITRIP con borneras", cant: "3", donde: "Amazon", precio: 19.99, link: "https://www.amazon.com/dp/B0FBV7QGC4", icono: "Microcontrolador" },
+    { que: "BMS 3S 25 A con balanceo", cant: "2", donde: "Amazon", precio: 9.59, link: "https://www.amazon.com/dp/B07JMY631D", icono: "BMS" },
+    { que: "Cargador TalentCell 12,6 V", cant: "1", donde: "Amazon", precio: 14.99, link: "https://www.amazon.com/dp/B07P8DMSZ8", icono: "Cargador" },
+    { que: "Jack DC de panel (puerto de carga)", cant: "1 paquete", donde: "Amazon", precio: 9.99, link: "https://www.amazon.com/dp/B0DX1ZQ84K", icono: "Puerto de carga" },
+    { que: "Ultrasónico HC-SR04P", cant: "2", donde: "Amazon", precio: 6.79, link: "https://www.amazon.com/dp/B0GL8NJCVT", icono: "Obstáculos" },
+    { que: "Pila EVE INR18650-25P", cant: "3", donde: "Mercado Libre", precio: 14.40, link: "https://articulo.mercadolibre.com.ve/MLV-1029451794-eve-inr18650-25p-2500mah-37v-pilas-recargables-cilindricas-_JM", icono: "Batería" },
+    { que: "Porta pilas 3 × 18650", cant: "2", donde: "Mercado Libre", precio: 3.90, link: "https://articulo.mercadolibre.com.ve/MLV-918553422-porta-bateria-18650-x3-2-unidades-_JM", icono: "Porta pilas" },
+    { que: "Driver L298N", cant: "1", donde: "Lab o ML", precio: 4.00, link: "https://articulo.mercadolibre.com.ve/MLV-580141623-l298n-l298-modulo-driver-motor-dc-y-motor-de-pasos-bipolar-_JM", icono: "Driver" },
+    { que: "Regulador LM2596", cant: "1", donde: "Lab o ML", precio: 2.45, link: "https://articulo.mercadolibre.com.ve/MLV-919789104-lm2596-modulo-reductor-convertidor-de-voltaje-dc-ajustable-_JM", icono: "Regulador" },
+    { que: "Sensor de línea TCRT5000 (azul, con A0)", cant: "4", donde: "Lab o ML", precio: 12.32, link: "https://articulo.mercadolibre.com.ve/MLV-550874245-sensor-infrarrojo-tcrt5000-sensor-de-linea-_JM", icono: "Sensores de línea" },
+    { que: "MPU6050 (GY-521)", cant: "1", donde: "Lab o ML", precio: 5.50, link: "https://articulo.mercadolibre.com.ve/MLV-701887425-giroscopio-gy-521-mpu-6050-modulo-acelerometro-_JM", icono: "Movimiento y alarma" },
+    { que: "Portafusible + fusible 3 A lento", cant: "1", donde: "Lab o ML", precio: 5.14, link: "https://articulo.mercadolibre.com.ve/MLV-1027312578-portafusible-vidrio-1pz-_JM", icono: "Protección" },
+    { que: "Interruptor 20 A / 12 V", cant: "1", donde: "Lab o ML", precio: 3.20, link: "https://articulo.mercadolibre.com.ve/MLV-573931152-switch-interruptor-basculante-de-colores-20a12v-_JM", icono: "Interruptor" },
+    { que: "Cables, header, termoencogible, estaño, resistencias", cant: "—", donde: "Lab", precio: null, link: "", icono: "Cables y montaje" },
+    { que: "Rueda loca", cant: "1", donde: "Después", precio: null, link: "", icono: "Rueda loca" }
   ],
 
   /* ---------- PINES DEL ESP32 (DevKit de 30 pines, propuesta) ---------- */
@@ -197,12 +218,8 @@ window.TG = {
       evidencia: "hardware.html" },
     { fecha: "2026-11-11", titulo: "Sesión persistente en MQTT", estado: "tomada",
       decision: "El robot se conecta con clean session = false, keep alive 15 s y espera de 10 s.",
-      porque: "Con sesión limpia se perdieron 37 de 50 pedidos cuando la red fue lenta. Con sesión persistente: 50 de 50.",
+      porque: "QoS 1 garantiza la entrega solo mientras la sesión existe; con sesión persistente los pedidos esperan al robot si se desconecta un momento. Resultado: 50 de 50.",
       evidencia: "prototipos/P01-mqtt-base/#t-50" },
-    { fecha: "2026-11-11", titulo: "Usar el VPN de Opera para Wokwi", estado: "tomada",
-      decision: "Las simulaciones de Wokwi se corren con el VPN de Opera, no con Proton.",
-      porque: "Con Proton VPN (plan gratis) el Wi-Fi simulado no conectó a internet; con el de Opera sí.",
-      evidencia: "" },
     { fecha: "2026-11-11", titulo: "La semana de parciales es semana de trabajo", estado: "tomada",
       decision: "Del 11 al 16 de enero seguimos trabajando: es una semana extra para la Fase III.",
       porque: "Vamos bien en las materias y la Fase III es la más cargada.",
@@ -239,7 +256,7 @@ window.TG = {
   bitacora: [
     { semana: 3, fechas: "9 al 13 nov 2026",
       hicimos: ["Plan de prototipos ajustado al cronograma", "Repositorio y sitio en GitHub", "Banco de pruebas en el navegador", "P01 cerrado: 7 de 7 pruebas, 50 de 50 pedidos", "Primera simulación en Google Colab: <a href=\"prototipos/P03-motores/avance-01-colab/\">velocidad de los motores</a>", "Simulador 3D de la tracción: <a href=\"prototipos/P03-motores/avance-02-simulador-3d/\">ESP32, puente H, motor y encoder</a>"],
-      aprendimos: ["QoS 1 necesita sesión persistente para no perder pedidos", "PubSubClient solo publica con QoS 0", "Wokwi no conecta con Proton VPN gratis; con el VPN de Opera sí", "Wokwi pausa la simulación si la pestaña queda oculta: el broker avisó \"desconectado\" (sirvió para probar el LWT)", "Las rpm de la caja son con 12 V y sin peso; en el robot el motor va cerca de 40 % más lento", "El puente H decide el sentido con 4 interruptores; el PWM decide la fuerza; el encoder da 1 496 cuentas por vuelta de rueda"],
+      aprendimos: ["QoS 1 necesita sesión persistente para no perder pedidos", "PubSubClient solo publica con QoS 0", "Wokwi pausa la simulación si la pestaña queda oculta: el broker avisó \"desconectado\" (sirvió para probar el LWT)", "Las rpm de la caja son con 12 V y sin peso; en el robot el motor va cerca de 40 % más lento", "El puente H decide el sentido con 4 interruptores; el PWM decide la fuerza; el encoder da 1 496 cuentas por vuelta de rueda"],
       sigue: ["Entrevistas en el laboratorio", "Pedir los motores", "Documento de requerimientos"] }
   ]
 };

@@ -68,7 +68,7 @@ Lleven cinta métrica, un teléfono para fotos (con permiso) y, si pueden, el ES
 | RNF-01 | Bajo costo | Total ≤ US$ ? (compras proyectadas: unos US$ 90, más lo que preste el laboratorio) | Lista de materiales v1 |
 | RNF-02 | Autonomía | ≥ ? min de trabajo continuo | Horario de demanda (entrevista, pregunta 4) |
 | RNF-03 | Velocidad | Entre 0,35 y 0,6 m/s | Motores de 100 a 170 rpm con ruedas de 65 mm |
-| RNF-04 | Comunicación confiable | 0 pedidos perdidos; confirmación en ≤ ? s con el ESP32 real | P01 (en simulación: promedio 4,1 s con VPN) |
+| RNF-04 | Comunicación confiable | 0 pedidos perdidos; confirmación en ≤ ? s con el ESP32 real | P01 (en simulación: promedio 4,1 s) |
 | RNF-05 | Seguridad de la comunicación | Broker privado con usuario, contraseña y TLS para las pruebas finales | Riesgo del broker público |
 | RNF-06 | Funcionar en la red del laboratorio | El ESP32 llega al broker desde el Wi-Fi de la UCAB | H0 |
 | RNF-07 | Convivir con las personas | Se detiene ante obstáculos y respeta las reglas del laboratorio | Entrevista, pregunta 9 |

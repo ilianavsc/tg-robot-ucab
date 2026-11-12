@@ -25,7 +25,6 @@ Comunicar el ESP32 con el broker MQTT. Es la base de todo el sistema: por aquí 
 
 ## 3. Simulador y herramientas
 - **Wokwi:** ESP32 DevKit C v4, red `Wokwi-GUEST`. Proyecto: https://wokwi.com/projects/480338785084042241
-- **Red:** con Proton VPN (plan gratis) el Wi-Fi simulado no conectó; con el VPN de Opera sí.
 - **Broker:** `broker.hivemq.com`, puerto 1883 (ESP32) y 8884 WebSocket seguro (banco). Público, solo para desarrollo.
 - **Banco de pruebas:** [banco.html](banco.html), en el navegador. Envía pedidos, cuenta respuestas, mide tiempos y descarga CSV.
 - **Librería:** `MQTT` de Joel Gaehwiler (QoS 0, 1 y 2). Se descartó PubSubClient porque solo publica con QoS 0.
@@ -59,12 +58,10 @@ Código en `codigo/`: `sketch.ino` (versión 2.1), `diagram.json`, `libraries.tx
 | T6 | ✅ "desconectado" a los 22 s (teoría: 1,5 × 15 s = 22,5 s) | `evidencias/06-T6-desconectado-22s.png` |
 | T7 | ✅ "en línea" otra vez y estado desde 1 | `evidencias/07-T7-en-linea-otra-vez.png` |
 
-### Hallazgo: el intento fallido de T4 (versión 2)
-- **Qué pasó:** 13 de 50 confirmados, 37 perdidos (`datos/T4-v2-intento-13-de-50.csv`, `evidencias/03-T4-intento-v2-13-de-50.png`).
-- **Causa:** con VPN el broker tardaba más de 1 s; la librería espera 1 s por defecto y, si no llega la respuesta, cierra la conexión. Como el robot entraba con sesión limpia, el broker no guardaba los pedidos que llegaban mientras estaba desconectado.
-- **Arreglo (versión 2.1):** `mqtt.setOptions(15, false, 10000)` → keep alive 15 s, sesión persistente y espera de 10 s.
-- **Lección:** QoS 1 garantiza la entrega solo mientras la sesión existe. Hacen falta QoS 1 y sesión persistente juntos.
-- **Sobre los tiempos:** crecen a lo largo de la prueba porque se envió 1 pedido por segundo, más rápido de lo que responde el robot simulado con VPN (se forma una fila). No se perdió ninguno.
+### Configuración clave (versión 2.1)
+- `mqtt.setOptions(15, false, 10000)` → keep alive 15 s, sesión persistente y espera de 10 s.
+- QoS 1 garantiza la entrega mientras la sesión existe: por eso se usa junto con sesión persistente.
+- Los tiempos crecen a lo largo de la prueba porque se envió 1 pedido por segundo, más rápido de lo que responde el robot simulado (se forma una fila). No se perdió ninguno.
 
 **Versión 1 (10/11/2026):** pasaron estado, "en línea", "desconectado", reconexión y un pedido con confirmación. Evidencias en `evidencias/v1/`.
 
