@@ -82,7 +82,7 @@ window.TG = {
         { id: "RF-07", tipo: "RF", texto: "Transportar los componentes pedidos", criterio: "Lleva 3 o 4 piezas pequeñas sin perder la línea", valida: ["H5"], estado: "pendiente", nota: "Entrevista: los pedidos son de 3 o 4 piezas muy livianas" },
         { id: "RF-08", tipo: "RF", texto: "Alarmar si alguien lo levanta o lo mueve sin una orden", criterio: "La alarma llega a la app 1 sola vez y genera un reporte para el encargado y la Escuela; ≤ ? falsas alarmas en N recorridos", valida: ["P11", "H6"], estado: "pendiente", nota: "Entrevista: preocupan igual robo, pérdida y daño" },
     { id: "RF-09", tipo: "RF", texto: "Permitir pedir, ver el estado y recibir avisos desde la app", criterio: "Notificación en ≤ 5 s", valida: ["P06", "P10"], estado: "pendiente" },
-        { id: "RF-10", tipo: "RF", texto: "Mostrar en cada pedido el salón y el profesor", criterio: "El encargado ve salón y profesor antes de aprobar", valida: ["P10"], estado: "pendiente", nota: "Entrevista: no hace falta registrar préstamos ni devoluciones (uso libre)" },
+        { id: "RF-10", tipo: "RF", texto: "Registrar cada pedido y cada entrega: quién pidió, qué, cuándo, salón y profesor", criterio: "Historial consultable en la app; el encargado ve salón y profesor antes de aprobar", valida: ["P10"], estado: "pendiente", nota: "Entrevista: hoy no hay ningún registro (uso libre). El sistema lo crea" },
         { id: "RF-11", tipo: "RF", texto: "Pedir usuario para entrar a la app, con dos roles", criterio: "Solicitante (estudiante o profesor) pide; encargado aprueba o rechaza", valida: ["P06"], estado: "pendiente", nota: "Entrevista: Jesús aprueba todos los pedidos" },
         { id: "RNF-01", tipo: "RNF", texto: "Bajo costo", criterio: "Total ≤ US$ ? (compras proyectadas: unos US$ 125 entre Amazon y Mercado Libre, sin impuesto ni courier)", valida: ["Lista v1"], estado: "pendiente" },
         { id: "RNF-02", tipo: "RNF", texto: "Autonomía", criterio: "Cubrir la jornada de 7:00 a 18:00 cargando entre recorridos; ≥ ? min de trabajo continuo", valida: ["Entrevista"], estado: "pendiente", nota: "Entrevista: carga en los enchufes del cuarto de componentes" },
@@ -101,7 +101,7 @@ window.TG = {
     "Hoy el estudiante siempre tiene que ir al taller a buscar el componente: Jesús lo busca y lo entrega, pero nunca lo lleva. Ese es el hueco que llena el robot.",
     "Pedidos pequeños: 3 o 4 piezas muy livianas. Hasta 16 estudiantes por laboratorio (2 por puesto).",
     "Jesús aprueba cada pedido. La app debe mostrar el salón y el profesor para validarlo.",
-    "No se registra quién se llevó qué ni cuándo lo devolvió: el material es de uso libre.",
+    "Hoy no existe ningún registro de quién se llevó qué ni para qué. Ese es otro hueco que llena el TG: la app registra cada pedido y cada entrega.",
     "El robot puede circular por el pasillo de 7:00 a 18:00. Puede cargar en el cuarto de componentes.",
     "Wi-Fi: la red de la UCAB pide usuario y clave; hay además una red interna del laboratorio.",
     "Preocupan igual robo, pérdida y daño. La alarma avisa a la app y luego va un reporte a Jesús y a la Escuela de Telecomunicaciones."
