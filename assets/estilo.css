@@ -73,3 +73,8 @@ section{margin:0 0 52px}
 .leyenda-chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px;color:var(--suave);margin:0 0 14px}
 @media (max-width:640px){.fila{grid-template-columns:1fr}}
 @media print{#menu,#pie,.no-imprimir{display:none!important}body{background:#fff}.tarjeta,.fila{box-shadow:none!important}}
+
+/* Respuestas de la entrevista */
+.resp{margin:.25rem 0 .7rem;padding:.4rem .7rem;border-left:3px solid var(--acento,#2a7);background:rgba(0,0,0,.03);border-radius:4px}
+.claves li{margin:.3rem 0}
+.sub{font-weight:400;font-size:.8em;opacity:.7}

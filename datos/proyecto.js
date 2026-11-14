@@ -63,8 +63,7 @@ window.TG = {
   /* Lo que hay que hacer ya. hecho: true cuando se cumpla */
   pendientes: [
     { que: "Cerrar P01: alarma con QoS 2 y 50 órdenes seguidas", fecha: "2026-11-13", hecho: true },
-    { que: "Confirmar con el laboratorio qué componentes tienen", fecha: "2026-11-13", hecho: false },
-    { que: "Pedido de Amazon: 2 kits de motor (<a href=\"https://www.amazon.com/dp/B0H2JP84J7\">Emoshayoga JGA25-371</a>, Speed 200), 3 ESP32 (<a href=\"https://www.amazon.com/dp/B0FBV7QGC4\">AITRIP</a>), el BMS (<a href=\"https://www.amazon.com/dp/B07JMY631D\">daier 3S 25 A</a>), el cargador (<a href=\"https://www.amazon.com/dp/B07P8DMSZ8\">TalentCell 12,6 V</a>) el puerto de carga (<a href=\"https://www.amazon.com/dp/B0DX1ZQ84K\">DC-022D</a>) y 2 ultrasónicos (<a href=\"https://www.amazon.com/dp/B0GL8NJCVT\">HC-SR04P</a>). Total ~US$ 106 + 7 % de impuesto de Florida + courier; revisar que pese menos de 1 kg", fecha: "2026-11-13", hecho: false },
+        { que: "Pedido de Amazon: 2 kits de motor (<a href=\"https://www.amazon.com/dp/B0H2JP84J7\">Emoshayoga JGA25-371</a>, Speed 200), 3 ESP32 (<a href=\"https://www.amazon.com/dp/B0FBV7QGC4\">AITRIP</a>), el BMS (<a href=\"https://www.amazon.com/dp/B07JMY631D\">daier 3S 25 A</a>), el cargador (<a href=\"https://www.amazon.com/dp/B07P8DMSZ8\">TalentCell 12,6 V</a>) el puerto de carga (<a href=\"https://www.amazon.com/dp/B0DX1ZQ84K\">DC-022D</a>) y 2 ultrasónicos (<a href=\"https://www.amazon.com/dp/B0GL8NJCVT\">HC-SR04P</a>). Total ~US$ 106 + 7 % de impuesto de Florida + courier; revisar que pese menos de 1 kg", fecha: "2026-11-13", hecho: false },
     { que: "Ajustar el Capítulo II y enviarlo (<a href=\"docs/tomo/capitulo-ii-cambios.md\">lista de cambios</a>)", fecha: "2026-11-14", hecho: true },
     { que: "Entrevista en el laboratorio", fecha: "2026-11-14", hecho: true },
     { que: "Observación en el laboratorio + prueba H0 (Wi-Fi)", fecha: "2026-11-18", hecho: false },
@@ -80,28 +79,50 @@ window.TG = {
     { id: "RF-04", tipo: "RF", texto: "Ir por la línea del mostrador al estante y volver", criterio: "Error de posición ≤ ? cm al llegar", valida: ["P08", "H4"], estado: "pendiente" },
     { id: "RF-05", tipo: "RF", texto: "Detectar un obstáculo y detenerse", criterio: "Se detiene a ≥ 20 cm del obstáculo", valida: ["P02"], estado: "pendiente" },
     { id: "RF-06", tipo: "RF", texto: "Re-localizarse en puntos de referencia", criterio: "Corrige su posición en cada punto (BLE o QR)", valida: ["P04", "P09"], estado: "pendiente" },
-    { id: "RF-07", tipo: "RF", texto: "Transportar los componentes pedidos", criterio: "Carga hasta ? g sin perder la línea", valida: ["H5"], estado: "pendiente" },
-    { id: "RF-08", tipo: "RF", texto: "Alarmar si alguien lo levanta o lo mueve sin una orden", criterio: "La alarma llega a la app 1 sola vez; ≤ ? falsas alarmas en N recorridos", valida: ["P11", "H6"], estado: "pendiente" },
+        { id: "RF-07", tipo: "RF", texto: "Transportar los componentes pedidos", criterio: "Lleva 3 o 4 piezas pequeñas sin perder la línea", valida: ["H5"], estado: "pendiente", nota: "Entrevista: los pedidos son de 3 o 4 piezas muy livianas" },
+        { id: "RF-08", tipo: "RF", texto: "Alarmar si alguien lo levanta o lo mueve sin una orden", criterio: "La alarma llega a la app 1 sola vez y genera un reporte para el encargado y la Escuela; ≤ ? falsas alarmas en N recorridos", valida: ["P11", "H6"], estado: "pendiente", nota: "Entrevista: preocupan igual robo, pérdida y daño" },
     { id: "RF-09", tipo: "RF", texto: "Permitir pedir, ver el estado y recibir avisos desde la app", criterio: "Notificación en ≤ 5 s", valida: ["P06", "P10"], estado: "pendiente" },
-    { id: "RF-10", tipo: "RF", texto: "Registrar quién pidió qué y cuándo", criterio: "Historial consultable en la app", valida: ["P10"], estado: "pendiente", nota: "Confirmar en la entrevista" },
-    { id: "RF-11", tipo: "RF", texto: "Pedir usuario para entrar a la app", criterio: "Solo usuarios autorizados hacen pedidos", valida: ["P06"], estado: "pendiente", nota: "Definir roles en la entrevista" },
-    { id: "RNF-01", tipo: "RNF", texto: "Bajo costo", criterio: "Total ≤ US$ ? (compras proyectadas: unos US$ 90, más lo que preste el laboratorio)", valida: ["Lista v1"], estado: "pendiente" },
-    { id: "RNF-02", tipo: "RNF", texto: "Autonomía", criterio: "≥ ? min de trabajo continuo", valida: ["Entrevista"], estado: "pendiente" },
+        { id: "RF-10", tipo: "RF", texto: "Mostrar en cada pedido el salón y el profesor", criterio: "El encargado ve salón y profesor antes de aprobar", valida: ["P10"], estado: "pendiente", nota: "Entrevista: no hace falta registrar préstamos ni devoluciones (uso libre)" },
+        { id: "RF-11", tipo: "RF", texto: "Pedir usuario para entrar a la app, con dos roles", criterio: "Solicitante (estudiante o profesor) pide; encargado aprueba o rechaza", valida: ["P06"], estado: "pendiente", nota: "Entrevista: Jesús aprueba todos los pedidos" },
+        { id: "RNF-01", tipo: "RNF", texto: "Bajo costo", criterio: "Total ≤ US$ ? (compras proyectadas: unos US$ 125 entre Amazon y Mercado Libre, sin impuesto ni courier)", valida: ["Lista v1"], estado: "pendiente" },
+        { id: "RNF-02", tipo: "RNF", texto: "Autonomía", criterio: "Cubrir la jornada de 7:00 a 18:00 cargando entre recorridos; ≥ ? min de trabajo continuo", valida: ["Entrevista"], estado: "pendiente", nota: "Entrevista: carga en los enchufes del cuarto de componentes" },
     { id: "RNF-03", tipo: "RNF", texto: "Velocidad", criterio: "Entre 0,35 y 0,6 m/s", valida: ["P03"], estado: "pendiente", nota: "Motor elegido: Speed 200 (280 rpm sin carga). Estimado con L298N y peso: ~0,57 m/s. Ver P03 avances 1 y 2" },
     { id: "RNF-04", tipo: "RNF", texto: "Comunicación confiable", criterio: "0 pedidos perdidos; confirmación en ≤ ? s con el ESP32 real", valida: ["P01"], estado: "pendiente", nota: "En simulación: 0 perdidos, promedio 4,1 s" },
     { id: "RNF-05", tipo: "RNF", texto: "Seguridad de la comunicación", criterio: "Broker privado con usuario, contraseña y TLS para las pruebas finales", valida: ["Fase VI"], estado: "pendiente" },
-    { id: "RNF-06", tipo: "RNF", texto: "Funcionar en la red del laboratorio", criterio: "El ESP32 llega al broker desde el Wi-Fi de la UCAB", valida: ["H0"], estado: "pendiente" },
-    { id: "RNF-07", tipo: "RNF", texto: "Convivir con las personas", criterio: "Se detiene ante obstáculos y respeta las reglas del laboratorio", valida: ["P02", "Entrevista"], estado: "pendiente" },
+        { id: "RNF-06", tipo: "RNF", texto: "Funcionar en la red del laboratorio", criterio: "El ESP32 llega al broker desde el Wi-Fi del laboratorio", valida: ["H0"], estado: "pendiente", nota: "Entrevista: la red UCAB pide usuario y clave; hay una red interna del laboratorio. Probar ambas en H0" },
+        { id: "RNF-07", tipo: "RNF", texto: "Convivir con las personas", criterio: "Circula solo por el pasillo, de 7:00 a 18:00, y se detiene ante obstáculos", valida: ["P02", "Entrevista"], estado: "pendiente", nota: "Entrevista: no hay otras reglas de seguridad" },
     { id: "RNF-08", tipo: "RNF", texto: "Resultados confiables", criterio: "Mínimo 20 repeticiones por prueba", valida: ["Fase VII"], estado: "pendiente" }
   ],
 
   /* ---------- VISITA AL LABORATORIO ---------- */
+  entrevistaFecha: "14 nov 2026",
+  /* Lo más importante que salió de la entrevista */
+  entrevistaClaves: [
+    "Hoy el estudiante siempre tiene que ir al taller a buscar el componente: Jesús lo busca y lo entrega, pero nunca lo lleva. Ese es el hueco que llena el robot.",
+    "Pedidos pequeños: 3 o 4 piezas muy livianas. Hasta 16 estudiantes por laboratorio (2 por puesto).",
+    "Jesús aprueba cada pedido. La app debe mostrar el salón y el profesor para validarlo.",
+    "No se registra quién se llevó qué ni cuándo lo devolvió: el material es de uso libre.",
+    "El robot puede circular por el pasillo de 7:00 a 18:00. Puede cargar en el cuarto de componentes.",
+    "Wi-Fi: la red de la UCAB pide usuario y clave; hay además una red interna del laboratorio.",
+    "Preocupan igual robo, pérdida y daño. La alarma avisa a la app y luego va un reporte a Jesús y a la Escuela de Telecomunicaciones."
+  ],
   entrevista: [
-    { grupo: "El pedido de hoy", preguntas: ["¿Qué componentes piden más los estudiantes? Nombren los 10 más pedidos.", "¿Cómo se pide un componente hoy y cuánto tarda la entrega?", "¿Cómo es un pedido típico: cuántas piezas, de qué tamaño y peso?", "¿A qué horas hay más pedidos?"] },
-    { grupo: "Dónde están las cosas", preguntas: ["¿Dónde se guardan (estantes, gavetas, cajas)? ¿Se pueden etiquetar o numerar?", "¿Qué pasa cuando un componente no está o se acabó?"] },
-    { grupo: "Quién y cómo", preguntas: ["¿Quién debería poder pedir (estudiantes, profesores) y quién aprueba?", "¿Hay que registrar quién se llevó qué y cuándo lo devolvió?"] },
-    { grupo: "El robot en el laboratorio", preguntas: ["¿Se permitiría un robot circulando? ¿Hay horarios, zonas o reglas de seguridad?", "¿Qué red Wi-Fi podría usar? ¿Pide usuario o una página de acceso?", "¿Dónde podría cargar su batería?", "¿Qué preocupa más: robo, pérdida o daño? ¿Qué debería hacer la alarma y a quién avisar?"] },
-    { grupo: "Material", preguntas: ["¿Qué componentes de nuestra lista nos pueden prestar durante todo el TG (sobre todo el ESP32)?"] }
+    { grupo: "El pedido de hoy", preguntas: [
+      ["¿Qué componentes piden más los estudiantes?", "Resistencias, condensadores, protoboards que sirvan, 555 y otros chips, Arduinos, cables, potenciómetros, pendrives para instalar programas, pinzas, LEDs, compuertas lógicas, llaves, sensores, diodos y fusibles."],
+      ["¿Cómo se pide un componente hoy y cuánto tarda la entrega?", "Se pide directo a Jesús, encargado del taller de Telecomunicaciones. Él lo busca y lo entrega, pero siempre hay que ir a buscarlo: nunca lo lleva."],
+      ["¿Cómo es un pedido típico?", "Pocas piezas, unas 3 o 4 como máximo, muy livianas. Hay hasta 16 estudiantes por laboratorio (2 por puesto)."],
+      ["¿A qué horas hay más pedidos?", "En horas de clase, sin una hora fija: depende del semestre. Desde las 7:00; después de las 18:00 no hay pedidos."] ] },
+    { grupo: "Dónde están las cosas", preguntas: [
+      ["¿Dónde se guardan? ¿Se pueden etiquetar?", "En estantes ya etiquetados, sobre todo los componentes pequeños (por ejemplo, una gaveta dice 100k para las resistencias de 100 kΩ)."],
+      ["¿Qué pasa cuando un componente se acabó?", "Jesús lo pide a la Escuela. No es inmediato: se hace un pedido grande cada semestre o cuando hace falta."] ] },
+    { grupo: "Quién y cómo", preguntas: [
+      ["¿Quién puede pedir y quién aprueba?", "Piden estudiantes y profesores. Jesús da el visto bueno; la app debe mostrar el salón y el profesor para validar que el pedido es para un laboratorio."],
+      ["¿Hay que registrar quién se llevó qué?", "No. Nunca se ha anotado; el material es de uso libre para los estudiantes."] ] },
+    { grupo: "El robot en el laboratorio", preguntas: [
+      ["¿Se permitiría un robot? ¿Horarios o reglas?", "Sí. De 7:00 a 18:00. No hay reglas de seguridad, solo que circule por el pasillo."],
+      ["¿Qué red Wi-Fi podría usar?", "La red de la UCAB, que pide usuario y clave, o una red interna del laboratorio."],
+      ["¿Dónde podría cargar su batería?", "En los enchufes del cuarto de componentes."],
+      ["¿Qué preocupa más y a quién avisar?", "Robo, pérdida y daño preocupan por igual. La alarma notifica a la app y después se envía un reporte al encargado y a la Escuela de Telecomunicaciones."] ] }
   ],
   observacion: [
     ["Recorrido", "Distancia del mostrador a cada estante (m)"],

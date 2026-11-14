@@ -43,7 +43,7 @@ button.imprimir{font-family:var(--texto);font-weight:700;font-size:15px;padding:
   </div>
   <p class="bajada">Entrevista de unos 20 minutos y una vuelta midiendo. Lleven cinta métrica, el teléfono para fotos (con permiso) y el ESP32 para la prueba H0.</p>
   <div class="visita">
-    <div class="tarjeta"><h3>Guía de entrevista</h3><div id="entrevista"></div></div>
+    <div class="tarjeta"><h3>Entrevista en el laboratorio <span class="sub" id="entFecha"></span></h3><h4>Lo más importante</h4><ul class="claves" id="entClaves"></ul><div id="entrevista"></div></div>
     <div class="tarjeta"><h3>Hoja de observación</h3><table class="hoja"><thead><tr><th>Aspecto</th><th>Qué anotar</th><th>Dato</th></tr></thead><tbody id="observacion"></tbody></table></div>
   </div>
 </section>
@@ -72,8 +72,10 @@ button.imprimir{font-family:var(--texto);font-weight:700;font-size:15px;padding:
   document.getElementById("rf").innerHTML = R.filter(function(r){ return r.tipo === "RF"; }).map(fila).join("");
   document.getElementById("rnf").innerHTML = R.filter(function(r){ return r.tipo === "RNF"; }).map(fila).join("");
   var n = 0;
+  document.getElementById("entFecha").textContent = TG.entrevistaFecha;
+  document.getElementById("entClaves").innerHTML = TG.entrevistaClaves.map(function(c){ return "<li>" + c + "</li>"; }).join("");
   document.getElementById("entrevista").innerHTML = TG.entrevista.map(function(g){
-    return "<h4>" + g.grupo + '</h4><ol start="' + (n + 1) + '">' + g.preguntas.map(function(q){ n++; return "<li>" + q + "</li>"; }).join("") + "</ol>"; }).join("");
+    return "<h4>" + g.grupo + '</h4><ol start="' + (n + 1) + '">' + g.preguntas.map(function(q){ n++; return "<li><b>" + q[0] + '</b><div class="resp">' + q[1] + "</div></li>"; }).join("") + "</ol>"; }).join("");
   document.getElementById("observacion").innerHTML = TG.observacion.map(function(o){ return "<tr><td><b>" + o[0] + "</b></td><td>" + o[1] + "</td><td></td></tr>"; }).join("");
   document.getElementById("b-imprimir").addEventListener("click", function(){
     document.body.classList.add("solo-visita"); window.print();
