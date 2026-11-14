@@ -53,7 +53,7 @@ window.TG = {
     { codigo: "P05", nombre: "Robot virtual y puente", tema: "Firebase", semana: 9, estado: "pendiente" },
     { codigo: "P06", nombre: "Primera versión de la app", tema: "Flutter", semana: 10, estado: "pendiente" },
     { codigo: "P07", nombre: "El cerebro completo", tema: "Firmware", semana: 12, estado: "pendiente" },
-    { codigo: "P08", nombre: "Seguir la línea", tema: "Webots", semana: 13, estado: "pendiente" },
+    { codigo: "P08", nombre: "Seguir la línea", tema: "Simulador 3D", semana: 13, estado: "pendiente", url: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/" },
     { codigo: "P09", nombre: "Saber dónde está", tema: "Kalman", semana: 15, estado: "pendiente" },
     { codigo: "P10", nombre: "La app completa", tema: "Flutter", semana: 21, estado: "pendiente" },
     { codigo: "P11", nombre: "La alarma llega al teléfono", tema: "Alertas", semana: 23, estado: "pendiente" },
@@ -76,7 +76,7 @@ window.TG = {
     { id: "RF-01", tipo: "RF", texto: "Recibir pedidos desde la app (componente, cantidad, ubicación) y confirmarlos", criterio: "Cada confirmación trae el número del pedido; 0 pedidos perdidos en 50", valida: ["P01"], estado: "validado", nota: "Validado en simulación (T3 y T4)" },
     { id: "RF-02", tipo: "RF", texto: "Informar su estado de forma periódica", criterio: "Un mensaje cada 2 s", valida: ["P01"], estado: "validado", nota: "Validado en simulación (T2)" },
     { id: "RF-03", tipo: "RF", texto: "Avisar si el robot se desconecta", criterio: "Aviso en menos de 30 s", valida: ["P01"], estado: "validado", nota: "Validado en simulación: 22 s (T6)" },
-    { id: "RF-04", tipo: "RF", texto: "Ir por la línea del mostrador al estante y volver", criterio: "Error de posición ≤ ? cm al llegar", valida: ["P08", "H4"], estado: "pendiente" },
+    { id: "RF-04", tipo: "RF", texto: "Ir por la línea del mostrador al estante y volver", criterio: "Error de posición ≤ ? cm al llegar", valida: ["P08", "H4"], estado: "pendiente", nota: "Simulado en una pista provisional: da la vuelta a 0,41 m/s (P08 avance 1). Falta la pista real" },
     { id: "RF-05", tipo: "RF", texto: "Detectar un obstáculo y detenerse", criterio: "Se detiene a ≥ 20 cm del obstáculo", valida: ["P02"], estado: "pendiente" },
     { id: "RF-06", tipo: "RF", texto: "Re-localizarse en puntos de referencia", criterio: "Corrige su posición en cada punto (BLE o QR)", valida: ["P04", "P09"], estado: "pendiente" },
         { id: "RF-07", tipo: "RF", texto: "Transportar los componentes pedidos", criterio: "Lleva 3 o 4 piezas pequeñas sin perder la línea", valida: ["H5"], estado: "pendiente", nota: "Entrevista: los pedidos son de 3 o 4 piezas muy livianas" },
@@ -86,7 +86,7 @@ window.TG = {
         { id: "RF-11", tipo: "RF", texto: "Pedir usuario para entrar a la app, con dos roles", criterio: "Solicitante (estudiante o profesor) pide; encargado aprueba o rechaza", valida: ["P06"], estado: "pendiente", nota: "Entrevista: Jesús aprueba todos los pedidos" },
         { id: "RNF-01", tipo: "RNF", texto: "Bajo costo", criterio: "Total ≤ US$ ? (compras proyectadas: unos US$ 125 entre Amazon y Mercado Libre, sin impuesto ni courier)", valida: ["Lista v1"], estado: "pendiente" },
         { id: "RNF-02", tipo: "RNF", texto: "Autonomía", criterio: "Cubrir la jornada de 7:00 a 18:00 cargando entre recorridos; ≥ ? min de trabajo continuo", valida: ["Entrevista"], estado: "pendiente", nota: "Entrevista: carga en los enchufes del cuarto de componentes" },
-    { id: "RNF-03", tipo: "RNF", texto: "Velocidad", criterio: "Entre 0,35 y 0,6 m/s", valida: ["P03"], estado: "pendiente", nota: "Motor elegido: Speed 200 (280 rpm sin carga). Estimado con L298N y peso: ~0,57 m/s. Ver P03 avances 1 y 2" },
+    { id: "RNF-03", tipo: "RNF", texto: "Velocidad", criterio: "Entre 0,35 y 0,6 m/s", valida: ["P03"], estado: "pendiente", nota: "Motor elegido: Speed 200 (280 rpm sin carga). Estimado con L298N y peso: ~0,57 m/s. Siguiendo la línea (simulado): 0,36 m/s con 9,9 V y 0,47 m/s con 12,6 V. Ver P03 y P08" },
     { id: "RNF-04", tipo: "RNF", texto: "Comunicación confiable", criterio: "0 pedidos perdidos; confirmación en ≤ ? s con el ESP32 real", valida: ["P01"], estado: "pendiente", nota: "En simulación: 0 perdidos, promedio 4,1 s" },
     { id: "RNF-05", tipo: "RNF", texto: "Seguridad de la comunicación", criterio: "Broker privado con usuario, contraseña y TLS para las pruebas finales", valida: ["Fase VI"], estado: "pendiente" },
         { id: "RNF-06", tipo: "RNF", texto: "Funcionar en la red del laboratorio", criterio: "El ESP32 llega al broker desde el Wi-Fi del laboratorio", valida: ["H0"], estado: "pendiente", nota: "Entrevista: la red UCAB pide usuario y clave; hay una red interna del laboratorio. Probar ambas en H0" },
@@ -243,6 +243,10 @@ window.TG = {
   /* ---------- DECISIONES (la más nueva primero) ----------
      estado: "tomada" | "abierta" */
   decisiones: [
+    { fecha: "2026-11-14", titulo: "Seguidor de línea en el simulador 3D web", estado: "tomada",
+      decision: "El seguidor de línea (P08) se simula en el navegador, copiando el simulador de la tracción de P03, en lugar de Webots.",
+      porque: "Reutiliza el robot y el modelo del motor Speed 200 ya hechos y corre sin instalar nada. La pista es provisional hasta medir el laboratorio.",
+      evidencia: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/" },
     { fecha: "2026-11-11", titulo: "Ultrasónicos HC-SR04P en el pedido de Amazon", estado: "tomada",
       decision: "Comprar 2 HC-SR04P (3,3 V) en Amazon en vez de esperar al laboratorio.",
       porque: "Son necesarios para detectar obstáculos, la visita al laboratorio es después del pedido y cuestan US$ 6,79 el par. A 3,3 V van directo al ESP32, sin divisor.",
@@ -306,8 +310,8 @@ window.TG = {
   /* Una entrada por semana, la más nueva primero */
   bitacora: [
     { semana: 3, fechas: "9 al 13 nov 2026",
-      hicimos: ["Plan de prototipos ajustado al cronograma", "Repositorio y sitio en GitHub", "Banco de pruebas en el navegador", "P01 cerrado: 7 de 7 pruebas, 50 de 50 pedidos", "Primera simulación en Google Colab: <a href=\"prototipos/P03-motores/avance-01-colab/\">velocidad de los motores</a>", "Simulador 3D de la tracción: <a href=\"prototipos/P03-motores/avance-02-simulador-3d/\">ESP32, puente H, motor y encoder</a>"],
+      hicimos: ["Plan de prototipos ajustado al cronograma", "Repositorio y sitio en GitHub", "Banco de pruebas en el navegador", "P01 cerrado: 7 de 7 pruebas, 50 de 50 pedidos", "Primera simulación en Google Colab: <a href=\"prototipos/P03-motores/avance-01-colab/\">velocidad de los motores</a>", "Simulador 3D de la tracción: <a href=\"prototipos/P03-motores/avance-02-simulador-3d/\">ESP32, puente H, motor y encoder</a>", "Entrevista en el laboratorio", "Capítulo II ajustado y enviado", "Simulador del seguidor de línea: <a href=\"prototipos/P08-seguidor-linea/avance-01-simulador-3d/\">4 TCRT5000 y control PD</a>"],
       aprendimos: ["QoS 1 necesita sesión persistente para no perder pedidos", "PubSubClient solo publica con QoS 0", "Wokwi pausa la simulación si la pestaña queda oculta: el broker avisó \"desconectado\" (sirvió para probar el LWT)", "Las rpm de la caja son con 12 V y sin peso; en el robot el motor va cerca de 40 % más lento", "El puente H decide el sentido con 4 interruptores; el PWM decide la fuerza; el encoder da 1 496 cuentas por vuelta de rueda"],
-      sigue: ["Entrevistas en el laboratorio", "Pedir los motores", "Documento de requerimientos"] }
+      sigue: ["Observación y prueba de Wi-Fi en el laboratorio (18 nov)", "Pedir los motores", "Documento de requerimientos", "Cambiar la pista del simulador por la real"] }
   ]
 };
