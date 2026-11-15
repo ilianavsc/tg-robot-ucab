@@ -52,7 +52,7 @@ document.getElementById('leyenda').innerHTML = '<h2>Buzones</h2>' + Object.value
 
 // ---------- Escena ----------
 const canvas = document.getElementById('gl');
-const LIVIANO = location.search.includes('liviano'); // para pantallas lentas y para las capturas
+const LIVIANO = true; // una sola versión: la optimizada (sin sombras), para que no vaya lenta
 const aviso = crearAviso();
 aviso.cargando();
 let renderer;

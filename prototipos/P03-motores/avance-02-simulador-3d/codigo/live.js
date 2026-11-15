@@ -101,16 +101,13 @@ export function runLive() {
   const ui = createConsole(app);
 
   // ------------------------------------------------------------ calidad
+  // Una sola versión: la optimizada. Sin sombras, sin oclusión ambiental y
+  // dibujando directo a pantalla, para que nunca se quede en blanco ni vaya lenta.
   const TIERS = [
-    {samples: 4, ao: true, shadow: 2048, pr: 2}, // alta: solo si se pide con ?tier=0
-    {samples: 2, ao: false, shadow: 1024, pr: 1.5}, // normal en computadora
-    {samples: 0, ao: false, shadow: 1024, pr: 1}, // ligera: teléfonos
-    {samples: 0, ao: false, shadow: 0, pr: 1, directo: true}, // mínima: sin sombras ni efectos, dibuja directo
+    {samples: 0, ao: false, shadow: 0, pr: 1, directo: true}, // optimizada (única)
   ];
   const MINIMA = TIERS.length - 1;
-  const light = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 700;
-  const qs = new URLSearchParams(location.search);
-  let tier = qs.has('tier') ? clamp(Number(qs.get('tier')) || 0, 0, MINIMA) : !st.soportaComposer ? MINIMA : light ? 2 : 1;
+  let tier = MINIMA;
   let scale = 1;
   const fit = () => {
     const h = innerHeight - top;
