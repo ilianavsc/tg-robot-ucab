@@ -2,7 +2,7 @@
 // Si nadie la toca, hace un recorrido solo con su cursor; un clic, arrastre, rueda o tecla te da el control,
 // y 25 s de calma devuelven el recorrido.
 import {warmComposer} from 'teardown-kit/warm.js';
-import {createConsole, DISPLAY, MAN, VIEWS} from './console.js';
+import {BATS, createConsole, DISPLAY, MAN, VIEWS} from './console.js';
 import {cinematica, encoder, entradasH, MANIOBRAS, motor, R} from './model.js';
 import {createStage} from './stage.js';
 import {crearAviso, SIN_WEBGL, vigilarContexto} from './arranque.js';
@@ -49,8 +49,10 @@ const SCRIPT = [
   {t: 43.0, k: 'm130'},
   {t: 47.0, k: 'tb6612'},
   {t: 51.0, k: 'm170'},
+  {t: 52.5, k: 'baja'},
   {t: 54.5, k: 'arriba'},
   {t: 55.5, k: 'izquierda'},
+  {t: 58.5, k: 'nominal'},
   {t: 59.5, k: 'l298n'},
   {t: 61.5, k: 'frenar'},
   {t: 62.5, k: 'rayos'},
@@ -145,6 +147,7 @@ export function runLive() {
       duty: 0.75,
       driver: 'l298n',
       variante: 200,
+      bat: 'nominal',
       view: 'heroe',
       viewAt0: T,
       display: {etiquetas: 1, rayos: 0, despiece: 0, cables: 1, girar: 0},
@@ -184,6 +187,7 @@ export function runLive() {
     } else if (k === 'l298n' || k === 'tb6612') S.driver = k;
     else if (k === 'm130') S.variante = 130;
     else if (k === 'm170') S.variante = 200;
+    else if (BATS.includes(k)) S.bat = k;
   };
 
   // ------------------------------------------------------------ el recorrido
@@ -358,7 +362,7 @@ export function runLive() {
     const out = {};
     for (const lado of lados) {
       const dir = M[lado];
-      const m = motor(S.duty, dir, S.driver, S.variante);
+      const m = motor(S.duty, dir, S.driver, S.variante, R.bat[S.bat]);
       S.rpm[lado] += (m.rpm - S.rpm[lado]) * (1 - Math.exp(-dt / TAU));
       S.ang[lado] += (S.rpm[lado] / 60) * 2 * Math.PI * dt;
       const e = encoder(S.rpm[lado], S.variante);
@@ -433,7 +437,7 @@ export function runLive() {
     );
     const proj = {};
     for (const [key, p] of Object.entries(st.robot.anchors)) proj[key] = st.project(p);
-    const vMax = motor(S.duty, 1, S.driver, S.variante).vel;
+    const vMax = motor(S.duty, 1, S.driver, S.variante, R.bat[S.bat]).vel;
     ui.update({
       man: S.man,
       nombre: M.nombre,
@@ -443,6 +447,8 @@ export function runLive() {
       duty: S.duty,
       driver: S.driver,
       variante: S.variante,
+      bat: S.bat,
+      vbat: R.bat[S.bat],
       view: S.view,
       display: S.display,
       izq: out.izq,

@@ -3,7 +3,8 @@
 // voltaje al motor, rpm, velocidad, corriente aproximada y pulsos del encoder.
 
 export const R = {
-  vbat: 11.1, // batería 3S 18650 nominal (V)
+  vbat: 11.1, // batería 3S 18650 nominal (V), la de arranque
+  bat: {llena: 12.6, nominal: 11.1, baja: 9.9}, // 3S: cargada, nominal y alarma de batería baja (V)
   drop: {l298n: 2.1, tb6612: 0.5}, // caída del driver (V)
   ruedaD: 0.065, // diámetro de rueda (m)
   via: 0.18, // distancia entre ruedas (m)
@@ -32,9 +33,9 @@ export const PINES = {
 export const entradasH = (dir) => (dir > 0 ? [1, 0] : dir < 0 ? [0, 1] : [0, 0]);
 
 // Lo que pasa en un motor para un PWM y un sentido dados (régimen estable)
-export function motor(duty, dir, driver, variante) {
+export function motor(duty, dir, driver, variante, vbat = R.vbat) {
   const m = MOTORES[variante];
-  const vDisp = R.vbat - R.drop[driver];
+  const vDisp = vbat - R.drop[driver];
   const v = dir === 0 ? 0 : vDisp * duty;
   const rpm = dir * m.rpm12 * (v / 12) * R.carga;
   const vel = (Math.PI * R.ruedaD * rpm) / 60;

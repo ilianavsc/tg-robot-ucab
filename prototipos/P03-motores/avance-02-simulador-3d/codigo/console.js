@@ -7,6 +7,7 @@ export const MAN = ['avanzar', 'izquierda', 'derecha', 'retroceder', 'frenar'];
 export const MAN_LABEL = {avanzar: 'AVANZAR', izquierda: 'IZQUIERDA', derecha: 'DERECHA', retroceder: 'RETROCEDER', frenar: 'FRENAR'};
 export const VIEWS = ['heroe', 'frente', 'arriba', 'motor', 'puente'];
 export const VIEW_LABEL = {heroe: 'HÉROE', frente: 'FRENTE', arriba: 'ARRIBA', motor: 'MOTOR', puente: 'PUENTE H'};
+export const BATS = ['llena', 'nominal', 'baja'];
 export const DISPLAY = ['etiquetas', 'rayos', 'despiece', 'cables', 'girar'];
 export const DISPLAY_LABEL = {etiquetas: 'ETIQUETAS', rayos: 'RAYOS X', despiece: 'DESPIECE', cables: 'CABLES', girar: 'GIRAR'};
 
@@ -99,6 +100,7 @@ export function createConsole(app) {
   panel(1282, 112, 290, 310, 'EL MÚSCULO · MOTOR', '03', C.coral);
   const filas = {};
   const filaDef = [
+    ['bat', 'LA BATERÍA DA'],
     ['volt', 'AL MOTOR LE LLEGAN'],
     ['rpmM', 'EL MOTOR GIRA (ADENTRO)'],
     ['caja', 'LA CAJA REDUCE'],
@@ -106,14 +108,14 @@ export function createConsole(app) {
     ['amp', 'CORRIENTE (APROX.)'],
   ];
   filaDef.forEach(([k, n], i) => {
-    const y = 144 + i * 27;
+    const y = 142 + i * 24;
     add(`<div class="sm" style="position:absolute;left:1296px;top:${y + 3}px">${n}</div>`);
     filas[k] = add(`<div class="mo" style="position:absolute;right:${1600 - 1558}px;top:${y}px;font-size:12.5px;font-weight:600"></div>`);
   });
-  hr(1296, 284, 262);
-  add(`<div class="sm" style="position:absolute;left:1296px;top:296px">VELOCIDAD MÁXIMA VS META RNF-03</div>`);
-  const meta = add(`<svg style="position:absolute;left:1296px;top:314px" width="262" height="58"></svg>`);
-  const motNote = add(`<div style="position:absolute;left:1296px;top:378px;width:262px;font-size:11.5px;line-height:1.3;color:${C.mute}"></div>`);
+  hr(1296, 290, 262);
+  add(`<div class="sm" style="position:absolute;left:1296px;top:300px">VELOCIDAD MÁXIMA VS META RNF-03</div>`);
+  const meta = add(`<svg style="position:absolute;left:1296px;top:316px" width="262" height="58"></svg>`);
+  const motNote = add(`<div style="position:absolute;left:1296px;top:376px;width:262px;font-size:11.5px;line-height:1.3;color:${C.mute}"></div>`);
 
   // ------------------------------------------------------------ 04 el aviso
   panel(1282, 436, 290, 246, 'EL AVISO · ENCODER', '04', C.teal);
@@ -145,14 +147,18 @@ export function createConsole(app) {
   spots.slider = [SL.x + SL.w * 0.5, SL.y];
   add(`<div style="position:absolute;left:42px;top:822px;width:490px;font-size:12px;line-height:1.35;color:${C.mute}">PWM: el ESP32 prende y apaga el motor ${miles(R.pwmHz)} veces por segundo. Más tiempo prendido = más fuerza.</div>`);
 
-  panel(560, 702, 300, 170, 'PIEZAS', '06', C.amber);
+  panel(560, 702, 300, 170, 'PIEZAS Y BATERÍA', '06', C.amber);
   add(`<div class="sm" style="position:absolute;left:574px;top:742px">DRIVER</div>`);
   bt('l298n', 'L298N', 660, 735, 84);
   bt('tb6612', 'TB6612FNG', 750, 735, 96);
-  add(`<div class="sm" style="position:absolute;left:574px;top:784px">MOTOR</div>`);
-  bt('m130', 'SPEED 130', 660, 777, 84);
-  bt('m170', 'SPEED 200', 750, 777, 96);
-  const piezasNote = add(`<div style="position:absolute;left:574px;top:816px;width:272px;font-size:12px;line-height:1.35;color:${C.mute}"></div>`);
+  add(`<div class="sm" style="position:absolute;left:574px;top:776px">MOTOR</div>`);
+  bt('m130', 'SPEED 130', 660, 769, 84);
+  bt('m170', 'SPEED 200', 750, 769, 96);
+  add(`<div class="sm" style="position:absolute;left:574px;top:810px">BATERÍA 3S</div>`);
+  bt('llena', '12,6 V', 660, 803, 58);
+  bt('nominal', '11,1 V', 722, 803, 58);
+  bt('baja', '9,9 V', 784, 803, 62);
+  const piezasNote = add(`<div style="position:absolute;left:574px;top:836px;width:276px;font-size:11px;line-height:1.3;color:${C.mute}"></div>`);
 
   panel(872, 702, 330, 170, 'VISTAS', '07', C.violet);
   VIEWS.forEach((k, i) => bt(k, VIEW_LABEL[k], 886 + (i % 3) * 102, 738 + Math.floor(i / 3) * 36, 96));
@@ -171,11 +177,12 @@ export function createConsole(app) {
     ['enc_izq', 'Encoder', '11 pulsos por vuelta', [-120, 70]],
     ['l298', 'Driver', '', [-120, -80]],
     ['esp', 'ESP32', 'el cerebro', [90, -90]],
-    ['bat', 'Batería 3S', '11,1 V', [-150, -40]],
+    ['bat', 'Batería 3S', '', [-150, -40]],
     ['lm', 'LM2596', 'baja a 5 V', [120, 30]],
     ['loca', 'Rueda loca', 'apoyo trasero', [-130, 40]],
   ];
   const calls = LABELS.map(([k, t, s]) => add(`<div class="call"><b>${t}</b><span>${s}</span></div>`));
+  const batCall = calls[LABELS.findIndex(([k]) => k === 'bat')].querySelector('span');
 
   // ------------------------------------------------------------ cursor del recorrido
   const cur = add(`<svg class="cur" width="22" height="26" viewBox="0 0 22 26"><path d="M2 2 L2 21 L7 16.5 L10.5 24 L14 22.5 L10.5 15 L17 15 Z" fill="#fff" stroke="${C.ink}" stroke-width="1.6" stroke-linejoin="round"/></svg>`);
@@ -192,7 +199,7 @@ export function createConsole(app) {
     }
     return `<path d="${d}" stroke="${C.violet}" stroke-width="2" fill="none" stroke-linejoin="round"/><text x="262" y="8" text-anchor="end" font-family="JetBrains Mono" font-size="8.5" fill="${C.mute}">${Math.round(duty * 100)} % PRENDIDO</text>`;
   };
-  const hBridge = (inA, inB, duty, driver) => {
+  const hBridge = (inA, inB, duty, driver, vbat) => {
     // interruptores: S1 arriba izq, S2 arriba der, S3 abajo izq, S4 abajo der
     const on = inA && !inB ? [1, 0, 0, 1] : !inA && inB ? [0, 1, 1, 0] : [0, 0, 1, 1];
     const flujo = inA !== inB && duty > 0;
@@ -208,7 +215,7 @@ export function createConsole(app) {
     const bot = 98;
     const mid = 69;
     let s = '';
-    s += `<text x="131" y="9" text-anchor="middle" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="${C.ink}">+ ${f1(R.vbat)} V BATERÍA</text>`;
+    s += `<text x="131" y="9" text-anchor="middle" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="${C.ink}">+ ${f1(vbat)} V BATERÍA</text>`;
     s += `<path d="M${L} ${T + 4} H${Rr} M${L} ${B} H${Rr}" stroke="${C.ink}" stroke-width="1.5"/>`;
     s += `<text x="131" y="${B + 10}" text-anchor="middle" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="${C.mute}">GND</text>`;
     s += `<path d="M${L} ${T + 4} V${top - 12} M${L} ${top + 12} V${bot - 12} M${L} ${bot + 12} V${B}" stroke="${C.ink}" stroke-width="1.5"/>`;
@@ -270,6 +277,7 @@ export function createConsole(app) {
     btn.tb6612.classList.toggle('on', s.driver === 'tb6612');
     btn.m130.classList.toggle('on', s.variante === 130);
     btn.m170.classList.toggle('on', s.variante === 200);
+    for (const k of BATS) btn[k].classList.toggle('on', k === s.bat);
     // slider
     slFill.style.width = `${300 * s.duty}px`;
     slKnob.style.left = `${150 + 300 * s.duty}px`;
@@ -298,9 +306,9 @@ export function createConsole(app) {
     // puente H del motor izquierdo
     const L = s.izq;
     const dName = s.driver === 'l298n' ? 'L298N' : 'TB6612FNG';
-    const hk = `${L.in}${s.duty.toFixed(2)}${s.driver}`;
+    const hk = `${L.in}${s.duty.toFixed(2)}${s.driver}${s.vbat}`;
     if (hk !== lastH.key) {
-      hSvg.innerHTML = hBridge(L.in[0], L.in[1], s.duty, s.driver);
+      hSvg.innerHTML = hBridge(L.in[0], L.in[1], s.duty, s.driver, s.vbat);
       lastH.key = hk;
       hTitle.textContent = `${dName} · MOTOR IZQUIERDO`;
       hTxt.innerHTML =
@@ -313,6 +321,7 @@ export function createConsole(app) {
     // motor
     const mm = s.izq.m;
     const vDisp = mm.vDisp;
+    filas.bat.innerHTML = `${f1(s.vbat)} V <span style="color:${C.mute};font-weight:400">${s.bat === 'llena' ? 'llena' : s.bat === 'baja' ? 'baja' : 'nominal'}</span>`;
     filas.volt.innerHTML = `${f1(Math.abs(mm.v))} V <span style="color:${C.mute};font-weight:400">de ${f1(vDisp)}</span>`;
     filas.rpmM.textContent = `${miles(Math.abs(s.izq.rpm) * mm.ratio)} rpm`;
     filas.caja.textContent = `1 : ${String(mm.ratio).replace('.', ',')}`;
@@ -334,9 +343,11 @@ export function createConsole(app) {
     enc.vuelta.textContent = `${miles(s.porVuelta)} × 4 = ${miles(s.porVuelta * 4)}`;
     enc.cuenta.textContent = `${miles(s.izq.cuenta)} / ${miles(s.der.cuenta)}`;
     // notas
-    piezasNote.innerHTML = s.driver === 'l298n' ? `L298N: barato y aguanta 2 A, pero se come ${f1(R.drop.l298n)} V.` : `TB6612FNG: pierde solo ${f1(R.drop.tb6612)} V, pero aguanta 1,2 A por motor.`;
+    piezasNote.innerHTML = (s.driver === 'l298n' ? `L298N: aguanta 2 A, pero se come ${f1(R.drop.l298n)} V.` : `TB6612FNG: pierde solo ${f1(R.drop.tb6612)} V; aguanta 1,2 A.`) + (s.bat === 'baja' ? ` <b style="color:${C.coral}">Batería baja: menos voltios, menos rpm.</b>` : ` Motor: ${f1(s.vbat - R.drop[s.driver])} V.`);
     verNote.textContent = s.display.rayos ? 'Rayos X: imanes, bobinas, engranes y el imán del encoder.' : s.display.despiece ? 'Despiece: cada pieza se separa por su eje.' : 'Prende RAYOS X para ver adentro del motor.';
     // etiquetas
+    const bt3 = `${f1(s.vbat)} V`;
+    if (batCall.textContent !== bt3) batCall.textContent = bt3;
     let lines = '';
     LABELS.forEach(([k, , , [dx, dy]], i) => {
       const p = s.proj[k];

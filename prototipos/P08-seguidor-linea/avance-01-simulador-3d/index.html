@@ -78,7 +78,7 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
     <li><b>Arranca</b><span>ARRANCAR, PARAR y REINICIAR. También <kbd>espacio</kbd> y <kbd>R</kbd>.</span></li>
     <li><b>Ajusta el PD</b><span>Velocidad base, Kp y Kd. Mira la gráfica: si zigzaguea, algo falta.</span></li>
     <li><b>Mueve los sensores</b><span>Separación entre ellos y qué tan adelante de las ruedas van.</span></li>
-    <li><b>Baja la batería</b><span>Con 9,9 V el robot va más lento. El mismo PD debe seguir funcionando.</span></li>
+    <li><b>Batería fija</b><span>Queda en 11,1 V para enfocarse en el PD. Se cambia en el <a href="../../P03-motores/avance-02-simulador-3d/">simulador de P03</a>. Con 9,9 V el robot va más lento (ver la tabla).</span></li>
   </ol>
 </section>
 
@@ -98,7 +98,7 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
   <table class="tabla res">
     <thead><tr><th>Qué se cambió</th><th>Vuelta</th><th>Velocidad</th><th>Más lejos</th><th>Resultado</th></tr></thead>
     <tbody>
-      <tr><td>Valores iniciales, batería 11,1 V</td><td>19,7 s</td><td>0,41 m/s</td><td>17 mm</td><td>Da la vuelta</td></tr>
+      <tr><td>Valores iniciales, batería 11,1 V (la del simulador)</td><td>19,7 s</td><td>0,41 m/s</td><td>17 mm</td><td>Da la vuelta</td></tr>
       <tr><td>Batería llena, 12,6 V</td><td>17,1 s</td><td>0,47 m/s</td><td>18 mm</td><td>Da la vuelta</td></tr>
       <tr><td>Batería baja, 9,9 V</td><td>22,5 s</td><td>0,36 m/s</td><td>16 mm</td><td>Da la vuelta, justo en la meta</td></tr>
       <tr><td>Base al 100 %</td><td>18,0 s</td><td>0,45 m/s</td><td>26 mm</td><td>Da la vuelta, pero se mece más</td></tr>

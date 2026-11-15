@@ -1,8 +1,9 @@
 // La página del seguidor de línea: el robot recorre la pista provisional con el mismo control PD que llevará el ESP32.
-// Se puede cambiar la velocidad base, Kp, Kd, la separación de los sensores, su distancia al eje y la batería.
+// Se puede cambiar la velocidad base, Kp, Kd, la separación de los sensores y su distancia al eje.
+// La batería queda fija en 11,1 V (nominal): se prueba en el simulador de P03.
 // Si nadie la toca, hace un recorrido solo con varias vistas; tocar cualquier cosa da el control, y 25 s de calma lo devuelven.
 import {warmComposer} from 'teardown-kit/warm.js';
-import {BATS, createConsole, VIEWS} from './console.js';
+import {createConsole, VIEWS} from './console.js';
 import {crearGranito, crearTeja} from './granito.js';
 import {aPiso, control, leerSensores, mover, R, rumbo, velRueda} from './model.js';
 import {cercano, crearPista} from './pista.js';
@@ -36,9 +37,7 @@ const SCRIPT = [
   {t: 9, k: 'sensores'},
   {t: 19, k: 'sigue'},
   {t: 29, k: 'arriba'},
-  {t: 39, k: 'baja'},
   {t: 40, k: 'heroe'},
-  {t: 50, k: 'nominal'},
   {t: 51, k: 'lado'},
 ];
 const CICLO = 60;
@@ -182,8 +181,7 @@ export function runLive() {
       S.view = k;
       S.viewAt0 = T;
       Object.assign(off, {az: 0, el: 0, k: 1});
-    } else if (BATS.includes(k)) S.bat = k;
-    else if (k === 'etiquetas') S.etiquetas = S.etiquetas ? 0 : 1;
+    } else if (k === 'etiquetas') S.etiquetas = S.etiquetas ? 0 : 1;
   };
 
   // ------------------------------------------------------------ el recorrido

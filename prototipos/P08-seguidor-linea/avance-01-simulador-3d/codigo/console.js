@@ -178,11 +178,12 @@ export function createConsole(app, toStage) {
   const sensNote = nota(574, 838, 272);
 
   // 07 batería
-  panel(872, 702, 330, 170, 'BATERÍA 3S', '07', C.amber);
-  bt('llena', '12,6 V LLENA', 886, 738, 96);
-  bt('nominal', '11,1 V', 988, 738, 96);
-  bt('baja', '9,9 V BAJA', 1090, 738, 98);
-  const batNote = nota(886, 778, 302);
+  // Fija en 11,1 V: la batería se prueba en P03 (Motores). Aquí solo se muestra, para enfocarse en el PD.
+  panel(872, 702, 330, 170, 'BATERÍA · SOLO LECTURA', '07', C.amber);
+  add(`<div class="dp" style="position:absolute;left:886px;top:734px;font-size:30px;font-weight:700;letter-spacing:-.5px;line-height:1">${f1(R.bat.nominal)} V</div>`);
+  add(`<div class="sm" style="position:absolute;left:990px;top:738px;line-height:1.35">NOMINAL · FIJA<br>HEREDADA DE P03</div>`);
+  add(`<div class="mo" style="position:absolute;left:1124px;top:740px;width:64px;padding:4px 0;border-radius:6px;text-align:center;font-size:11px;font-weight:700;letter-spacing:1px;background:${C.amber};color:${C.ink}">FIJA</div>`);
+  const batNote = nota(886, 776, 302);
 
   // 08 vistas
   panel(1214, 702, 358, 170, 'VISTAS', '08', C.violet);
@@ -337,7 +338,6 @@ export function createConsole(app, toStage) {
     btn.arrancar.classList.toggle('on', s.corriendo);
     btn.parar.classList.toggle('on', !s.corriendo);
     for (const k of VIEWS) btn[k].classList.toggle('on', k === s.view);
-    for (const k of BATS) btn[k].classList.toggle('on', k === s.bat);
     btn.etiquetas.classList.toggle('on', !!s.etiquetas);
     for (const k of ['base', 'kp', 'kd', 'sep', 'ad']) setSlider(k, k === 'sep' || k === 'ad' ? s[k] : s.cfg[k]);
     vBase.textContent = `${Math.round(s.cfg.base * 100)} %`;
@@ -348,7 +348,7 @@ export function createConsole(app, toStage) {
     const hueco = s.sep * 1000 - CINTA * 1000;
     sensNote.innerHTML =
       hueco > 0 ? `<b style="color:${C.coral}">Hueco de ${Math.round(hueco)} mm</b> entre S2 y S3: la cinta (19 mm) puede quedar entre los dos y ninguno la ve.` : `La cinta (19 mm) siempre toca S2 o S3 cuando va centrada.`;
-    batNote.innerHTML = `Con ${f1(s.vbat)} V el motor recibe ${f1(s.vbat - R.drop)} V (el L298N pierde ${f1(R.drop)} V). Máximo: ${f2(s.vMax)} m/s. ${s.bat === 'baja' ? 'Es la alarma de batería baja.' : ''}`;
+    batNote.innerHTML = `El motor recibe ${f1(s.vbat - R.drop)} V (el L298N pierde ${f1(R.drop)} V). <b style="color:${C.coral}">Ojo:</b> con ${f1(R.bat.baja)} V (batería baja) el robot va más lento: 0,36 m/s en esta pista. La batería se prueba en P03.`;
 
     // los ojos y el cerebro
     barras.innerHTML = dibBarras(s.lect, s.ctrl.n);
