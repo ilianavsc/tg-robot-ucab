@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P01 · Simulador 3D de los mensajes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../../assets/estilo.css">
+<style>
+.volver{font-size:15px;text-decoration:none;color:var(--suave)}
+h1 em{font-style:normal;color:var(--sale)}
+h1 strong{color:var(--llega)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px}
+.frase{font-family:var(--display);font-weight:500;font-size:clamp(21px,3vw,28px);line-height:1.3;background:var(--blanco);border:2px solid var(--tinta);border-radius:18px;padding:22px 26px;margin:0 0 30px;box-shadow:6px 6px 0 var(--tinta)}
+section{margin:0 0 48px}
+h2{font-family:var(--display);font-size:28px;margin:0 0 6px}
+.portada{display:block;position:relative;border:2px solid var(--tinta);border-radius:18px;overflow:hidden;box-shadow:6px 6px 0 var(--tinta);background:var(--blanco);text-decoration:none}
+.portada img{display:block;width:100%;height:auto}
+.portada .abrir{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--display);font-weight:700;font-size:clamp(18px,2.6vw,26px);color:var(--blanco);background:var(--llega);border:2px solid var(--tinta);border-radius:999px;padding:14px 26px;box-shadow:4px 4px 0 var(--tinta);white-space:nowrap;transition:transform .15s}
+.portada:hover .abrir{transform:translate(-50%,-50%) scale(1.04)}
+.pasos{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.pasos li{background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;padding:14px 16px}
+.pasos b{display:block;font-family:var(--display);font-size:19px;margin-bottom:2px}
+.pasos span{font-size:16px;color:var(--suave)}
+.pasos kbd{font-family:var(--mono);font-size:13px;background:var(--papel);border:1px solid var(--punto);border-radius:5px;padding:1px 6px}
+.idea .nivel{font-family:var(--mono);font-weight:600;font-size:13px;color:var(--c)}
+.idea h3{font-family:var(--display);font-size:21px;margin:4px 0 6px}
+.idea p{margin:0;font-size:16px;color:var(--suave)}
+.galeria{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.galeria figure{margin:0;background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;overflow:hidden}
+.galeria img{display:block;width:100%;height:auto;cursor:zoom-in}
+.galeria figcaption{padding:10px 14px;font-size:15px}
+dialog{border:none;border-radius:16px;padding:12px;max-width:min(1400px,96vw);background:var(--blanco)}
+dialog::backdrop{background:rgba(20,33,61,.7)}
+dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
+.tabla{width:100%;border-collapse:collapse;font-size:16px;background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;overflow:hidden}
+.tabla th,.tabla td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--punto);vertical-align:top}
+.tabla th{font-family:var(--mono);font-size:13px;color:var(--suave);font-weight:600}
+.tabla td:last-child{font-family:var(--mono);font-size:14px}
+.aviso-grande{background:var(--pend);border:2px solid var(--tinta);border-radius:16px;padding:18px 22px}
+.aviso-grande p{margin:0 0 8px}.aviso-grande p:last-child{margin:0}
+.tabla.res td:last-child{font-family:var(--texto);font-size:15px}
+.res tr.mal td:last-child{font-weight:700;color:var(--llega)}
+</style>
+</head>
+<body data-pagina="prototipos" data-base="../../../">
+<header id="menu"></header>
+<main>
+<a class="volver" href="../index.html">← Volver al P01</a>
+<p class="ceja">Prototipo P01 · Simulador 3D</p>
+<h1>Así viajan <em>los mensajes</em> entre la <strong>app</strong> y el robot</h1>
+<div class="chips">
+  <span class="chip">Fase I</span>
+  <span class="chip">three.js · kit teardown</span>
+  <span class="chip aviso">Animación del protocolo, sin red real</span>
+  <span class="chip">15 nov 2026</span>
+</div>
+
+<p class="frase">La app y el robot nunca se hablan directo. Los dos le entregan sus mensajes al broker, que es como un cartero, y él los reparte. Cada mensaje tiene un nivel de garantía (QoS): 0, 1 o 2.</p>
+
+<section>
+  <a class="portada" href="simulador.html">
+    <img src="evidencias/01-envia-una-orden.jpg" alt="Simulador 3D: una app a la izquierda, el broker en el centro y el robot a la derecha, con la consola de mensajes abajo">
+    <span class="abrir">Abrir el simulador ▶</span>
+  </a>
+  <p class="suave" style="font-size:15px;margin-top:14px">Funciona sin internet, en una sola página. Mejor en computadora. Se puede girar la vista arrastrando. El <a href="../banco.html">banco de pruebas</a> y la simulación en Wokwi se conservan como registro de la Fase I (ver el <a href="../../../archivo-fase-1.html">Archivo Fase I</a>).</p>
+</section>
+
+<section aria-labelledby="t-usar">
+  <h2 id="t-usar">Cómo usarlo</h2>
+  <p class="bajada">Cada botón muestra un caso real del robot. Abajo, la consola escribe lo que ve el broker.</p>
+  <ol class="pasos">
+    <li><b>Elige el QoS</b><span>0, 1 o 2 (teclas <kbd>0</kbd> <kbd>1</kbd> <kbd>2</kbd>). Cambia cuántos pasos da cada mensaje.</span></li>
+    <li><b>Enviar orden</b><span>Una esfera viaja App → Broker → Robot. El robot responde por otro buzón. Tecla <kbd>espacio</kbd>.</span></li>
+    <li><b>Manipulación</b><span>El robot detecta que lo mueven y manda la alarma (QoS 2). La pantalla de la app se pone roja. Tecla <kbd>M</kbd>.</span></li>
+    <li><b>Desconexión (LWT)</b><span>El robot se apaga de golpe. El broker espera y avisa por él. Tecla <kbd>L</kbd>. Luego "Reconectar el robot".</span></li>
+  </ol>
+</section>
+
+<section aria-labelledby="t-ideas">
+  <h2 id="t-ideas">Lo que se aprende</h2>
+  <div class="rejilla">
+    <div class="tarjeta idea" style="--c:var(--llega)"><span class="nivel">01 · QoS 0</span><h3>Se manda y ya</h3><p>Un solo paso, sin confirmar. Es el del estado del robot: si se pierde uno, llega el siguiente en 2 segundos.</p></div>
+    <div class="tarjeta idea" style="--c:var(--sale)"><span class="nivel">02 · QoS 1</span><h3>El que recibe confirma</h3><p>Dos pasos: el mensaje y su confirmación (PUBACK). Llega al menos una vez. Es el de los pedidos.</p></div>
+    <div class="tarjeta idea" style="--c:var(--qos)"><span class="nivel">03 · QoS 2</span><h3>Cuatro pasos, una sola vez</h3><p>El mensaje rebota cuatro veces para que una alarma no llegue repetida ni se pierda. Es el de las alertas.</p></div>
+    <div class="tarjeta idea" style="--c:var(--pend)"><span class="nivel">04 · Última voluntad</span><h3>El broker avisa por el robot</h3><p>Si el robot se cae, no puede despedirse. Por eso deja un mensaje listo al conectarse, y el broker lo publica cuando deja de oírlo.</p></div>
+  </div>
+  <p class="suave" style="font-size:15px;margin-top:14px">Dos detalles que el simulador muestra y suelen sorprender: (1) si la app manda QoS 2 pero el robot se suscribió con QoS 1, el broker baja la entrega al robot a QoS 1; (2) si el robot está apagado, el broker guarda los pedidos QoS 1 y 2 y los entrega cuando vuelve, pero con QoS 0 los descarta.</p>
+</section>
+
+<section aria-labelledby="t-tabla">
+  <h2 id="t-tabla">Pasos de cada QoS</h2>
+  <table class="tabla">
+    <tr><th>QoS</th><th>Paquetes entre quien manda y el broker</th><th>Dónde se usa en el robot</th></tr>
+    <tr><td>0</td><td>PUBLISH</td><td>estado (cada 2 s)</td></tr>
+    <tr><td>1</td><td>PUBLISH, PUBACK</td><td>ordenes, ordenes/ack, conexion</td></tr>
+    <tr><td>2</td><td>PUBLISH, PUBREC, PUBREL, PUBCOMP</td><td>alertas</td></tr>
+  </table>
+  <p class="suave" style="font-size:15px;margin-top:10px">El mismo recorrido se repite en el segundo tramo, del broker a quien recibe.</p>
+</section>
+
+<section aria-labelledby="t-numeros">
+  <h2 id="t-numeros">De dónde salen los datos</h2>
+  <table class="tabla">
+    <tr><th>Dato</th><th>Valor</th><th>De dónde sale</th></tr>
+    <tr><td>Tópicos</td><td>estado, ordenes, ordenes/ack, alertas, conexion</td><td>El sketch del robot y el banco de pruebas del P01</td></tr>
+    <tr><td>QoS de cada tópico</td><td>0, 1, 1, 2 y 1</td><td>Los mismos</td></tr>
+    <tr><td>Suscripciones</td><td>Robot: ordenes con QoS 1. App: todo con QoS 2</td><td>El sketch y el banco de pruebas</td></tr>
+    <tr><td>Mensajes</td><td>pedido, confirmación y alarma con los mismos campos</td><td>El sketch y el banco de pruebas</td></tr>
+    <tr><td>Espera de la última voluntad</td><td>1,5 × 15 s = 22,5 s</td><td>El keepalive de 15 s del sketch y la regla de MQTT. En la prueba T6 con Wokwi el aviso llegó en 22 s</td></tr>
+  </table>
+  <p class="suave" style="font-size:15px;margin-top:10px">En el simulador la espera de 22,5 s corre 5 veces más rápido para no aburrir. La barra lo indica.</p>
+</section>
+
+<section aria-labelledby="t-evid">
+  <h2 id="t-evid">Evidencias</h2>
+  <div class="galeria">
+    <figure><a href="evidencias/01-envia-una-orden.jpg"><img src="evidencias/01-envia-una-orden.jpg" alt="Orden confirmada en la app" loading="lazy"></a><figcaption>Una orden confirmada: la app muestra el pedido P-0002 y el robot cuenta 1 recibido.</figcaption></figure>
+    <figure><a href="evidencias/02-qos2-cuatro-pasos.jpg"><img src="evidencias/02-qos2-cuatro-pasos.jpg" alt="Orden con QoS 2 en vuelo" loading="lazy"></a><figcaption>QoS 2: el mensaje rebota. Aquí va el tercer paso (PUBREL).</figcaption></figure>
+    <figure><a href="evidencias/03-manipulacion-pantalla-roja.jpg"><img src="evidencias/03-manipulacion-pantalla-roja.jpg" alt="Pantalla de la app en rojo" loading="lazy"></a><figcaption>Manipulación: la alarma llegó a la app, que se pone roja.</figcaption></figure>
+    <figure><a href="evidencias/04-desconexion-lwt.jpg"><img src="evidencias/04-desconexion-lwt.jpg" alt="Robot desconectado" loading="lazy"></a><figcaption>Desconexión: el robot sin conexión y la app avisa "Robot desconectado".</figcaption></figure>
+  </div>
+</section>
+
+<section aria-labelledby="t-limite">
+  <div class="aviso-grande">
+    <h2 id="t-limite" style="font-size:22px">Lo que el simulador no sabe</h2>
+    <p>Es una animación del protocolo, no un broker de verdad: no usa la red, y los tiempos de viaje son de pantalla. Los tiempos reales (confirmación promedio de 4,1 s con Wokwi, 22 s para el aviso) vienen de las pruebas del P01 y se vuelven a medir con el ESP32 real.</p>
+    <p>La "Manipulación" muestra el camino de la alarma antirrobo. El sensor que la detecta todavía no está definido ni simulado aquí.</p>
+  </div>
+</section>
+
+<section aria-labelledby="t-esp">
+  <h2 id="t-esp">Código para el ESP32</h2>
+  <p>El sketch de Wokwi adaptado al robot de verdad: mismos 5 tópicos y mismos QoS. Cambia el Wi-Fi (se escribe el tuyo), la prueba de alarma (botón BOOT de la placa o la letra a) y el estado (manda el voltaje real de la batería).</p>
+  <p><a href="../codigo-esp32/robot_mqtt/robot_mqtt.ino" download style="display:inline-block;padding:10px 18px;background:#0F9D84;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Descargar código ESP32 (.ino)</a></p>
+  <p class="suave" style="font-size:15px">Revisado solo en el computador (sintaxis), no en un ESP32. El Wi-Fi de la UCAB pide usuario y contraseña y este código usa Wi-Fi con clave sola: para probar sirve la red interna del laboratorio o un hotspot. El broker usado es público.</p>
+  <details><summary>Ver el código aquí</summary>
+  <pre style="overflow:auto;font-size:13px;line-height:1.45;background:#f6f6f4;padding:14px;border-radius:8px">/*
+  P01 · MQTT en el ESP32 REAL (versión 3.0)
+  Tesis: Robot móvil para búsqueda y transporte de componentes (UCAB Telecom)
+
+  Es el sketch de Wokwi (codigo/sketch.ino, versión 2.1) adaptado al robot de verdad.
+  Los 5 tópicos y sus QoS NO cambian: son los mismos del simulador 3D y del banco de pruebas.
+
+    ucab-tg-sf/robot/estado         robot -&gt; app   QoS 0   cómo está el robot (cada 2 s)
+    ucab-tg-sf/robot/ordenes        app -&gt; robot   QoS 1   pedidos de componentes
+    ucab-tg-sf/robot/ordenes/ack    robot -&gt; app   QoS 1   &quot;recibí tu pedido&quot;
+    ucab-tg-sf/robot/alertas        robot -&gt; app   QoS 2   alarmas
+    ucab-tg-sf/robot/conexion       robot y broker QoS 1   &quot;en linea&quot; / &quot;desconectado&quot; (retenido, es la LWT)
+
+  Qué cambió respecto a Wokwi:
+    1. El Wi-Fi ya no es &quot;Wokwi-GUEST&quot;: pon tu red en WIFI_RED y WIFI_CLAVE (abajo). No subas la clave al repositorio.
+    2. Se quitó el canal 6 de WiFi.begin (era solo para Wokwi).
+    3. Prueba de alarma: además de escribir &quot;a&quot; en el Monitor Serie, se puede apretar el botón BOOT
+       de la placa (GPIO 0). Eso es el &quot;pin de pruebas&quot;.
+    4. El estado manda el voltaje real de la batería por el divisor del GPIO 32 (antes era un 100 fijo).
+
+  IMPORTANTE:
+    - La red del Wi-Fi de la UCAB pide usuario y contraseña (WPA2-Enterprise). Este código usa Wi-Fi normal
+      (solo clave). Para las pruebas usa la red interna del laboratorio o el hotspot de un teléfono.
+      Si la UCAB es la única opción, hay que agregar el modo Enterprise: depende del resultado de la prueba H0.
+    - El broker broker.hivemq.com es PÚBLICO: cualquiera que conozca los tópicos los ve. Sirve para probar.
+      Para el sistema final hay que decidir un broker propio o con usuario y clave.
+    - GPIO 0 y GPIO 32 son PROPUESTAS: GPIO 0 no está en el mapa de pines del proyecto
+      (es el botón BOOT de la placa); GPIO 32 sí (batería).
+
+  Placa en Arduino IDE: &quot;ESP32 Dev Module&quot;.
+  Librería: &quot;MQTT&quot; de Joel Gaehwiler (256dpi), la misma de Wokwi (ver codigo/libraries.txt).
+*/
+
+#include &lt;WiFi.h&gt;
+#include &lt;MQTT.h&gt;
+
+// ---------- 1. Red y broker ----------
+const char* WIFI_RED   = &quot;TU_RED_WIFI&quot;;      // &lt;- escribe aquí el nombre de tu red
+const char* WIFI_CLAVE = &quot;TU_CLAVE_WIFI&quot;;    // &lt;- y su clave (no la subas al repositorio)
+const char* BROKER     = &quot;broker.hivemq.com&quot;;
+
+// ---------- 2. Tópicos (buzones) ----------
+const char* T_ESTADO   = &quot;ucab-tg-sf/robot/estado&quot;;
+const char* T_ORDENES  = &quot;ucab-tg-sf/robot/ordenes&quot;;
+const char* T_ACK      = &quot;ucab-tg-sf/robot/ordenes/ack&quot;;
+const char* T_ALERTAS  = &quot;ucab-tg-sf/robot/alertas&quot;;
+const char* T_CONEXION = &quot;ucab-tg-sf/robot/conexion&quot;;
+
+// ---------- 3. Pines ----------
+const uint8_t PIN_PRUEBA   = 0;    // botón BOOT de la placa: al apretarlo manda una alarma de prueba
+const uint8_t PIN_BATERIA  = 32;   // divisor 100 kΩ + 22 kΩ desde la batería 3S (12,6 V quedan en 2,27 V)
+const float DIVISOR = (100.0f + 22.0f) / 22.0f;
+// Batería 3S: llena 12,6 V, alarma de batería baja 9,9 V (los de la simulación de P08).
+// El porcentaje es una ESTIMACIÓN lineal entre esos dos valores, no una medida real de carga.
+const float BAT_LLENA_V = 12.6f;
+const float BAT_BAJA_V  = 9.9f;
+
+WiFiClient red;
+MQTTClient mqtt(512);
+
+// ---------- 4. Variables ----------
+unsigned long ordenesRecibidas = 0;   // cuántos pedidos han llegado
+unsigned long numeroEstado = 0;       // contador de mensajes de estado
+unsigned long numeroAlarma = 0;       // contador de alarmas enviadas
+unsigned long ultimoEstado = 0;       // cuándo se envió el último estado
+unsigned long ultimoBoton = 0;        // para evitar rebotes del botón
+bool botonAntes = true;               // el botón BOOT está en alto cuando no se aprieta
+const int MAX_PENDIENTES = 60;
+String idsPendientes[MAX_PENDIENTES]; // pedidos que faltan por confirmar
+int cantidadPendientes = 0;
+
+// Saca el valor de &quot;id&quot; de un pedido como {&quot;id&quot;:&quot;P-0007&quot;,...}
+String leerId(const String &amp;pedido) {
+  int inicio = pedido.indexOf(&quot;\&quot;id\&quot;:\&quot;&quot;);
+  if (inicio &lt; 0) return &quot;sin-id&quot;;
+  inicio += 6;
+  int fin = pedido.indexOf(&quot;\&quot;&quot;, inicio);
+  if (fin &lt; 0) return &quot;sin-id&quot;;
+  return pedido.substring(inicio, fin);
+}
+
+float leerBateriaV() {
+  // analogReadMilliVolts usa la calibración de fábrica del ESP32
+  return analogReadMilliVolts(PIN_BATERIA) / 1000.0f * DIVISOR;
+}
+
+int bateriaPorcentaje(float v) {
+  float p = (v - BAT_BAJA_V) / (BAT_LLENA_V - BAT_BAJA_V) * 100.0f;
+  if (p &lt; 0) p = 0;
+  if (p &gt; 100) p = 100;
+  return (int)(p + 0.5f);
+}
+
+// ---------- 5. Al recibir un pedido ----------
+void alRecibirMensaje(String &amp;topico, String &amp;mensaje) {
+  ordenesRecibidas++;
+  String id = leerId(mensaje);
+  Serial.println(&quot;Pedido #&quot; + String(ordenesRecibidas) + &quot; (&quot; + id + &quot;): &quot; + mensaje);
+  if (cantidadPendientes &lt; MAX_PENDIENTES) {
+    idsPendientes[cantidadPendientes] = id;   // se confirma en loop(), no aquí
+    cantidadPendientes++;
+  }
+}
+
+// ---------- 6. Conexiones ----------
+void conectarWiFi() {
+  Serial.print(&quot;Conectando al Wi-Fi&quot;);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_RED, WIFI_CLAVE);
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(&quot;.&quot;);
+    delay(500);
+  }
+  Serial.println(&quot; listo, IP &quot; + WiFi.localIP().toString());
+}
+
+void conectarMQTT() {
+  Serial.print(&quot;Conectando al broker&quot;);
+  String idCliente = &quot;robot-ucab-&quot; + String((uint32_t)ESP.getEfuseMac(), HEX);
+  while (!mqtt.connect(idCliente.c_str())) {
+    Serial.print(&quot;.&quot;);
+    delay(1000);
+  }
+  Serial.println(&quot; listo&quot;);
+  mqtt.publish(T_CONEXION, &quot;en linea&quot;, true, 1);  // retenido: quien llegue después lo ve
+  mqtt.subscribe(T_ORDENES, 1);                   // escuchar pedidos con QoS 1
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(PIN_PRUEBA, INPUT_PULLUP);
+  analogReadResolution(12);
+  analogSetPinAttenuation(PIN_BATERIA, ADC_11db);
+
+  conectarWiFi();
+  mqtt.begin(BROKER, 1883, red);
+  // keepAlive 15 s, sesión persistente (el broker guarda los pedidos si el robot se cae)
+  // y espera hasta 10 s las respuestas del broker antes de cortar
+  mqtt.setOptions(15, false, 10000);
+  mqtt.setWill(T_CONEXION, &quot;desconectado&quot;, true, 1);  // última voluntad (LWT)
+  mqtt.onMessage(alRecibirMensaje);
+  conectarMQTT();
+  Serial.println(&quot;Listo. Aprieta el botón BOOT o escribe la letra a en el monitor para enviar una alarma de prueba.&quot;);
+}
+
+// Manda una alarma de prueba (QoS 2)
+void enviarAlarmaPrueba() {
+  numeroAlarma++;
+  String alarma = &quot;{\&quot;n\&quot;:&quot; + String(numeroAlarma) + &quot;,\&quot;tipo\&quot;:\&quot;antirrobo\&quot;,\&quot;prueba\&quot;:true,\&quot;t\&quot;:&quot; + String(millis()) + &quot;}&quot;;
+  mqtt.publish(T_ALERTAS, alarma, false, 2);
+  Serial.println(&quot;Alarma #&quot; + String(numeroAlarma) + &quot; enviada&quot;);
+}
+
+// ---------- 7. Ciclo principal ----------
+void loop() {
+  mqtt.loop();
+  delay(10);
+
+  // Reconexión automática
+  if (WiFi.status() != WL_CONNECTED) conectarWiFi();
+  if (!mqtt.connected()) conectarMQTT();
+
+  // Confirmar un pedido pendiente por vuelta (QoS 1)
+  if (cantidadPendientes &gt; 0) {
+    String id = idsPendientes[0];
+    for (int i = 1; i &lt; cantidadPendientes; i++) idsPendientes[i - 1] = idsPendientes[i];
+    cantidadPendientes--;
+    String ack = &quot;{\&quot;id\&quot;:\&quot;&quot; + id + &quot;\&quot;,\&quot;recibidas\&quot;:&quot; + String(ordenesRecibidas) + &quot;,\&quot;t\&quot;:&quot; + String(millis()) + &quot;}&quot;;
+    mqtt.publish(T_ACK, ack, false, 1);
+  }
+
+  // Estado cada 2 segundos (QoS 0)
+  if (millis() - ultimoEstado &gt; 2000) {
+    ultimoEstado = millis();
+    numeroEstado++;
+    float vbat = leerBateriaV();
+    String estado = &quot;{\&quot;n\&quot;:&quot; + String(numeroEstado) + &quot;,\&quot;estado\&quot;:\&quot;espera\&quot;,\&quot;bateria\&quot;:&quot; + String(bateriaPorcentaje(vbat)) +
+                    &quot;,\&quot;bateria_v\&quot;:&quot; + String(vbat, 2) + &quot;,\&quot;ordenes\&quot;:&quot; + String(ordenesRecibidas) + &quot;,\&quot;t\&quot;:&quot; + String(millis()) + &quot;}&quot;;
+    mqtt.publish(T_ESTADO, estado, false, 0);
+  }
+
+  // Alarma de prueba: botón BOOT (pin 0, activo en bajo) o la letra &quot;a&quot; en el monitor serie
+  bool boton = digitalRead(PIN_PRUEBA);
+  if (!boton &amp;&amp; botonAntes &amp;&amp; millis() - ultimoBoton &gt; 300) {
+    ultimoBoton = millis();
+    enviarAlarmaPrueba();
+  }
+  botonAntes = boton;
+  if (Serial.available()) {
+    char letra = Serial.read();
+    if (letra == &#x27;a&#x27;) enviarAlarmaPrueba();
+  }
+}
+</pre></details>
+</section>
+
+<section aria-labelledby="t-cod">
+  <h2 id="t-cod">El código del simulador</h2>
+  <ul class="lista-codigo">
+    <li><a href="codigo/protocolo.js">protocolo.js</a>: los tópicos, los QoS, los pasos de cada uno y la espera de la última voluntad.</li>
+    <li><a href="codigo/main.js">main.js</a>: la escena 3D, los botones y la consola.</li>
+    <li><a href="codigo/pruebas.mjs">pruebas.mjs</a>: comprueba en Node los pasos de cada QoS (<code>node pruebas.mjs</code>).</li>
+  </ul>
+  <p class="suave" style="font-size:15px">Hecho con el kit <a href="https://github.com/elvarofficial/teardown">teardown</a> (licencia MIT, ver <a href="codigo/LICENSE-teardown.txt">LICENSE</a>) y three.js.</p>
+</section>
+</main>
+<footer id="pie"></footer>
+<script src="../../../datos/proyecto.js"></script>
+<script src="../../../assets/sitio.js"></script>
+</body>
+</html>

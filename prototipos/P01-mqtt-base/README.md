@@ -80,3 +80,9 @@ Código en `codigo/`: `sketch.ino` (versión 2.1), `diagram.json`, `libraries.tx
 - Tabla de tópicos y QoS (arquitectura de comunicación).
 - Tabla de criterios y resultados de esta ficha.
 - Gráfica de tiempos de los 50 pedidos (sale del banco de pruebas) y el CSV.
+
+
+## Simulador 3D y código para el ESP32 real (15 nov 2026)
+- `simulador-3d/`: animación en three.js de cómo viajan los mensajes (App, Broker y Robot) con los 5 tópicos y sus QoS. Botones: Enviar orden (QoS 0, 1 o 2), Manipulación (alarma, QoS 2, pantalla roja) y Desconexión (LWT). Abre `simulador-3d/index.html`.
+- `codigo-esp32/robot_mqtt/robot_mqtt.ino`: el sketch de Wokwi adaptado al ESP32 real (Wi-Fi propio, botón BOOT como pin de pruebas, voltaje real de la batería). Revisado solo en el computador.
+- `banco.html`, `codigo/` (Wokwi) y las evidencias de la versión 1 no se tocaron: son el registro de la Fase I.

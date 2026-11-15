@@ -119,7 +119,7 @@ a.ir:hover{transform:translate(-2px,-2px)}
     h += '<div class="tarjeta"><p class="ceja" style="margin-top:0">' + p.codigo + " · " + p.tema + "</p><h3 style=\"margin:0 0 6px\">" + p.nombre + "</h3>" +
       '<a href="' + p.simulador + '" style="' + b + 'background:#0F9D84;color:#fff">' + p.simuladorTexto + "</a>" +
       (p.ino ? '<a href="' + p.ino + '" download style="' + b + 'border:2px solid #0F9D84;color:#0F9D84">Código ESP32 (.ino)</a>' : '<span class="suave" style="display:block;margin-top:8px;font-size:15px">Código ESP32: próximamente</span>') +
-      '<p style="margin:10px 0 0;font-size:15px"><a href="' + p.url + '">Ver la explicación</a></p></div>';
+      '<p style="margin:10px 0 0;font-size:15px"><a href="' + p.url + '">Ver la explicación</a>' + (p.historico ? ' · <a href="' + p.historico + '">' + p.historicoTexto + "</a>" : "") + "</p></div>";
   });
   cont.innerHTML = h;
 })();
