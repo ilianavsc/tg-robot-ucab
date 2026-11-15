@@ -5,6 +5,7 @@ import {warmComposer} from 'teardown-kit/warm.js';
 import {createConsole, DISPLAY, MAN, VIEWS} from './console.js';
 import {cinematica, encoder, entradasH, MANIOBRAS, motor, R} from './model.js';
 import {createStage} from './stage.js';
+import {crearAviso, SIN_WEBGL, vigilarContexto} from './arranque.js';
 
 const W = 1600;
 const H = 900;
@@ -84,18 +85,30 @@ export function runLive() {
   const canvas = document.createElement('canvas');
   canvas.id = 'gl';
   app.appendChild(canvas);
-  const st = createStage({canvas});
+  const aviso = crearAviso();
+  aviso.cargando();
+  let st;
+  try {
+    st = createStage({canvas});
+  } catch (e) {
+    console.error(e);
+    aviso.error(...SIN_WEBGL);
+    return;
+  }
+  vigilarContexto(canvas, aviso);
   const ui = createConsole(app);
 
   // ------------------------------------------------------------ calidad
   const TIERS = [
-    {samples: 8, ao: true, shadow: 4096, pr: 2},
-    {samples: 4, ao: false, shadow: 2048, pr: 1.5},
-    {samples: 2, ao: false, shadow: 1024, pr: 1},
+    {samples: 4, ao: true, shadow: 2048, pr: 2}, // alta: solo si se pide con ?tier=0
+    {samples: 2, ao: false, shadow: 1024, pr: 1.5}, // normal en computadora
+    {samples: 0, ao: false, shadow: 1024, pr: 1}, // ligera: teléfonos
+    {samples: 0, ao: false, shadow: 0, pr: 1, directo: true}, // mínima: sin sombras ni efectos, dibuja directo
   ];
+  const MINIMA = TIERS.length - 1;
   const light = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 700;
   const qs = new URLSearchParams(location.search);
-  let tier = qs.has('tier') ? clamp(Number(qs.get('tier')), 0, 2) : light ? 2 : 0;
+  let tier = qs.has('tier') ? clamp(Number(qs.get('tier')) || 0, 0, MINIMA) : !st.soportaComposer ? MINIMA : light ? 2 : 1;
   let scale = 1;
   const fit = () => {
     const h = innerHeight - top;
@@ -104,8 +117,9 @@ export function runLive() {
     st.resize(W, H, clamp((devicePixelRatio || 1) * scale, 0.75, TIERS[tier].pr));
   };
   const applyTier = () => {
-    const {pr, ...q} = TIERS[tier];
+    const {pr, directo, ...q} = TIERS[tier];
     st.setQuality(q);
+    st.setDirecto(!!directo || !st.soportaComposer);
     fit();
   };
   applyTier();
@@ -285,7 +299,8 @@ export function runLive() {
   let last = performance.now();
   const perf = {n: 0, sum: 0, slow: 0, age: 0};
   const lados = ['izq', 'der'];
-  const frame = (now) => {
+  let cuadros = 0;
+  const cuadro = (now) => {
     const dt = Math.min(0.1, Math.max(0, (now - last) / 1000));
     last = now;
     T += dt;
@@ -446,9 +461,48 @@ export function runLive() {
       window.SIM_SHOWN = true;
       dispatchEvent(new Event('simframe'));
     }
+    cuadros++;
+    // Los primeros cuadros se revisan: si el lienzo quedó sin dibujar, se pasa a la calidad mínima (sin efectos)
+    if ((cuadros === 2 || cuadros === 30) && tier < MINIMA && st.lienzoVacio()) {
+      console.warn('El lienzo quedó vacío con efectos: paso a calidad mínima');
+      tier = MINIMA;
+      applyTier();
+    }
+    if (cuadros === 2) aviso.listo();
+  };
+  // El lazo nunca se corta en silencio: si un cuadro falla, baja a la calidad mínima; si sigue fallando, avisa.
+  let fallos = 0;
+  const frame = (now) => {
+    try {
+      cuadro(now);
+      fallos = 0;
+    } catch (e) {
+      console.error(e);
+      fallos++;
+      if (tier < MINIMA) {
+        tier = MINIMA;
+        applyTier();
+      } else if (fallos > 5) {
+        aviso.error('La simulación se detuvo', 'Hubo un error al dibujar: ' + String(e.message || e).slice(0, 120));
+        return;
+      }
+    }
     requestAnimationFrame(frame);
   };
-  warmComposer(st.renderer, st.composer, st.scene, st.camera).then(() => requestAnimationFrame(frame));
+  // Arranca cuando los shaders están listos, pero sin depender de eso: si la preparación falla o tarda más de 2,5 s, arranca igual.
+  let arrancado = false;
+  const arrancar = () => {
+    if (arrancado) return;
+    arrancado = true;
+    last = performance.now();
+    requestAnimationFrame(frame);
+  };
+  try {
+    warmComposer(st.renderer, st.composer, st.scene, st.camera).then(arrancar, arrancar);
+  } catch (e) {
+    console.error(e);
+  }
+  setTimeout(arrancar, 2500);
   window.LIVE = {
     st,
     S,

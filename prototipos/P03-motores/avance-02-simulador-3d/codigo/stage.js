@@ -33,7 +33,7 @@ const PISO_FRAG = /* glsl */ `uniform vec3 uP; uniform vec3 uJ; uniform vec3 uC;
   }`;
 
 export function createStage({canvas}) {
-  const renderer = new THREE.WebGLRenderer({canvas, antialias: false, preserveDrawingBuffer: true, powerPreference: 'high-performance'});
+  const renderer = new THREE.WebGLRenderer({canvas, antialias: false, powerPreference: 'high-performance'});
   renderer.toneMapping = THREE.NeutralToneMapping;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
@@ -58,9 +58,11 @@ export function createStage({canvas}) {
       this.fn();
     }
   }
+  let sombrasOn = true;
+  let directo = false; // true: dibuja sin efectos (sin composer), para equipos que no pueden con ellos
   const pisoVis = (v) => () => {
     piso.visible = v;
-    sombra.visible = v;
+    sombra.visible = v && sombrasOn;
   };
   composer.addPass(new Toggle(pisoVis(false)));
   composer.addPass(gtao);
@@ -96,7 +98,7 @@ export function createStage({canvas}) {
   Object.assign(sun.shadow.camera, {left: -EXT, right: EXT, top: EXT, bottom: -EXT, near: 0.05, far: 2});
   sun.shadow.mapSize.set(4096, 4096);
   sun.shadow.radius = 8;
-  sun.shadow.blurSamples = 16;
+  sun.shadow.blurSamples = 8;
   sun.shadow.bias = -0.0002;
   sun.shadow.normalBias = 0.0003;
   sun.position.copy(SUN_DIR).multiplyScalar(0.8);
@@ -151,7 +153,25 @@ export function createStage({canvas}) {
     camera.setViewOffset(size.w, size.h, -(cam.sx ?? 0), -(cam.sy ?? 0), size.w, size.h);
     camera.updateMatrixWorld();
     pisoMat.uniforms.uCam.value.set(cam.tx, 0, cam.tz);
-    composer.render();
+    if (directo) {
+      piso.visible = true;
+      sombra.visible = sombrasOn;
+      renderer.setRenderTarget(null);
+      renderer.render(scene, camera);
+    } else composer.render();
+  };
+  // Los efectos necesitan WebGL 2 y poder dibujar en texturas de media precisión. Si no, se dibuja directo.
+  const soportaComposer = renderer.capabilities.isWebGL2 && (renderer.extensions.has('EXT_color_buffer_float') || renderer.extensions.has('EXT_color_buffer_half_float'));
+  const setDirecto = (v) => {
+    directo = v;
+  };
+  // true si el lienzo quedó sin dibujar (transparente) después de un cuadro: la señal de que los efectos fallaron
+  const lienzoVacio = () => {
+    const gl = renderer.getContext();
+    const px = new Uint8Array(4);
+    renderer.setRenderTarget(null);
+    gl.readPixels(2, 2, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    return px[3] === 0;
   };
   const pv = new V3();
   const project = (p) => {
@@ -167,10 +187,15 @@ export function createStage({canvas}) {
       }
     if (ao !== undefined) gtao.enabled = ao;
     if (shadow !== undefined) {
-      sun.shadow.mapSize.set(shadow, shadow);
+      sombrasOn = shadow > 0;
+      sun.castShadow = sombrasOn;
+      renderer.shadowMap.enabled = sombrasOn;
+      sombra.visible = sombrasOn;
+      scene.traverse((o) => o.material && [].concat(o.material).forEach((m) => (m.needsUpdate = true)));
+      sun.shadow.mapSize.set(shadow || 256, shadow || 256);
       sun.shadow.map?.dispose();
       sun.shadow.map = null;
     }
   };
-  return {renderer, scene, camera, composer, robot, resize, frame, project, size, setQuality};
+  return {renderer, scene, camera, composer, robot, resize, frame, project, size, setQuality, setDirecto, soportaComposer, lienzoVacio};
 }

@@ -1,5 +1,6 @@
 // P01 · Así viajan los mensajes: App, Broker y Robot en 3D. Los tópicos y QoS son los del sketch y del banco de pruebas.
 import * as THREE from 'three';
+import {crearAviso, SIN_WEBGL, vigilarContexto} from './arranque.js';
 import {BASE, ESPERA_LWT_S, KEEPALIVE_S, TOPICOS, alarma, confirmacion, pedido, publicar, qosEfectivo, SUSCRIPCION, tramo} from './protocolo.js';
 
 const C = {bg: '#EEF3F1', tinta: '#14213D', sale: '#0F9D84', llega: '#F2603D', qos: '#6B4EE6', pend: '#F2B33D', rojo: '#D93025'};
@@ -52,7 +53,17 @@ document.getElementById('leyenda').innerHTML = '<h2>Buzones</h2>' + Object.value
 // ---------- Escena ----------
 const canvas = document.getElementById('gl');
 const LIVIANO = location.search.includes('liviano'); // para pantallas lentas y para las capturas
-const renderer = new THREE.WebGLRenderer({canvas, antialias: !LIVIANO, preserveDrawingBuffer: true});
+const aviso = crearAviso();
+aviso.cargando();
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({canvas, antialias: false, powerPreference: 'high-performance'});
+} catch (e) {
+  console.error(e);
+  aviso.error(...SIN_WEBGL);
+  throw e;
+}
+vigilarContexto(canvas, aviso);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.NoToneMapping;
 renderer.shadowMap.enabled = !LIVIANO;
@@ -67,7 +78,7 @@ scene.add(new THREE.HemisphereLight('#ffffff', '#cfd9d5', 1.05));
 const sol = new THREE.DirectionalLight('#ffffff', 1.9);
 sol.position.set(-4, 11, 8);
 sol.castShadow = true;
-sol.shadow.mapSize.set(2048, 2048);
+sol.shadow.mapSize.set(1024, 1024);
 Object.assign(sol.shadow.camera, {left: -12, right: 12, top: 8, bottom: -8, near: 1, far: 30});
 sol.shadow.bias = -0.0004;
 sol.shadow.radius = 5;
@@ -583,6 +594,7 @@ log('Listo. App, Broker y Robot conectados. Elige un QoS y pulsa "Enviar orden".
 log(`El robot está suscrito a ${TOPICOS.ordenes.nombre} (QoS 1). La app, a todo ${BASE}# (QoS 2).`, C.tinta, 'INFO');
 ajustar();
 let ant = performance.now();
+let cuadros = 0;
 renderer.setAnimationLoop((now) => {
   const dt = Math.min(LIVIANO ? 0.2 : 0.05, (now - ant) / 1000);
   ant = now;
@@ -591,5 +603,12 @@ renderer.setAnimationLoop((now) => {
   animarNodos(dt, now);
   if (!arr && !S.ocupado) cam.yaw += (Math.sin(now / 5000) * 0.18 - cam.yaw) * 0.01;
   colocarCamara();
-  renderer.render(scene, camera);
+  try {
+    renderer.render(scene, camera);
+    if (++cuadros === 2) aviso.listo();
+  } catch (e) {
+    console.error(e);
+    renderer.setAnimationLoop(null);
+    aviso.error('La simulación se detuvo', 'Hubo un error al dibujar: ' + String(e.message || e).slice(0, 120));
+  }
 });
