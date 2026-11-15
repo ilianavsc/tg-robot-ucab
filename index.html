@@ -3,143 +3,284 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TG Robot UCAB · Inicio</title>
+<title>TG Robot UCAB · Portafolio de Ingeniería</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/estilo.css">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
 <style>
+/* Estilos complementarios específicos del dashboard */
 .reloj{padding:26px 26px 20px}
 .reloj-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:18px}
-.semana-num{font-family:var(--display);font-weight:700;font-size:clamp(44px,8vw,80px);line-height:1;letter-spacing:-.03em}
-.semana-num span{color:var(--suave);font-weight:500;font-size:.45em;letter-spacing:0}
-.fase-actual{font-family:var(--display);font-size:22px;font-weight:500}
-.fase-actual b{color:var(--qos)}
-.tira{display:flex;gap:10px;align-items:flex-start}
+.semana-num{font-family:var(--font-display);font-weight:800;font-size:clamp(44px,7vw,76px);line-height:1;letter-spacing:-.03em}
+.semana-num span{color:var(--text-light);font-weight:500;font-size:.45em;letter-spacing:0}
+.fase-actual{font-family:var(--font-display);font-size:22px;font-weight:600}
+.fase-actual b{color:var(--accent-purple)}
+.tira{display:flex;gap:8px;align-items:flex-start}
 .grupo{display:flex;flex-direction:column;gap:6px;flex:var(--n) 1 0;min-width:0}
 .celdas{display:flex;gap:3px}
-.celda{flex:1;height:34px;border-radius:5px;background:var(--papel);border:1.5px solid var(--punto)}
-.celda.hecho{background:var(--sale);border-color:var(--sale)}
-.celda.hoy{background:var(--llega);border-color:var(--llega);height:44px;margin-top:-5px}
-.grupo .rom{font-family:var(--mono);font-size:12px;color:var(--suave);text-align:center}
-.grupo.actual .rom{color:var(--tinta);font-weight:600}
-.leyenda-reloj{display:flex;flex-wrap:wrap;gap:16px;font-size:14px;color:var(--suave);margin-top:14px}
+.celda{flex:1;height:32px;border-radius:4px;background:#f1f5f9;border:1.5px solid #cbd5e1}
+.celda.hecho{background:var(--accent-primary);border-color:var(--accent-primary)}
+.celda.hoy{background:var(--accent-coral);border-color:var(--accent-coral);height:42px;margin-top:-5px}
+.grupo .rom{font-family:var(--font-mono);font-size:12px;color:var(--text-light);text-align:center}
+.grupo.actual .rom{color:var(--text-main);font-weight:700}
+.leyenda-reloj{display:flex;flex-wrap:wrap;gap:16px;font-size:14px;color:var(--text-muted);margin-top:14px}
 .leyenda-reloj i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
-.cifra{font-family:var(--display);font-weight:700;font-size:40px;line-height:1.05;margin:4px 0}
-.cifra small{font-size:16px;font-weight:500;color:var(--suave)}
+.cifra{font-family:var(--font-display);font-weight:800;font-size:38px;line-height:1.05;margin:4px 0}
+.cifra small{font-size:16px;font-weight:500;color:var(--text-light)}
 .puntos{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 6px}
-.puntos span{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--suave)}
-.puntos .pruebas{background:var(--qos);border-color:var(--qos)}
-.puntos .hecho{background:var(--sale);border-color:var(--sale)}
-.lista-pend{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.lista-pend li{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center;background:var(--blanco);border-radius:12px;padding:12px 16px;border-left:6px solid var(--pend)}
-.lista-pend li.hecho{border-left-color:var(--sale);color:var(--suave);text-decoration:line-through}
-.lista-pend .cuando{font-family:var(--mono);font-size:13px}
-.lista-pend .tarde{color:var(--llega);font-weight:600}
-.avance ul{margin:6px 0 0;padding-left:20px;font-size:16px}
+.puntos span{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--text-light)}
+.puntos .pruebas{background:var(--accent-purple);border-color:var(--accent-purple)}
+.puntos .hecho{background:var(--accent-primary);border-color:var(--accent-primary)}
+.lista-pend{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.lista-pend li{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center;background:#ffffff;border-radius:12px;padding:12px 16px;border-left:6px solid var(--accent-amber);border-top:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0}
+.lista-pend li.hecho{border-left-color:var(--accent-primary);color:var(--text-light);text-decoration:line-through}
+.lista-pend .cuando{font-family:var(--font-mono);font-size:13px;font-weight:600}
+.lista-pend .tarde{color:var(--accent-coral);font-weight:700}
+.avance ul{margin:6px 0 0;padding-left:20px;font-size:15.5px}
 .avance .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
-.ir{display:block;text-decoration:none;color:var(--tinta);transition:transform .12s}
-a.ir:hover{transform:translate(-2px,-2px)}
-.ir p{margin:0;font-size:15px;color:var(--suave)}
-.ir.pronto{border-style:dashed;border-color:var(--suave);background:transparent;color:var(--suave);box-shadow:none}
-@media (max-width:640px){.celda{height:26px}.celda.hoy{height:34px}.tira{gap:6px}.lista-pend li{grid-template-columns:1fr}}
+.ir{display:block;text-decoration:none;color:var(--text-main);transition:transform .12s, box-shadow .12s}
+a.ir:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hard-hover)}
+.ir p{margin:0;font-size:15px;color:var(--text-muted)}
+@media (max-width:640px){.celda{height:24px}.celda.hoy{height:32px}.tira{gap:4px}.lista-pend li{grid-template-columns:1fr}}
 </style>
 </head>
 <body data-pagina="inicio" data-base="">
 <header id="menu"></header>
+
 <main>
-<p class="ceja">Trabajo de Grado · Ingeniería en Telecomunicaciones · UCAB</p>
-<h1>Un robot que <em>busca y trae</em> componentes del laboratorio</h1>
-<p class="bajada">Así va el proyecto hoy. Esta página se actualiza sola con la fecha.</p>
-
-<section aria-labelledby="t-reloj">
-  <h2 id="t-reloj" class="sr" hidden>En qué semana vamos</h2>
-  <div class="tarjeta sombra reloj">
-    <div class="reloj-top">
-      <div class="semana-num" id="semana-num"></div>
-      <div class="fase-actual" id="fase-actual"></div>
+  <!-- ====================================================================
+       SECCIÓN 1: HERO DE BIENVENIDA & PORTAFOLIO DE INGENIERÍA
+       ==================================================================== -->
+  <section class="hero-bienvenida" aria-labelledby="t-bienvenida">
+    <div class="badge-autores">
+      <span class="punto-verde" aria-hidden="true"></span>
+      Trabajo de Grado · Ingeniería en Telecomunicaciones · UCAB
     </div>
-    <div class="tira" id="tira" role="img" aria-label="Avance de las 32 semanas del Trabajo de Grado"></div>
-    <div class="leyenda-reloj">
-      <span><i style="background:#0F9D84"></i>Semanas pasadas</span>
-      <span><i style="background:#F2603D"></i>Esta semana</span>
-      <span><i style="background:#EEF3F1;border:1.5px solid #CBD8D3"></i>Por venir</span>
+    
+    <div class="hero-frase" id="t-bienvenida">
+      Somos Iliana y Andrea. Este es el desarrollo de nuestro robot para la UCAB.
     </div>
-  </div>
-</section>
 
-<section aria-labelledby="t-resumen">
-  <h2 id="t-resumen">De un vistazo</h2>
-  <div class="rejilla">
-    <div class="tarjeta"><p class="ceja" style="margin-top:0">Próximo hito</p><div class="cifra" id="hito-dias"></div><p id="hito-texto" style="margin:0"></p></div>
-    <div class="tarjeta"><p class="ceja" style="margin-top:0">Prototipos</p><div class="cifra" id="proto-cifra"></div><div class="puntos" id="proto-puntos"></div><p style="margin:0;font-size:15px"><a href="prototipos/index.html">Ver todos los prototipos</a><br><a href="#t-firmware">Los 3 ya van en un solo firmware</a></p></div>
-    <div class="tarjeta"><p class="ceja" style="margin-top:0">Qué toca en esta fase</p><p id="fase-que" style="margin:0;font-size:16px"></p></div>
-  </div>
-</section>
+    <p class="hero-desc">
+      Un robot móvil autónomo de telecomunicaciones diseñado para <strong>buscar, clasificar y transportar</strong> componentes y herramientas dentro del laboratorio de la universidad. Aquí documentamos nuestra arquitectura, el firmware en ESP32, los simuladores físicos 3D interactivos y la preparación de las pruebas experimentales.
+    </p>
 
-<section aria-labelledby="t-protos">
-  <h2 id="t-protos">Los 3 prototipos</h2>
-  <p class="bajada">Cada uno tiene su simulador para probar y el código que iría en el ESP32.</p>
-  <div class="rejilla" id="tres-protos"></div>
-</section>
-
-<section aria-labelledby="t-firmware">
-  <h2 id="t-firmware">Firmware Integrado (P01 + P03 + P08)</h2>
-  <p class="bajada">Los tres prototipos ya están en un solo archivo que corre en el ESP32. Compila sin errores: 71 % de la memoria de programa y 15 % de la RAM.</p>
-  <div class="tarjeta sombra">
-    <p class="ceja" style="margin-top:0">Un solo código · modo autónomo y modo manual</p>
-    <ul style="margin:0;padding-left:20px;font-size:16px;line-height:1.65">
-      <li>Sigue la línea solo, con el control PD a 100 Hz (P08).</li>
-      <li>Obedece órdenes por MQTT y confirma cada pedido (P01).</li>
-      <li>Mueve los motores con PWM a 20 kHz y lee los encoders por interrupción (P03).</li>
-      <li>Si en modo manual pasan 5 s sin órdenes, vuelve solo a autónomo: medida de seguridad.</li>
-      <li>Manda las alertas con QoS 2 y avisa cuando la batería baja de 9,9 V.</li>
-      <li>No usa <code>delay()</code>: todo el tiempo va con <code>millis()</code>.</li>
-    </ul>
-    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:18px">
-      <a href="https://github.com/ilianavsc/tg-robot-ucab/blob/main/firmware/robot_integrado.ino" style="display:inline-block;padding:10px 16px;border-radius:8px;background:#0F9D84;color:#fff;text-decoration:none;font-weight:600">Ver el código (.ino)</a>
-      <a href="https://github.com/ilianavsc/tg-robot-ucab/blob/main/firmware/README.md" style="display:inline-block;padding:10px 16px;border-radius:8px;border:2px solid #0F9D84;color:#0F9D84;text-decoration:none;font-weight:600">Leer el README</a>
+    <div class="hero-acciones">
+      <a href="cronograma.html" class="btn btn-principal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        Ver Cronograma (32 semanas)
+      </a>
+      <a href="#t-protos" class="btn btn-secundario">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        Explorar Simuladores 3D
+      </a>
+      <a href="PLAN.md" class="btn btn-secundario" title="Ver plan en Markdown">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        El Plan (PLAN.md)
+      </a>
     </div>
-  </div>
-</section>
+  </section>
 
-<section aria-labelledby="t-pend">
-  <h2 id="t-pend">Para estos días</h2>
-  <p class="bajada">Lo que hay que cerrar pronto. En rojo, lo que ya pasó de fecha.</p>
-  <ul class="lista-pend" id="pendientes"></ul>
-</section>
+  <!-- ====================================================================
+       SECCIÓN 2: ESTADO ACTUAL (SIMULACIÓN VS HARDWARE)
+       ==================================================================== -->
+  <section aria-labelledby="t-estado">
+    <h2 id="t-estado">Estado Actual del Proyecto</h2>
+    <p class="bajada">Así se distribuye el avance de la tesis entre la validación por simulación matemática y la implementación física en laboratorio.</p>
+    
+    <div class="estado-grid">
+      <!-- Columna 1: Simulación & Firmware -->
+      <div class="estado-card completado">
+        <div class="estado-header">
+          <span class="chip hecho">Validado en Software</span>
+          <span class="mono" style="font-size:13px;font-weight:600;color:var(--accent-primary)">100% Funcional</span>
+        </div>
+        <h3 style="margin-top:0">Simuladores 3D y Firmware</h3>
+        <p style="font-size:15px;color:var(--text-muted);margin-bottom:18px">Modelado cinemático, protocolos y algoritmos completamente simulados con Three.js y probados en código real de microcontrolador.</p>
+        
+        <ul class="estado-lista">
+          <li class="estado-item">
+            <span class="estado-icon check">✓</span>
+            <div><strong>P01 (MQTT & Telemetría):</strong> 0 órdenes perdidas en 50 pedidos; desconexión por LWT probada en 22 s.</div>
+          </li>
+          <li class="estado-item">
+            <span class="estado-icon check">✓</span>
+            <div><strong>P03 (Tracción & Encoders):</strong> Control PWM a 20 kHz e interrupciones de hardware simuladas con batería 3S.</div>
+          </li>
+          <li class="estado-item">
+            <span class="estado-icon check">✓</span>
+            <div><strong>P08 (Seguidor de Línea):</strong> Algoritmo PD a 100 Hz sobre cinta negra y piso de granito simulado a 0,41 m/s.</div>
+          </li>
+          <li class="estado-item">
+            <span class="estado-icon check">✓</span>
+            <div><strong>Firmware ESP32 Integrado:</strong> Los 3 prototipos fusionados en un solo `.ino` compilable (71% Flash, 15% RAM).</div>
+          </li>
+        </ul>
+      </div>
 
-<section aria-labelledby="t-avance">
-  <h2 id="t-avance">Último avance</h2>
-  <div class="tarjeta avance" id="avance"></div>
-</section>
+      <!-- Columna 2: Hardware y Laboratorio -->
+      <div class="estado-card espera">
+        <div class="estado-header">
+          <span class="chip aviso">Próxima Fase</span>
+          <span class="mono" style="font-size:13px;font-weight:600;color:#b45309">En Preparación</span>
+        </div>
+        <h3 style="margin-top:0">Validación en Laboratorio</h3>
+        <p style="font-size:15px;color:var(--text-muted);margin-bottom:18px">Ensayos empíricos con el robot físico en las instalaciones del laboratorio de telecomunicaciones de la UCAB.</p>
+        
+        <ul class="estado-lista">
+          <li class="estado-item">
+            <span class="estado-icon clock">⏳</span>
+            <div><strong>Llegada de Componentes:</strong> Motores JGA25-371, módulos infrarrojos TCRT5000, ESP32 y batería en tránsito internacional.</div>
+          </li>
+          <li class="estado-item">
+            <span class="estado-icon clock">⏳</span>
+            <div><strong>Calibración de Sensores:</strong> Medición del coeficiente de reflexión real del piso de granito vs cinta aislante del lab.</div>
+          </li>
+          <li class="estado-item">
+            <span class="estado-icon clock">⏳</span>
+            <div><strong>Pruebas de Repetibilidad:</strong> Protocolo experimental de 20+ repeticiones para verificar desvío milimétrico y autonomía.</div>
+          </li>
+          <li class="estado-item">
+            <span class="estado-icon clock">⏳</span>
+            <div><strong>Prueba de Cobertura H0:</strong> Verificación de conexión Wi-Fi institucional de la UCAB con broker MQTT local.</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
 
-<section aria-labelledby="t-explora">
-  <h2 id="t-explora">Explora</h2>
-  <div class="rejilla">
-    <a class="tarjeta sombra ir" href="cronograma.html"><h3>Cronograma</h3><p>Las 32 semanas y las 7 fases en una línea de tiempo.</p></a>
-    <a class="tarjeta sombra ir" href="prototipos/index.html"><h3>Prototipos</h3><p>Cada prueba explicada en simple, con sus evidencias.</p></a>
-    <a class="tarjeta sombra ir" href="requerimientos.html"><h3>Requerimientos</h3><p>Qué debe hacer el robot y cómo se comprueba.</p></a>
-    <a class="tarjeta sombra ir" href="hardware.html"><h3>Hardware</h3><p>Las piezas, la orden de compra y su estado.</p></a>
-    <a class="tarjeta sombra ir" href="arquitectura.html"><h3>Arquitectura</h3><p>El sistema completo en un dibujo.</p></a>
-    <a class="tarjeta sombra ir" href="decisiones.html"><h3>Decisiones</h3><p>Qué elegimos y por qué.</p></a>
-    <a class="tarjeta sombra ir" href="bitacora.html"><h3>Bitácora</h3><p>Qué pasó cada semana.</p></a>
-  </div>
-</section>
+  <!-- ====================================================================
+       SECCIÓN 3: CRONOGRAMA DINÁMICO & RELOJ DE SEMANAS
+       ==================================================================== -->
+  <section aria-labelledby="t-reloj">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:8px">
+      <h2 id="t-reloj" style="margin:0">En qué semana vamos</h2>
+      <a href="cronograma.html" style="font-weight:700;font-size:15px">Ver cronograma completo (32 semanas) →</a>
+    </div>
+    <div class="tarjeta sombra reloj">
+      <div class="reloj-top">
+        <div class="semana-num" id="semana-num"></div>
+        <div class="fase-actual" id="fase-actual"></div>
+      </div>
+      <div class="tira" id="tira" role="img" aria-label="Avance de las 32 semanas del Trabajo de Grado"></div>
+      <div class="leyenda-reloj">
+        <span><i style="background:#0F9D84"></i>Semanas pasadas</span>
+        <span><i style="background:#f43f5e"></i>Esta semana</span>
+        <span><i style="background:#f1f5f9;border:1.5px solid #cbd5e1"></i>Por venir</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN 4: RESUMEN DE UN VISTAZO
+       ==================================================================== -->
+  <section aria-labelledby="t-resumen">
+    <h2 id="t-resumen">De un vistazo</h2>
+    <div class="rejilla">
+      <div class="tarjeta"><p class="ceja" style="margin-top:0">Próximo hito</p><div class="cifra" id="hito-dias"></div><p id="hito-texto" style="margin:0"></p></div>
+      <div class="tarjeta"><p class="ceja" style="margin-top:0">Prototipos</p><div class="cifra" id="proto-cifra"></div><div class="puntos" id="proto-puntos"></div><p style="margin:0;font-size:15px"><a href="prototipos/index.html">Ver todos los prototipos</a><br><a href="#t-firmware">Los 3 ya van en un solo firmware</a></p></div>
+      <div class="tarjeta"><p class="ceja" style="margin-top:0">Qué toca en esta fase</p><p id="fase-que" style="margin:0;font-size:16px"></p></div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN 5: LOS 3 PROTOTIPOS ESTRELLA (P01, P03, P08)
+       ==================================================================== -->
+  <section aria-labelledby="t-protos">
+    <h2 id="t-protos">Los 3 Prototipos</h2>
+    <p class="bajada">Cada prototipo cuenta con su propio simulador 3D interactivo en Three.js y el código Arduino (.ino) listo para programar en el ESP32.</p>
+    <div class="rejilla" id="tres-protos"></div>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN 6: FIRMWARE INTEGRADO
+       ==================================================================== -->
+  <section aria-labelledby="t-firmware">
+    <h2 id="t-firmware">Firmware Integrado (P01 + P03 + P08)</h2>
+    <p class="bajada">Los tres subsistemas ya están consolidados en un único archivo fuente para el ESP32. Compilación exitosa: 71 % de memoria Flash y 15 % de RAM.</p>
+    <div class="tarjeta sombra">
+      <p class="ceja" style="margin-top:0">Un solo código · Modo autónomo y manual</p>
+      <ul style="margin:0;padding-left:20px;font-size:16px;line-height:1.65">
+        <li><strong>Navegación Óptica (P08):</strong> Lazo de control PD a 100 Hz con cálculo de error ponderado sobre 4 sensores infrarrojos.</li>
+        <li><strong>Telemetría MQTT (P01):</strong> Publica estado cada 2 s, procesa órdenes con QoS 1/2 y avisa corte de conexión mediante LWT.</li>
+        <li><strong>Actuadores y Odometría (P03):</strong> Señales PWM a 20 kHz sin silbido audible y conteo de pulsos por interrupciones de hardware.</li>
+        <li><strong>Fail-safe de Seguridad:</strong> Si en modo manual se pierden las órdenes por más de 5 s, retorna automáticamente a modo autónomo.</li>
+        <li><strong>Protección de Batería:</strong> Monitoreo continuo del paquete Li-Ion 3S con alerta de desconexión por debajo de 9,9 V.</li>
+        <li><strong>Arquitectura No Bloqueante:</strong> Cero llamadas a <code>delay()</code>; temporización estricta por marcas de tiempo con <code>millis()</code>.</li>
+      </ul>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:20px">
+        <a href="https://github.com/ilianavsc/tg-robot-ucab/blob/main/firmware/robot_integrado.ino" target="_blank" rel="noopener" class="btn btn-principal">Ver código (.ino) en GitHub</a>
+        <a href="https://github.com/ilianavsc/tg-robot-ucab/blob/main/firmware/README.md" target="_blank" rel="noopener" class="btn btn-secundario">Leer Documentación Técnica</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN 7: PENDIENTES Y AVANCE
+       ==================================================================== -->
+  <section aria-labelledby="t-pend">
+    <h2 id="t-pend">Para estos días</h2>
+    <p class="bajada">Tareas prioritarias del equipo. En rojo, aquellas que requieren seguimiento urgente.</p>
+    <ul class="lista-pend" id="pendientes"></ul>
+  </section>
+
+  <section aria-labelledby="t-avance">
+    <h2 id="t-avance">Último avance registrado</h2>
+    <div class="tarjeta sombra avance" id="avance"></div>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN 8: EXPLORADOR DEL SISTEMA
+       ==================================================================== -->
+  <section aria-labelledby="t-explora">
+    <h2 id="t-explora">Explora la Documentación</h2>
+    <div class="rejilla">
+      <a class="tarjeta sombra ir" href="cronograma.html"><h3>📅 Cronograma</h3><p>Las 32 semanas y las 7 fases en una línea de tiempo interactiva.</p></a>
+      <a class="tarjeta sombra ir" href="prototipos/index.html"><h3>🧪 Prototipos</h3><p>Catálogo de pruebas, simuladores y evidencias de laboratorio.</p></a>
+      <a class="tarjeta sombra ir" href="requerimientos.html"><h3>📋 Requerimientos</h3><p>Qué debe hacer el robot y la matriz de validación asociada.</p></a>
+      <a class="tarjeta sombra ir" href="hardware.html"><h3>⚙️ Hardware</h3><p>Lista de materiales (BOM), piezas y estado de compra.</p></a>
+      <a class="tarjeta sombra ir" href="arquitectura.html"><h3>🏗️ Arquitectura</h3><p>Diagrama de bloques, tópicos MQTT y flujo de señales.</p></a>
+      <a class="tarjeta sombra ir" href="decisiones.html"><h3>💡 Decisiones</h3><p>Criterios de ingeniería: por qué elegimos cada tecnología.</p></a>
+      <a class="tarjeta sombra ir" href="bitacora.html"><h3>📖 Bitácora</h3><p>Registro semanal detallado del trabajo realizado.</p></a>
+    </div>
+  </section>
 </main>
+
 <footer id="pie"></footer>
 
 <script src="datos/proyecto.js"></script>
 <script src="assets/sitio.js"></script>
+
 <script>
 (function(){
+  // Renderizado dinámico de tarjetas de prototipos con diseño moderno
   var cont = document.getElementById("tres-protos"), h = "";
+  var descripciones = {
+    "P01": "Comunicación bidireccional entre la app y el robot vía Wi-Fi con confirmación obligatoria (QoS 1/2) y aviso de desconexión.",
+    "P03": "Control de motores DC con encoders de cuadratura para avanzar en línea recta exacta sin desviarse del pasillo.",
+    "P08": "Seguimiento óptico con 4 sensores infrarrojos sobre granito y cinta negra a 100 Hz con control proporcional-derivativo (PD)."
+  };
+
   TG.prototipos.filter(function(p){ return p.principal; }).forEach(function(p){
-    var b = "display:block;text-align:center;padding:9px 12px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:8px;";
-    h += '<div class="tarjeta"><p class="ceja" style="margin-top:0">' + p.codigo + " · " + p.tema + "</p><h3 style=\"margin:0 0 6px\">" + p.nombre + "</h3>" +
-      '<a href="' + p.simulador + '" style="' + b + 'background:#0F9D84;color:#fff">' + p.simuladorTexto + "</a>" +
-      (p.ino ? '<a href="' + p.ino + '" download style="' + b + 'border:2px solid #0F9D84;color:#0F9D84">Código ESP32 (.ino)</a>' : '<span class="suave" style="display:block;margin-top:8px;font-size:15px">Código ESP32: próximamente</span>') +
-      '<p style="margin:10px 0 0;font-size:15px"><a href="' + p.url + '">Ver la explicación</a>' + (p.historico ? ' · <a href="' + p.historico + '">' + p.historicoTexto + "</a>" : "") + "</p></div>";
+    var desc = descripciones[p.codigo] || p.nombre;
+    h += '<div class="proto-card">' +
+      '<div class="proto-card-top">' +
+        '<span class="proto-tag">' + p.codigo + ' · ' + p.tema + '</span>' +
+        '<h3 class="proto-titulo">' + p.nombre + '</h3>' +
+        '<p class="proto-desc">' + desc + '</p>' +
+      '</div>' +
+      '<div class="proto-acciones">' +
+        '<a href="' + p.url + '" class="btn btn-principal" style="width:100%">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>' +
+          'Ver Prototipo & Simulador 3D' +
+        '</a>' +
+        (p.ino ? '<a href="' + p.ino + '" download class="btn-descargar" style="justify-content:center">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>' +
+          'Descargar Código (.ino)' +
+        '</a>' : '<span style="font-size:14px;color:var(--text-light);text-align:center;padding:6px 0">Código ESP32: próximamente</span>') +
+      '</div>' +
+    '</div>';
   });
   cont.innerHTML = h;
 })();

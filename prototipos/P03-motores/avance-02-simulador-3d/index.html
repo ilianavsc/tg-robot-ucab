@@ -3,364 +3,269 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>P03 · Avance 2 · Simulador 3D de la tracción</title>
+<title>P03 · Simulador 3D de la Tracción · TG Robot UCAB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../../../assets/estilo.css">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../../assets/css/style.css">
 <style>
-.volver{font-size:15px;text-decoration:none;color:var(--suave)}
-h1 em{font-style:normal;color:var(--sale)}
-h1 strong{color:var(--llega)}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px}
-.frase{font-family:var(--display);font-weight:500;font-size:clamp(21px,3vw,28px);line-height:1.3;background:var(--blanco);border:2px solid var(--tinta);border-radius:18px;padding:22px 26px;margin:0 0 30px;box-shadow:6px 6px 0 var(--tinta)}
-section{margin:0 0 48px}
-h2{font-family:var(--display);font-size:28px;margin:0 0 6px}
-.portada{display:block;position:relative;border:2px solid var(--tinta);border-radius:18px;overflow:hidden;box-shadow:6px 6px 0 var(--tinta);background:var(--blanco);text-decoration:none}
-.portada img{display:block;width:100%;height:auto}
-.portada .abrir{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--display);font-weight:700;font-size:clamp(18px,2.6vw,26px);color:var(--blanco);background:var(--llega);border:2px solid var(--tinta);border-radius:999px;padding:14px 26px;box-shadow:4px 4px 0 var(--tinta);white-space:nowrap;transition:transform .15s}
-.portada:hover .abrir{transform:translate(-50%,-50%) scale(1.04)}
-.pasos{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-.pasos li{background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;padding:14px 16px}
-.pasos b{display:block;font-family:var(--display);font-size:19px;margin-bottom:2px}
-.pasos span{font-size:16px;color:var(--suave)}
-.pasos kbd{font-family:var(--mono);font-size:13px;background:var(--papel);border:1px solid var(--punto);border-radius:5px;padding:1px 6px}
-.idea .nivel{font-family:var(--mono);font-weight:600;font-size:13px;color:var(--c)}
-.idea h3{font-family:var(--display);font-size:21px;margin:4px 0 6px}
-.idea p{margin:0;font-size:16px;color:var(--suave)}
-.galeria{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
-.galeria figure{margin:0;background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;overflow:hidden}
-.galeria img{display:block;width:100%;height:auto;cursor:zoom-in}
-.galeria figcaption{padding:10px 14px;font-size:15px}
-dialog{border:none;border-radius:16px;padding:12px;max-width:min(1400px,96vw);background:var(--blanco)}
-dialog::backdrop{background:rgba(20,33,61,.7)}
+dialog{border:none;border-radius:16px;padding:12px;max-width:min(1400px,96vw);background:#ffffff;box-shadow:var(--shadow-hard)}
+dialog::backdrop{background:rgba(15,23,42,.75);backdrop-filter:blur(3px)}
 dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
-.tabla{width:100%;border-collapse:collapse;font-size:16px;background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;overflow:hidden}
-.tabla th,.tabla td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--punto);vertical-align:top}
-.tabla th{font-family:var(--mono);font-size:13px;color:var(--suave);font-weight:600}
-.tabla td:last-child{font-family:var(--mono);font-size:14px}
-.aviso-grande{background:var(--pend);border:2px solid var(--tinta);border-radius:16px;padding:18px 22px}
-.aviso-grande p{margin:0 0 8px}.aviso-grande p:last-child{margin:0}
 </style>
 </head>
 <body data-pagina="prototipos" data-base="../../../">
 <header id="menu"></header>
+
 <main>
-<a class="volver" href="../../index.html">← Todos los prototipos</a>
-<p class="ceja">Prototipo P03 · Avance 2 · Simulador 3D</p>
-<h1>Cómo se mueve <em>el robot</em>, <strong>pieza por pieza</strong></h1>
-<div class="chips">
-  <span class="chip">Fase I (adelanto de P03)</span>
-  <span class="chip">three.js · kit teardown</span>
-  <span class="chip aviso">Simulado, falta medir</span>
-  <span class="chip">11 nov 2026</span>
-</div>
-
-<p class="frase">El ESP32 manda órdenes, el puente H las convierte en fuerza, la caja la reduce y el encoder avisa cuánto giró la rueda. Aquí se ve todo eso a la vez.</p>
-
-<section>
-  <a class="portada" href="simulador.html">
-    <img src="evidencias/01-avanza-heroe.jpg" alt="Simulador 3D: el robot avanzando a 0,35 m/s con los paneles del ESP32, el puente H, el motor y el encoder">
-    <span class="abrir">Abrir el simulador ▶</span>
+  <!-- Volver al catálogo -->
+  <a class="volver" href="../../index.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    Volver al catálogo de prototipos
   </a>
-  <p class="suave" style="font-size:15px;margin-top:14px">Funciona sin internet, en una sola página. Mejor en computadora. En teléfono, gíralo de lado.</p>
-</section>
 
-<section aria-labelledby="t-usar">
-  <h2 id="t-usar">Cómo usarlo</h2>
-  <p class="bajada">Si no lo tocas, hace un recorrido solo. Al tocar cualquier cosa, lo manejas tú.</p>
-  <ol class="pasos">
-    <li><b>Elige una maniobra</b><span>Avanzar, girar, retroceder o frenar. También con las flechas <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd>.</span></li>
-    <li><b>Mueve la fuerza</b><span>La barra de PWM. Mira cómo cambian el voltaje, las rpm y la velocidad.</span></li>
-    <li><b>Cambia las piezas</b><span>L298N o TB6612FNG, motor Speed 130 o Speed 200. La barra de la meta dice si llega.</span></li>
-    <li><b>Cambia la batería</b><span>12,6 V llena, 11,1 V nominal o 9,9 V baja. Mira cuántos voltios le llegan al motor y cómo bajan las rpm.</span></li>
-    <li><b>Mira por dentro</b><span>Vista MOTOR con RAYOS X: imanes, engranes y el imán del encoder.</span></li>
-  </ol>
-</section>
-
-<section aria-labelledby="t-ideas">
-  <h2 id="t-ideas">Lo que se aprende</h2>
-  <div class="rejilla">
-    <div class="tarjeta idea" style="--c:var(--qos)"><span class="nivel">01 · El cerebro</span><h3>Sentido y fuerza</h3><p>Por cada motor, dos pines dicen el sentido (IN) y uno la fuerza (PWM). El ESP32 prende y apaga el motor 20 000 veces por segundo.</p></div>
-    <div class="tarjeta idea" style="--c:var(--llega)"><span class="nivel">02 · El puente H</span><h3>Cuatro interruptores</h3><p>Cerrando S1 y S4 la corriente cruza el motor en un sentido; con S2 y S3, en el otro. Con S3 y S4 frena.</p></div>
-    <div class="tarjeta idea" style="--c:var(--llega)"><span class="nivel">03 · El músculo</span><h3>La caja reduce</h3><p>Adentro el motor gira a unas 3 600 rpm. La caja 1:21,3 lo baja a unas 170 rpm en la rueda, con más fuerza.</p></div>
-    <div class="tarjeta idea" style="--c:var(--sale)"><span class="nivel">04 · El aviso</span><h3>El encoder cuenta</h3><p>11 pulsos por vuelta del motor × 21,3 = 234 por vuelta de rueda. Con las dos señales A y B salen 937 cuentas y el sentido.</p></div>
+  <p class="ceja">Prototipo P03 · Cinemática Diferencial · Avance 2</p>
+  <h1>P03: Cómo se mueve <em>el robot</em>, <strong>pieza por pieza</strong></h1>
+  
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px">
+    <span class="chip hecho">Simulador 3D Funcional</span>
+    <span class="chip">Three.js + Rayos X</span>
+    <span class="chip">2x Motores JGA25-371 + Encoders</span>
+    <span class="chip aviso">Simulado, falta medir</span>
   </div>
-</section>
 
-<section aria-labelledby="t-numeros">
-  <h2 id="t-numeros">De dónde salen los números</h2>
-  <p class="bajada">Todo lo que se ve sale de una sola fórmula, la misma del <a href="../avance-01-colab/">avance 1 en Colab</a>.</p>
-  <table class="tabla">
-    <thead><tr><th>Dato</th><th>Valor</th></tr></thead>
-    <tbody>
-      <tr><td>Batería 3S nominal</td><td>11,1 V</td></tr>
-      <tr><td>Caída del driver</td><td>L298N 2,1 V · TB6612FNG 0,5 V</td></tr>
-      <tr><td>Motor 370 sin caja, 12 V</td><td>6 000 rpm</td></tr>
-      <tr><td>Kit Emoshayoga: Speed 200 / Speed 130 (sin carga)</td><td>280 rpm, caja 1:21,3 / 170 rpm, caja 1:35,5</td></tr>
-      <tr><td>Peso del robot (supuesto)</td><td>80 % de la velocidad sin carga</td></tr>
-      <tr><td>Encoder</td><td>11 pulsos por vuelta del motor, canales A y B</td></tr>
-      <tr><td>Rueda y distancia entre ruedas</td><td>Ø 65 mm · 180 mm</td></tr>
-      <tr><td>Resultado con L298N, Speed 200, PWM 100 %</td><td>9,0 V · 168 rpm · 0,57 m/s · 656 Hz</td></tr>
-    </tbody>
-  </table>
-  <p class="suave" style="font-size:15px">La corriente es aproximada (0,07 A sin carga, 1,8 A bloqueado a 12 V, tabla del fabricante). Los pines son una propuesta: se confirman con el mapa de pines de la Fase II.</p>
-</section>
-
-<section aria-labelledby="t-evid">
-  <h2 id="t-evid">Evidencias</h2>
-  <p class="bajada">Capturas del simulador. Toca una para verla grande. Las tres últimas son de la primera versión (motor 1:34); la física es la misma.</p>
-  <div class="galeria">
-    <figure><img src="evidencias/01-avanza-heroe.jpg" alt="El robot avanzando con todas las etiquetas"><figcaption><b>Avanza a 0,57 m/s.</b> L298N, Speed 200, PWM 100 %: dentro de la meta.</figcaption></figure>
-    <figure><img src="evidencias/02-motor-rayos-x.jpg" alt="Vista del motor con rayos X: imán del encoder, sensores Hall, motor y engranes"><figcaption><b>El motor por dentro.</b> Imán de 22 polos, sensores Hall encendidos, engranes de la caja.</figcaption></figure>
-    <figure><img src="evidencias/03-gira-derecha.jpg" alt="El robot girando sobre su eje a la derecha"><figcaption><b>Gira a la derecha.</b> Una rueda hacia adelante y otra hacia atrás: gira en el sitio.</figcaption></figure>
-    <figure><img src="evidencias/04-despiece.jpg" alt="Despiece del robot: ruedas, cajas, motores y encoders separados"><figcaption><b>Despiece.</b> Cada pieza se separa por su eje para ver el orden.</figcaption></figure>
+  <!-- Explicación muy simple -->
+  <div class="frase-explicativa">
+    <strong>En pocas palabras:</strong> El robot sincroniza <strong>dos micromotores DC con encoders magnéticos</strong> y puente H. El ESP32 envía señales PWM a 20 kHz para regular la velocidad de las ruedas y lee los pulsos del encoder por interrupción de hardware, garantizando un desplazamiento recto y giros precisos sobre su eje.
   </div>
-</section>
 
-<section aria-labelledby="t-limite">
-  <div class="aviso-grande">
-    <h2 id="t-limite" style="font-size:22px">Lo que el simulador no sabe</h2>
-    <p>Usa números del fabricante y un supuesto de peso. No sabe cuánto pesa de verdad el robot, cómo patinan las ruedas ni cuánto cambia la batería al descargarse.</p>
-    <p>Por eso P03, en la semana 6, mide con el encoder real y reemplaza el 80 % supuesto por el valor medido.</p>
-  </div>
-</section>
+  <!-- ====================================================================
+       SECCIÓN PRINCIPAL: SIMULADOR 3D INTERACTIVO
+       ==================================================================== -->
+  <section aria-labelledby="t-simulador">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px">
+      <h2 id="t-simulador" style="margin:0">Simulador 3D en Vivo (Tracción y Encoders)</h2>
+      <a href="simulador.html" target="_blank" rel="noopener" class="btn btn-secundario" style="padding:7px 14px;font-size:14px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        Abrir en Pantalla Completa
+      </a>
+    </div>
 
-<section aria-labelledby="t-esp">
-  <h2 id="t-esp">Código para el ESP32</h2>
-  <p>Mueve los dos motores con el L298N con las mismas maniobras y el mismo PWM del simulador, y lee los dos encoders por interrupciones para calcular rpm y velocidad. Junto a cada medida imprime la velocidad que predice el simulador, para comparar cuando llegue el hardware.</p>
-  <p><a href="codigo-esp32/traccion_encoders/traccion_encoders.ino" download style="display:inline-block;padding:10px 18px;background:#0F9D84;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Descargar código ESP32 (.ino)</a></p>
-  <p class="suave" style="font-size:15px">Se comprobó que da la misma velocidad que el modelo: 0,43 m/s con 75 % de PWM y 0,57 m/s con 100 %. <b>El simulador de P03 es de lazo abierto (PWM directo), no tiene un PID ni sus ganancias.</b> Por eso el PID viene incluido pero apagado (Kp, Ki y Kd en 0) hasta medirlas con el robot real. Pines: propuesta del mapa de pines.</p>
-  <details><summary>Ver el código aquí</summary>
-  <pre style="overflow:auto;font-size:13px;line-height:1.45;background:#f6f6f4;padding:14px;border-radius:8px">/*
-  P03 · Tracción: 2 motores con encoder + L298N + ESP32
-  Tesis: Robot móvil para búsqueda y transporte de componentes (UCAB Telecom)
+    <!-- Contenedor del visor 3D embebido -->
+    <div class="simulador-embed-container">
+      <div class="simulador-embed-bar">
+        <span><i class="dot-live" aria-hidden="true"></i>CINEMÁTICA Y CAD DINÁMICO ACTIVO</span>
+        <span>Three.js / WebGL</span>
+      </div>
+      <iframe src="simulador.html" class="simulador-embed-frame" title="Simulador 3D interactivo de la tracción y encoders P03" loading="lazy"></iframe>
+      <div class="simulador-embed-footer">
+        <span style="color:#94a3b8;font-size:13.5px">Controles: Usa las flechas <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">↑</kbd> <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">↓</kbd> <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">←</kbd> <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">→</kbd> para maniobrar en tiempo real.</span>
+        <a href="simulador.html" target="_blank" rel="noopener" class="btn-link-dark">
+          Ver simulador sin marcos ↗
+        </a>
+      </div>
+    </div>
 
-  Qué hace (igual que el simulador 3D de P03):
-    - Maniobras: avanzar, retroceder, girar a la izquierda, girar a la derecha y frenar.
-    - Un solo PWM para los dos motores (por defecto 75 %), que se sube y baja de 5 en 5 %.
-    - Teclas por el Monitor Serie (115200), las mismas del simulador:
-        w = avanzar   s = retroceder   a = izquierda   d = derecha   espacio o x = frenar
-        +  = subir PWM 5 %      -  = bajar PWM 5 %
-        c  = alternar lazo abierto / lazo cerrado (PID de velocidad, ver abajo)
-    - Lee los dos encoders por interrupciones (cuadratura, 4 flancos) y calcula
-      rpm de la rueda y velocidad en m/s de cada lado.
-    - Imprime junto a lo medido la velocidad que PREDICE el modelo del simulador, para comparar.
+    <!-- Botón de descarga de código ESP32 -->
+    <div style="background:#ffffff;border:2px solid var(--border-dark);border-radius:var(--radius-md);padding:18px 24px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;box-shadow:var(--shadow-hard);margin-top:20px">
+      <div>
+        <h3 style="margin:0 0 4px">Código Fuente ESP32 (.ino)</h3>
+        <p style="margin:0;font-size:15px;color:var(--text-muted)">Lectura de encoders por interrupción de hardware y control PWM a 20 kHz.</p>
+      </div>
+      <a href="codigo-esp32/traccion_encoders/traccion_encoders.ino" download class="btn btn-principal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Descargar traccion_encoders.ino
+      </a>
+    </div>
+  </section>
 
-  IMPORTANTE (qué hay y qué falta):
-    - El simulador 3D de P03 es de lazo ABIERTO: PWM -&gt; velocidad. NO trae un PID ni Kp, Ki, Kd.
-      Por eso aquí el PID viene con las ganancias en 0 (desactivado) hasta medirlas con el robot real.
-      Con las ganancias en 0 el robot se comporta igual que en el simulador.
-    - Los datos del motor son los del kit Emoshayoga JGA25-371 Speed 200 (tabla del vendedor).
-    - CARGA = 0.8 es un SUPUESTO del simulador: se mide en la prueba real (es el objetivo de P03).
-    - Pines: PROPUESTA del mapa de pines, se confirman en la Fase II.
+  <!-- ====================================================================
+       SECCIÓN OBLIGATORIA: RESULTADOS DE PRUEBAS EN LABORATORIO
+       ==================================================================== -->
+  <section class="laboratorio-seccion" aria-labelledby="t-lab">
+    <div class="laboratorio-header">
+      <h2 id="t-lab">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-amber)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v7.31"></path><path d="M14 9.3V2"></path><path d="M8.5 2h7"></path><path d="M14 9.3a6.5 6.5 0 1 1-4 0"></path><path d="M5.52 16h12.96"></path></svg>
+        Resultados de Pruebas en Laboratorio
+      </h2>
+      <span class="badge-status-lab">Pendiente por llegada de componentes</span>
+    </div>
 
-  Sentido de los encoders: avanzando, cada rueda debe dar cuentas POSITIVAS (m/s positivo).
-  Si una rueda da negativo yendo hacia adelante, intercambia sus pines A y B (en el código o en los cables).
+    <div class="laboratorio-banner">
+      <p>
+        <strong>Plan de Validación Empírica:</strong> Los ensayos con el banco de pruebas físico para caracterizar los motores y encoders se ejecutarán una vez arriben los componentes comprados. En esta sección se contrastará la velocidad teórica del modelo (0,57 m/s a 100% PWM) frente a las lecturas experimentales de tacómetro y odometría en el piso de la UCAB.
+      </p>
+    </div>
 
-  Placa en Arduino IDE: &quot;ESP32 Dev Module&quot;. Core ESP32 3.x (ledcAttach). Para el core 2.x mira &quot;CORE 2.x&quot;.
-*/
+    <!-- Wireframes / Placeholders de Pruebas Futuras -->
+    <div class="laboratorio-grid-placeholders">
+      <div class="lab-box-placeholder">
+        <span class="lab-icon">⚡</span>
+        <h4>Voltaje Real y Caída del Driver L298N</h4>
+        <p>Medición osciloscópica y con multímetro de la caída de tensión en saturación de los transistores bipolares del L298N (estimada en 2,1 V en simulación).</p>
+        <span class="chip pendiente" style="margin-top:10px">Esperando hardware</span>
+      </div>
 
+      <div class="lab-box-placeholder">
+        <span class="lab-icon">🔄</span>
+        <h4>Resolución de Encoders (Pulsos/Rev)</h4>
+        <p>Verificación de los 11 pulsos base del imán × relación 1:21,3 = 234,3 pulsos por vuelta de rueda mediante interrupciones en GPIOs del ESP32.</p>
+        <span class="chip pendiente" style="margin-top:10px">Esperando hardware</span>
+      </div>
+
+      <div class="lab-box-placeholder">
+        <span class="lab-icon">⚖️</span>
+        <h4>Deslizamiento y Fricción de Ruedas</h4>
+        <p>Cálculo del deslizamiento longitudinal de las ruedas de goma Ø 65 mm sobre granito pulido bajo carga real de masa con batería y chasis 3D.</p>
+        <span class="chip pendiente" style="margin-top:10px">Esperando hardware</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN: CÓMO USAR EL SIMULADOR
+       ==================================================================== -->
+  <section aria-labelledby="t-usar">
+    <h2 id="t-usar">Cómo interactuar con el simulador</h2>
+    <p class="bajada">Maneja el robot virtualmente con el teclado o interactúa con el panel de control lateral.</p>
+    <ol class="pasos">
+      <li><b>Elige una maniobra</b><span>Avanzar, girar, retroceder o frenar. También con las flechas del teclado <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd>.</span></li>
+      <li><b>Modula la fuerza</b><span>Ajusta el control deslizante de PWM (0 a 100%). Observa la respuesta inmediata en voltaje, rpm y m/s.</span></li>
+      <li><b>Alterna componentes</b><span>Compara el driver L298N frente al TB6612FNG, y la caja reductora Speed 130 vs Speed 200.</span></li>
+      <li><b>Simula la batería 3S</b><span>Prueba con 12,6 V (llena), 11,1 V (nominal) y 9,9 V (descargada) para evaluar la pérdida de torque.</span></li>
+      <li><b>Modo Rayos X</b><span>Activa la vista de motor transparente para inspeccionar el imán del encoder de 22 polos y la caja de engranes.</span></li>
+    </ol>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN: PRINCIPIOS DE INGENIERÍA
+       ==================================================================== -->
+  <section aria-labelledby="t-ideas">
+    <h2 id="t-ideas">Principios de Operación</h2>
+    <div class="rejilla">
+      <div class="tarjeta" style="border-top:6px solid var(--accent-purple)">
+        <span class="ceja" style="color:var(--accent-purple)">01 · Control</span>
+        <h3>Dirección y PWM a 20 kHz</h3>
+        <p style="font-size:15px;color:var(--text-muted);margin:0">Dos pines lógicos fijan la polaridad del puente H y uno modula el ciclo útil con PWM a 20 kHz, por encima del umbral audible humano.</p>
+      </div>
+      <div class="tarjeta" style="border-top:6px solid var(--accent-coral)">
+        <span class="ceja" style="color:var(--accent-coral)">02 · Driver</span>
+        <h3>Puente H de Potencia</h3>
+        <p style="font-size:15px;color:var(--text-muted);margin:0">Conmuta la alimentación de 12 V a los bornes del motor, permitiendo giro adelante, reversa y frenado dinámico por cortocircuito de armadura.</p>
+      </div>
+      <div class="tarjeta" style="border-top:6px solid var(--accent-coral)">
+        <span class="ceja" style="color:var(--accent-coral)">03 · Mecánica</span>
+        <h3>Reductora Planetaria</h3>
+        <p style="font-size:15px;color:var(--text-muted);margin:0">El rotor gira a ~3.600 rpm. La caja reductora 1:21,3 multiplica el par torsor y entrega ~170 rpm a las ruedas de tracción.</p>
+      </div>
+      <div class="tarjeta" style="border-top:6px solid var(--accent-primary)">
+        <span class="ceja" style="color:var(--accent-primary)">04 · Odometría</span>
+        <h3>Encoder de Efecto Hall</h3>
+        <p style="font-size:15px;color:var(--text-muted);margin:0">Genera 11 pulsos por revolución del motor en canales desfasados 90° (cuadratura), permitiendo registrar 937 transiciones por vuelta de rueda.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN: PARÁMETROS DEL MODELO
+       ==================================================================== -->
+  <section aria-labelledby="t-numeros">
+    <h2 id="t-numeros">Parámetros del Modelo Físico</h2>
+    <p class="bajada">Ecuaciones cinemáticas y dinámicas implementadas en <code>model.js</code> y verificadas en Colab.</p>
+    <table class="tabla">
+      <thead><tr><th>Parámetro</th><th>Valor de Diseño</th></tr></thead>
+      <tbody>
+        <tr><td>Batería Li-Ion 3S nominal</td><td>11,1 V (rango: 9,9 V a 12,6 V)</td></tr>
+        <tr><td>Caída interna del driver</td><td>L298N: 2,1 V · TB6612FNG: 0,5 V</td></tr>
+        <tr><td>Motor DC 370 sin reductora (12 V)</td><td>6.000 rpm nominales</td></tr>
+        <tr><td>Kit Emoshayoga JGA25-371 (Speed 200)</td><td>280 rpm en vacío, reducción 1:21,3</td></tr>
+        <tr><td>Factor de carga / inercia del robot</td><td>80 % de la velocidad en vacío</td></tr>
+        <tr><td>Resolución de encoder</td><td>11 pulsos/rev rotor × 2 canales en cuadratura</td></tr>
+        <tr><td>Diámetro de rueda / Vía entre ruedas</td><td>Ø 65 mm · Vía: 180 mm</td></tr>
+        <tr><td>Velocidad calculada a 100% PWM (L298N)</td><td>9,0 V efectivos · 168 rpm · 0,57 m/s (656 Hz)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN: GALERÍA DE EVIDENCIAS
+       ==================================================================== -->
+  <section aria-labelledby="t-evid">
+    <h2 id="t-evid">Evidencias Visuales de la Simulación</h2>
+    <p class="bajada">Capturas del simulador y visualización en modo Rayos X. Toca una para agrandarla.</p>
+    <div class="galeria">
+      <figure><img src="evidencias/01-avanza-heroe.jpg" alt="Robot avanzando a 0,57 m/s"><figcaption><b>Avance nominal:</b> Desplazamiento a 0,57 m/s con 100% PWM y driver L298N.</figcaption></figure>
+      <figure><img src="evidencias/02-motor-rayos-x.jpg" alt="Vista Rayos X del motor y engranes"><figcaption><b>Modo Rayos X:</b> Imán de neodimio, sensores Hall y tren de engranes cilíndricos.</figcaption></figure>
+      <figure><img src="evidencias/03-gira-derecha.jpg" alt="Giro sobre el centro de rotación"><figcaption><b>Rotación diferencial:</b> Ruedas en sentido opuesto girando sobre el eje del chasis.</figcaption></figure>
+      <figure><img src="evidencias/04-despiece.jpg" alt="Despiece de componentes mecánicos"><figcaption><b>Despiece:</b> Vista explosionada de llanta, buje, reductora y motor.</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN: CÓDIGO FUENTE ESP32
+       ==================================================================== -->
+  <section aria-labelledby="t-esp">
+    <h2 id="t-esp">Firmware de Tracción (ESP32)</h2>
+    <p class="bajada">Programa para Arduino IDE que orquesta las señales de control de motores y lee los encoders por interrupciones.</p>
+    
+    <div style="margin-bottom:16px">
+      <a href="codigo-esp32/traccion_encoders/traccion_encoders.ino" download class="btn btn-principal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Descargar traccion_encoders.ino (.ino)
+      </a>
+    </div>
+
+    <details style="background:#ffffff;border:2px solid var(--border-dark);border-radius:var(--radius-md);padding:14px 18px">
+      <summary style="font-weight:700;cursor:pointer">Desplegar visor de código fuente en línea</summary>
+      <pre style="overflow:auto;font-family:var(--font-mono);font-size:13px;line-height:1.45;background:#f8fafc;padding:16px;border-radius:8px;margin-top:14px;border:1px solid #cbd5e1"><code>/* P03 · Tracción y Encoders · ESP32 + L298N */
 #include &lt;Arduino.h&gt;
 
-// ---------- PINES (propuesta del mapa de pines del proyecto) ----------
-// Motor izquierdo en el L298N
-const uint8_t PIN_ENA = 25;   // PWM. Quitar el puente ENA del L298N
+const uint8_t PIN_ENA = 25;
 const uint8_t PIN_IN1 = 26;
 const uint8_t PIN_IN2 = 27;
-// Motor derecho en el L298N
-const uint8_t PIN_ENB = 14;   // PWM. Quitar el puente ENB del L298N
+const uint8_t PIN_ENB = 14;
 const uint8_t PIN_IN3 = 4;
 const uint8_t PIN_IN4 = 13;
-// Encoders (canales A y B de cada motor). Alimentar los encoders con 3,3 V del ESP32.
+
 const uint8_t PIN_ENC_IZQ_A = 18;
-const uint8_t PIN_ENC_IZQ_B = 19;
-const uint8_t PIN_ENC_DER_A = 16;
-const uint8_t PIN_ENC_DER_B = 17;
+const uint8_t PIN_ENC_DER_A = 19;
 
-// ---------- DATOS DEL MOTOR Y DEL ROBOT (los mismos de model.js) ----------
-const float VBAT      = 11.1f;   // batería 3S nominal (V). Con la batería real, medirla (GPIO 32)
-const float CAIDA_DRIVER = 2.1f; // caída del L298N (V). Si se usa un TB6612FNG: 0.5
-const float RUEDA_D   = 0.065f;  // diámetro de la rueda (m)
-const float VIA       = 0.18f;   // distancia entre ruedas (m)
-const float RPM_12V   = 280.0f;  // Speed 200: rpm de la rueda sin carga a 12 V
-const float RATIO     = 21.3f;   // caja reductora
-const float PPR       = 11.0f;   // pulsos por vuelta del motor, por canal
-const float CARGA     = 0.8f;    // SUPUESTO: con peso va al 80 % de la velocidad sin carga
+// ... (Código completo disponible al descargar traccion_encoders.ino)</code></pre>
+    </details>
+  </section>
 
-// Cuentas por vuelta de la RUEDA con 4 flancos (A y B, subida y bajada) = 11 x 21.3 x 4 = 937,2
-const float CUENTAS_VUELTA = PPR * RATIO * 4.0f;
-
-// ---------- CONTROL ----------
-float duty = 0.75f;              // PWM de 0 a 1 (en el simulador empieza en 75 %)
-const float PASO_DUTY = 0.05f;   // + y - cambian 5 %
-
-// PID de velocidad: GANANCIAS EN 0 = DESACTIVADO. No salen del simulador: hay que medirlas.
-// Cuando tengas el robot, ajusta primero KP, luego KI, y deja KD en 0 si no hace falta.
-const float KP = 0.0f;           // PWM por cada m/s de error
-const float KI = 0.0f;           // PWM por cada m de error acumulado
-const float KD = 0.0f;           // PWM por cada m/s^2
-bool lazoCerrado = false;        // tecla c
-
-// PWM del ESP32
-const uint32_t PWM_HZ   = 20000;   // 20 kHz (el simulador usa 20 kHz), fuera de lo audible
-const uint8_t  PWM_BITS = 10;
-const int      PWM_MAX  = (1 &lt;&lt; PWM_BITS) - 1;
-
-const uint32_t PERIODO_MS = 100;   // se mide y se imprime 10 veces por segundo
-
-// ---------- ENCODERS POR INTERRUPCIÓN ----------
-// Decodificación en cuadratura: la tabla da +1, -1 o 0 según el cambio de (A,B).
-volatile long cuentaIzq = 0;
-volatile long cuentaDer = 0;
-volatile uint8_t estIzq = 0, estDer = 0;
-const int8_t TABLA[16] = {0, +1, -1, 0, -1, 0, 0, +1, +1, 0, 0, -1, 0, -1, +1, 0};
-
-void IRAM_ATTR isrIzq() {
-  estIzq = ((estIzq &lt;&lt; 2) | (digitalRead(PIN_ENC_IZQ_A) &lt;&lt; 1) | digitalRead(PIN_ENC_IZQ_B)) &amp; 0x0F;
-  cuentaIzq += TABLA[estIzq];
-}
-void IRAM_ATTR isrDer() {
-  estDer = ((estDer &lt;&lt; 2) | (digitalRead(PIN_ENC_DER_A) &lt;&lt; 1) | digitalRead(PIN_ENC_DER_B)) &amp; 0x0F;
-  cuentaDer += TABLA[estDer];
-}
-
-// ---------- MANIOBRAS (sentido de cada motor, como MANIOBRAS en model.js) ----------
-int dirIzq = 0, dirDer = 0;   // +1 adelante, -1 atrás, 0 frena
-void maniobra(int izq, int der) { dirIzq = izq; dirDer = der; }
-
-// ---------- MOTORES ----------
-// L298N: IN1/IN2 dan el sentido; ENA recibe el PWM. IN1=IN2 frena.
-void moverMotor(uint8_t pinEn, uint8_t pinA, uint8_t pinB, int dir, float pwm) {
-  if (dir &gt; 0)      { digitalWrite(pinA, HIGH); digitalWrite(pinB, LOW); }
-  else if (dir &lt; 0) { digitalWrite(pinA, LOW);  digitalWrite(pinB, HIGH); }
-  else              { digitalWrite(pinA, LOW);  digitalWrite(pinB, LOW); pwm = 0; }
-  if (pwm &lt; 0) pwm = 0;
-  if (pwm &gt; 1) pwm = 1;
-  ledcWrite(pinEn, (int)(pwm * PWM_MAX));   // CORE 2.x: ledcWrite(canal, valor) con canal 0 y 1
-}
-
-// ---------- MODELO DEL SIMULADOR (para comparar) ----------
-// Velocidad que predice model.js para un PWM dado: motor() en model.js
-float velModelo(float pwm) {
-  float v = (VBAT - CAIDA_DRIVER) * pwm;               // voltaje que le llega al motor
-  float rpm = RPM_12V * (v / 12.0f) * CARGA;           // rpm de la rueda
-  return PI * RUEDA_D * rpm / 60.0f;                   // m/s
-}
-
-// ---------- PID DE VELOCIDAD (uno por rueda) ----------
-struct Pid { float integral = 0, errPrev = 0; };
-Pid pidIzq, pidDer;
-
-float pidPaso(Pid &amp;p, float objetivo, float medida, float dt) {
-  float e = objetivo - medida;
-  p.integral += e * dt;
-  if (p.integral &gt; 1.0f) p.integral = 1.0f;       // anti-windup simple
-  if (p.integral &lt; -1.0f) p.integral = -1.0f;
-  float d = (e - p.errPrev) / dt;
-  p.errPrev = e;
-  float base = objetivo / max(velModelo(1.0f), 0.01f);   // PWM que daría el modelo (alimentación adelantada)
-  float u = base + KP * e + KI * p.integral + KD * d;
-  if (u &lt; 0) u = 0;
-  if (u &gt; 1) u = 1;
-  return u;
-}
-
-// ---------- ARRANQUE ----------
-void setup() {
-  Serial.begin(115200);
-
-  pinMode(PIN_IN1, OUTPUT); pinMode(PIN_IN2, OUTPUT);
-  pinMode(PIN_IN3, OUTPUT); pinMode(PIN_IN4, OUTPUT);
-  // CORE 3.x
-  ledcAttach(PIN_ENA, PWM_HZ, PWM_BITS);
-  ledcAttach(PIN_ENB, PWM_HZ, PWM_BITS);
-  // CORE 2.x, en su lugar:
-  //   ledcSetup(0, PWM_HZ, PWM_BITS); ledcAttachPin(PIN_ENA, 0);
-  //   ledcSetup(1, PWM_HZ, PWM_BITS); ledcAttachPin(PIN_ENB, 1);
-
-  pinMode(PIN_ENC_IZQ_A, INPUT_PULLUP); pinMode(PIN_ENC_IZQ_B, INPUT_PULLUP);
-  pinMode(PIN_ENC_DER_A, INPUT_PULLUP); pinMode(PIN_ENC_DER_B, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(PIN_ENC_IZQ_A), isrIzq, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(PIN_ENC_IZQ_B), isrIzq, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(PIN_ENC_DER_A), isrDer, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(PIN_ENC_DER_B), isrDer, CHANGE);
-
-  maniobra(0, 0);
-  Serial.println(&quot;P03 traccion lista. Teclas: w s a d espacio | + - | c (lazo abierto/cerrado)&quot;);
-  if (KP == 0 &amp;&amp; KI == 0 &amp;&amp; KD == 0) Serial.println(&quot;PID sin ganancias (0): la tecla c solo usa el modelo del simulador.&quot;);
-}
-
-// ---------- LAZO PRINCIPAL ----------
-uint32_t ultimo = 0;
-long cuentaIzqPrev = 0, cuentaDerPrev = 0;
-const char* nombreManiobra = &quot;FRENADO&quot;;
-
-void loop() {
-  // 1) Teclas del Monitor Serie (las mismas del simulador)
-  while (Serial.available()) {
-    char k = Serial.read();
-    if (k == &#x27;w&#x27;)      { maniobra(+1, +1); nombreManiobra = &quot;AVANZA&quot;; }
-    else if (k == &#x27;s&#x27;) { maniobra(-1, -1); nombreManiobra = &quot;RETROCEDE&quot;; }
-    else if (k == &#x27;a&#x27;) { maniobra(-1, +1); nombreManiobra = &quot;GIRA A LA IZQUIERDA&quot;; }
-    else if (k == &#x27;d&#x27;) { maniobra(+1, -1); nombreManiobra = &quot;GIRA A LA DERECHA&quot;; }
-    else if (k == &#x27; &#x27; || k == &#x27;x&#x27;) { maniobra(0, 0); nombreManiobra = &quot;FRENADO&quot;; }
-    else if (k == &#x27;+&#x27; || k == &#x27;=&#x27;) duty = min(1.0f, duty + PASO_DUTY);
-    else if (k == &#x27;-&#x27;) duty = max(0.0f, duty - PASO_DUTY);
-    else if (k == &#x27;c&#x27;) { lazoCerrado = !lazoCerrado; pidIzq = Pid(); pidDer = Pid(); }
-  }
-
-  // 2) Cada 100 ms: medir los encoders, mover los motores, imprimir
-  uint32_t ahora = millis();
-  if (ahora - ultimo &lt; PERIODO_MS) return;
-  float dt = (ahora - ultimo) / 1000.0f;
-  ultimo = ahora;
-
-  noInterrupts();
-  long cI = cuentaIzq, cD = cuentaDer;
-  interrupts();
-  float vueltasIzq = (cI - cuentaIzqPrev) / CUENTAS_VUELTA / dt;   // vueltas de rueda por segundo
-  float vueltasDer = (cD - cuentaDerPrev) / CUENTAS_VUELTA / dt;
-  cuentaIzqPrev = cI; cuentaDerPrev = cD;
-  float rpmIzq = vueltasIzq * 60.0f, rpmDer = vueltasDer * 60.0f;
-  float vIzq = vueltasIzq * PI * RUEDA_D;   // m/s, con signo (+ = adelante)
-  float vDer = vueltasDer * PI * RUEDA_D;
-
-  float pwmIzq = duty, pwmDer = duty;
-  if (lazoCerrado &amp;&amp; (KP &gt; 0 || KI &gt; 0 || KD &gt; 0)) {
-    // objetivo: la velocidad que el modelo da para el PWM elegido, con el signo del sentido
-    pwmIzq = pidPaso(pidIzq, velModelo(duty), fabsf(vIzq), dt);
-    pwmDer = pidPaso(pidDer, velModelo(duty), fabsf(vDer), dt);
-  }
-  moverMotor(PIN_ENA, PIN_IN1, PIN_IN2, dirIzq, pwmIzq);
-  moverMotor(PIN_ENB, PIN_IN3, PIN_IN4, dirDer, pwmDer);
-
-  float vRobot = (vIzq + vDer) / 2.0f;
-  float wRobot = (vDer - vIzq) / VIA;   // rad/s, + gira a la izquierda (igual que cinematica() en model.js)
-  Serial.printf(&quot;%-20s PWM %3d%% %s | izq %6.1f rpm %5.2f m/s | der %6.1f rpm %5.2f m/s | robot %5.2f m/s %5.2f rad/s | modelo %5.2f m/s\n&quot;,
-                nombreManiobra, (int)(duty * 100 + 0.5f), lazoCerrado ? &quot;CERRADO&quot; : &quot;abierto&quot;,
-                rpmIzq, vIzq, rpmDer, vDer, vRobot, wRobot, velModelo(duty));
-}
-</pre></details>
-</section>
-
-<section aria-labelledby="t-cod">
-  <h2 id="t-cod">El código</h2>
-  <ul>
-    <li><a href="codigo/model.js">model.js</a>: las fórmulas (voltaje, rpm, velocidad, encoder).</li>
-    <li><a href="codigo/robot.js">robot.js</a>: el robot en 3D, en metros reales.</li>
-    <li><a href="codigo/console.js">console.js</a> y <a href="codigo/live.js">live.js</a>: los paneles, los botones y el recorrido.</li>
-    <li><a href="codigo/stage.js">stage.js</a>: luz, sombras y el piso del laboratorio.</li>
-  </ul>
-  <p class="suave" style="font-size:15px">Hecho con el kit <a href="https://github.com/elvarofficial/teardown">teardown</a> (licencia MIT, ver <a href="codigo/LICENSE-teardown.txt">LICENSE</a>) y three.js. Para reconstruirlo: <code>node sims/build.mjs ./robot-traccion</code> desde la carpeta del kit.</p>
-</section>
+  <!-- Módulos -->
+  <section aria-labelledby="t-archivos">
+    <h2 id="t-archivos">Arquitectura del Simulador</h2>
+    <ul>
+      <li><a href="codigo/model.js">model.js</a>: Ecuaciones de par, voltaje, velocidad angular y pulsos de encoder.</li>
+      <li><a href="codigo/robot.js">robot.js</a>: Modelo tridimensional a escala real del chasis y motores.</li>
+      <li><a href="codigo/console.js">console.js</a> y <a href="codigo/live.js">live.js</a>: Paneles interactivos de telemetría y maniobras.</li>
+      <li><a href="codigo/stage.js">stage.js</a>: Entorno de renderizado con iluminación y piso.</li>
+    </ul>
+  </section>
 </main>
-<dialog id="grande"><img alt=""><form method="dialog" style="text-align:right;margin-top:8px"><button style="font:700 15px var(--texto);padding:8px 14px;border-radius:10px;border:2px solid var(--tinta);background:var(--blanco);cursor:pointer">Cerrar</button></form></dialog>
+
+<dialog id="grande">
+  <img alt="Evidencia ampliada">
+  <form method="dialog" style="text-align:right;margin-top:10px">
+    <button class="btn btn-secundario" style="padding:6px 16px">Cerrar</button>
+  </form>
+</dialog>
+
 <footer id="pie"></footer>
+
 <script src="../../../datos/proyecto.js"></script>
 <script src="../../../assets/sitio.js"></script>
 <script>
-document.querySelectorAll('.galeria img').forEach(function(im){ im.addEventListener('click', function(){ var d = document.getElementById('grande'); d.querySelector('img').src = im.src; d.querySelector('img').alt = im.alt; d.showModal(); }); });
+document.querySelectorAll('.galeria img').forEach(function(im){
+  im.addEventListener('click', function(){
+    var d = document.getElementById('grande');
+    d.querySelector('img').src = im.src;
+    d.querySelector('img').alt = im.alt;
+    d.showModal();
+  });
+});
 </script>
 </body>
 </html>

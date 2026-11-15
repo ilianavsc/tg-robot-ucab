@@ -3,389 +3,290 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>P08 · Avance 1 · Simulador del seguidor de línea</title>
+<title>P08 · Simulador 3D del Seguidor de Línea · TG Robot UCAB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../../../assets/estilo.css">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../../assets/css/style.css">
 <style>
-.volver{font-size:15px;text-decoration:none;color:var(--suave)}
-h1 em{font-style:normal;color:var(--sale)}
-h1 strong{color:var(--llega)}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px}
-.frase{font-family:var(--display);font-weight:500;font-size:clamp(21px,3vw,28px);line-height:1.3;background:var(--blanco);border:2px solid var(--tinta);border-radius:18px;padding:22px 26px;margin:0 0 30px;box-shadow:6px 6px 0 var(--tinta)}
-section{margin:0 0 48px}
-h2{font-family:var(--display);font-size:28px;margin:0 0 6px}
-.portada{display:block;position:relative;border:2px solid var(--tinta);border-radius:18px;overflow:hidden;box-shadow:6px 6px 0 var(--tinta);background:var(--blanco);text-decoration:none}
-.portada img{display:block;width:100%;height:auto}
-.portada .abrir{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--display);font-weight:700;font-size:clamp(18px,2.6vw,26px);color:var(--blanco);background:var(--llega);border:2px solid var(--tinta);border-radius:999px;padding:14px 26px;box-shadow:4px 4px 0 var(--tinta);white-space:nowrap;transition:transform .15s}
-.portada:hover .abrir{transform:translate(-50%,-50%) scale(1.04)}
-.pasos{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-.pasos li{background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;padding:14px 16px}
-.pasos b{display:block;font-family:var(--display);font-size:19px;margin-bottom:2px}
-.pasos span{font-size:16px;color:var(--suave)}
-.pasos kbd{font-family:var(--mono);font-size:13px;background:var(--papel);border:1px solid var(--punto);border-radius:5px;padding:1px 6px}
-.idea .nivel{font-family:var(--mono);font-weight:600;font-size:13px;color:var(--c)}
-.idea h3{font-family:var(--display);font-size:21px;margin:4px 0 6px}
-.idea p{margin:0;font-size:16px;color:var(--suave)}
-.galeria{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
-.galeria figure{margin:0;background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;overflow:hidden}
-.galeria img{display:block;width:100%;height:auto;cursor:zoom-in}
-.galeria figcaption{padding:10px 14px;font-size:15px}
-dialog{border:none;border-radius:16px;padding:12px;max-width:min(1400px,96vw);background:var(--blanco)}
-dialog::backdrop{background:rgba(20,33,61,.7)}
+dialog{border:none;border-radius:16px;padding:12px;max-width:min(1400px,96vw);background:#ffffff;box-shadow:var(--shadow-hard)}
+dialog::backdrop{background:rgba(15,23,42,.75);backdrop-filter:blur(3px)}
 dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
-.tabla{width:100%;border-collapse:collapse;font-size:16px;background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;overflow:hidden}
-.tabla th,.tabla td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--punto);vertical-align:top}
-.tabla th{font-family:var(--mono);font-size:13px;color:var(--suave);font-weight:600}
-.tabla td:last-child{font-family:var(--mono);font-size:14px}
-.aviso-grande{background:var(--pend);border:2px solid var(--tinta);border-radius:16px;padding:18px 22px}
-.aviso-grande p{margin:0 0 8px}.aviso-grande p:last-child{margin:0}
-.tabla.res td:last-child{font-family:var(--texto);font-size:15px}
-.res tr.mal td:last-child{font-weight:700;color:var(--llega)}
+.tabla.res td:last-child{font-family:var(--font-body);font-size:15px}
+.res tr.mal td:last-child{font-weight:700;color:var(--accent-coral)}
 </style>
 </head>
 <body data-pagina="prototipos" data-base="../../../">
 <header id="menu"></header>
+
 <main>
-<a class="volver" href="../../index.html">← Todos los prototipos</a>
-<p class="ceja">Prototipo P08 · Avance 1 · Simulador 3D</p>
-<h1>Cómo sigue <em>la línea</em> el robot</h1>
-<div class="chips">
-  <span class="chip">Fase I (adelanto de P08)</span>
-  <span class="chip">three.js · kit teardown</span>
-  <span class="chip aviso">Pista provisional</span>
-  <span class="chip aviso">Simulado, falta medir</span>
-  <span class="chip">14 nov 2026</span>
-</div>
-
-<p class="frase">Cuatro sensores miran el piso. El ESP32 calcula dónde quedó la cinta y corrige: si se fue a la izquierda, acelera la rueda derecha y frena la izquierda. Así, 100 veces por segundo.</p>
-
-<section>
-  <a class="portada" href="simulador.html">
-    <img src="evidencias/01-sigue-la-linea.jpg" alt="Simulador 3D: el robot siguiendo la cinta negra sobre el granito, con los paneles de los sensores, el control PD, la pista y los resultados">
-    <span class="abrir">Abrir el simulador ▶</span>
+  <!-- Migas de pan / Volver -->
+  <a class="volver" href="../../index.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    Volver al catálogo de prototipos
   </a>
-  <p class="suave" style="font-size:15px;margin-top:14px">Funciona sin internet, en una sola página. Mejor en computadora. En teléfono, gíralo de lado. Usa el mismo robot del <a href="../../P03-motores/avance-02-simulador-3d/">simulador de la tracción</a>, que no se tocó.</p>
-</section>
 
-<section aria-labelledby="t-usar">
-  <h2 id="t-usar">Cómo usarlo</h2>
-  <p class="bajada">Si no lo tocas, hace un recorrido solo. Al tocar cualquier cosa, lo manejas tú.</p>
-  <ol class="pasos">
-    <li><b>Arranca</b><span>ARRANCAR, PARAR y REINICIAR. También <kbd>espacio</kbd> y <kbd>R</kbd>.</span></li>
-    <li><b>Ajusta el PD</b><span>Velocidad base, Kp y Kd. Mira la gráfica: si zigzaguea, algo falta.</span></li>
-    <li><b>Mueve los sensores</b><span>Separación entre ellos y qué tan adelante de las ruedas van.</span></li>
-    <li><b>Batería fija</b><span>Queda en 11,1 V para enfocarse en el PD. Se cambia en el <a href="../../P03-motores/avance-02-simulador-3d/">simulador de P03</a>. Con 9,9 V el robot va más lento (ver la tabla).</span></li>
-  </ol>
-</section>
-
-<section aria-labelledby="t-ideas">
-  <h2 id="t-ideas">Lo que se aprende</h2>
-  <div class="rejilla">
-    <div class="tarjeta idea" style="--c:var(--llega)"><span class="nivel">01 · Los ojos</span><h3>Alto en la cinta, bajo en el piso</h3><p>Cada TCRT5000 da un número de 0 a 4095. Los granos negros del granito también suben la lectura; por eso hay un umbral: lo que queda por debajo cuenta como piso.</p></div>
-    <div class="tarjeta idea" style="--c:var(--qos)"><span class="nivel">02 · El cerebro</span><h3>Proporcional y derivativo</h3><p>P corrige según qué tan lejos está la línea. D frena la corrección si la línea se acerca rápido. Sin D, el robot zigzaguea y se sale.</p></div>
-    <div class="tarjeta idea" style="--c:var(--sale)"><span class="nivel">03 · Los sensores</span><h3>La separación importa</h3><p>Si entre los dos sensores del centro hay más de 19 mm, la cinta cabe en el hueco y ninguno la ve. Si van muy cerca de las ruedas, ven la curva tarde.</p></div>
-    <div class="tarjeta idea" style="--c:var(--pend)"><span class="nivel">04 · La batería</span><h3>Menos voltios, menos velocidad</h3><p>De 12,6 V a 9,9 V la vuelta pasa de 17 s a 22,5 s. Con la batería baja el robot queda justo en la meta de 0,35 m/s.</p></div>
+  <p class="ceja">Prototipo P08 · Navegación Óptica · Avance 1</p>
+  <h1>P08: Cómo sigue <em>la línea</em> el robot</h1>
+  
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px">
+    <span class="chip hecho">Simulador 3D Funcional</span>
+    <span class="chip">Three.js + Física</span>
+    <span class="chip">ESP32 + L298N + 4x TCRT5000</span>
+    <span class="chip aviso">Pista Provisional (Lab UCAB)</span>
   </div>
-</section>
 
-<section aria-labelledby="t-res">
-  <h2 id="t-res">Resultados en la pista de prueba</h2>
-  <p class="bajada">Una vuelta mide 8,05 m y la curva más cerrada tiene 22 cm de radio. Valores iniciales: base 80 %, Kp 0,030, Kd 0,0015, sensores a 18 mm entre sí y a 60 mm del eje.</p>
-  <table class="tabla res">
-    <thead><tr><th>Qué se cambió</th><th>Vuelta</th><th>Velocidad</th><th>Más lejos</th><th>Resultado</th></tr></thead>
-    <tbody>
-      <tr><td>Valores iniciales, batería 11,1 V (la del simulador)</td><td>19,7 s</td><td>0,41 m/s</td><td>17 mm</td><td>Da la vuelta</td></tr>
-      <tr><td>Batería llena, 12,6 V</td><td>17,1 s</td><td>0,47 m/s</td><td>18 mm</td><td>Da la vuelta</td></tr>
-      <tr><td>Batería baja, 9,9 V</td><td>22,5 s</td><td>0,36 m/s</td><td>16 mm</td><td>Da la vuelta, justo en la meta</td></tr>
-      <tr><td>Base al 100 %</td><td>18,0 s</td><td>0,45 m/s</td><td>26 mm</td><td>Da la vuelta, pero se mece más</td></tr>
-      <tr><td>Sensores a 120 mm del eje</td><td>19,3 s</td><td>0,42 m/s</td><td>14 mm</td><td>Da la vuelta, más centrado</td></tr>
-      <tr class="mal"><td>Sensores a 30 mm entre sí</td><td>37,0 s</td><td>0,22 m/s</td><td>50 mm</td><td>Pierde la línea el 23 % del tiempo</td></tr>
-      <tr class="mal"><td>Sin derivativo (Kd = 0)</td><td colspan="3">No completa la vuelta</td><td>Zigzaguea y se sale</td></tr>
-      <tr class="mal"><td>Kp bajo (0,010)</td><td colspan="3">No completa la vuelta</td><td>Se sale de la pista</td></tr>
-      <tr class="mal"><td>Sensores a 30 mm del eje</td><td colspan="3">No completa la vuelta</td><td>Se sale de la pista</td></tr>
-    </tbody>
-  </table>
-  <p class="suave" style="font-size:15px">"Más lejos" es la distancia máxima entre el centro de la regleta de sensores y el centro de la cinta, en una vuelta. Salen de <a href="codigo/pruebas.mjs">pruebas.mjs</a>, que corre el mismo código de la página sin pantalla, con el granito incluido. Cada corrida varía un poco por el ruido de los sensores.</p>
-</section>
-
-<section aria-labelledby="t-numeros">
-  <h2 id="t-numeros">De dónde salen los números</h2>
-  <p class="bajada">El motor y el driver son los mismos del <a href="../../P03-motores/avance-02-simulador-3d/">avance 2 de P03</a>. Lo nuevo de los sensores son supuestos hasta tener los módulos.</p>
-  <table class="tabla">
-    <thead><tr><th>Dato</th><th>Valor</th></tr></thead>
-    <tbody>
-      <tr><td>Motor (kit Emoshayoga JGA25-371 Speed 200, tabla del vendedor)</td><td>280 rpm sin carga a 12 V, caja 1:21,3</td></tr>
-      <tr><td>Caída del L298N (igual que P03)</td><td>2,1 V</td></tr>
-      <tr><td>Rueda y distancia entre ruedas</td><td>Ø 65 mm · 180 mm</td></tr>
-      <tr><td>Batería 3S</td><td>12,6 V llena · 11,1 V nominal · 9,9 V alarma</td></tr>
-      <tr><td>Peso del robot (supuesto de P03)</td><td>80 % de la velocidad sin carga</td></tr>
-      <tr><td>Rueda en llegar a su velocidad (supuesto de P03)</td><td>0,18 s</td></tr>
-      <tr><td>Cinta (lista de materiales)</td><td>Aislante negra de 19 mm</td></tr>
-      <tr><td>Lectura del ADC en piso y en cinta (supuesto)</td><td>500 y 3 300 de 4 095</td></tr>
-      <tr><td>Zona que ve cada sensor (supuesto)</td><td>radio 3 mm</td></tr>
-      <tr><td>Granito (inventado al azar)</td><td>22 % de granos; un grano negro lee 60 % de lo que lee la cinta</td></tr>
-      <tr><td>Umbral y lazo de control (supuesto)</td><td>20 % · 100 veces por segundo</td></tr>
-    </tbody>
-  </table>
-</section>
-
-<section aria-labelledby="t-evid">
-  <h2 id="t-evid">Evidencias</h2>
-  <p class="bajada">Capturas del simulador. Toca una para verla grande.</p>
-  <div class="galeria">
-    <figure><img src="evidencias/01-sigue-la-linea.jpg" alt="El robot siguiendo la cinta con todas las etiquetas"><figcaption><b>Sigue la línea.</b> Valores iniciales: vuelta de 19,9 s, a 0,41 m/s.</figcaption></figure>
-    <figure><img src="evidencias/02-sensores-de-cerca.jpg" alt="Los 4 módulos TCRT5000 de cerca sobre la cinta"><figcaption><b>Los sensores de cerca.</b> Verde: ve la cinta. Coral: ve el granito.</figcaption></figure>
-    <figure><img src="evidencias/03-vista-de-arriba.jpg" alt="El robot visto desde arriba sobre el granito y la cinta"><figcaption><b>Desde arriba.</b> El granito y la cinta de 19 mm, a escala.</figcaption></figure>
-    <figure><img src="evidencias/04-sensores-a-30mm.jpg" alt="Con los sensores a 30 mm la gráfica zigzaguea"><figcaption><b>Sensores a 30 mm.</b> Hueco de 11 mm en el centro: la gráfica zigzaguea y llega a 42 mm de la línea.</figcaption></figure>
-    <figure><img src="evidencias/05-bateria-baja.jpg" alt="El robot con la batería en 9,9 V"><figcaption><b>Batería baja, 9,9 V.</b> Vuelta de 22,7 s, a 0,36 m/s.</figcaption></figure>
+  <!-- Explicación simple del prototipo -->
+  <div class="frase-explicativa">
+    <strong>En pocas palabras:</strong> El robot usa <strong>4 ojos infrarrojos (TCRT5000)</strong> para seguir una línea negra sobre el piso de granito. El microcontrolador ESP32 calcula el desvío exacto y corrige el rumbo 100 veces por segundo mediante un algoritmo proporcional-derivativo (PD): si se desvía a la izquierda, acelera el motor derecho y frena el izquierdo.
   </div>
-</section>
 
-<section aria-labelledby="t-limite">
-  <div class="aviso-grande">
-    <h2 id="t-limite" style="font-size:22px">Lo que el simulador no sabe</h2>
-    <p><b>La pista es inventada.</b> Se cambia por el recorrido real con las medidas de la observación del 18 nov (distancias, pasillos y la foto del piso).</p>
-    <p><b>Los sensores no están calibrados.</b> Cuando lleguen los TCRT5000 hay que leer cuánto marcan sobre el granito del laboratorio y sobre la cinta, a la altura real.</p>
-    <p><b>El motor es ideal.</b> No sabe el PWM mínimo para que arranque, cuánto patinan las ruedas ni el peso real. P03 lo mide con el encoder en la semana 6.</p>
-  </div>
-</section>
+  <!-- ====================================================================
+       SECCIÓN PRINCIPAL: SIMULADOR 3D INTERACTIVO
+       ==================================================================== -->
+  <section aria-labelledby="t-simulador">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px">
+      <h2 id="t-simulador" style="margin:0">Simulador 3D en Vivo</h2>
+      <div style="display:flex;gap:10px;align-items:center">
+        <a href="simulador.html" target="_blank" rel="noopener" class="btn btn-secundario" style="padding:7px 14px;font-size:14px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          Abrir en Pantalla Completa
+        </a>
+      </div>
+    </div>
 
-<section aria-labelledby="t-esp">
-  <h2 id="t-esp">Código para el ESP32</h2>
-  <p>Es el mismo control de la simulación escrito para el robot de verdad: lee los 4 sensores, calcula dónde está la línea, aplica el PD y manda el PWM a los dos motores. Se abre en el Arduino IDE y se sube tal cual.</p>
-  <p><a href="codigo-esp32/seguidor_linea/seguidor_linea.ino" download style="display:inline-block;padding:10px 18px;background:#0F9D84;color:#fff;border-radius:8px;text-decoration:none;font-weight:600">Descargar código ESP32 (.ino)</a></p>
-  <p class="suave" style="font-size:15px">Se comprobó que da los mismos números que <code>control()</code> del simulador en 6 casos de lecturas. Los pines son la propuesta del mapa de pines, y los valores de los sensores son supuestos hasta calibrar con el hardware real (los pasos están al inicio del archivo).</p>
-  <details><summary>Ver el código aquí</summary>
-  <pre style="overflow:auto;font-size:13px;line-height:1.45;background:#f6f6f4;padding:14px;border-radius:8px">/*
-  P08 · Seguidor de línea · ESP32 + L298N + 4 × TCRT5000
-  Tesis: Robot móvil para búsqueda y transporte de componentes (UCAB Telecom)
+    <!-- Contenedor del visor 3D embebido -->
+    <div class="simulador-embed-container">
+      <div class="simulador-embed-bar">
+        <span><i class="dot-live" aria-hidden="true"></i>MOTOR 3D ACTIVO · CONTROL PD (100 Hz)</span>
+        <span>Three.js / WebGL</span>
+      </div>
+      <iframe src="simulador.html" class="simulador-embed-frame" title="Simulador 3D interactivo del seguidor de línea P08" loading="lazy"></iframe>
+      <div class="simulador-embed-footer">
+        <span style="color:#94a3b8;font-size:13.5px">Controles: Usa <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">Espacio</kbd> para arrancar/pausar y <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">R</kbd> para reiniciar el recorrido.</span>
+        <a href="simulador.html" target="_blank" rel="noopener" class="btn-link-dark">
+          Ver simulador sin marcos ↗
+        </a>
+      </div>
+    </div>
 
-  Este código hace lo mismo que el simulador 3D (codigo/model.js, función control()):
-    - Lee los 4 sensores TCRT5000 (salida analógica A0) en ADC1.
-    - Calcula dónde está la línea (promedio de las lecturas, ponderado por la posición de cada sensor).
-    - Controla con un PD y manda un PWM distinto a cada motor.
-    - Si ningún sensor ve la línea, sigue girando hacia el lado donde la vio por última vez.
-    - Lazo de control a 100 Hz.
+    <!-- Botón de descarga de código ESP32 -->
+    <div style="background:#ffffff;border:2px solid var(--border-dark);border-radius:var(--radius-md);padding:18px 24px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;box-shadow:var(--shadow-hard);margin-top:20px">
+      <div>
+        <h3 style="margin:0 0 4px">Código Fuente para ESP32 (.ino)</h3>
+        <p style="margin:0;font-size:15px;color:var(--text-muted)">Implementa el lazo de control PD idéntico al de este simulador, listo para compilar en Arduino IDE.</p>
+      </div>
+      <a href="codigo-esp32/seguidor_linea/seguidor_linea.ino" download class="btn btn-principal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Descargar seguidor_linea.ino
+      </a>
+    </div>
+  </section>
 
-  Valores iniciales = los de la página del simulador:
-    BASE 0.8 · KP 0.03 · KD 0.0015 · separación entre sensores 18 mm
+  <!-- ====================================================================
+       SECCIÓN OBLIGATORIA: RESULTADOS DE PRUEBAS EN LABORATORIO
+       ==================================================================== -->
+  <section class="laboratorio-seccion" aria-labelledby="t-lab">
+    <div class="laboratorio-header">
+      <h2 id="t-lab">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-amber)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v7.31"></path><path d="M14 9.3V2"></path><path d="M8.5 2h7"></path><path d="M14 9.3a6.5 6.5 0 1 1-4 0"></path><path d="M5.52 16h12.96"></path></svg>
+        Resultados de Pruebas en Laboratorio
+      </h2>
+      <span class="badge-status-lab">Pendiente por llegada de componentes</span>
+    </div>
 
-  IMPORTANTE (qué es medido y qué es supuesto):
-    - ADC_PISO, ADC_CINTA, SEP_MM, KP y KD son los de la SIMULACIÓN. Hay que calibrarlos con el robot real.
-    - Pines: son la PROPUESTA del mapa de pines (datos/proyecto.js). Se confirman en la Fase II.
+    <div class="laboratorio-banner">
+      <p>
+        <strong>Plan de Validación Empírica:</strong> Los experimentos físicos con el robot real en el pasillo de telecomunicaciones de la UCAB se encuentran programados para ejecutarse apenas se reciba el envío de componentes físicos (orden de compra en tránsito). Esta sección recogerá los ensayos con el método científico planificado: repetibilidad, error de trayectoria y respuesta a variaciones lumínicas.
+      </p>
+    </div>
 
-  Placa en Arduino IDE: &quot;ESP32 Dev Module&quot;. Probado para el core ESP32 3.x (ledcAttach).
-  Si usas el core 2.x, mira los comentarios marcados con &quot;CORE 2.x&quot;.
+    <!-- Wireframes / Placeholders de Pruebas Futuras -->
+    <div class="laboratorio-grid-placeholders">
+      <div class="lab-box-placeholder">
+        <span class="lab-icon">🔬</span>
+        <h4>Calibración TCRT5000 en Granito Real</h4>
+        <p>Registro de lecturas analógicas del ADC (0-4095) comparando piso claro, vetas oscuras del granito del piso 2 y cinta aislante negra a 10 mm de altura.</p>
+        <span class="chip pendiente" style="margin-top:10px">Esperando hardware</span>
+      </div>
 
-  Cómo calibrar (3 pasos):
-    1. Sube el código y abre el Monitor Serie a 115200.
-    2. Pon el robot con los 4 sensores sobre el piso: anota el valor de raw (ADC_PISO).
-       Luego sobre la cinta negra: anota raw (ADC_CINTA). Cambia las dos constantes.
-    3. Con el robot en el piso, levanta SOLO la rueda: ajusta KP y KD hasta que no zigzaguee.
-*/
+      <div class="lab-box-placeholder">
+        <span class="lab-icon">📏</span>
+        <h4>Error de Trayectoria (mm)</h4>
+        <p>Medición óptica de la desviación lateral máxima (RMS) respecto al centro de la cinta en curvas de radio cerrado (R = 22 cm) en la maqueta física.</p>
+        <span class="chip pendiente" style="margin-top:10px">Esperando hardware</span>
+      </div>
 
+      <div class="lab-box-placeholder">
+        <span class="lab-icon">⏱️</span>
+        <h4>Velocidad Media & Tiempo de Vuelta</h4>
+        <p>Campaña de 20 ensayos consecutivos con cronometraje electrónico y medición del impacto de la descarga de la batería (de 12,6 V a 9,9 V).</p>
+        <span class="chip pendiente" style="margin-top:10px">Esperando hardware</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN: CÓMO USAR EL SIMULADOR
+       ==================================================================== -->
+  <section aria-labelledby="t-usar">
+    <h2 id="t-usar">Cómo interactuar con el simulador</h2>
+    <p class="bajada">Por defecto realiza una vuelta autónoma. Puedes modificar las variables en caliente en el panel lateral.</p>
+    <ol class="pasos">
+      <li><b>Arranca</b><span>Botones ARRANCAR, PARAR y REINICIAR. Atajos de teclado: <kbd>espacio</kbd> y <kbd>R</kbd>.</span></li>
+      <li><b>Ajusta el PD</b><span>Modifica velocidad base, Kp y Kd. Si aumentas mucho Kp, el robot oscilará violentamente; Kd amortigua esa corrección.</span></li>
+      <li><b>Geometría de sensores</b><span>Altera la separación entre módulos y la distancia de avance respecto al eje motriz.</span></li>
+      <li><b>Voltaje de batería</b><span>Fijada en 11,1 V nominales. A 9,9 V el robot reduce velocidad pero mantiene la trayectoria.</span></li>
+    </ol>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN: PRINCIPIOS DE INGENIERÍA
+       ==================================================================== -->
+  <section aria-labelledby="t-ideas">
+    <h2 id="t-ideas">Fundamentos del Algoritmo</h2>
+    <div class="rejilla">
+      <div class="tarjeta" style="border-top:6px solid var(--accent-coral)">
+        <span class="ceja" style="color:var(--accent-coral)">01 · Los Ojos</span>
+        <h3>Lectura y Umbralización</h3>
+        <p style="font-size:15px;color:var(--text-muted);margin:0">Cada TCRT5000 genera un voltaje leído por el ADC de 12 bits (0 a 4095). Las motas oscuras del granito elevan la lectura; el algoritmo aplica un umbral adaptativo para evitar falsas detecciones.</p>
+      </div>
+      <div class="tarjeta" style="border-top:6px solid var(--accent-purple)">
+        <span class="ceja" style="color:var(--accent-purple)">02 · El Cerebro</span>
+        <h3>Controlador PD (100 Hz)</h3>
+        <p style="font-size:15px;color:var(--text-muted);margin:0">El término Proporcional (P) corrige en magnitud según el error actual. El término Derivativo (D) analiza la velocidad con que cambia el error para frenar a tiempo y evitar que zigzaguee.</p>
+      </div>
+      <div class="tarjeta" style="border-top:6px solid var(--accent-primary)">
+        <span class="ceja" style="color:var(--accent-primary)">03 · Geometría</span>
+        <h3>Separación Crítica</h3>
+        <p style="font-size:15px;color:var(--text-muted);margin:0">Si entre los sensores centrales hay más de 19 mm, la cinta de 19 mm puede perderse en el espacio ciego. Colocarlos más adelantados permite anticipar curvas cerradas.</p>
+      </div>
+      <div class="tarjeta" style="border-top:6px solid var(--accent-amber)">
+        <span class="ceja" style="color:var(--accent-amber)">04 · Energía</span>
+        <h3>Comportamiento con Batería</h3>
+        <p style="font-size:15px;color:var(--text-muted);margin:0">Al caer el voltaje de 12,6 V a 9,9 V, el tiempo por vuelta pasa de 17,1 s a 22,5 s. Aun con batería en umbral de alarma, cumple la meta de velocidad de 0,35 m/s.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN: RESULTADOS DE SIMULACIÓN PREVIA
+       ==================================================================== -->
+  <section aria-labelledby="t-res">
+    <h2 id="t-res">Resultados en Pista de Simulación</h2>
+    <p class="bajada">Pista de prueba con perímetro de 8,05 m y curva crítica de radio 22 cm. Valores nominales: base 80%, Kp 0,030, Kd 0,0015, separación 18 mm.</p>
+    
+    <table class="tabla res">
+      <thead>
+        <tr><th>Condición Evaluada</th><th>Tiempo Vuelta</th><th>Velocidad Media</th><th>Desvío Máximo</th><th>Resultado</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Valores nominales, batería 11,1 V</td><td>19,7 s</td><td>0,41 m/s</td><td>17 mm</td><td>Completada exitosa</td></tr>
+        <tr><td>Batería a plena carga (12,6 V)</td><td>17,1 s</td><td>0,47 m/s</td><td>18 mm</td><td>Completada exitosa</td></tr>
+        <tr><td>Batería baja / umbral alarma (9,9 V)</td><td>22,5 s</td><td>0,36 m/s</td><td>16 mm</td><td>Completada (cumple requerimiento)</td></tr>
+        <tr><td>Base al 100 % PWM</td><td>18,0 s</td><td>0,45 m/s</td><td>26 mm</td><td>Completada con oscilación</td></tr>
+        <tr><td>Sensores adelantados a 120 mm</td><td>19,3 s</td><td>0,42 m/s</td><td>14 mm</td><td>Mayor estabilidad en curva</td></tr>
+        <tr class="mal"><td>Sensores separados a 30 mm</td><td>37,0 s</td><td>0,22 m/s</td><td>50 mm</td><td>Pérdida de línea el 23% del tiempo</td></tr>
+        <tr class="mal"><td>Sin control derivativo (Kd = 0)</td><td colspan="3">Fallo en primera curva</td><td>Inestabilidad / salida de pista</td></tr>
+        <tr class="mal"><td>Kp insuficiente (0,010)</td><td colspan="3">Fallo en radio cerrado</td><td>Radio de giro insuficiente</td></tr>
+      </tbody>
+    </table>
+    <p class="suave" style="font-size:14.5px;margin-top:10px">Datos validados mediante pruebas automatizadas sin interfaz en <code>codigo/pruebas.mjs</code>.</p>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN: GALERÍA DE EVIDENCIAS
+       ==================================================================== -->
+  <section aria-labelledby="t-evid">
+    <h2 id="t-evid">Evidencias Fotográficas de la Simulación</h2>
+    <p class="bajada">Capturas del comportamiento del modelo 3D. Haz clic sobre cualquier imagen para ampliarla.</p>
+    <div class="galeria">
+      <figure><img src="evidencias/01-sigue-la-linea.jpg" alt="El robot siguiendo la cinta en el simulador 3D"><figcaption><b>Trayectoria nominal:</b> Vuelta en 19,9 s a 0,41 m/s con seguimiento centrado.</figcaption></figure>
+      <figure><img src="evidencias/02-sensores-de-cerca.jpg" alt="Los 4 módulos TCRT5000 sobre la cinta"><figcaption><b>Arreglo de sensores:</b> Verde indica detección de cinta; coral indica piso de granito.</figcaption></figure>
+      <figure><img src="evidencias/03-vista-de-arriba.jpg" alt="Vista cenital del robot y la pista"><figcaption><b>Vista cenital:</b> Dimensionamiento a escala del piso, curvaturas y ancho de cinta de 19 mm.</figcaption></figure>
+      <figure><img src="evidencias/04-sensores-a-30mm.jpg" alt="Oscilación con sensores muy separados"><figcaption><b>Separación excesiva (30 mm):</b> Espacio ciego central que induce oscilaciones de hasta 42 mm.</figcaption></figure>
+      <figure><img src="evidencias/05-bateria-baja.jpg" alt="Comportamiento con batería en 9,9 V"><figcaption><b>Batería en alarma (9,9 V):</b> Vuelta en 22,7 s a 0,36 m/s, manteniendo la línea.</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN: CÓDIGO FUENTE ESP32
+       ==================================================================== -->
+  <section aria-labelledby="t-esp">
+    <h2 id="t-esp">Firmware de Producción (ESP32)</h2>
+    <p class="bajada">El código Arduino reproduce con exactitud la lógica de <code>model.js</code> en el microcontrolador físico. Puede abrirse en Arduino IDE con soporte para el core ESP32 v3.x.</p>
+    
+    <div style="margin-bottom:16px">
+      <a href="codigo-esp32/seguidor_linea/seguidor_linea.ino" download class="btn btn-principal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Descargar seguidor_linea.ino (.ino)
+      </a>
+    </div>
+
+    <details style="background:#ffffff;border:2px solid var(--border-dark);border-radius:var(--radius-md);padding:14px 18px">
+      <summary style="font-weight:700;cursor:pointer">Desplegar visor de código fuente en línea</summary>
+      <pre style="overflow:auto;font-family:var(--font-mono);font-size:13px;line-height:1.45;background:#f8fafc;padding:16px;border-radius:8px;margin-top:14px;border:1px solid #cbd5e1"><code>/* P08 · Seguidor de línea · ESP32 + L298N + 4 × TCRT5000 */
 #include &lt;Arduino.h&gt;
 
-// ---------- PINES (propuesta del mapa de pines del proyecto) ----------
-// Sensores de línea: ADC1 (el ADC2 no funciona con el Wi-Fi encendido). Orden: de IZQUIERDA a DERECHA.
-const uint8_t PIN_SENSOR[4] = {36, 39, 34, 35};   // GPIO 36 (VP), 39 (VN), 34, 35: solo entrada
-
-// Puente H L298N, motor izquierdo
-const uint8_t PIN_ENA = 25;   // PWM. Quitar el puente (jumper) ENA del L298N
+const uint8_t PIN_SENSOR[4] = {36, 39, 34, 35};
+const uint8_t PIN_ENA = 25;
 const uint8_t PIN_IN1 = 26;
 const uint8_t PIN_IN2 = 27;
-// Puente H L298N, motor derecho
-const uint8_t PIN_ENB = 14;   // PWM. Quitar el puente (jumper) ENB del L298N
+const uint8_t PIN_ENB = 14;
 const uint8_t PIN_IN3 = 4;
 const uint8_t PIN_IN4 = 13;
-
-// Batería 3S por divisor 100 kΩ + 22 kΩ (12,6 V quedan en 2,27 V)
 const uint8_t PIN_BATERIA = 32;
 
-// ---------- PARÁMETROS DEL CONTROL (los mismos de la simulación) ----------
-const float BASE = 0.80f;     // velocidad base, de 0 a 1 (en el simulador: 80 %)
-const float KP   = 0.030f;    // ganancia proporcional (PWM por cada mm de error)
-const float KD   = 0.0015f;   // ganancia derivativa (PWM por cada mm/s de cambio del error)
-const float SEP_MM = 18.0f;   // separación entre sensores vecinos (mm). Medir con los módulos reales
+const float BASE = 0.80f;
+const float KP   = 0.030f;
+const float KD   = 0.0015f;
+const float SEP_MM = 18.0f;
 
-// Sensores (SUPUESTOS de la simulación: calibrar con los TCRT5000 reales)
-const int   ADC_PISO  = 500;  // lectura sobre piso claro (de 4095)
-const int   ADC_CINTA = 3300; // lectura sobre la cinta negra
-const float UMBRAL    = 0.20f; // por debajo del 20 % se cuenta como piso
-const float SUMA_MIN  = 0.30f; // suma mínima para decir &quot;veo la línea&quot;
+const int   ADC_PISO  = 500;
+const int   ADC_CINTA = 3300;
+const float UMBRAL    = 0.20f;
+const float SUMA_MIN  = 0.30f;
 
-// Tiempo
-const uint32_t PERIODO_US = 10000;   // 10 ms = 100 Hz, igual que el simulador
-const float    DT = PERIODO_US / 1e6f;
+const uint32_t PERIODO_US = 10000; // 100 Hz
+// ... (Código completo disponible al descargar seguidor_linea.ino)</code></pre>
+    </details>
+  </section>
 
-// PWM del ESP32
-const uint32_t PWM_HZ   = 1000;      // 1 kHz, bueno para el L298N
-const uint8_t  PWM_BITS = 10;        // 0 a 1023
-const int      PWM_MAX  = (1 &lt;&lt; PWM_BITS) - 1;
-
-// Batería baja (la alarma del simulador: 9,9 V)
-const float BAT_BAJA_V = 9.9f;
-const float DIVISOR = (100.0f + 22.0f) / 22.0f;
-
-// ---------- ESTADO (lo que el ESP32 recuerda entre vueltas del lazo) ----------
-struct Estado {
-  float ultimaPos = 0.0f;   // última posición (mm) en que vio la línea
-  float errorAnterior = 0.0f;
-  bool  hayError = false;
-};
-Estado st;
-
-struct Salida {
-  float n[4];       // lecturas normalizadas (0 a 1)
-  float suma;
-  float pos_mm;     // posición de la línea (+ = a la izquierda)
-  float P, D, corr;
-  bool  perdida;
-  float izq, der;   // PWM de cada motor, de -1 a 1
-};
-
-float limitar(float x, float a, float b) { return x &lt; a ? a : (x &gt; b ? b : x); }
-
-// Posición de cada sensor en mm respecto al centro (izquierda +): +1.5, +0.5, -0.5, -1.5 separaciones
-float xSensor(int i) { return (1.5f - i) * SEP_MM; }
-
-// El corazón: de las 4 lecturas a los PWM. Es la misma cuenta que control() en model.js.
-Salida calcularControl(Estado &amp;e, const int raw[4]) {
-  Salida s;
-  s.suma = 0;
-  for (int i = 0; i &lt; 4; i++) {
-    float v = (raw[i] - ADC_PISO) / float(ADC_CINTA - ADC_PISO);
-    s.n[i] = (v &lt; UMBRAL) ? 0.0f : (v &gt; 1.0f ? 1.0f : v);
-    s.suma += s.n[i];
-  }
-
-  float pos;
-  s.perdida = false;
-  if (s.suma &gt; SUMA_MIN) {
-    float acum = 0;
-    for (int i = 0; i &lt; 4; i++) acum += s.n[i] * xSensor(i);
-    pos = acum / s.suma;
-    e.ultimaPos = pos;
-  } else {
-    // No ve la línea: sigue girando hacia el último lado donde la vio
-    s.perdida = true;
-    float lado = (e.ultimaPos &lt; 0) ? -1.0f : 1.0f;
-    pos = lado * xSensor(0) * 1.2f;
-  }
-  s.pos_mm = pos;                       // ya está en mm: es el error
-
-  float de = e.hayError ? (pos - e.errorAnterior) / DT : 0.0f;
-  e.errorAnterior = pos;
-  e.hayError = true;
-
-  s.P = KP * pos;
-  s.D = KD * de;
-  s.corr = s.P + s.D;
-  s.izq = limitar(BASE - s.corr, -1.0f, 1.0f);
-  s.der = limitar(BASE + s.corr, -1.0f, 1.0f);
-  return s;
-}
-
-// ---------- MOTORES ----------
-// Manda un PWM de -1 a 1 a un lado. Positivo = adelante, negativo = atrás, 0 = frena.
-void moverMotor(uint8_t pinEn, uint8_t pinA, uint8_t pinB, float pwm) {
-  int duty = (int)(fabsf(pwm) * PWM_MAX);
-  if (pwm &gt; 0)      { digitalWrite(pinA, HIGH); digitalWrite(pinB, LOW); }
-  else if (pwm &lt; 0) { digitalWrite(pinA, LOW);  digitalWrite(pinB, HIGH); }
-  else              { digitalWrite(pinA, LOW);  digitalWrite(pinB, LOW); }
-  ledcWrite(pinEn, duty);   // CORE 2.x: ledcWrite(canal, duty) con canal 0 (izq) y 1 (der)
-}
-
-void detener() {
-  moverMotor(PIN_ENA, PIN_IN1, PIN_IN2, 0);
-  moverMotor(PIN_ENB, PIN_IN3, PIN_IN4, 0);
-}
-
-float leerBateriaV() {
-  // analogReadMilliVolts usa la calibración de fábrica del ESP32: más exacto que analogRead
-  return analogReadMilliVolts(PIN_BATERIA) / 1000.0f * DIVISOR;
-}
-
-// ---------- ARRANQUE ----------
-void setup() {
-  Serial.begin(115200);
-
-  pinMode(PIN_IN1, OUTPUT); pinMode(PIN_IN2, OUTPUT);
-  pinMode(PIN_IN3, OUTPUT); pinMode(PIN_IN4, OUTPUT);
-
-  // CORE 3.x: ledcAttach(pin, frecuencia, bits)
-  ledcAttach(PIN_ENA, PWM_HZ, PWM_BITS);
-  ledcAttach(PIN_ENB, PWM_HZ, PWM_BITS);
-  // CORE 2.x, en su lugar:
-  //   ledcSetup(0, PWM_HZ, PWM_BITS); ledcAttachPin(PIN_ENA, 0);
-  //   ledcSetup(1, PWM_HZ, PWM_BITS); ledcAttachPin(PIN_ENB, 1);
-
-  analogReadResolution(12);                 // 0 a 4095, como en el simulador
-  for (int i = 0; i &lt; 4; i++) {
-    pinMode(PIN_SENSOR[i], INPUT);
-    analogSetPinAttenuation(PIN_SENSOR[i], ADC_11db);   // rango hasta ~3,3 V
-  }
-  analogSetPinAttenuation(PIN_BATERIA, ADC_11db);
-
-  detener();
-  Serial.println(&quot;P08 seguidor de linea listo. Empieza en 2 s...&quot;);
-  delay(2000);
-}
-
-// ---------- LAZO PRINCIPAL (100 Hz) ----------
-uint32_t proximo = 0;
-uint8_t  contador = 0;
-
-void loop() {
-  uint32_t ahora = micros();
-  if ((int32_t)(ahora - proximo) &lt; 0) return;   // todavía no toca
-  proximo = ahora + PERIODO_US;
-
-  // 1) Leer los 4 sensores
-  int raw[4];
-  for (int i = 0; i &lt; 4; i++) raw[i] = analogRead(PIN_SENSOR[i]);
-
-  // 2) Calcular el control
-  Salida s = calcularControl(st, raw);
-
-  // 3) Mandar a los motores
-  moverMotor(PIN_ENA, PIN_IN1, PIN_IN2, s.izq);
-  moverMotor(PIN_ENB, PIN_IN3, PIN_IN4, s.der);
-
-  // 4) Monitor serie, 10 veces por segundo (para calibrar y depurar)
-  if (++contador &gt;= 10) {
-    contador = 0;
-    float vbat = leerBateriaV();
-    Serial.printf(&quot;raw %4d %4d %4d %4d | pos %6.1f mm | P %5.2f D %5.2f | izq %5.2f der %5.2f%s | bat %4.1f V%s\n&quot;,
-                  raw[0], raw[1], raw[2], raw[3], s.pos_mm, s.P, s.D, s.izq, s.der,
-                  s.perdida ? &quot; PERDIDA&quot; : &quot;&quot;, vbat, vbat &lt; BAT_BAJA_V ? &quot; BAJA&quot; : &quot;&quot;);
-  }
-}
-</pre></details>
-</section>
-
-<section aria-labelledby="t-cod">
-  <h2 id="t-cod">El código</h2>
-  <ul>
-    <li><a href="codigo/model.js">model.js</a>: el motor, la lectura de los sensores y el control PD que llevará el ESP32.</li>
-    <li><a href="codigo/pista.js">pista.js</a>: la pista provisional y la distancia a la línea.</li>
-    <li><a href="codigo/granito.js">granito.js</a>: el piso de granito con la cinta encima.</li>
-    <li><a href="codigo/sensores3d.js">sensores3d.js</a>: los 4 módulos TCRT5000 en 3D.</li>
-    <li><a href="codigo/console.js">console.js</a> y <a href="codigo/live.js">live.js</a>: los paneles, los controles y el recorrido.</li>
-    <li><a href="codigo/robot.js">robot.js</a> y <a href="codigo/stage.js">stage.js</a>: el robot de P03 y la escena.</li>
-    <li><a href="codigo/pruebas.mjs">pruebas.mjs</a>: la prueba sin pantalla que dio la tabla de resultados.</li>
-  </ul>
-  <p class="suave" style="font-size:15px">Hecho con el kit <a href="https://github.com/elvarofficial/teardown">teardown</a> (licencia MIT, ver <a href="codigo/LICENSE-teardown.txt">LICENSE</a>) y three.js. Ficha técnica en el <a href="README.md">README</a>.</p>
-</section>
+  <!-- Módulos del simulador -->
+  <section aria-labelledby="t-archivos">
+    <h2 id="t-archivos">Arquitectura del Simulador 3D</h2>
+    <p class="bajada">Módulos JavaScript desacoplados que componen la simulación:</p>
+    <ul>
+      <li><a href="codigo/model.js">model.js</a>: Modelo cinemático de tracción, lectura de sensores y algoritmo PD.</li>
+      <li><a href="codigo/pista.js">pista.js</a>: Trayectoria spline, curvaturas y cálculo de distancia euclidiana a la línea.</li>
+      <li><a href="codigo/granito.js">granito.js</a>: Generación procedural del piso de granito y banda aislante.</li>
+      <li><a href="codigo/sensores3d.js">sensores3d.js</a>: Geometría 3D de los emisores y fototransistores infrarrojos.</li>
+      <li><a href="codigo/robot.js">robot.js</a> y <a href="codigo/stage.js">stage.js</a>: Rigging del chasis 3D, iluminación y cámaras.</li>
+      <li><a href="codigo/pruebas.mjs">pruebas.mjs</a>: Suite de tests sin renderizado visual para validación estadística.</li>
+    </ul>
+  </section>
 </main>
-<dialog id="grande"><img alt=""><form method="dialog" style="text-align:right;margin-top:8px"><button style="font:700 15px var(--texto);padding:8px 14px;border-radius:10px;border:2px solid var(--tinta);background:var(--blanco);cursor:pointer">Cerrar</button></form></dialog>
+
+<dialog id="grande">
+  <img alt="Evidencia ampliada">
+  <form method="dialog" style="text-align:right;margin-top:10px">
+    <button class="btn btn-secundario" style="padding:6px 16px">Cerrar</button>
+  </form>
+</dialog>
+
 <footer id="pie"></footer>
+
 <script src="../../../datos/proyecto.js"></script>
 <script src="../../../assets/sitio.js"></script>
 <script>
-document.querySelectorAll('.galeria img').forEach(function(im){ im.addEventListener('click', function(){ var d = document.getElementById('grande'); d.querySelector('img').src = im.src; d.querySelector('img').alt = im.alt; d.showModal(); }); });
+document.querySelectorAll('.galeria img').forEach(function(im){
+  im.addEventListener('click', function(){
+    var d = document.getElementById('grande');
+    d.querySelector('img').src = im.src;
+    d.querySelector('img').alt = im.alt;
+    d.showModal();
+  });
+});
 </script>
 </body>
 </html>

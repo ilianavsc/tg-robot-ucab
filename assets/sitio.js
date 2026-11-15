@@ -68,6 +68,7 @@
   var pie = document.getElementById("pie");
   if (pie) {
     pie.innerHTML = window.TG.autoras + " · Ingeniería en Telecomunicaciones, UCAB · Tutor: " + window.TG.tutor +
-      ' · <a href="' + window.TG.repo + '">Repositorio en GitHub</a>' + ' · <a href="' + base + 'archivo-fase-1.html">Archivo Fase I</a>';
+      ' · <a href="' + window.TG.repo + '" target="_blank" rel="noopener">Repositorio en GitHub</a>' +
+      ' · <a class="pie-enlace-historial" href="' + base + 'archivo-fase-1.html">Ver historial de desarrollo</a>';
   }
 })();
