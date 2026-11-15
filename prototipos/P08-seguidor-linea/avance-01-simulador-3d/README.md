@@ -67,3 +67,6 @@ Evidencias en [evidencias/](evidencias/).
 1. Cambiar la pista por el recorrido real del laboratorio (después del 18 nov).
 2. Calibrar las lecturas con los TCRT5000 reales y ajustar el umbral.
 3. Pasar el control PD al firmware del ESP32 (P07) con los mismos Kp y Kd como punto de partida.
+
+## Código para el ESP32
+`codigo-esp32/seguidor_linea/seguidor_linea.ino` (Arduino IDE, core ESP32 3.x). Misma lógica y mismos valores que `codigo/model.js`: BASE 0,8, Kp 0,03, Kd 0,0015, sensores a 18 mm, lazo a 100 Hz. Verificado contra `control()` en 6 casos de lecturas. Pendiente: calibrar `ADC_PISO`, `ADC_CINTA`, `SEP_MM`, `KP` y `KD` con el robot real.
