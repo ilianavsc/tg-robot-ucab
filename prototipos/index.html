@@ -26,7 +26,11 @@ a.proto:hover{transform:translate(-2px,-2px)}
 <p class="ceja">Prototipos</p>
 <h1>Cada prueba, <em>explicada en simple</em></h1>
 <p class="bajada">P = prototipo en simulador. H = prueba con hardware real. Los que tienen borde punteado todavía no empiezan.</p>
+<h2 class="fase-titulo" style="margin-top:8px">Listos para usar</h2>
+<div class="lista" id="listos"></div>
+<h2 class="fase-titulo">Lo que viene</h2>
 <div id="por-fase"></div>
+<p style="margin-top:30px"><a href="../archivo-fase-1.html">Archivo Fase I</a>: Wokwi y la primera simulación en Colab.</p>
 </main>
 <footer id="pie"></footer>
 <script src="../datos/proyecto.js"></script>
@@ -35,7 +39,7 @@ a.proto:hover{transform:translate(-2px,-2px)}
 (function(){
   var U = TGU, D = TG, html = "";
   D.fases.forEach(function(f){
-    var ps = D.prototipos.filter(function(p){ return U.faseDe(U.inicioSemana(p.semana)).id === f.id; });
+    var ps = D.prototipos.filter(function(p){ return !p.principal && U.faseDe(U.inicioSemana(p.semana)).id === f.id; });
     if (!ps.length) return;
     html += '<h2 class="fase-titulo">Fase ' + f.id + " · " + f.nombre + '</h2><div class="lista">';
     ps.forEach(function(p){
@@ -46,6 +50,9 @@ a.proto:hover{transform:translate(-2px,-2px)}
     html += "</div>";
   });
   document.getElementById("por-fase").innerHTML = html;
+  document.getElementById("listos").innerHTML = D.prototipos.filter(function(p){ return p.principal; }).map(function(p){
+    return '<a class="proto" href="../' + p.url + '"><span class="cod">' + p.codigo + " · " + p.tema + "</span><h3>" + p.nombre + "</h3><p>" + p.simuladorTexto + (p.ino ? " · código ESP32" : "") + "</p></a>";
+  }).join("");
 })();
 </script>
 </body>

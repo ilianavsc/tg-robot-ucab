@@ -77,6 +77,12 @@ a.ir:hover{transform:translate(-2px,-2px)}
   </div>
 </section>
 
+<section aria-labelledby="t-protos">
+  <h2 id="t-protos">Los 3 prototipos</h2>
+  <p class="bajada">Cada uno tiene su simulador para probar y el código que iría en el ESP32.</p>
+  <div class="rejilla" id="tres-protos"></div>
+</section>
+
 <section aria-labelledby="t-pend">
   <h2 id="t-pend">Para estos días</h2>
   <p class="bajada">Lo que hay que cerrar pronto. En rojo, lo que ya pasó de fecha.</p>
@@ -105,6 +111,20 @@ a.ir:hover{transform:translate(-2px,-2px)}
 
 <script src="datos/proyecto.js"></script>
 <script src="assets/sitio.js"></script>
+<script>
+(function(){
+  var cont = document.getElementById("tres-protos"), h = "";
+  TG.prototipos.filter(function(p){ return p.principal; }).forEach(function(p){
+    var b = "display:block;text-align:center;padding:9px 12px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:8px;";
+    h += '<div class="tarjeta"><p class="ceja" style="margin-top:0">' + p.codigo + " · " + p.tema + "</p><h3 style=\"margin:0 0 6px\">" + p.nombre + "</h3>" +
+      '<a href="' + p.simulador + '" style="' + b + 'background:#0F9D84;color:#fff">' + p.simuladorTexto + "</a>" +
+      (p.ino ? '<a href="' + p.ino + '" download style="' + b + 'border:2px solid #0F9D84;color:#0F9D84">Código ESP32 (.ino)</a>' : '<span class="suave" style="display:block;margin-top:8px;font-size:15px">Código ESP32: próximamente</span>') +
+      '<p style="margin:10px 0 0;font-size:15px"><a href="' + p.url + '">Ver la explicación</a></p></div>';
+  });
+  cont.innerHTML = h;
+})();
+</script>
+
 <script>
 (function(){
   var U = TGU, D = TG, hoy = U.hoy(), s = U.semana(hoy), fase = U.faseDe(hoy);

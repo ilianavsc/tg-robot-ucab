@@ -45,15 +45,15 @@ window.TG = {
 
   /* estado: "hecho" | "pruebas" | "pendiente" */
   prototipos: [
-    { codigo: "P01", nombre: "Así se hablan el robot y la app", tema: "MQTT", semana: 3, estado: "hecho", url: "prototipos/P01-mqtt-base/" },
+    { codigo: "P01", nombre: "Así se hablan el robot y la app", tema: "MQTT", semana: 3, estado: "hecho", url: "prototipos/P01-mqtt-base/", principal: true, simulador: "prototipos/P01-mqtt-base/banco.html", simuladorTexto: "Banco de pruebas MQTT (navegador)", ino: "prototipos/P01-mqtt-base/codigo/sketch.ino" },
     { codigo: "H0", nombre: "Wi-Fi del laboratorio", tema: "Red", semana: 4, estado: "pendiente" },
     { codigo: "P02", nombre: "Los sentidos del robot", tema: "Sensores", semana: 5, estado: "pendiente" },
-    { codigo: "P03", nombre: "Motores que van parejo", tema: "PID", semana: 6, estado: "pendiente", url: "prototipos/P03-motores/avance-01-colab/" },
+    { codigo: "P03", nombre: "Motores que van parejo", tema: "PID", semana: 6, estado: "pendiente", url: "prototipos/P03-motores/avance-02-simulador-3d/", principal: true, simulador: "prototipos/P03-motores/avance-02-simulador-3d/simulador.html", simuladorTexto: "Simulador 3D de la tracción" },
     { codigo: "P04", nombre: "¿BLE o QR?", tema: "Ubicación", semana: 7, estado: "pendiente" },
     { codigo: "P05", nombre: "Robot virtual y puente", tema: "Firebase", semana: 9, estado: "pendiente" },
     { codigo: "P06", nombre: "Primera versión de la app", tema: "Flutter", semana: 10, estado: "pendiente" },
     { codigo: "P07", nombre: "El cerebro completo", tema: "Firmware", semana: 12, estado: "pendiente" },
-    { codigo: "P08", nombre: "Seguir la línea", tema: "Simulador 3D", semana: 13, estado: "pendiente", url: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/" },
+    { codigo: "P08", nombre: "Seguir la línea", tema: "Simulador 3D", semana: 13, estado: "pendiente", url: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/", principal: true, simulador: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/simulador.html", simuladorTexto: "Simulador 3D del seguidor de línea", ino: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/codigo-esp32/seguidor_linea/seguidor_linea.ino" },
     { codigo: "P09", nombre: "Saber dónde está", tema: "Kalman", semana: 15, estado: "pendiente" },
     { codigo: "P10", nombre: "La app completa", tema: "Flutter", semana: 21, estado: "pendiente" },
     { codigo: "P11", nombre: "La alarma llega al teléfono", tema: "Alertas", semana: 23, estado: "pendiente" },

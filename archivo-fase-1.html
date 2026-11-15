@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TG Robot UCAB · Archivo Fase I</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/estilo.css">
+<style>
+.lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.arch{display:block;background:var(--blanco);border:2px dashed var(--suave);border-radius:16px;padding:16px 18px}
+.arch h3{margin:2px 0 6px}.arch p{margin:0 0 8px;font-size:15px;color:var(--suave)}
+.arch ul{margin:0;padding-left:18px;font-size:15px}.arch li{margin:3px 0}
+.galeria{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:8px}
+.galeria img{width:100%;border:1.5px solid var(--tinta);border-radius:8px;display:block}
+</style>
+</head>
+<body data-pagina="archivo" data-base="">
+<header id="menu"></header>
+<main>
+<a class="volver" href="prototipos/index.html">← Prototipos</a>
+<p class="ceja">Archivo · Fase I</p>
+<h1>Lo que se hizo <em>antes</em></h1>
+<p class="bajada">Versiones anteriores que ya no son el foco del proyecto, pero que se guardan como registro de la Fase I. No se borró nada. Ahora el trabajo se muestra con los 3 simuladores de la <a href="index.html">portada</a>.</p>
+
+<section aria-labelledby="t-wokwi">
+  <h2 id="t-wokwi">Wokwi (P01, versión 1 y diagrama)</h2>
+  <div class="lista">
+    <div class="arch"><h3>Simulación en Wokwi</h3><p>El robot de P01 corrió en Wokwi (ESP32 DevKit C v4, red Wokwi-GUEST). Las 7 pruebas del P01 salieron de ahí y siguen documentadas en la <a href="prototipos/P01-mqtt-base/">página del P01</a>.</p>
+      <ul>
+        <li><a href="https://wokwi.com/projects/480338785084042241">Proyecto en Wokwi</a></li>
+        <li><a href="prototipos/P01-mqtt-base/codigo/diagram.json">diagram.json</a> (la placa en Wokwi)</li>
+        <li><a href="prototipos/P01-mqtt-base/codigo/v1/sketch.ino">sketch.ino de la versión 1</a></li>
+        <li><a href="prototipos/P01-mqtt-base/codigo/libraries.txt">libraries.txt</a></li>
+      </ul></div>
+    <div class="arch"><h3>Evidencias de la versión 1</h3><p>Capturas de la primera versión (antes del ajuste de QoS 1 y de la sesión persistente).</p>
+      <div class="galeria">
+        <a href="prototipos/P01-mqtt-base/evidencias/v1/01-estado-qos0-mqttx.png"><img src="prototipos/P01-mqtt-base/evidencias/v1/01-estado-qos0-mqttx.png" alt="Estado con QoS 0 en MQTTX" loading="lazy"></a>
+        <a href="prototipos/P01-mqtt-base/evidencias/v1/03-lwt-desconectado.jpg"><img src="prototipos/P01-mqtt-base/evidencias/v1/03-lwt-desconectado.jpg" alt="Aviso de desconectado" loading="lazy"></a>
+        <a href="prototipos/P01-mqtt-base/evidencias/v1/04-wokwi-reconexion.png"><img src="prototipos/P01-mqtt-base/evidencias/v1/04-wokwi-reconexion.png" alt="Monitor de Wokwi con reconexión" loading="lazy"></a>
+        <a href="prototipos/P01-mqtt-base/evidencias/v1/05-wokwi-orden-recibida.png"><img src="prototipos/P01-mqtt-base/evidencias/v1/05-wokwi-orden-recibida.png" alt="Orden recibida en Wokwi" loading="lazy"></a>
+      </div></div>
+  </div>
+</section>
+
+<section aria-labelledby="t-colab">
+  <h2 id="t-colab">Primera simulación de los motores (Google Colab)</h2>
+  <div class="lista">
+    <div class="arch"><h3>P03 · Avance 1</h3><p>Cálculo en Python de la velocidad del robot antes de comprar el motor. Dio origen a la elección del motor Speed 200.</p>
+      <ul>
+        <li><a href="prototipos/P03-motores/avance-01-colab/">Página del avance 1</a></li>
+        <li><a href="prototipos/P03-motores/avance-01-colab/velocidad.py">velocidad.py</a></li>
+      </ul></div>
+  </div>
+</section>
+</main>
+<footer id="pie"></footer>
+<script src="datos/proyecto.js"></script>
+<script src="assets/sitio.js"></script>
+</body>
+</html>
