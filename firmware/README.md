@@ -1,0 +1,105 @@
+# Firmware integrado del robot
+
+Archivo: **`robot_integrado.ino`**
+
+Es la fusión de los tres prototipos en un solo firmware:
+
+| Prototipo | Qué aporta |
+|---|---|
+| P01 MQTT base | Wi-Fi, MQTT, pedidos + confirmación, alertas QoS 2, batería |
+| P03 Motores | PWM del L298N, encoders por interrupción, PID (apagado) |
+| P08 Seguidor de línea | Control PD a 100 Hz con 4 sensores TCRT5000 |
+
+## Qué hace
+
+- Arranca en **modo autónomo**: sigue la línea con el PD.
+- Si llega una orden MQTT con `"cmd"`, pasa a **modo manual**.
+- Si en manual pasan **5 s sin órdenes**, vuelve solo a autónomo (seguridad).
+- Manda el estado cada 2 s y las alertas con **QoS 2**.
+- **No usa `delay()`**: todo el tiempo se maneja con `millis()`.
+
+## Librerías que hay que instalar
+
+| Librería | Dónde | Nota |
+|---|---|---|
+| **MQTT** de Joel Gaehwiler (256dpi) | Arduino IDE → Gestor de librerías → buscar "MQTT" | Es la misma de Wokwi |
+| **WiFi** | Ya viene con el core del ESP32 | No instalar nada |
+| ~~PubSubClient~~ | — | **No usar**: solo publica con QoS 0 |
+
+Para la IMU (más adelante): **Adafruit MPU6050** (instala sola sus dependencias).
+
+## Requisitos
+
+- Arduino IDE 2.x.
+- Core **esp32** de Espressif 3.x (probado con **3.3.12**).
+  Boards Manager → buscar "esp32" → instalar.
+- Placa seleccionada: **"ESP32 Dev Module"** (DevKit de 30 pines, USB-C, CP2102).
+
+## Pasos para cargarlo
+
+1. **Preparar la carpeta:** el archivo debe estar en una carpeta llamada `robot_integrado`
+   (Arduino exige que la carpeta se llame igual que el `.ino`). Si abres
+   `firmware/robot_integrado.ino`, el IDE te ofrecerá moverlo: acepta.
+2. **Instalar la librería MQTT** (tabla de arriba).
+3. **Poner tu red** en el código:
+   ```cpp
+   const char* WIFI_RED   = "TU_RED_WIFI";
+   const char* WIFI_CLAVE = "TU_CLAVE_WIFI";
+   ```
+   No subas la clave al repositorio.
+4. **Elegir placa y puerto:** Herramientas → Placa → ESP32 Dev Module;
+   Herramientas → Puerto → el del ESP32.
+5. **Compilar y subir** con el botón ➡️ (Subir).
+6. **Abrir el Monitor Serie a 115200** para ver la telemetría.
+
+## Cómo se maneja
+
+| Tecla (Monitor Serie) | Acción |
+|---|---|
+| `w` / `s` | adelante / atrás |
+| `a` / `d` | izquierda / derecha |
+| `espacio` o `x` | frenar |
+| `+` / `-` | subir / bajar velocidad 5 % |
+| `o` | volver a modo autónomo |
+| `t` | alarma de prueba (QoS 2) |
+
+Botón **BOOT** (GPIO 0): también manda una alarma de prueba.
+
+Órdenes por MQTT (mismos tópicos de P01):
+
+```json
+{"id":"P-0001","cmd":"adelante"}
+{"id":"P-0002","cmd":"izquierda","vel":0.6}
+{"id":"P-0003","cmd":"frenar"}
+{"id":"P-0004","cmd":"auto"}
+```
+
+Una orden **sin** `cmd` es un pedido de componente: solo se confirma (ack).
+
+## Mapa de pines
+
+| Uso | GPIO |
+|---|---|
+| Motor izq.: ENA / IN1 / IN2 | 25 / 26 / 27 |
+| Motor der.: ENB / IN3 / IN4 | 14 / 4 / 13 |
+| Encoders izq.: A / B | 18 / 19 |
+| Encoders der.: A / B | 16 / 17 |
+| Sensores de línea (ADC1) | 36, 39, 34, 35 |
+| Batería (divisor 100 kΩ / 22 kΩ) | 32 (ADC1) |
+| Botón de prueba | 0 (BOOT) |
+| IMU reservada (futuro): SDA / SCL / INT | 21 / 22 / 2 |
+
+## Prueba rápida
+
+1. Con el robot apagado, subir el firmware.
+2. Abrir MQTTX en `broker.hivemq.com:1883`, suscribirse a `ucab-tg-sf/robot/#`.
+3. Ver el estado cada 2 s y la telemetría en el Monitor Serie.
+4. Enviar `{"id":"P-0001","cmd":"adelante"}` y ver que el robot obedece y confirma.
+5. Soltar el robot sobre la línea y ver el modo autónomo.
+
+## Notas
+
+- La red de la UCAB pide usuario y contraseña (WPA2-Enterprise). Este firmware usa
+  Wi-Fi normal: para las pruebas usa la red del laboratorio o el hotspot de un teléfono.
+- El broker `broker.hivemq.com` es público: sirve para probar, no para el sistema final.
+- Compilado de referencia: flash **71 %** y RAM **15 %** para el ESP32 de 4 MB.
