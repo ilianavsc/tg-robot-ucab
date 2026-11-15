@@ -40,7 +40,7 @@ La semana de parciales (11 al 16 ene 2027) es semana extra de trabajo de la Fase
 | P04 | BLE o QR | II | Pendiente |
 | P05 | Robot virtual y puente | III | Pendiente |
 | P06 | App esqueleto | III | Pendiente |
-| P07 | Firmware integrado | III | Pendiente |
+| P07 | Firmware integrado | III | Código unificado compilado; falta probarlo en el hardware |
 | P08 | Navegación en Webots | III | Pendiente |
 | P09 | Kalman y re-localización | IV | Pendiente |
 | P10 | App completa | V | Pendiente |
@@ -54,8 +54,9 @@ La semana de parciales (11 al 16 ene 2027) es semana extra de trabajo de la Fase
 - `prototipos/` una carpeta por prototipo con su página visual (`index.html`), `codigo/` y `evidencias/`
 - `docs/requerimientos/` borrador del documento de requerimientos (hito de la Fase I)
 - `hardware/materiales/` lista de materiales y registro de cambios
+- `firmware/` firmware integrado del robot (`robot_integrado.ino`, P01 + P03 + P08) y su README con las librerías y los pasos de carga
 
-Las carpetas del firmware final, la app, el puente MQTT a Firebase, el CAD y los esquemáticos se crean cuando tengan contenido.
+Las carpetas de la app, el puente MQTT a Firebase, el CAD y los esquemáticos se crean cuando tengan contenido.
 
 ## Reglas de trabajo
 1. Cada tarea tiene una sola responsable.

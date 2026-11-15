@@ -72,7 +72,7 @@ a.ir:hover{transform:translate(-2px,-2px)}
   <h2 id="t-resumen">De un vistazo</h2>
   <div class="rejilla">
     <div class="tarjeta"><p class="ceja" style="margin-top:0">Próximo hito</p><div class="cifra" id="hito-dias"></div><p id="hito-texto" style="margin:0"></p></div>
-    <div class="tarjeta"><p class="ceja" style="margin-top:0">Prototipos</p><div class="cifra" id="proto-cifra"></div><div class="puntos" id="proto-puntos"></div><p style="margin:0;font-size:15px"><a href="prototipos/index.html">Ver todos los prototipos</a></p></div>
+    <div class="tarjeta"><p class="ceja" style="margin-top:0">Prototipos</p><div class="cifra" id="proto-cifra"></div><div class="puntos" id="proto-puntos"></div><p style="margin:0;font-size:15px"><a href="prototipos/index.html">Ver todos los prototipos</a><br><a href="#t-firmware">Los 3 ya van en un solo firmware</a></p></div>
     <div class="tarjeta"><p class="ceja" style="margin-top:0">Qué toca en esta fase</p><p id="fase-que" style="margin:0;font-size:16px"></p></div>
   </div>
 </section>
@@ -81,6 +81,26 @@ a.ir:hover{transform:translate(-2px,-2px)}
   <h2 id="t-protos">Los 3 prototipos</h2>
   <p class="bajada">Cada uno tiene su simulador para probar y el código que iría en el ESP32.</p>
   <div class="rejilla" id="tres-protos"></div>
+</section>
+
+<section aria-labelledby="t-firmware">
+  <h2 id="t-firmware">Firmware Integrado (P01 + P03 + P08)</h2>
+  <p class="bajada">Los tres prototipos ya están en un solo archivo que corre en el ESP32. Compila sin errores: 71 % de la memoria de programa y 15 % de la RAM.</p>
+  <div class="tarjeta sombra">
+    <p class="ceja" style="margin-top:0">Un solo código · modo autónomo y modo manual</p>
+    <ul style="margin:0;padding-left:20px;font-size:16px;line-height:1.65">
+      <li>Sigue la línea solo, con el control PD a 100 Hz (P08).</li>
+      <li>Obedece órdenes por MQTT y confirma cada pedido (P01).</li>
+      <li>Mueve los motores con PWM a 20 kHz y lee los encoders por interrupción (P03).</li>
+      <li>Si en modo manual pasan 5 s sin órdenes, vuelve solo a autónomo: medida de seguridad.</li>
+      <li>Manda las alertas con QoS 2 y avisa cuando la batería baja de 9,9 V.</li>
+      <li>No usa <code>delay()</code>: todo el tiempo va con <code>millis()</code>.</li>
+    </ul>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:18px">
+      <a href="https://github.com/ilianavsc/tg-robot-ucab/blob/main/firmware/robot_integrado.ino" style="display:inline-block;padding:10px 16px;border-radius:8px;background:#0F9D84;color:#fff;text-decoration:none;font-weight:600">Ver el código (.ino)</a>
+      <a href="https://github.com/ilianavsc/tg-robot-ucab/blob/main/firmware/README.md" style="display:inline-block;padding:10px 16px;border-radius:8px;border:2px solid #0F9D84;color:#0F9D84;text-decoration:none;font-weight:600">Leer el README</a>
+    </div>
+  </div>
 </section>
 
 <section aria-labelledby="t-pend">
