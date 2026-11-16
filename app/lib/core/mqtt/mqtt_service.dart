@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:uuid/uuid.dart';
 
+import '../config/brokers.dart';
 import '../models/estado.dart';
 import 'mqtt_client_platform_stub.dart'
     if (dart.library.io) 'mqtt_client_platform_io.dart'
@@ -20,24 +21,17 @@ enum EstadoConexion { desconectado, conectando, conectado, error }
 /// Reglas de diseño (las mismas del firmware, para no bloquear la UI):
 ///  * Ningún `await` bloquea el hilo principal: todo pasa por `Future` y `Timer`.
 ///  * La reconexión la maneja un `Timer` con espera creciente 3 s → 6 s → 12 s →
-///    24 s → 30 s (tope). Por eso `autoReconnect` del cliente queda **apagado**:
-///    si estuviera encendido habría dos reintentos compitiendo.
-///  * El `clientId` es único (UUID) para que dos teléfonos no se expulsen entre sí.
+///    24 s → 30 s (tope). Por eso `autoReconnect` del cliente queda **apagado**.
+///  * **Respaldo de broker:** si un broker falla [_intentosPorBroker] veces
+///    seguidas, se pasa al siguiente de la lista [brokers] (HiveMQ → EMQX →
+///    Mosquitto → vuelta a empezar). Cada intento crea un cliente nuevo con un
+///    `clientId` UUID distinto.
+///  * El stream `updates` se crea dentro de `connect()`: se escucha **después**
+///    de conectar y se reengancha en cada conexión, nunca en el constructor.
 ///
-/// Limitación conocida: esto usa TCP plano 1883, que sirve en Android, iOS,
-/// Windows y macOS. Para Flutter **web** (Chrome) hace falta WebSocket
-/// (`wss://broker.hivemq.com:8884/mqtt`) con `MqttBrowserClient`; se resuelve
-/// cuando la app tenga que correr en navegador.
+/// Limitación conocida: TCP plano 1883 en nativo; WebSocket `wss` en web.
 class MqttService extends ChangeNotifier {
-  MqttService({
-    this.host = 'broker.hivemq.com',
-    this.puerto = 1883,
-    this.topicoEstado = 'ucab-tg-sf/robot/estado',
-  });
-
-  /// Broker público de desarrollo (el mismo que usa el ESP32).
-  final String host;
-  final int puerto;
+  MqttService({this.topicoEstado = 'ucab-tg-sf/robot/estado'});
 
   /// Tópico de telemetría del robot (QoS 0, cada 2 s).
   final String topicoEstado;
@@ -48,10 +42,16 @@ class MqttService extends ChangeNotifier {
   /// Si no llega telemetría en este tiempo, se considera el enlace caído.
   static const Duration _limiteSinDatos = Duration(seconds: 8);
 
-  late final MqttClient _cliente = _crearCliente();
+  /// Intentos contra un mismo broker antes de saltar al de respaldo.
+  static const int _intentosPorBroker = 2;
+
+  MqttClient? _cliente;
   StreamSubscription<List<MqttReceivedMessage<MqttMessage>>>? _suscripcion;
   Timer? _temporizadorReintento;
   Duration _esperaActual = _esperaMinima;
+
+  int _indiceBroker = 0;
+  int _intentosEnBroker = 0;
 
   bool _descartado = false;
   bool _desconexionManual = false;
@@ -64,6 +64,21 @@ class MqttService extends ChangeNotifier {
   // ------------------------------------------------------------- getters
 
   EstadoConexion get conexion => _conexion;
+
+  /// Broker que se está usando ahora mismo.
+  BrokerEndpoint get broker => brokers[_indiceBroker];
+
+  /// Nombre corto del broker activo (`HiveMQ`, `EMQX`, `Mosquitto`).
+  String get nombreBroker => broker.nombre;
+
+  /// Host del broker activo (la pantalla lo muestra sin cambios de UI).
+  String get host => broker.host;
+
+  /// Puerto real: 1883/8884 en HiveMQ, 1883/8084 en EMQX, 1883/8081 en Mosquitto.
+  int get puertoEfectivo => kIsWeb ? broker.puertoWeb : broker.puertoNativo;
+
+  /// Intentos fallidos contra el broker actual (0, 1 o 2).
+  int get intentosEnBroker => _intentosEnBroker;
 
   /// Última telemetría válida recibida (null hasta el primer mensaje).
   Estado? get ultimoEstado => _ultimoEstado;
@@ -90,49 +105,44 @@ class MqttService extends ChangeNotifier {
     return DateTime.now().difference(ultimo).inSeconds;
   }
 
-  /// Segundos del temporizador de reconexión actual (para mostrarlo en la UI).
+  /// Espera del próximo reintento (para diagnóstico).
   Duration get esperaReintento => _esperaActual;
 
   // ------------------------------------------------------------ acciones
 
-  /// Conecta con el broker y se suscribe a la telemetría.
+  /// Conecta con el broker activo y se suscribe a la telemetría.
   ///
   /// No lanza excepciones: cualquier fallo deja [_conexion] en
   /// [EstadoConexion.error], guarda el motivo en [ultimoError] y programa un
-  /// reintento automático.
+  /// reintento; al segundo fallo cambia de broker.
   Future<void> conectar() async {
     if (_descartado) return;
     _desconexionManual = false;
     if (_conexion == EstadoConexion.conectando) return;
-    if (_cliente.connectionStatus?.state == MqttConnectionState.connected) return;
+
+    final cliente = _cliente ??= _crearCliente();
+    if (cliente.connectionStatus?.state == MqttConnectionState.connected) return;
 
     _temporizadorReintento?.cancel();
     _cambiarConexion(EstadoConexion.conectando);
 
     try {
-      await _cliente.connect();
-      if (_cliente.connectionStatus?.state != MqttConnectionState.connected) {
-        throw StateError('el broker no confirmó la conexión');
+      await cliente.connect();
+      if (cliente.connectionStatus?.state != MqttConnectionState.connected) {
+        throw StateError('${broker.nombre} no confirmó la conexión');
       }
-      _cliente.subscribe(topicoEstado, MqttQos.atMostOnce);
+      cliente.subscribe(topicoEstado, MqttQos.atMostOnce);
       // El stream `updates` se crea dentro de connect(): hay que escucharlo
-      // aquí y no en el constructor, donde todavía es null. En cada reconexión
-      // el gestor de suscripciones es nuevo, así que se cancela la escucha
-      // anterior antes de volver a engancharse.
+      // aquí y no en el constructor, donde todavía es null. En cada conexión
+      // el gestor de suscripciones es nuevo, así que se cancela el anterior.
       _suscripcion?.cancel();
-      _suscripcion = _cliente.updates!.listen(_procesarMensajes);
+      _suscripcion = cliente.updates!.listen(_procesarMensajes);
       _esperaActual = _esperaMinima;
+      _intentosEnBroker = 0;
       _ultimoError = null;
       _cambiarConexion(EstadoConexion.conectado);
     } catch (e) {
-      _ultimoError = 'No se pudo conectar: $e';
-      try {
-        _cliente.disconnect();
-      } catch (_) {
-        // el cliente podía no estar conectado; el error no aporta nada
-      }
-      _cambiarConexion(EstadoConexion.error);
-      _programarReintento();
+      _registrarFallo(e);
     }
   }
 
@@ -142,7 +152,7 @@ class MqttService extends ChangeNotifier {
     _temporizadorReintento?.cancel();
     _esperaActual = _esperaMinima;
     try {
-      _cliente.disconnect();
+      _cliente?.disconnect();
     } catch (_) {
       // cerrar una conexión ya cerrada no es un fallo
     }
@@ -155,7 +165,7 @@ class MqttService extends ChangeNotifier {
     _temporizadorReintento?.cancel();
     _suscripcion?.cancel();
     try {
-      _cliente.disconnect();
+      _cliente?.disconnect();
     } catch (_) {
       // nada que hacer al liberar
     }
@@ -164,20 +174,59 @@ class MqttService extends ChangeNotifier {
 
   // ------------------------------------------------------------ internos
 
-  /// Puerto real de conexión: 1883 (TCP) en nativo, 8884 (wss) en web.
-  int get puertoEfectivo => kIsWeb ? 8884 : puerto;
-
   MqttClient _crearCliente() {
+    final actual = broker;
+    // clientId nuevo en cada cliente: dos pestañas o dos intentos nunca chocan.
     final idCliente = 'ucab-app-${const Uuid().v4().substring(0, 8)}';
-    final cliente =
-        crearClienteMqtt(host: host, puerto: puertoEfectivo, id: idCliente);
+    final cliente = crearClienteMqtt(
+      host: actual.host,
+      puerto: kIsWeb ? actual.puertoWeb : actual.puertoNativo,
+      id: idCliente,
+      // 1 intento interno: los dos intentos por broker los cuenta el servicio.
+      maxIntentos: 1,
+    );
     cliente.logging(on: false);
     cliente.keepAlivePeriod = 20;
-    cliente.connectTimeoutPeriod = 5000;
+    cliente.connectTimeoutPeriod = 6000;
     cliente.autoReconnect = false; // los reintentos los maneja _programarReintento
     cliente.onConnected = _alConectar;
     cliente.onDisconnected = _alDesconectar;
     return cliente;
+  }
+
+  /// Cuenta el fallo y, al segundo, salta al broker de respaldo.
+  void _registrarFallo(Object e) {
+    _intentosEnBroker++;
+    final fallido = broker;
+    final avanzar = _intentosEnBroker >= _intentosPorBroker;
+
+    try {
+      _cliente?.disconnect();
+    } catch (_) {
+      // el cliente podía no estar conectado
+    }
+
+    if (avanzar) {
+      _reemplazarCliente();
+      _ultimoError = '${fallido.nombre}: sin respuesta tras '
+          '$_intentosPorBroker intentos. Paso a ${broker.nombre}. Detalle: $e';
+    } else {
+      _ultimoError = '${fallido.nombre}: intento $_intentosEnBroker de '
+          '$_intentosPorBroker falló. Detalle: $e';
+    }
+
+    _cambiarConexion(EstadoConexion.error);
+    _programarReintento();
+  }
+
+  /// Descarta el cliente actual y avanza al siguiente broker de la lista.
+  void _reemplazarCliente() {
+    _suscripcion?.cancel();
+    _suscripcion = null;
+    _cliente = null;
+    _indiceBroker = (_indiceBroker + 1) % brokers.length;
+    _intentosEnBroker = 0;
+    _esperaActual = _esperaMinima;
   }
 
   void _alConectar() {

@@ -26,7 +26,7 @@ import '../lib/core/models/estado.dart';
 ///                                                     # falso y lo recibe
 ///   dart run tool/telemetria_pc.dart --seg=60         # otro tiempo
 Future<void> main(List<String> args) async {
-  const host = 'broker.hivemq.com';
+  final host = _host(args);
   const puerto = 1883;
   const topico = 'ucab-tg-sf/robot/estado';
 
@@ -101,6 +101,24 @@ int _segundos(List<String> args) {
     }
   }
   return 20;
+}
+
+/// Broker de publicación. Debe ser el mismo que use la app en el navegador.
+String _host(List<String> args) {
+  for (final a in args) {
+    if (a.startsWith('--broker=')) {
+      switch (a.substring('--broker='.length).toLowerCase()) {
+        case 'emqx':
+          return 'broker.emqx.io';
+        case 'mosquitto':
+          return 'test.mosquitto.org';
+        case 'hivemq':
+        default:
+          return 'broker.hivemq.com';
+      }
+    }
+  }
+  return 'broker.hivemq.com';
 }
 
 /// Publica un estado con la misma forma que `publicarEstado()` del firmware.
