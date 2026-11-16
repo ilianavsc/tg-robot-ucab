@@ -1,0 +1,24 @@
+name: robot_ucab_app
+description: "App movil del robot de laboratorio UCAB: pedidos de componentes, telemetria y alertas."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  mqtt_client: ^10.14.0
+  provider: ^6.1.5+1
+  uuid: ^4.6.0
+  shared_preferences: ^2.5.6
+  intl: ^0.20.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
