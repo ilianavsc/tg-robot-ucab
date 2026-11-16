@@ -21,7 +21,12 @@ class TelemetriaScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: <Widget>[
-          _Fila('Conexión', _textoConexion(servicio.conexion)),
+          _Fila(
+            'Conexión',
+            servicio.simulando
+                ? 'modo demo (sin red)'
+                : _textoConexion(servicio.conexion),
+          ),
           _Fila('Broker', '${servicio.host}:${servicio.puertoEfectivo}'),
           _Fila('Tópico', servicio.topicoEstado),
           _Fila(
@@ -58,6 +63,45 @@ class TelemetriaScreen extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: servicio.iniciarSimulacion,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.green.shade700,
+                    foregroundColor: Colors.white,
+                  ),
+                  icon: const Icon(Icons.play_circle_outline),
+                  label: const Text('Iniciar Modo Demo'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: servicio.detenerSimulacion,
+                  icon: const Icon(Icons.stop_circle_outlined),
+                  label: const Text('Detener Demo'),
+                ),
+              ),
+            ],
+          ),
+          if (servicio.simulando) ...<Widget>[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                border: Border.all(color: Colors.green.shade400),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                'MODO DEMO ACTIVO · telemetría simulada cada 2 s, sin red',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
         ],
       ),
     );

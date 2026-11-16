@@ -50,6 +50,13 @@ class MqttService extends ChangeNotifier {
   Timer? _temporizadorReintento;
   Duration _esperaActual = _esperaMinima;
 
+  // Modo Demo (telemetría simulada, sin red)
+  static const Duration _periodoDemo = Duration(seconds: 2);
+  Timer? _temporizadorDemo;
+  int _pasoDemo = 0;
+  int _tDemo = 0;
+  bool _simulando = false;
+
   int _indiceBroker = 0;
   int _intentosEnBroker = 0;
 
@@ -117,6 +124,7 @@ class MqttService extends ChangeNotifier {
   /// reintento; al segundo fallo cambia de broker.
   Future<void> conectar() async {
     if (_descartado) return;
+    if (_simulando) detenerSimulacion(); // pulsar Conectar apaga el demo
     _desconexionManual = false;
     if (_conexion == EstadoConexion.conectando) return;
 
@@ -159,9 +167,39 @@ class MqttService extends ChangeNotifier {
     _cambiarConexion(EstadoConexion.desconectado);
   }
 
+  // ------------------------------------------------------- Modo Demo
+
+  /// `true` mientras la pantalla muestra datos simulados.
+  bool get simulando => _simulando;
+
+  /// Arranca el **Modo Demo**: corta el MQTT real y emite telemetría falsa
+  /// cada 2 s. Sirve para mostrar la UI sin internet (demostración al jurado).
+  ///
+  /// Es idempotente: si ya estaba activo, lo reinicia desde el primer perfil.
+  void iniciarSimulacion() {
+    if (_descartado) return;
+    detenerSimulacion();  // limpia temporizador previo
+    desconectar();        // apaga MQTT y desactiva los reintentos
+    _simulando = true;
+    _pasoDemo = 0;
+    _tDemo = 0;
+    _emitirPasoDemo();    // primer dato inmediato, sin esperar 2 s
+    _temporizadorDemo = Timer.periodic(_periodoDemo, (_) => _emitirPasoDemo());
+  }
+
+  /// Detiene el Modo Demo. No reconecta: para volver a MQTT, pulsar Conectar.
+  void detenerSimulacion() {
+    _temporizadorDemo?.cancel();
+    _temporizadorDemo = null;
+    if (!_simulando) return;
+    _simulando = false;
+    if (!_descartado) notifyListeners();
+  }
+
   @override
   void dispose() {
     _descartado = true;
+    _temporizadorDemo?.cancel();
     _temporizadorReintento?.cancel();
     _suscripcion?.cancel();
     try {
@@ -269,6 +307,28 @@ class MqttService extends ChangeNotifier {
     }
   }
 
+  /// Genera un [Estado] falso del siguiente perfil y avisa a la UI.
+  void _emitirPasoDemo() {
+    if (_descartado || !_simulando) return;
+    final perfil = _perfilesDemo[_pasoDemo % _perfilesDemo.length];
+    _pasoDemo++;
+    _tDemo += _periodoDemo.inMilliseconds;
+    _ultimoEstado = Estado(
+      numero: 9000 + _pasoDemo,
+      modo: perfil.modo,
+      bateria: perfil.bateria,
+      bateriaV: perfil.bateriaV,
+      ordenes: _pasoDemo,
+      lineaMm: perfil.lineaMm,
+      vIzq: perfil.vIzq,
+      vDer: perfil.vDer,
+      t: _tDemo,
+    );
+    _ultimoMensaje = DateTime.now();
+    _ultimoError = null;
+    notifyListeners();
+  }
+
   void _decodificarEstado(String texto) {
     try {
       final mapa = jsonDecode(texto);
@@ -290,3 +350,33 @@ class MqttService extends ChangeNotifier {
     if (!_descartado) notifyListeners();
   }
 }
+
+/// Perfil de telemetría simulada para el Modo Demo.
+class _PerfilDemo {
+  const _PerfilDemo({
+    required this.modo,
+    required this.bateria,
+    required this.bateriaV,
+    required this.lineaMm,
+    required this.vIzq,
+    required this.vDer,
+  });
+
+  final String modo;
+  final int bateria;
+  final double bateriaV;
+  final double lineaMm;
+  final double vIzq;
+  final double vDer;
+}
+
+/// Seis perfiles que rotan cada 2 s: batería alta/baja, línea centrada y
+/// perdida, ruedas opuestas. Mismo guion que `tool/telemetria_pc.dart`.
+const List<_PerfilDemo> _perfilesDemo = <_PerfilDemo>[
+  _PerfilDemo(modo: 'autonomo', bateria: 100, bateriaV: 12.60, lineaMm: 0.0, vIzq: 0.41, vDer: 0.41),
+  _PerfilDemo(modo: 'manual', bateria: 15, bateriaV: 10.35, lineaMm: 27.0, vIzq: 0.30, vDer: 0.55),
+  _PerfilDemo(modo: 'autonomo', bateria: 45, bateriaV: 11.20, lineaMm: -32.4, vIzq: 0.05, vDer: 0.05),
+  _PerfilDemo(modo: 'autonomo', bateria: 5, bateriaV: 9.95, lineaMm: -27.0, vIzq: 0.55, vDer: 0.30),
+  _PerfilDemo(modo: 'manual', bateria: 60, bateriaV: 11.50, lineaMm: 9.0, vIzq: -0.40, vDer: 0.40),
+  _PerfilDemo(modo: 'autonomo', bateria: 90, bateriaV: 12.10, lineaMm: 0.5, vIzq: 0.52, vDer: 0.52),
+];
