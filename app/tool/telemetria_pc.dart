@@ -108,6 +108,8 @@ String _host(List<String> args) {
   for (final a in args) {
     if (a.startsWith('--broker=')) {
       switch (a.substring('--broker='.length).toLowerCase()) {
+        case 'local':
+          return 'localhost';
         case 'emqx':
           return 'broker.emqx.io';
         case 'mosquitto':
