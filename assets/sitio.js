@@ -55,13 +55,18 @@
     ["arquitectura", "Arquitectura", "arquitectura.html"],
     ["decisiones", "Decisiones", "decisiones.html"],
     ["bitacora", "Bitácora", "bitacora.html"],
-    ["docs", "Documentación", "index.html#t-explora"]
+    ["docs", "Documentación", "index.html#t-explora"],
+    // La app Flutter vive en su propia subcarpeta de GitHub Pages
+    ["app", "App web", "https://ilianavsc.github.io/tg-robot-ucab/app/"]
   ];
+
+  // Los enlaces absolutos no llevan el prefijo `base` de las subpáginas.
+  function urlDe(u) { return /^https?:\/\//.test(u) ? u : base + u; }
   var menu = document.getElementById("menu");
   if (menu) {
     var html = '<a class="menu-marca" href="' + base + 'index.html"><span class="punto-marca" aria-hidden="true"></span>TG Robot UCAB</a><nav aria-label="Secciones"><ul>';
     secciones.forEach(function (s) {
-      if (s[2]) html += '<li><a href="' + base + s[2] + '"' + (s[0] === actual ? ' aria-current="page"' : "") + ">" + s[1] + "</a></li>";
+      if (s[2]) html += '<li><a href="' + urlDe(s[2]) + '"' + (s[0] === actual ? ' aria-current="page"' : "") + ">" + s[1] + "</a></li>";
       else html += '<li><span class="pronto" title="Próximamente">' + s[1] + "</span></li>";
     });
     menu.innerHTML = html + "</ul></nav>";

@@ -34,23 +34,26 @@ jobs:
         working-directory: app
         run: flutter pub get
 
-      - name: Compilar Flutter Web con el base-href del repositorio
+      - name: Compilar Flutter Web en la subcarpeta /app/
         working-directory: app
-        run: flutter build web --release --base-href /tg-robot-ucab/
+        run: flutter build web --release --base-href /tg-robot-ucab/app/
 
       - name: Armar la carpeta que se publica
         run: |
           set -euo pipefail
           PUB="$GITHUB_WORKSPACE/public"
-          # 1) La app Flutter queda en la raíz del sitio
           mkdir -p "$PUB"
-          cp -r app/build/web/. "$PUB"/
-          # 2) El portafolio estático se conserva en /portafolio
-          mkdir -p "$PUB/portafolio"
-          cp "$GITHUB_WORKSPACE"/*.html "$PUB"/portafolio/
-          cp -r assets datos prototipos docs "$PUB"/portafolio/
-          echo "Contenido publicado:"
+          # 1) El portafolio ocupa la RAÍZ del sitio
+          cp "$GITHUB_WORKSPACE"/*.html "$PUB"/
+          cp "$GITHUB_WORKSPACE"/*.md "$PUB"/
+          cp -r assets datos prototipos docs hardware "$PUB"/
+          # 2) La app Flutter queda en /app
+          mkdir -p "$PUB/app"
+          cp -r app/build/web/. "$PUB/app"/
+          echo "Raíz publicada:"
           ls -la "$PUB"
+          echo "App publicada:"
+          ls -la "$PUB/app" | head -20
 
       - name: Publicar en la rama gh-pages
         uses: peaceiris/actions-gh-pages@v4
