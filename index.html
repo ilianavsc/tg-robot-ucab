@@ -181,6 +181,7 @@ a.ir:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hard-hover)}
       <div class="tarjeta"><p class="ceja" style="margin-top:0">Próximo hito</p><div class="cifra" id="hito-dias"></div><p id="hito-texto" style="margin:0"></p></div>
       <div class="tarjeta"><p class="ceja" style="margin-top:0">Prototipos</p><div class="cifra" id="proto-cifra"></div><div class="puntos" id="proto-puntos"></div><p style="margin:0;font-size:15px"><a href="prototipos/index.html">Ver todos los prototipos</a><br><a href="#t-firmware">Los 3 ya van en un solo firmware</a></p></div>
       <div class="tarjeta"><p class="ceja" style="margin-top:0">Qué toca en esta fase</p><p id="fase-que" style="margin:0;font-size:16px"></p></div>
+      <div class="tarjeta"><p class="ceja" style="margin-top:0">Próxima prueba · 18 nov</p><div class="cifra" id="prueba-dias"></div><p id="prueba-texto" style="margin:0;font-size:15px"></p></div>
     </div>
   </section>
 
@@ -243,6 +244,9 @@ a.ir:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hard-hover)}
       <a class="tarjeta sombra ir" href="arquitectura.html"><h3>🏗️ Arquitectura</h3><p>Diagrama de bloques, tópicos MQTT y flujo de señales.</p></a>
       <a class="tarjeta sombra ir" href="decisiones.html"><h3>💡 Decisiones</h3><p>Criterios de ingeniería: por qué elegimos cada tecnología.</p></a>
       <a class="tarjeta sombra ir" href="bitacora.html"><h3>📖 Bitácora</h3><p>Registro semanal detallado del trabajo realizado.</p></a>
+      <a class="tarjeta sombra ir" href="https://github.com/ilianavsc/tg-robot-ucab/blob/main/docs/guia_pruebas_lab.md" target="_blank" rel="noopener"><h3>🧪 Guía de pruebas</h3><p>Protocolo del laboratorio del 18/11: Wi-Fi y MQTT, latencia y calibración del PD.</p></a>
+      <a class="tarjeta sombra ir" href="https://github.com/ilianavsc/tg-robot-ucab/blob/main/docs/checklist_hardware.md" target="_blank" rel="noopener"><h3>🔌 Checklist de hardware</h3><p>Seguridad eléctrica, pull-down de 10 kΩ y tabla de conexiones del ESP32.</p></a>
+      <a class="tarjeta sombra ir" href="https://github.com/ilianavsc/tg-robot-ucab/blob/main/docs/guia_mqttx.md" target="_blank" rel="noopener"><h3>📡 Guía MQTTX</h3><p>Tópicos del robot, payloads listos para copiar y prueba de humo de 7 pasos.</p></a>
     </div>
   </section>
 </main>
@@ -279,6 +283,10 @@ a.ir:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hard-hover)}
           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>' +
           'Descargar Código (.ino)' +
         '</a>' : '<span style="font-size:14px;color:var(--text-light);text-align:center;padding:6px 0">Código ESP32: próximamente</span>') +
+        (p.historico ? '<a href="' + p.historico + '" class="btn-descargar" style="justify-content:center">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12H4z"></path><path d="M8 8h8M8 12h8M8 16h5"></path></svg>' +
+          'Ver registro T1–T7' +
+        '</a>' : '') +
       '</div>' +
     '</div>';
   });
@@ -312,6 +320,12 @@ a.ir:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hard-hover)}
   document.getElementById("hito-dias").innerHTML = faltan >= 0 ? faltan + " <small>días</small>" : "Vencido";
   document.getElementById("hito-texto").textContent = fase.hito + " · " + U.largo(fin);
   document.getElementById("fase-que").textContent = fase.que;
+
+  var prueba = U.fecha("2026-11-18"), faltanPrueba = U.dias(hoy, prueba);
+  document.getElementById("prueba-dias").innerHTML = faltanPrueba > 0 ? faltanPrueba + " <small>días</small>"
+    : (faltanPrueba === 0 ? "Hoy <small>es</small>" : "Hecha <small>ya</small>");
+  document.getElementById("prueba-texto").innerHTML = "Laboratorio UCAB · " + U.largo(prueba) +
+    ' · <a href="https://github.com/ilianavsc/tg-robot-ucab/blob/main/docs/guia_pruebas_lab.md" target="_blank" rel="noopener">guía de pruebas</a>';
 
   var P = D.prototipos, listos = P.filter(function(p){return p.estado !== "pendiente";}).length;
   document.getElementById("proto-cifra").innerHTML = listos + " <small>de " + P.length + " en marcha</small>";

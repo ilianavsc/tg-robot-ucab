@@ -54,7 +54,8 @@
     ["hardware", "Hardware", "hardware.html"],
     ["arquitectura", "Arquitectura", "arquitectura.html"],
     ["decisiones", "Decisiones", "decisiones.html"],
-    ["bitacora", "Bitácora", "bitacora.html"]
+    ["bitacora", "Bitácora", "bitacora.html"],
+    ["docs", "Documentación", "index.html#t-explora"]
   ];
   var menu = document.getElementById("menu");
   if (menu) {
