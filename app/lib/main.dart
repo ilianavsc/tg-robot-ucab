@@ -11,6 +11,7 @@ import 'features/telemetria/telemetria_screen.dart';
 /// cascade dispara la conexión al abrir la app; no bloquea el arranque porque
 /// internamente es asíncrono y no lanza excepciones.
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const AppRobotUcab());
 }
 

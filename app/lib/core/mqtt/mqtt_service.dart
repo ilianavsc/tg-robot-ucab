@@ -33,11 +33,7 @@ class MqttService extends ChangeNotifier {
     this.host = 'broker.hivemq.com',
     this.puerto = 1883,
     this.topicoEstado = 'ucab-tg-sf/robot/estado',
-  }) {
-    // Una sola escucha para toda la vida del servicio: el stream `updates`
-    // es único y escucharlo dos veces duplicaría los mensajes.
-    _suscripcion = _cliente.updates!.listen(_procesarMensajes);
-  }
+  });
 
   /// Broker público de desarrollo (el mismo que usa el ESP32).
   final String host;
@@ -119,6 +115,12 @@ class MqttService extends ChangeNotifier {
         throw StateError('el broker no confirmó la conexión');
       }
       _cliente.subscribe(topicoEstado, MqttQos.atMostOnce);
+      // El stream `updates` se crea dentro de connect(): hay que escucharlo
+      // aquí y no en el constructor, donde todavía es null. En cada reconexión
+      // el gestor de suscripciones es nuevo, así que se cancela la escucha
+      // anterior antes de volver a engancharse.
+      _suscripcion?.cancel();
+      _suscripcion = _cliente.updates!.listen(_procesarMensajes);
       _esperaActual = _esperaMinima;
       _ultimoError = null;
       _cambiarConexion(EstadoConexion.conectado);
@@ -208,6 +210,7 @@ class MqttService extends ChangeNotifier {
   void _procesarMensajes(List<MqttReceivedMessage<MqttMessage>> eventos) {
     for (final evento in eventos) {
       if (evento.topic != topicoEstado) continue;
+      if (evento.payload is! MqttPublishMessage) continue;
       final publicacion = evento.payload as MqttPublishMessage;
       final texto =
           MqttPublishPayload.bytesToStringAsString(publicacion.payload.message);
