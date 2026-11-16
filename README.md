@@ -5,8 +5,15 @@ Trabajo de Grado, Ingeniería en Telecomunicaciones, UCAB.
 **Autoras:** Iliana Vanessa Semprun Cascitelli y Andrea Valentina Ferrer Pinto
 **Tutor:** Ing. Biagio Domenico Cante Mata
 
-## Sitio del proyecto
+## App web (Flutter) — lista para el jurado
 👉 **https://ilianavsc.github.io/tg-robot-ucab/**
+
+Trae **Modo Demo**: simula la telemetría del robot cada 2 s sin internet ni broker,
+así la demostración no depende de la red del laboratorio.
+Código en [`app/`](app/), desplegado automáticamente por GitHub Actions en cada push a `main`.
+
+## Sitio del proyecto (portafolio)
+👉 **https://ilianavsc.github.io/tg-robot-ucab/portafolio/**
 
 Cada prototipo tiene una página visual que se entiende en 30 segundos, con sus pruebas y capturas.
 

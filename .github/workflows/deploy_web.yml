@@ -1,0 +1,64 @@
+name: Despliegue de Flutter Web en GitHub Pages
+
+# Se ejecuta en cada push a main y también a mano desde la pestaña Actions.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Necesario para que el job pueda empujar la rama gh-pages.
+permissions:
+  contents: write
+
+# Si se empujan dos commits seguidos, se queda con el último despliegue.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    name: Compilar la app y publicar
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Flutter (misma versión que en las pruebas)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.8
+          cache: true
+
+      - name: Dependencias de la app
+        working-directory: app
+        run: flutter pub get
+
+      - name: Compilar Flutter Web con el base-href del repositorio
+        working-directory: app
+        run: flutter build web --release --base-href /tg-robot-ucab/
+
+      - name: Armar la carpeta que se publica
+        run: |
+          set -euo pipefail
+          PUB="$GITHUB_WORKSPACE/public"
+          # 1) La app Flutter queda en la raíz del sitio
+          mkdir -p "$PUB"
+          cp -r app/build/web/. "$PUB"/
+          # 2) El portafolio estático se conserva en /portafolio
+          mkdir -p "$PUB/portafolio"
+          cp "$GITHUB_WORKSPACE"/*.html "$PUB"/portafolio/
+          cp -r assets datos prototipos docs "$PUB"/portafolio/
+          echo "Contenido publicado:"
+          ls -la "$PUB"
+
+      - name: Publicar en la rama gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./public
+          # Historial limpio: un solo commit por despliegue
+          force_orphan: true
+          # Agrega .nojekyll para que Pages no procese los archivos de Flutter
+          enable_jekyll: false
