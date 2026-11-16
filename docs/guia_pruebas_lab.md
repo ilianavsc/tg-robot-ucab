@@ -3,9 +3,12 @@
 **Proyecto:** Robot móvil para transporte de componentes en el laboratorio con app y alertas
 **Autores:** Iliana Cascitelli · Andrea _[apellido]_
 **Firmware bajo prueba:** `firmware/robot_integrado.ino` — 35.614 bytes · 71 % flash · 15 % RAM
-**Hardware:** ESP32 DevKit 30 pines (CP2102) · L298N · 4× TCRT5000 · 2 encoders · batería 3S
-**Duración prevista:** 3 h 20 min → A: 40 min · B: 50 min · C: 70 min · margen: 40 min
+**Hardware del 18/11:** ESP32 DevKit 30 pines (CP2102) **solo**, alimentado por USB — sin L298N, sensores ni batería (el pedido llega a Miami 15-28 dic)
+**Duración prevista:** 1 h 30 min → A: 40 min · B: 40 min · margen: 10 min
 **Versiones:** core `esp32:esp32` 3.3.12 · librería `MQTT` 2.5.3 · `arduino-cli` 1.6.0
+
+> ⚠️ **Alcance real del 18/11 = prueba H0.** Solo ESP32 + Wi-Fi + MQTT. El bloque B (latencia) se hace
+> sin hardware móvil; el **bloque C (PD) queda pospuesto** hasta que lleguen motores, encoders y sensores.
 
 > Regla de la sesión: **el firmware no se toca durante las pruebas**, salvo las 3 constantes del
 > bloque C (líneas 140-142). Todo cambio se anota en `docs/bitacora/`.
@@ -15,11 +18,10 @@
 ## 0. Checklist previo (10 min, antes de energizar)
 
 - [ ] `firmware/secrets.h` tiene el SSID y la clave de la red (líneas 17 y 18)
-- [ ] Batería 3S cargada: **≥ 12,0 V** medidas con multímetro
+- [ ] Cable USB-C **de datos** + puerto del laptop (alimenta el ESP32)
 - [ ] Laptop con `arduino-cli` 1.6.0 en el PATH (`arduino-cli version` responde)
 - [ ] MQTTX instalado y conectado a `broker.hivemq.com:1883`
-- [ ] Pista armada: cinta negra 19 mm sobre piso claro, 2 m rectos + 1 curva
-- [ ] Plan B de red: hotspot 2,4 GHz del celular (la red UCAB es WPA2-Enterprise y **no** funciona con este firmware)
+- [ ] Hotspot 2,4 GHz del celular listo (la red UCAB es WPA2-Enterprise y **no** funciona con este firmware)
 
 ---
 
@@ -54,7 +56,7 @@ Si se usa otra laptop, ajustar la ruta del sketch; el nombre de la carpeta **deb
 **Objetivo:** demostrar que el ESP32 se asocia a la red, obtiene IP y completa el handshake MQTT.
 
 ### A.1 · Wi-Fi
-1. [ ] Energizar el robot. No debe moverse durante los primeros **1,5 s** (espera de arranque).
+1. [ ] Conectar el ESP32 por USB. Debe encender su LED de alimentación; no se usa batería.
 2. [ ] Abrir el monitor serie a 115200. En los primeros 15 s debe aparecer, en este orden:
    ```
    Red configurada: NOMBRE_DE_LA_RED
@@ -77,12 +79,9 @@ Si se usa otra laptop, ajustar la ruta del sketch; el nombre de la carpeta **deb
 9. [ ] Dejar el robot quieto 6 s: debe imprimir `Manual sin ordenes por 5 s: vuelvo a AUTONOMO (seguridad)`.
 
 ### A.3 · Pruebas de caída (importante para la seguridad)
-10. [ ] En modo MANUAL y con `adelante`, alejar el celular/router hasta que caiga el Wi-Fi.
-    - [ ] El robot **se detiene de inmediato** (no sigue a ciegas).
-    - [ ] El monitor muestra `Wi-Fi caido` y `PARO POR RED: motores detenidos hasta nueva orden`.
-    - [ ] Al volver la red, reconecta solo y **no** se mueve hasta recibir una orden.
-11. [ ] En modo AUTÓNOMO sobre la línea, repetir la caída de red.
-    - [ ] El robot **sigue siguiendo la línea** con el PD.
+10. [ ] Publicar `{"id":"A-02","cmd":"adelante"}` y luego alejar el celular/router hasta que caiga el Wi-Fi.
+    - [ ] El monitor muestra `Wi-Fi caido` y `PARO POR RED: motores detenidos hasta nueva orden` (sin motores no hay movimiento, pero el latch de seguridad **sí** se activa y es observable).
+    - [ ] Al volver la red, reconecta solo y **no** reaplica la orden hasta recibir una nueva.
 
 ### Fallos típicos del bloque A
 
@@ -139,7 +138,10 @@ Incluye subida por Wi-Fi + broker público + procesamiento del robot + vuelta.
 
 ---
 
-## Bloque C · Calibración del PD (70 min)
+## Bloque C · Calibración del PD (POSPUESTO — no aplica el 18/11)
+
+> ⏸️ **No se ejecuta hoy.** Requiere motores, encoders y los 4 TCRT5000, que llegan al casillero de
+> Miami entre el **15 y el 28 de diciembre**. Se deja redactado para cuando llegue el hardware.
 
 **Objetivo:** encontrar `PD_BASE` y `PD_KP` con los que el robot recorra 2 m de recta sin zigzag
 y tome la curva sin perder la línea.
@@ -215,6 +217,6 @@ const float PD_KD   = 0.0015f;  // PWM por cada mm/s de cambio del error
 | Pruebas A y B | Andrea _[apellido]_ | | |
 | Pruebas C y firmware | Iliana Cascitelli | | |
 
-- [ ] Batería desconectada y robot guardado
+- [ ] ESP32 desconectado del USB y guardado
 - [ ] Resultados copiados a `docs/bitacora/semana-___.md`
-- [ ] Constantes finales del bloque C registradas en el commit correspondiente
+- [ ] Bloque C queda agendado para cuando llegue el hardware (15-28 dic)
