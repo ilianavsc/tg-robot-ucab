@@ -184,6 +184,8 @@ class MqttService extends ChangeNotifier {
       id: idCliente,
       // 1 intento interno: los dos intentos por broker los cuenta el servicio.
       maxIntentos: 1,
+      // wss:// normalmente; ws:// solo en el broker marcado como no seguro.
+      seguro: actual.seguroWeb,
     );
     cliente.logging(on: false);
     cliente.keepAlivePeriod = 20;

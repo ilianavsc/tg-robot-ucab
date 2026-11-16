@@ -7,6 +7,7 @@ MqttClient crearClienteMqtt({
   required int puerto,
   required String id,
   required int maxIntentos,
+  required bool seguro,
 }) {
   throw UnsupportedError('Plataforma sin soporte MQTT');
 }
