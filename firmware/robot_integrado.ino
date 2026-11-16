@@ -62,6 +62,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <MQTT.h>
+#include "secrets.h"   // WIFI_SSID / WIFI_PASS / MQTT_BROKER: local, fuera del repo
 
 // =====================================================================
 // 1. PINES (un único bloque; antes estaban repetidos en los tres códigos)
@@ -91,9 +92,11 @@ const uint8_t PIN_PRUEBA  = 0;   // botón BOOT de la placa (activo en bajo)
 // =====================================================================
 // 2. RED Y MQTT
 // =====================================================================
-const char* WIFI_RED   = "TU_RED_WIFI";    // <- escribir la red (no subir la clave al repo)
-const char* WIFI_CLAVE = "TU_CLAVE_WIFI";  // <- y su clave
-const char* BROKER     = "broker.hivemq.com";
+// La red y el broker vienen de secrets.h (archivo local, en .gitignore).
+const char* WIFI_RED   = WIFI_SSID;
+const char* WIFI_CLAVE = WIFI_PASS;
+const char* BROKER     = MQTT_BROKER;
+const int   BROKER_PUERTO = MQTT_PUERTO;
 
 const char* T_ESTADO   = "ucab-tg-sf/robot/estado";
 const char* T_ORDENES  = "ucab-tg-sf/robot/ordenes";
@@ -102,9 +105,14 @@ const char* T_ALERTAS  = "ucab-tg-sf/robot/alertas";
 const char* T_CONEXION = "ucab-tg-sf/robot/conexion";
 
 // Tiempos de red (reintentos sin delay)
-const uint32_t REINTENTO_WIFI_MS = 5000;
-const uint32_t REINTENTO_MQTT_MS = 2000;
-const uint32_t PERIODO_ESTADO_MS = 2000;   // estado cada 2 s
+const uint32_t REINTENTO_WIFI_MS     = 5000;
+const uint32_t REINTENTO_MQTT_MS     = 3000;   // primer reintento de MQTT
+const uint32_t REINTENTO_MQTT_MAX_MS = 30000;  // techo del backoff
+const uint32_t PERIODO_ESTADO_MS     = 2000;   // estado cada 2 s
+const uint32_t TIMEOUT_MQTT_MS       = 1000;   // acota lo que bloquea mqtt.connect()
+
+// Backoff de reconexión: 3 s, 6 s, 12 s, 24 s, 30 s, 30 s...
+uint32_t esperaMqttActual = REINTENTO_MQTT_MS;
 
 WiFiClient red;
 MQTTClient mqtt(512);
@@ -352,6 +360,20 @@ float velManual = 0.75f;          // 0 a 1 (el simulador de P03 empieza en 75 %)
 const float PASO_VEL = 0.05f;
 int dirIzq = 0, dirDer = 0;       // +1 adelante, -1 atrás, 0 frena
 
+// Paro por pérdida de red: si en MANUAL se cae el Wi-Fi o el MQTT, el robot
+// frena y NO vuelve a arrancar hasta que llegue una orden nueva.
+bool paroPorRed = false;
+
+// Frena y latchea el paro. Sin esto, controlar() reaplicaría el PWM manual
+// a los 10 ms y el robot seguiría avanzando a ciegas.
+void paradaSegura() {
+  dirIzq = 0;
+  dirDer = 0;
+  paroPorRed = true;
+  detener();
+  Serial.println("PARO POR RED: motores detenidos hasta nueva orden");
+}
+
 const char* nombreModo() {
   return (modo == MODO_AUTONOMO) ? "autonomo" : "manual";
 }
@@ -360,6 +382,7 @@ const char* nombreModo() {
 void pasarAAutonomo() {
   if (modo == MODO_AUTONOMO) return;
   modo = MODO_AUTONOMO;
+  paroPorRed = false;                // una orden explícita libera el paro por red
   estadoLinea.hayError = false;      // sin historial: el término D arranca en 0
   estadoLinea.errorAnterior = 0.0f;
   estadoLinea.ultimaPos = 0.0f;
@@ -371,6 +394,7 @@ void pasarAAutonomo() {
 // Aplica una orden de movimiento (vel < 0 significa "mantener la actual")
 void aplicarCmd(const String &cmd, float vel) {
   ultimaOrdenMs = millis();
+  paroPorRed = false;                // cualquier orden nueva libera el paro
 
   if (cmd == "auto") { pasarAAutonomo(); return; }
 
@@ -411,26 +435,52 @@ float vIzq = 0.0f, vDer = 0.0f;
 float pwmIzqAplicado = 0.0f, pwmDerAplicado = 0.0f;
 
 // =====================================================================
-// 10. LECTURA DEL JSON (pedidos de la app)
+// 10. LECTURA DEL JSON (pedidos de la app) — tolerante a espacios
 // =====================================================================
-// Saca el valor de un campo de texto: {"cmd":"adelante"} -> "adelante"
-String leerCadena(const String &json, const char *campo) {
-  String patron = String("\"") + campo + "\":\"";
-  int i = json.indexOf(patron);
-  if (i < 0) return "";
-  i += patron.length();
-  int f = json.indexOf('"', i);
-  if (f < 0) return "";
-  return json.substring(i, f);
+// {"cmd":"adelante"} y { "cmd" : "adelante" } se leen igual.
+bool esEspacioJson(char c) {
+  return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }
 
-// Saca un número: {"vel":0.6} -> 0.6. Devuelve false si el campo no está.
-bool leerNumero(const String &json, const char *campo, float &valor) {
-  String patron = String("\"") + campo + "\":";
+// Devuelve el índice del primer carácter del VALOR de "campo", o -1.
+// La comilla inicial del patrón ancla la búsqueda: "nocmd" no da falso positivo.
+int localizarValor(const String &json, const char *campo) {
+  String patron = String("\"") + campo + "\"";
   int i = json.indexOf(patron);
-  if (i < 0) return false;
+  if (i < 0) return -1;
   i += patron.length();
-  valor = json.substring(i).toFloat();
+  const int n = (int)json.length();
+  while (i < n && esEspacioJson(json[i])) i++;     // espacios antes de ':'
+  if (i >= n || json[i] != ':') return -1;
+  i++;
+  while (i < n && esEspacioJson(json[i])) i++;     // espacios después de ':'
+  return (i < n) ? i : -1;
+}
+
+// Saca el valor de un campo de texto: {"cmd":"adelante"} -> "adelante"
+String leerCadena(const String &json, const char *campo) {
+  int i = localizarValor(json, campo);
+  if (i < 0 || json[i] != '"') return "";
+  int f = json.indexOf('"', i + 1);
+  if (f < 0) return "";
+  return json.substring(i + 1, f);
+}
+
+// Saca un número: {"vel":0.6} -> 0.6. Devuelve false si el campo no está
+// o si no empieza por un dígito/signo (p.ej. "vel":true).
+bool leerNumero(const String &json, const char *campo, float &valor) {
+  int i = localizarValor(json, campo);
+  if (i < 0) return false;
+  const int n = (int)json.length();
+  int f = i;
+  while (f < n) {
+    char c = json[f];
+    if ((c >= '0' && c <= '9') || c == '-' || c == '+' || c == '.' ||
+        c == 'e' || c == 'E') f++;
+    else break;
+  }
+  if (f == i) return false;
+  valor = json.substring(i, f).toFloat();
   return true;
 }
 
@@ -466,7 +516,15 @@ bool conectarMQTT() {
   return true;
 }
 
-// Máquina de fases de la red: reintenta con millis, nunca con delay
+// Regla de seguridad: en MANUAL, perder la red = detenerse YA.
+// En AUTONOMO no se toca nada: el PD sigue siguiendo la línea.
+void alPerderRed() {
+  if (modo == MODO_MANUAL) paradaSegura();
+}
+
+// Máquina de fases de la red: reintenta con millis, nunca con delay.
+// El único bloqueo es mqtt.connect() dentro de RED_CONECTANDO_MQTT, acotado
+// a TIMEOUT_MQTT_MS (1 s) y solo mientras los motores están parados.
 void gestionarRed() {
   uint32_t ahora = millis();
   switch (faseRed) {
@@ -474,8 +532,9 @@ void gestionarRed() {
       if (WiFi.status() == WL_CONNECTED) {
         Serial.print("Wi-Fi listo, IP ");
         Serial.println(WiFi.localIP());
+        esperaMqttActual = REINTENTO_MQTT_MS;          // backoff a cero
         faseRed = RED_CONECTANDO_MQTT;
-        ultimoIntentoRed = ahora - REINTENTO_MQTT_MS;   // intenta enseguida
+        ultimoIntentoRed = ahora - REINTENTO_MQTT_MS;  // intenta en esta vuelta
       } else if (ahora - ultimoIntentoRed >= REINTENTO_WIFI_MS) {
         ultimoIntentoRed = ahora;
         Serial.println("Wi-Fi: reintentando...");
@@ -485,24 +544,38 @@ void gestionarRed() {
 
     case RED_CONECTANDO_MQTT:
       if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("Wi-Fi caido");
+        alPerderRed();
         faseRed = RED_ESPERANDO_WIFI;
         ultimoIntentoRed = ahora;
         break;
       }
-      if (ahora - ultimoIntentoRed >= REINTENTO_MQTT_MS) {
-        ultimoIntentoRed = ahora;
-        if (conectarMQTT()) faseRed = RED_LISTO;
+      if (ahora - ultimoIntentoRed < esperaMqttActual) break;  // aún no toca
+      ultimoIntentoRed = ahora;
+      detener();   // el intento puede bloquear 1 s: no avanzar a ciegas
+      if (conectarMQTT()) {
+        faseRed = RED_LISTO;
+        esperaMqttActual = REINTENTO_MQTT_MS;                  // backoff reiniciado
+      } else {
+        esperaMqttActual = min(esperaMqttActual * 2, REINTENTO_MQTT_MAX_MS);
+        Serial.print("MQTT sin conexion, reintento en ");
+        Serial.print(esperaMqttActual / 1000);
+        Serial.println(" s");
       }
       break;
 
     case RED_LISTO:
       if (WiFi.status() != WL_CONNECTED) {
         Serial.println("Wi-Fi caido");
+        alPerderRed();
         faseRed = RED_ESPERANDO_WIFI;
         ultimoIntentoRed = ahora;
       } else if (!mqtt.connected()) {
+        Serial.println("MQTT caido");
+        alPerderRed();
         faseRed = RED_CONECTANDO_MQTT;
         ultimoIntentoRed = ahora;
+        esperaMqttActual = REINTENTO_MQTT_MS;   // vuelve a 3 s tras una caída
       }
       break;
   }
@@ -662,7 +735,13 @@ void controlar() {
     return;
   }
 
-  // --- 3) Máquina de estados: timeout de seguridad del modo MANUAL ---
+  // --- 3a) Paro por red: no se reaplica PWM mientras dure el latch ---
+  if (paroPorRed) {
+    detener();
+    return;
+  }
+
+  // --- 3b) Máquina de estados: timeout de seguridad del modo MANUAL ---
   if (modo == MODO_MANUAL && (ahora - ultimaOrdenMs) > TIMEOUT_MANUAL_MS) {
     Serial.println("Manual sin ordenes por 5 s: vuelvo a AUTONOMO (seguridad)");
     pasarAAutonomo();
@@ -750,12 +829,18 @@ void setup() {
 
   // Wi-Fi (sin bloqueo: la conexión real la sigue gestionarRed en loop)
   WiFi.mode(WIFI_STA);
+  Serial.print("Red configurada: ");
+  Serial.println(WIFI_RED);
+  if (String(WIFI_RED) == "TU_RED_WIFI") {
+    Serial.println("AVISO: edita secrets.h con tu red y tu clave");
+  }
   WiFi.begin(WIFI_RED, WIFI_CLAVE);
 
   // MQTT
-  mqtt.begin(BROKER, 1883, red);
-  // keepAlive 15 s, sesión persistente y hasta 3 s esperando al broker
-  mqtt.setOptions(15, false, 3000);
+  mqtt.begin(BROKER, BROKER_PUERTO, red);
+  red.setTimeout(TIMEOUT_MQTT_MS);   // acota también el TCP contra el broker
+  // keepAlive 15 s, sesión persistente y 1 s máximo esperando al broker
+  mqtt.setOptions(15, false, TIMEOUT_MQTT_MS);
   mqtt.setWill(T_CONEXION, "desconectado", true, 1);   // última voluntad (LWT)
   mqtt.onMessage(alRecibirMensaje);
 

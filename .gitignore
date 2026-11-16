@@ -1,5 +1,6 @@
 # Contraseñas y llaves: NUNCA se suben
 secretos.h
+firmware/secrets.h
 *.env
 .env
 *serviceAccount*.json
