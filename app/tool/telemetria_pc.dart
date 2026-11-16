@@ -31,7 +31,10 @@ Future<void> main(List<String> args) async {
   const topico = 'ucab-tg-sf/robot/estado';
 
   final simular = args.contains('--simular');
-  final segundos = _segundos(args);
+  final secuencia = args.contains('--secuencia');
+  final vueltas = _vueltas(args);
+  // Con --secuencia el guion dura vueltas * 6 mensajes * 3 s; se escucha un poco más.
+  final segundos = secuencia ? (vueltas * 6 * 3 + 6) : _segundos(args);
 
   final cliente = MqttServerClient.withPort(
     host,
@@ -77,7 +80,9 @@ Future<void> main(List<String> args) async {
     }
   });
 
-  if (simular) {
+  if (secuencia) {
+    unawaited(_publicarSecuencia(cliente, topico, vueltas));
+  } else if (simular) {
     unawaited(_publicarEstadoFalso(cliente, topico));
   }
 
@@ -115,4 +120,56 @@ Future<void> _publicarEstadoFalso(MqttServerClient cliente, String topico) async
   final constructor = MqttClientPayloadBuilder()..addString(carga);
   cliente.publishMessage(topico, MqttQos.atMostOnce, constructor.payload!);
   print('>> publicado estado de prueba en $topico');
+}
+
+int _vueltas(List<String> args) {
+  for (final a in args) {
+    if (a.startsWith('--vueltas=')) {
+      return int.tryParse(a.substring('--vueltas='.length)) ?? 4;
+    }
+  }
+  return 4;
+}
+
+/// Perfiles de prueba: cada uno ejercita un estado distinto de la pantalla.
+const List<Map<String, Object>> _perfiles = <Map<String, Object>>[
+  // batería llena, autónomo, línea centrada
+  {'estado': 'autonomo', 'bateria': 100, 'bateria_v': 12.60, 'linea_mm': 0.0, 'v_izq': 0.41, 'v_der': 0.41},
+  // batería baja, manual, línea a la izquierda
+  {'estado': 'manual', 'bateria': 15, 'bateria_v': 10.35, 'linea_mm': 27.0, 'v_izq': 0.30, 'v_der': 0.55},
+  // línea perdida (error máximo negativo) y robot casi parado
+  {'estado': 'autonomo', 'bateria': 45, 'bateria_v': 11.20, 'linea_mm': -32.4, 'v_izq': 0.05, 'v_der': 0.05},
+  // batería crítica, autonomo, línea a la derecha
+  {'estado': 'autonomo', 'bateria': 5, 'bateria_v': 9.95, 'linea_mm': -27.0, 'v_izq': 0.55, 'v_der': 0.30},
+  // manual con ruedas opuestas (giro en el sitio)
+  {'estado': 'manual', 'bateria': 60, 'bateria_v': 11.50, 'linea_mm': 9.0, 'v_izq': -0.40, 'v_der': 0.40},
+  // autónomo rápido
+  {'estado': 'autonomo', 'bateria': 90, 'bateria_v': 12.10, 'linea_mm': 0.5, 'v_izq': 0.52, 'v_der': 0.52},
+];
+
+/// Publica el guion completo `vueltas` veces, un mensaje cada 3 s.
+Future<void> _publicarSecuencia(
+  MqttServerClient cliente,
+  String topico,
+  int vueltas,
+) async {
+  await Future<void>.delayed(const Duration(seconds: 1));
+  var n = 5000;
+  for (var vuelta = 1; vuelta <= vueltas; vuelta++) {
+    for (var i = 0; i < _perfiles.length; i++) {
+      n++;
+      final carga = <String, dynamic>{
+        ..._perfiles[i],
+        'n': n,
+        'ordenes': n - 5000,
+        't': 1000 * n,
+      };
+      final constructor = MqttClientPayloadBuilder()
+        ..addString(jsonEncode(carga));
+      cliente.publishMessage(topico, MqttQos.atMostOnce, constructor.payload!);
+      print('>> [vuelta $vuelta/$vueltas · perfil ${i + 1}] ${jsonEncode(carga)}');
+      await Future<void>.delayed(const Duration(seconds: 3));
+    }
+  }
+  print('>> secuencia terminada');
 }
