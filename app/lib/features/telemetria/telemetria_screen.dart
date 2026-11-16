@@ -22,7 +22,7 @@ class TelemetriaScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: <Widget>[
           _Fila('Conexión', _textoConexion(servicio.conexion)),
-          _Fila('Broker', '${servicio.host}:${servicio.puerto}'),
+          _Fila('Broker', '${servicio.host}:${servicio.puertoEfectivo}'),
           _Fila('Tópico', servicio.topicoEstado),
           _Fila(
             'Datos',

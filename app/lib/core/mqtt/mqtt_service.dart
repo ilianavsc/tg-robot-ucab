@@ -4,10 +4,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:mqtt_client/mqtt_client.dart';
-import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/estado.dart';
+import 'mqtt_client_platform_stub.dart'
+    if (dart.library.io) 'mqtt_client_platform_io.dart'
+    if (dart.library.js_interop) 'mqtt_client_platform_web.dart';
 
 /// Estado del enlace con el broker, para que la UI muestre el semáforo.
 enum EstadoConexion { desconectado, conectando, conectado, error }
@@ -50,7 +52,7 @@ class MqttService extends ChangeNotifier {
   /// Si no llega telemetría en este tiempo, se considera el enlace caído.
   static const Duration _limiteSinDatos = Duration(seconds: 8);
 
-  late final MqttServerClient _cliente = _crearCliente();
+  late final MqttClient _cliente = _crearCliente();
   StreamSubscription<List<MqttReceivedMessage<MqttMessage>>>? _suscripcion;
   Timer? _temporizadorReintento;
   Duration _esperaActual = _esperaMinima;
@@ -160,9 +162,13 @@ class MqttService extends ChangeNotifier {
 
   // ------------------------------------------------------------ internos
 
-  MqttServerClient _crearCliente() {
+  /// Puerto real de conexión: 1883 (TCP) en nativo, 8884 (wss) en web.
+  int get puertoEfectivo => kIsWeb ? 8884 : puerto;
+
+  MqttClient _crearCliente() {
     final idCliente = 'ucab-app-${const Uuid().v4().substring(0, 8)}';
-    final cliente = MqttServerClient.withPort(host, idCliente, puerto);
+    final cliente =
+        crearClienteMqtt(host: host, puerto: puertoEfectivo, id: idCliente);
     cliente.logging(on: false);
     cliente.keepAlivePeriod = 20;
     cliente.connectTimeoutPeriod = 5000;
