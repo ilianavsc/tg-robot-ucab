@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P10 · Simulador Web de Telemetría ESP32 · TG Robot UCAB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/style.css">
+<style>
+.consola-esp32 {
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 2px solid var(--border-dark);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-hard);
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+.consola-barra {
+  background: #1e293b;
+  padding: 12px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #334155;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+.led-estado {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #64748b;
+  margin-right: 8px;
+}
+.led-estado.activo {
+  background: #22c55e;
+  box-shadow: 0 0 10px #22c55e;
+}
+.led-estado.conectando {
+  background: #f59e0b;
+  box-shadow: 0 0 10px #f59e0b;
+}
+.led-estado.error {
+  background: #f43f5e;
+  box-shadow: 0 0 10px #f43f5e;
+}
+.consola-cuerpo {
+  padding: 24px;
+}
+.perfiles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+.perfil-item {
+  background: #1e293b;
+  border: 1.5px solid #334155;
+  border-radius: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  color: #e2e8f0;
+  font-family: var(--font-body);
+}
+.perfil-item:hover {
+  border-color: #38bdf8;
+}
+.perfil-item.activo {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);
+}
+.perfil-item .num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #38bdf8;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 4px;
+}
+.perfil-item strong {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+.perfil-item span {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: #94a3b8;
+}
+.log-mqtt {
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  height: 220px;
+  overflow-y: auto;
+  color: #a7f3d0;
+  line-height: 1.55;
+}
+.log-mqtt div {
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+.log-mqtt .ts {
+  color: #64748b;
+}
+</style>
+</head>
+<body data-pagina="prototipos" data-base="../../">
+<header id="menu"></header>
+
+<main>
+  <a class="volver" href="../index.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    Volver al catálogo de prototipos
+  </a>
+
+  <p class="ceja">Prototipo P10 · Emulador de Hardware en la Nube · MQTT WebSockets</p>
+  <h1>P10: Simulador Web del <em>ESP32 Virtual</em></h1>
+
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px">
+    <span class="chip hecho">Simulador Activo</span>
+    <span class="chip">mqtt.js · WSS 8884</span>
+    <span class="chip">broker.hivemq.com</span>
+    <span class="chip">6 Perfiles de Telemetría</span>
+  </div>
+
+  <div class="frase-explicativa">
+    <strong>En pocas palabras:</strong> Esta página actúa como un <strong>ESP32 virtual en el navegador</strong>. Al encenderlo, se conecta por WebSockets seguros (puerto 8884) a <code>broker.hivemq.com</code> y publica cada 2 segundos los 6 perfiles de telemetría real en el tópico <code>ucab-tg-sf/robot/estado</code> para alimentar la App Flutter en vivo desde cualquier dispositivo.
+  </div>
+
+  <section aria-labelledby="t-simulador">
+    <div class="consola-esp32">
+      <div class="consola-barra">
+        <div>
+          <span class="led-estado" id="led-mqtt"></span>
+          <span id="estado-mqtt">DESCONECTADO · wss://broker.hivemq.com:8884/mqtt</span>
+        </div>
+        <div>Tópico: <strong>ucab-tg-sf/robot/estado</strong> (QoS 0 · 2 s)</div>
+      </div>
+
+      <div class="consola-cuerpo">
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
+          <div>
+            <h2 style="color:#ffffff;margin:0 0 4px;font-size:22px">Panel de Emisión del Robot Virtual</h2>
+            <p style="margin:0;color:#94a3b8;font-size:14.5px">Pulsa el botón principal para encender el ciclo automático de 6 perfiles o haz clic en un perfil para enviarlo al instante.</p>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px">
+            <button type="button" id="btn-encender" class="btn btn-principal">
+              ⚡ Encender ESP32 Virtual
+            </button>
+            <button type="button" id="btn-apagar" class="btn btn-secundario" disabled>
+              ⏹ Detener Emisión
+            </button>
+          </div>
+        </div>
+
+        <div class="perfiles-grid" id="grid-perfiles"></div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-family:var(--font-mono);font-size:12px;color:#94a3b8;text-transform:uppercase">Monitor Serie / Payloads Publicados en ucab-tg-sf/robot/estado</span>
+          <span style="font-family:var(--font-mono);font-size:12px;color:#38bdf8" id="contador-enviados">0 paquetes enviados</span>
+        </div>
+        <div class="log-mqtt" id="log-mqtt">
+          <div class="ts">[Sistema listo] Pulsa "Encender ESP32 Virtual" para conectar con broker.hivemq.com:8884 y transmitir telemetría...</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="t-como-probar">
+    <h2 id="t-como-probar">Cómo probar junto con la App Flutter (P09)</h2>
+    <ol class="pasos">
+      <li><b>1. Enciende el ESP32 Virtual</b><span>Haz clic en <strong>"Encender ESP32 Virtual"</strong> arriba. El indicador pasará a verde al conectar a <code>broker.hivemq.com:8884</code>.</span></li>
+      <li><b>2. Abre la App Web (P09)</b><span>Abre <a href="../../app/" target="_blank" rel="noopener">la Interfaz Flutter</a> en otra pestaña o ventana al lado.</span></li>
+      <li><b>3. Observa la Telemetría en Vivo</b><span>Verás cómo la batería, el modo autónomo/manual y la posición de la línea cambian automáticamente cada 2 segundos a través de internet.</span></li>
+    </ol>
+  </section>
+</main>
+
+<footer id="pie"></footer>
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script src="../../datos/proyecto.js"></script>
+<script src="../../assets/sitio.js"></script>
+<script>
+(function () {
+  var BROKER_URL = "wss://broker.hivemq.com:8884/mqtt";
+  var TOPICO = "ucab-tg-sf/robot/estado";
+
+  var PERFILES = [
+    { titulo: "Batería llena · Autónomo centrado", estado: "autonomo", bateria: 100, bateria_v: 12.60, linea_mm: 0.0, v_izq: 0.41, v_der: 0.41 },
+    { titulo: "Batería baja · Manual · Desvío izq.", estado: "manual", bateria: 15, bateria_v: 10.35, linea_mm: 27.0, v_izq: 0.30, v_der: 0.55 },
+    { titulo: "Línea perdida · Robot frenando", estado: "autonomo", bateria: 45, bateria_v: 11.20, linea_mm: -32.4, v_izq: 0.05, v_der: 0.05 },
+    { titulo: "Batería crítica (5%) · Curva derecha", estado: "autonomo", bateria: 5, bateria_v: 9.95, linea_mm: -27.0, v_izq: 0.55, v_der: 0.30 },
+    { titulo: "Giro sobre su eje (Ruedas opuestas)", estado: "manual", bateria: 60, bateria_v: 11.50, linea_mm: 9.0, v_izq: -0.40, v_der: 0.40 },
+    { titulo: "Autónomo rápido en recta", estado: "autonomo", bateria: 90, bateria_v: 12.10, linea_mm: 0.5, v_izq: 0.52, v_der: 0.52 }
+  ];
+
+  var grid = document.getElementById("grid-perfiles");
+  var logEl = document.getElementById("log-mqtt");
+  var ledEl = document.getElementById("led-mqtt");
+  var estadoEl = document.getElementById("estado-mqtt");
+  var contEl = document.getElementById("contador-enviados");
+  var btnOn = document.getElementById("btn-encender");
+  var btnOff = document.getElementById("btn-apagar");
+
+  var cliente = null;
+  var timer = null;
+  var paso = 0;
+  var secuencia = 5000;
+  var enviados = 0;
+  var inicioMs = Date.now();
+
+  function renderPerfiles(activoIdx) {
+    grid.innerHTML = PERFILES.map(function (p, i) {
+      return '<button type="button" class="perfil-item' + (i === activoIdx ? ' activo' : '') + '" data-idx="' + i + '">' +
+        '<span class="num">PERFIL 0' + (i + 1) + ' · ' + p.estado.toUpperCase() + '</span>' +
+        '<strong>' + p.titulo + '</strong>' +
+        '<span>Bat: ' + p.bateria + '% (' + p.bateria_v.toFixed(2) + 'V) · Línea: ' + p.linea_mm.toFixed(1) + 'mm</span>' +
+      '</button>';
+    }).join("");
+
+    grid.querySelectorAll(".perfil-item").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var idx = parseInt(btn.getAttribute("data-idx"), 10);
+        paso = idx;
+        publicarPaso();
+      });
+    });
+  }
+
+  function escribirLog(texto) {
+    var ahora = new Date().toLocaleTimeString();
+    var div = document.createElement("div");
+    div.innerHTML = '<span class="ts">[' + ahora + ']</span> ' + texto;
+    logEl.appendChild(div);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function actualizarLed(clase, texto) {
+    ledEl.className = "led-estado " + clase;
+    estadoEl.textContent = texto;
+  }
+
+  function publicarPaso() {
+    var idx = paso % PERFILES.length;
+    var p = PERFILES[idx];
+    paso++;
+    secuencia++;
+    enviados++;
+
+    var payload = {
+      n: secuencia,
+      estado: p.estado,
+      bateria: p.bateria,
+      bateria_v: p.bateria_v,
+      ordenes: enviados,
+      linea_mm: p.linea_mm,
+      v_izq: p.v_izq,
+      v_der: p.v_der,
+      t: Date.now() - inicioMs
+    };
+
+    var jsonStr = JSON.stringify(payload);
+    renderPerfiles(idx);
+    contEl.textContent = enviados + " paquetes enviados";
+
+    if (cliente && cliente.connected) {
+      cliente.publish(TOPICO, jsonStr, { qos: 0 });
+      escribirLog("PUB <b>" + TOPICO + "</b> ← <code>" + jsonStr + "</code>");
+    } else {
+      escribirLog("(Simulación local, conectando al broker...) <code>" + jsonStr + "</code>");
+    }
+  }
+
+  function encender() {
+    btnOn.disabled = true;
+    btnOff.disabled = false;
+    inicioMs = Date.now();
+    actualizarLed("conectando", "CONECTANDO A wss://broker.hivemq.com:8884/mqtt ...");
+    escribirLog("Iniciando conexión WebSocket seguro con broker.hivemq.com:8884...");
+
+    if (!timer) {
+      publicarPaso();
+      timer = setInterval(publicarPaso, 2000);
+    }
+
+    if (window.mqtt) {
+      cliente = window.mqtt.connect(BROKER_URL, {
+        clientId: "ucab-esp32-sim-" + Math.random().toString(16).slice(2, 10),
+        keepalive: 20,
+        connectTimeout: 6000,
+        reconnectPeriod: 4000
+      });
+
+      cliente.on("connect", function () {
+        actualizarLed("activo", "CONECTADO EN VIVO · wss://broker.hivemq.com:8884/mqtt");
+        escribirLog("✅ Conectado a broker.hivemq.com:8884. Transmitiendo en " + TOPICO);
+      });
+
+      cliente.on("error", function (err) {
+        actualizarLed("error", "ERROR DE BROKER · Transmitiendo en consola local");
+        escribirLog("⚠️ Aviso de red: " + (err && err.message ? err.message : err));
+      });
+    }
+  }
+
+  function apagar() {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+    if (cliente) {
+      try { cliente.end(true); } catch (_) {}
+      cliente = null;
+    }
+    btnOn.disabled = false;
+    btnOff.disabled = true;
+    actualizarLed("", "DETENIDO · wss://broker.hivemq.com:8884/mqtt");
+    escribirLog("⏹ Emisión del ESP32 Virtual detenida.");
+  }
+
+  btnOn.addEventListener("click", encender);
+  btnOff.addEventListener("click", apagar);
+  renderPerfiles(-1);
+})();
+</script>
+</body>
+</html>

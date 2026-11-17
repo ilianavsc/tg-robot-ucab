@@ -291,12 +291,13 @@ a.ir:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hard-hover)}
     "P01": "Comunicación bidireccional entre la app y el robot vía Wi-Fi con confirmación obligatoria (QoS 1/2) y aviso de desconexión.",
     "P03": "Control de motores DC con encoders de cuadratura para avanzar en línea recta exacta sin desviarse del pasillo.",
     "P08": "Seguimiento óptico con 4 sensores infrarrojos sobre granito y cinta negra a 100 Hz con control proporcional-derivativo (PD).",
-    "P09": "Interfaz web en Flutter con telemetría en tiempo real y Modo Demo integrado para simular recorridos y alertas sin red."
+    "P09": "Interfaz web en Flutter con telemetría en tiempo real y Modo Demo integrado para simular recorridos y alertas sin red.",
+    "P10": "Simulador web del ESP32 con mqtt.js (WebSocket 8884) que publica los 6 perfiles de telemetría hacia broker.hivemq.com."
   };
 
   function tarjeta(p) {
     var desc = descripciones[p.codigo] || p.nombre;
-    var btnLabel = p.codigo === "P09" ? (p.simuladorTexto || "Abrir App Web") : "Ver Simulador 3D";
+    var btnLabel = p.simuladorTexto || "Ver Simulador 3D";
     var acciones = '<a href="' + p.url + '" class="btn btn-principal" style="width:100%">' +
       '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>' +
       btnLabel + '</a>';
