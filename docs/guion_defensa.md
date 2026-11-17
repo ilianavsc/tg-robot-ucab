@@ -1,5 +1,7 @@
 # Guion de defensa · demostración en 4 pasos
 
+> **🎬 Respaldo visual sin internet:** Si la red del laboratorio falla el jueves, abre directamente **[`assets/evidencias/demo_respaldo.gif`](../assets/evidencias/demo_respaldo.gif)** (grabación de 12 s del flujo completo: P10 encendiendo el ESP32 Virtual y transmitiendo por MQTT → App P09 recibiendo telemetría en tiempo real y confirmando órdenes ACK en milisegundos).
+
 **Duración:** 8 a 10 minutos · **Quién maneja la pantalla:** una sola persona · **Regla:** un paso, una pestaña, una frase.
 
 **Idea central (decirla al inicio):** "Pides un componente desde la app y el robot lo lleva hasta tu puesto. Hoy mostramos que la comunicación app, broker y robot ya funciona y se mide."
