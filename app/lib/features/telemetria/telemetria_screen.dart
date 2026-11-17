@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/models/estado.dart';
+import '../../core/models/orden_ack.dart';
 import '../../core/mqtt/mqtt_service.dart';
 
 /// Pantalla de telemetría con diseño Material 3 de nivel portafolio.
@@ -90,6 +91,8 @@ class TelemetriaScreen extends StatelessWidget {
                 servicio: servicio,
                 colorEstado: colorEstado,
               ),
+              const SizedBox(height: 16),
+              _TarjetaOrdenes(servicio: servicio),
               const SizedBox(height: 16),
               if (estado == null)
                 _TarjetaEsperandoDatos(servicio: servicio)
@@ -451,6 +454,261 @@ class _TarjetaEsperandoDatos extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Tarjeta de órdenes: 5 botones de manejo y la última confirmación (ack).
+///
+/// Cada botón publica `{"id":"<uuid>","cmd":"<comando>"}` en
+/// `ucab-tg-sf/robot/ordenes` (QoS 1). Los comandos son los del firmware.
+class _TarjetaOrdenes extends StatelessWidget {
+  const _TarjetaOrdenes({required this.servicio});
+
+  final MqttService servicio;
+
+  static const Color _azulOrden = Color(0xFF2563EB);
+
+  void _enviar(BuildContext context, String comando) {
+    final enviada = servicio.publicarOrden(comando);
+    if (!enviada) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(servicio.ultimoError ?? 'No se pudo enviar la orden.'),
+            backgroundColor: TelemetriaScreen._rojoError,
+          ),
+        );
+    }
+  }
+
+  Widget _boton(
+    BuildContext context, {
+    required String etiqueta,
+    required String comando,
+    required IconData icono,
+    bool detener = false,
+  }) {
+    final bool activo = servicio.puedeEnviarOrdenes;
+    final Color color = detener ? TelemetriaScreen._rojoError : _azulOrden;
+    return SizedBox(
+      height: 56,
+      child: FilledButton.icon(
+        onPressed: activo ? () => _enviar(context, comando) : null,
+        style: FilledButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        icon: Icon(icono, size: 22),
+        label: Text(
+          etiqueta,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final OrdenAck? ack = servicio.ultimoAck;
+    final bool activo = servicio.puedeEnviarOrdenes;
+
+    return Card(
+      elevation: 0,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.5),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            const Row(
+              children: <Widget>[
+                Icon(Icons.gamepad, color: _azulOrden, size: 26),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Órdenes al robot',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              activo
+                  ? 'Cada botón publica en ${servicio.topicoOrdenes} (QoS 1) y el robot confirma en ${servicio.topicoAck}.'
+                  : 'Conéctate al broker (o activa el Modo Demo) para enviar órdenes.',
+              style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        const Spacer(),
+                        Expanded(
+                          flex: 2,
+                          child: _boton(context,
+                              etiqueta: 'Adelante',
+                              comando: 'adelante',
+                              icono: Icons.arrow_upward),
+                        ),
+                        const Spacer(),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: _boton(context,
+                              etiqueta: 'Izquierda',
+                              comando: 'izquierda',
+                              icono: Icons.arrow_back),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _boton(context,
+                              etiqueta: 'Detener',
+                              comando: 'frenar',
+                              icono: Icons.stop,
+                              detener: true),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _boton(context,
+                              etiqueta: 'Derecha',
+                              comando: 'derecha',
+                              icono: Icons.arrow_forward),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: <Widget>[
+                        const Spacer(),
+                        Expanded(
+                          flex: 2,
+                          child: _boton(context,
+                              etiqueta: 'Atrás',
+                              comando: 'atras',
+                              icono: Icons.arrow_downward),
+                        ),
+                        const Spacer(),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _CajaUltimoAck(
+              ack: ack,
+              esperando: servicio.esperandoAck,
+              ultimoComando: servicio.ultimoComando,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Muestra la última confirmación (ack) o que se está esperando una.
+class _CajaUltimoAck extends StatelessWidget {
+  const _CajaUltimoAck({
+    required this.ack,
+    required this.esperando,
+    required this.ultimoComando,
+  });
+
+  final OrdenAck? ack;
+  final bool esperando;
+  final String? ultimoComando;
+
+  static String _hora(DateTime d) {
+    String dos(int n) => n.toString().padLeft(2, '0');
+    return '${dos(d.hour)}:${dos(d.minute)}:${dos(d.second)}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final OrdenAck? a = ack;
+    final Color color;
+    final IconData icono;
+    final String titulo;
+    final String detalle;
+
+    if (esperando) {
+      color = TelemetriaScreen._ambarAviso;
+      icono = Icons.hourglass_top;
+      titulo = 'Enviada "${ultimoComando ?? ''}" · esperando confirmación…';
+      detalle = 'Si no llega, revisa que el robot (o el P10) esté encendido y en el mismo broker.';
+    } else if (a == null) {
+      color = const Color(0xFF64748B);
+      icono = Icons.inbox_outlined;
+      titulo = 'Último ACK: ninguno todavía';
+      detalle = 'Envía una orden para ver la confirmación del robot.';
+    } else {
+      color = TelemetriaScreen._verdePrimario;
+      icono = Icons.check_circle;
+      final String que = a.comando != null ? '"${a.comando}"' : 'una orden de otra app';
+      final String ms = a.latencia != null ? ' en ${a.latencia!.inMilliseconds} ms' : '';
+      titulo = 'Último ACK: confirmó $que$ms${a.simulada ? ' (demo)' : ''}${a.repetida ? ' · repetido' : ''}';
+      final String idCorto = a.id.length > 8 ? '${a.id.substring(0, 8)}…' : a.id;
+      detalle = 'id $idCorto'
+          '${a.recibidas != null ? ' · el robot lleva ${a.recibidas} órdenes' : ''}'
+          ' · llegó a las ${_hora(a.llegada)}';
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.45), width: 1.5),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Icon(icono, color: color, size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  titulo,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  detalle,
+                  style: const TextStyle(color: Color(0xFF475569), fontSize: 12.5),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

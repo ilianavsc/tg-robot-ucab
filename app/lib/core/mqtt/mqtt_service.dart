@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 
 import '../config/brokers.dart';
 import '../models/estado.dart';
+import '../models/orden_ack.dart';
 import 'mqtt_client_platform_stub.dart'
     if (dart.library.io) 'mqtt_client_platform_io.dart'
     if (dart.library.js_interop) 'mqtt_client_platform_web.dart';
@@ -31,10 +32,23 @@ enum EstadoConexion { desconectado, conectando, conectado, error }
 ///
 /// Limitación conocida: TCP plano 1883 en nativo; WebSocket `wss` en web.
 class MqttService extends ChangeNotifier {
-  MqttService({this.topicoEstado = 'ucab-tg-sf/robot/estado'});
+  MqttService({
+    this.topicoEstado = 'ucab-tg-sf/robot/estado',
+    this.topicoOrdenes = 'ucab-tg-sf/robot/ordenes',
+    this.topicoAck = 'ucab-tg-sf/robot/ordenes/ack',
+  });
 
   /// Tópico de telemetría del robot (QoS 0, cada 2 s).
   final String topicoEstado;
+
+  /// Tópico donde la app publica las órdenes al robot (QoS 1).
+  final String topicoOrdenes;
+
+  /// Tópico donde el robot confirma cada orden (QoS 1).
+  final String topicoAck;
+
+  /// Órdenes recientes enviadas por esta app, por id (para medir la latencia).
+  static const int _maxOrdenesGuardadas = 50;
 
   static const Duration _esperaMinima = Duration(seconds: 1);
   static const Duration _esperaMaxima = Duration(seconds: 30);
@@ -67,6 +81,11 @@ class MqttService extends ChangeNotifier {
   Estado? _ultimoEstado;
   DateTime? _ultimoMensaje;
   String? _ultimoError;
+
+  final Map<String, _OrdenEnviada> _ordenes = <String, _OrdenEnviada>{};
+  OrdenAck? _ultimoAck;
+  String? _ultimaOrdenId;
+  String? _ultimoComando;
 
   // ------------------------------------------------------------- getters
 
@@ -121,6 +140,22 @@ class MqttService extends ChangeNotifier {
   /// Espera del próximo reintento (para diagnóstico).
   Duration get esperaReintento => _esperaActual;
 
+  /// Última confirmación recibida en `ordenes/ack` (null hasta la primera).
+  OrdenAck? get ultimoAck => _ultimoAck;
+
+  /// Comando de la última orden que envió esta app.
+  String? get ultimoComando => _ultimoComando;
+
+  /// `true` si la última orden de esta app todavía no tiene confirmación.
+  bool get esperandoAck {
+    final id = _ultimaOrdenId;
+    if (id == null) return false;
+    return _ordenes[id]?.confirmada == null;
+  }
+
+  /// `true` si se pueden enviar órdenes (conectado al broker o en Modo Demo).
+  bool get puedeEnviarOrdenes => _simulando || conectado;
+
   // ------------------------------------------------------------ acciones
 
   /// Conecta con el broker activo y se suscribe a la telemetría.
@@ -146,6 +181,7 @@ class MqttService extends ChangeNotifier {
         throw StateError('${broker.nombre} no confirmó la conexión');
       }
       cliente.subscribe(topicoEstado, MqttQos.atMostOnce);
+      cliente.subscribe(topicoAck, MqttQos.atLeastOnce);
       // El stream `updates` se crea dentro de connect(): hay que escucharlo
       // aquí y no en el constructor, donde todavía es null. En cada conexión
       // el gestor de suscripciones es nuevo, así que se cancela el anterior.
@@ -171,6 +207,50 @@ class MqttService extends ChangeNotifier {
       // cerrar una conexión ya cerrada no es un fallo
     }
     _cambiarConexion(EstadoConexion.desconectado);
+  }
+
+  /// Publica una orden en [topicoOrdenes] con QoS 1, como JSON compacto
+  /// `{"id":"<uuid>","cmd":"<comando>"}`. El robot la confirma en [topicoAck].
+  ///
+  /// Comandos que entiende el firmware: `adelante`, `atras`, `izquierda`,
+  /// `derecha`, `frenar` y `auto`.
+  ///
+  /// Devuelve `false` (y deja el motivo en [ultimoError]) si no hay conexión.
+  /// En Modo Demo no usa la red: simula la confirmación a los 300 ms.
+  bool publicarOrden(String comando) {
+    if (_descartado) return false;
+    final id = const Uuid().v4();
+    final json = jsonEncode(<String, String>{'id': id, 'cmd': comando});
+
+    if (_simulando) {
+      _guardarOrden(id, comando);
+      Timer(const Duration(milliseconds: 300), () => _confirmarDemo(id));
+      return true;
+    }
+
+    final cliente = _cliente;
+    if (cliente == null ||
+        cliente.connectionStatus?.state != MqttConnectionState.connected) {
+      _ultimoError =
+          'No se envió "$comando": la app no está conectada al broker.';
+      notifyListeners();
+      return false;
+    }
+
+    try {
+      final contenido = MqttClientPayloadBuilder()..addString(json);
+      cliente.publishMessage(
+        topicoOrdenes,
+        MqttQos.atLeastOnce,
+        contenido.payload!,
+      );
+    } catch (e) {
+      _ultimoError = 'No se envió "$comando": $e';
+      notifyListeners();
+      return false;
+    }
+    _guardarOrden(id, comando);
+    return true;
   }
 
   /// Permite seleccionar un broker específico manualmente desde la UI (igual que en P10).
@@ -323,13 +403,73 @@ class MqttService extends ChangeNotifier {
 
   void _procesarMensajes(List<MqttReceivedMessage<MqttMessage>> eventos) {
     for (final evento in eventos) {
-      if (evento.topic != topicoEstado) continue;
+      if (evento.topic != topicoEstado && evento.topic != topicoAck) continue;
       if (evento.payload is! MqttPublishMessage) continue;
       final publicacion = evento.payload as MqttPublishMessage;
       final texto =
           MqttPublishPayload.bytesToStringAsString(publicacion.payload.message);
-      _decodificarEstado(texto);
+      if (evento.topic == topicoEstado) {
+        _decodificarEstado(texto);
+      } else {
+        _decodificarAck(texto);
+      }
     }
+  }
+
+  void _guardarOrden(String id, String comando) {
+    _ordenes[id] = _OrdenEnviada(comando: comando, envio: DateTime.now());
+    while (_ordenes.length > _maxOrdenesGuardadas) {
+      _ordenes.remove(_ordenes.keys.first);
+    }
+    _ultimaOrdenId = id;
+    _ultimoComando = comando;
+    _ultimoError = null;
+    notifyListeners();
+  }
+
+  /// Lee una confirmación. Si la orden salió de esta app, calcula la latencia.
+  void _decodificarAck(String texto) {
+    try {
+      final mapa = jsonDecode(texto);
+      if (mapa is! Map<String, dynamic>) {
+        throw const FormatException('el payload no es un objeto JSON');
+      }
+      final ahora = DateTime.now();
+      final orden = _ordenes[mapa['id']?.toString()];
+      final repetida = orden != null && orden.confirmada != null;
+      if (orden != null && orden.confirmada == null) orden.confirmada = ahora;
+      _ultimoAck = OrdenAck.fromJson(
+        mapa,
+        llegada: ahora,
+        comando: orden?.comando,
+        latencia: orden == null || repetida ? null : ahora.difference(orden.envio),
+        propia: orden != null,
+        repetida: repetida,
+      );
+    } catch (e) {
+      _ultimoError = 'JSON inválido en $topicoAck: $e';
+    }
+    if (!_descartado) notifyListeners();
+  }
+
+  /// En Modo Demo, el "robot" confirma solo (sin red).
+  void _confirmarDemo(String id) {
+    if (_descartado) return;
+    final orden = _ordenes[id];
+    if (orden == null || orden.confirmada != null) return;
+    final ahora = DateTime.now();
+    orden.confirmada = ahora;
+    _ultimoAck = OrdenAck(
+      id: id,
+      llegada: ahora,
+      recibidas: _ordenes.values.where((o) => o.confirmada != null).length,
+      t: _tDemo,
+      comando: orden.comando,
+      latencia: ahora.difference(orden.envio),
+      propia: true,
+      simulada: true,
+    );
+    notifyListeners();
   }
 
   /// Genera un [Estado] falso del siguiente perfil y avisa a la UI.
@@ -378,6 +518,15 @@ class MqttService extends ChangeNotifier {
     _conexion = nuevo;
     if (!_descartado) notifyListeners();
   }
+}
+
+/// Orden enviada por esta app, esperando (o ya con) su confirmación.
+class _OrdenEnviada {
+  _OrdenEnviada({required this.comando, required this.envio});
+
+  final String comando;
+  final DateTime envio;
+  DateTime? confirmada;
 }
 
 /// Perfil de telemetría simulada para el Modo Demo.
