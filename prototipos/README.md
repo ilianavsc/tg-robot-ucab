@@ -23,3 +23,12 @@ P = prototipo simulado. H = prueba con hardware real.
 - Colores con un solo significado en todo el sitio: verde = sale del robot, coral = llega al robot, violeta = alarmas o conceptos, amarillo = avisos y pendientes.
 - Lo técnico va al final, en "Para los curiosos".
 - Sin contraseñas y sin capturas con datos personales (recortar el escritorio).
+
+## Cómo recompilar los simuladores 3D (P01, P03, P08)
+Cada `codigo/` tiene todo el fuente: `main.js` (entrada), los módulos, `style.css` y `paneles.js` (paneles plegables, solo interfaz).
+1. Descarga el kit [teardown](https://github.com/elvarofficial/teardown) (licencia MIT).
+2. Copia la carpeta `codigo/` del prototipo a una carpeta nueva, por ejemplo `mi-sim/`.
+3. Desde la carpeta del kit: `node sims/build.mjs ../mi-sim`.
+4. El resultado sale en `teardown-out/dist/mi-sim.html`: cópialo como `simulador.html`.
+
+No edites `simulador.html` a mano: se pierde al recompilar. Cambia el fuente en `codigo/`.

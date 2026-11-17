@@ -1,5 +1,7 @@
 // P01 · Así viajan los mensajes: App, Broker y Robot en 3D. Los tópicos y QoS son los del sketch y del banco de pruebas.
 import * as THREE from 'three';
+import {instalarPanelesP01} from './paneles.js';
+import './embebido.js';
 import {crearAviso, SIN_WEBGL, vigilarContexto} from './arranque.js';
 import {BASE, ESPERA_LWT_S, KEEPALIVE_S, TOPICOS, alarma, confirmacion, pedido, publicar, qosEfectivo, SUSCRIPCION, tramo} from './protocolo.js';
 
@@ -612,3 +614,6 @@ renderer.setAnimationLoop((now) => {
     aviso.error('La simulación se detuvo', 'Hubo un error al dibujar: ' + String(e.message || e).slice(0, 120));
   }
 });
+
+// Paneles plegables (solo interfaz): Controles, Buzones y Consola arrancan cerrados
+instalarPanelesP01();

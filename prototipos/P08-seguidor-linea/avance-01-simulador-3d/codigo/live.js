@@ -9,6 +9,7 @@ import {aPiso, control, leerSensores, mover, R, rumbo, velRueda} from './model.j
 import {cercano, crearPista} from './pista.js';
 import {RW, ZA} from './robot.js';
 import {createStage} from './stage.js';
+import {instalarPanelesEscenario} from './paneles.js';
 import {crearAviso, SIN_WEBGL, vigilarContexto} from './arranque.js';
 
 const W = 1600;
@@ -86,6 +87,7 @@ export function runLive() {
     return [(cx - r.left) / scale, (cy - r.top) / scale];
   };
   const ui = createConsole(app, toStage);
+  let paneles = null; // paneles plegables (solo interfaz): se instalan al arrancar
   ui.prepMapa(P);
 
   // ------------------------------------------------------------ calidad
@@ -192,6 +194,7 @@ export function runLive() {
     Object.assign(off, {az: 0, el: 0, k: 1});
   };
   const takeOver = () => {
+    paneles?.soltarTour();
     lastInput = T;
     AP.on = false;
   };
@@ -354,6 +357,9 @@ export function runLive() {
         c = 0;
       }
       while (AP.idx < SCRIPT.length && SCRIPT[AP.idx].t <= c) act(SCRIPT[AP.idx++].k);
+      // si el próximo botón está en un panel cerrado, el recorrido lo abre antes (y cierra el anterior)
+      const nx = SCRIPT[AP.idx];
+      if (nx && c > nx.t - 1.2) paneles?.tourEl(ui.btn[nx.k]);
     } else if (T - lastInput > IDLE) startTour();
 
     const {v} = paso(dt);
@@ -455,6 +461,7 @@ export function runLive() {
     requestAnimationFrame(frame);
   };
   // Arranca cuando los shaders están listos, pero sin depender de eso: si la preparación falla o tarda más de 2,5 s, arranca igual.
+  paneles = instalarPanelesEscenario(ui.root);
   let arrancado = false;
   const arrancar = () => {
     if (arrancado) return;

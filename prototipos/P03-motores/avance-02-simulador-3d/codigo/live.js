@@ -5,6 +5,7 @@ import {warmComposer} from 'teardown-kit/warm.js';
 import {BATS, createConsole, DISPLAY, MAN, VIEWS} from './console.js';
 import {cinematica, encoder, entradasH, MANIOBRAS, motor, R} from './model.js';
 import {createStage} from './stage.js';
+import {instalarPanelesEscenario} from './paneles.js';
 import {crearAviso, SIN_WEBGL, vigilarContexto} from './arranque.js';
 
 const W = 1600;
@@ -99,6 +100,7 @@ export function runLive() {
   }
   vigilarContexto(canvas, aviso);
   const ui = createConsole(app);
+  let paneles = null; // paneles plegables (solo interfaz): se instalan al arrancar
 
   // ------------------------------------------------------------ calidad
   // Una sola versión: la optimizada. Sin sombras, sin oclusión ambiental y
@@ -199,6 +201,7 @@ export function runLive() {
     Object.assign(off, {az: 0, el: 0, k: 1});
   };
   const takeOver = () => {
+    paneles?.soltarTour();
     lastInput = T;
     AP.on = false;
   };
@@ -342,6 +345,9 @@ export function runLive() {
           ring = {t: T, x: ui.SL.x + ui.SL.w * ev.slider, y: ui.SL.y};
         }
       }
+      // si el próximo clic cae en un panel cerrado, el recorrido lo abre antes de llegar (y cierra el anterior)
+      const nx = SCRIPT[AP.idx];
+      if (nx && c > nx.t - 1.2) paneles?.tour(...spotOf(nx));
       // el arrastre del slider en el recorrido: la fuerza sube con el cursor
       const sl = SCRIPT.find((e) => e.slider !== undefined && c > e.t - 0.9 && c < e.t);
       if (sl) S.duty = Math.max(S.duty, Math.round((0.75 + (sl.slider - 0.75) * ss(sl.t - 0.6, sl.t, c)) * 100) / 100);
@@ -493,6 +499,7 @@ export function runLive() {
     requestAnimationFrame(frame);
   };
   // Arranca cuando los shaders están listos, pero sin depender de eso: si la preparación falla o tarda más de 2,5 s, arranca igual.
+  paneles = instalarPanelesEscenario(ui.root);
   let arrancado = false;
   const arrancar = () => {
     if (arrancado) return;
