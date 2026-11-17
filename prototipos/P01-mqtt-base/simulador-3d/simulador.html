@@ -4513,5 +4513,162 @@ ${i.cantidad} \xD7 ${i.componente}`,Gn(),mt(`APP muestra "${i.id} confirmado" al
   medir();
 })();
 </script>
+<!-- paneles-plegables v1: solo interfaz. No toca la escena 3D. -->
+<style id="pl-css">
+/* --- modo escenario (P03, P08): paneles dibujados sobre el lienzo 1600 × 900 --- */
+.pl-m{transition:opacity .2s ease,visibility .2s ease,background .15s,color .15s}
+.pl-cp,.pl-cab{transition:top .25s ease,height .25s ease}
+.pl-oculto{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+.pl-bar{position:absolute;z-index:3;pointer-events:auto;cursor:pointer;background:transparent;border:0;margin:0;padding:0 46px 0 0;display:flex;align-items:center;justify-content:flex-end;font:700 17px 'JetBrains Mono',monospace;line-height:1;color:#0F9D84;border-radius:12px;transition:top .25s ease}
+.pl-bar:hover{color:#0F9D84}
+.pl-bar:focus-visible,.pl-todo:focus-visible,.pl-tg:focus-visible{outline:2.5px solid #6B4EE6;outline-offset:2px}
+.pl-todo{position:absolute;left:470px;top:104px;height:26px;padding:0 13px;border:1.5px solid #14213D;border-radius:999px;background:rgba(255,255,255,.92);color:#14213D;font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:1.2px;cursor:pointer;pointer-events:auto;white-space:nowrap}
+.pl-todo:hover{background:#14213D;color:#fff}
+/* --- modo P01: paneles HTML normales --- */
+.pl-tg{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;background:transparent;border:0;padding:0;margin:0;cursor:pointer;font:700 15px 'Bricolage Grotesque',sans-serif;color:#14213D;text-transform:uppercase;letter-spacing:.05em;text-align:left}
+.pl-tg small{font:600 11px 'JetBrains Mono',monospace;color:#5b6b7a;letter-spacing:.06em;text-transform:none}
+.pl-tg::after{content:'+';font:700 18px 'JetBrains Mono',monospace;line-height:1;color:#0F9D84}
+.pl-abierto>.pl-tg::after,.pl-abierto>.cons-cab>.pl-tg::after{content:'−'}
+.pl-cuerpo{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s ease}
+.pl-abierto>.pl-cuerpo{grid-template-rows:1fr}
+.pl-in{overflow:hidden;min-height:0}
+.pl-abierto>.pl-cuerpo>.pl-in{padding-top:8px}
+.panel.pl-p,.leyenda.pl-p{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:rgba(255,255,255,.9)}
+.consola.pl-p{transition:height .25s ease}
+.consola.pl-p:not(.pl-abierto){height:38px!important}
+.consola .pl-tg{width:auto;color:#e8eef5;font-size:13.5px}
+.consola .pl-tg::after{color:#9fb0c4}
+.consola .pl-tg small{color:#9fb0c4}
+.consola.pl-p>.cons-cab>b,.consola.pl-p>.cons-cab>span{display:none}
+@media (prefers-reduced-motion:reduce){.pl-m,.pl-cp,.pl-cab,.pl-bar,.pl-cuerpo,.consola.pl-p{transition:none!important}}
+</style>
+<script id="pl-js">
+(function () {
+  var avisar = function () { setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 280); };
+
+  // ---------- Modo escenario (P03 y P08) ----------
+  function modoEscenario(ui) {
+    var W = 1600, H = 900, EXCLUIR = /\b(call|cur|ring|tourchip|turn|pl-bar|pl-todo)\b/;
+    var cps = Array.prototype.slice.call(ui.querySelectorAll(':scope > .cp'));
+    var px = function (v) { return v === '' ? NaN : parseFloat(v); };
+    var paneles = cps.map(function (cp) {
+      var r = {x: px(cp.style.left), y: px(cp.style.top), w: px(cp.style.width), h: px(cp.style.height)};
+      return {cp: cp, r: r, abajo: r.y > H / 2, miembros: [], ph: null, pn: null, abierto: true};
+    });
+    Array.prototype.forEach.call(ui.children, function (n) {
+      if (n.classList.contains('cp')) return;
+      var cls = n.getAttribute('class') || '';
+      if (EXCLUIR.test(cls)) return;
+      var x = px(n.style.left), y = px(n.style.top);
+      if (isNaN(x) && !isNaN(px(n.style.right))) x = W - px(n.style.right) - 12; // los números de panel se ubican por la derecha
+      if (isNaN(x) || isNaN(y)) return;
+      for (var i = 0; i < paneles.length; i++) {
+        var r = paneles[i].r;
+        if (x >= r.x - 1 && x < r.x + r.w && y >= r.y - 1 && y < r.y + r.h) {
+          if (n.classList.contains('ph')) paneles[i].ph = n;
+          else if (n.classList.contains('pn')) paneles[i].pn = n;
+          else { n.classList.add('pl-m'); paneles[i].miembros.push(n); }
+          return;
+        }
+      }
+    });
+    var BAR = 40, CAB = 30;
+    paneles.forEach(function (p) {
+      p.cp.classList.add('pl-cp');
+      [p.ph, p.pn].forEach(function (e) { if (e) { e.classList.add('pl-cab'); e.dataset.top = px(e.style.top) - p.r.y; } });
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'pl-bar';
+      b.style.left = p.r.x + 'px';
+      b.style.width = p.r.w + 'px';
+      b.style.height = (p.abajo ? BAR : CAB) + 'px';
+      var titulo = p.ph ? p.ph.textContent.trim() : 'panel';
+      b.addEventListener('click', function () { poner(p, !p.abierto); avisar(); });
+      ui.appendChild(b);
+      p.bar = b;
+      p.titulo = titulo;
+    });
+    function poner(p, abierto) {
+      p.abierto = abierto;
+      var r = p.r, y0 = abierto || !p.abajo ? r.y : r.y + r.h - BAR;
+      p.cp.style.top = y0 + 'px';
+      p.cp.style.height = (abierto ? r.h : BAR) + 'px';
+      [p.ph, p.pn].forEach(function (e) { if (e) e.style.top = (y0 + Number(e.dataset.top)) + 'px'; });
+      p.bar.style.top = y0 + 'px';
+      p.bar.style.height = (abierto ? CAB : BAR) + 'px';
+      p.bar.textContent = abierto ? '−' : '+';
+      p.bar.setAttribute('aria-expanded', abierto);
+      p.bar.setAttribute('aria-label', (abierto ? 'Cerrar el panel ' : 'Abrir el panel ') + p.titulo);
+      p.miembros.forEach(function (m) { m.classList.toggle('pl-oculto', !abierto); });
+      todo.textContent = paneles.some(function (q) { return q.abierto; }) ? 'CERRAR PANELES' : 'ABRIR PANELES';
+    }
+    var todo = document.createElement('button');
+    todo.type = 'button';
+    todo.className = 'pl-todo';
+    todo.addEventListener('click', function () {
+      var abrir = !paneles.some(function (q) { return q.abierto; });
+      paneles.forEach(function (p) { poner(p, abrir); });
+      avisar();
+    });
+    ui.appendChild(todo);
+    paneles.forEach(function (p) { poner(p, false); }); // cerrados al empezar
+    avisar();
+  }
+
+  // ---------- Modo P01 (paneles HTML) ----------
+  function plegable(caja, titulo, sub) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'pl-tg';
+    b.innerHTML = titulo + (sub ? ' <small>' + sub + '</small>' : '');
+    var cuerpo = document.createElement('div');
+    cuerpo.className = 'pl-cuerpo';
+    var dentro = document.createElement('div');
+    dentro.className = 'pl-in';
+    while (caja.firstChild) dentro.appendChild(caja.firstChild); // se mueven los mismos nodos: los botones siguen funcionando
+    cuerpo.appendChild(dentro);
+    caja.appendChild(b);
+    caja.appendChild(cuerpo);
+    caja.classList.add('pl-p');
+    var poner = function (a) {
+      caja.classList.toggle('pl-abierto', a);
+      b.setAttribute('aria-expanded', a);
+      dentro.inert = !a;
+    };
+    b.addEventListener('click', function () { poner(!caja.classList.contains('pl-abierto')); avisar(); });
+    poner(false);
+  }
+  function modoP01() {
+    var panel = document.querySelector('#app > .panel');
+    var ley = document.querySelector('#app > .leyenda');
+    var cons = document.querySelector('#app > .consola');
+    if (panel) plegable(panel, 'Controles', 'QoS, orden, alarma, LWT');
+    if (ley && ley.children.length) plegable(ley, 'Buzones', '5 tópicos');
+    if (cons) {
+      var cab = cons.querySelector('.cons-cab');
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'pl-tg';
+      b.innerHTML = 'Consola <small>lo que ve el broker</small>';
+      cab.insertBefore(b, cab.firstChild);
+      cons.classList.add('pl-p');
+      var poner = function (a) { cons.classList.toggle('pl-abierto', a); b.setAttribute('aria-expanded', a); };
+      b.addEventListener('click', function () { poner(!cons.classList.contains('pl-abierto')); avisar(); });
+      poner(false);
+    }
+    avisar();
+  }
+
+  // Espera a que la interfaz exista (la arma el módulo después de cargar)
+  var intentos = 0;
+  (function esperar() {
+    var ui = document.querySelector('.ui');
+    if (ui && ui.querySelector(':scope > .cp')) return setTimeout(function () { modoEscenario(ui); }, 400);
+    if (document.querySelector('#app > .panel .acc')) return modoP01();
+    if (++intentos < 100) setTimeout(esperar, 100);
+  })();
+})();
+</script>
+
 </body>
 </html>

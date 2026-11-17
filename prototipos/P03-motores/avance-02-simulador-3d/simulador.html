@@ -4919,5 +4919,162 @@ html,body{background:#EEF3F1;overflow:hidden}
 `;function ld(){let i=Number(document.body.dataset.top||0),e=document.createElement("style");e.textContent=Nx(i),document.head.appendChild(e),document.title="C\xF3mo se mueve el robot \xB7 TG Robot UCAB",document.documentElement.lang="es";let t=document.getElementById("app"),n=document.createElement("canvas");n.id="gl",t.appendChild(n);let s=nd();s.cargando();let r;try{r=td({canvas:n})}catch(I){console.error(I),s.error(...sd);return}id(n,s);let a=Ku(t),o=[{samples:4,ao:!0,shadow:2048,pr:2},{samples:2,ao:!1,shadow:1024,pr:1.5},{samples:0,ao:!1,shadow:1024,pr:1},{samples:0,ao:!1,shadow:0,pr:1,directo:!0}],l=o.length-1,c=matchMedia("(pointer: coarse)").matches||Math.min(innerWidth,innerHeight)<700,u=new URLSearchParams(location.search),d=l,h=1,p=()=>{let I=innerHeight-i;h=Math.min(innerWidth/cl,I/hl),t.style.transform=`translate(${(innerWidth-cl*h)/2}px, ${i+(I-hl*h)/2}px) scale(${h})`,r.resize(cl,hl,Yn((devicePixelRatio||1)*h,.75,o[d].pr))},g=()=>{let{pr:I,directo:j,...ue}=o[d];r.setQuality(ue),r.setDirecto(!!j||!r.soportaComposer),p()};g(),addEventListener("resize",p);let S=(I,j)=>{let ue=t.getBoundingClientRect();return[(I-ue.left)/h,(j-ue.top)/h]},m=document.createElement("div");m.className="tourchip",a.root.appendChild(m);let f=document.createElement("div");f.className="turn",f.textContent="Gira el tel\xE9fono para ver la consola completa",document.body.appendChild(f);let w=0,y={},v=()=>{Object.assign(y,{man:"frenar",duty:.75,driver:"l298n",variante:200,bat:"nominal",view:"heroe",viewAt0:w,display:{etiquetas:1,rayos:0,despiece:0,cables:1,girar:0},dispT:{etiquetas:-9,rayos:-9,despiece:-9,cables:-9,girar:-9},rpm:{izq:0,der:0},ang:{izq:0,der:0},cuenta:{izq:0,der:0},scope:0,pose:{x:.8,z:-.15,th:0},flow:{}})};v();let b={az:0,el:0,k:1},E={...od.heroe},P={t:-9,x:0,y:0},_=(I,j=.7)=>{let ue=ll(y.dispT[I],y.dispT[I]+j,w);return y.display[I]?ue:1-ue},T=I=>{let j=a.spots[I];j&&(P={t:w,x:j[0],y:j[1]})},R=I=>{jo.includes(I)?y.man=I:Qo.includes(I)?(y.view=I,y.viewAt0=w,Object.assign(b,{az:0,el:0,k:1})):el.includes(I)?(y.display[I]=y.display[I]?0:1,y.dispT[I]=w,I==="despiece"&&y.display.despiece&&(y.man="frenar")):I==="l298n"||I==="tb6612"?y.driver=I:I==="m130"?y.variante=130:I==="m170"?y.variante=200:Oc.includes(I)&&(y.bat=I)},C={on:!0,t0:0,idx:0,loop:0},U=0,V=()=>{v(),C.on=!0,C.t0=w,C.idx=0,C.loop=0,Object.assign(b,{az:0,el:0,k:1})},N=()=>{U=w,C.on=!1};m.addEventListener("pointerdown",I=>{I.stopPropagation(),U=w,C.on?N():V()}),addEventListener("pointerdown",I=>{I.target!==m&&N()});let G=I=>I.k?a.spots[I.k]:[a.SL.x+a.SL.w*I.slider,a.SL.y],Q=I=>{let j=xi.findIndex(ie=>ie.t>I);j<0&&(j=xi.length);let ue=xi[j-1],pe=xi[j],q=[800,640],he=ue?G(ue):q,z=pe?G(pe):q,W=pe?ll(pe.t-.9,pe.t-.05,I):0,K=ue&&I-ue.t<.18;return{x:he[0]+(z[0]-he[0])*W,y:he[1]+(z[1]-he[1])*W,press:K}};for(let I of Object.keys(a.btn))a.btn[I].addEventListener("click",()=>{N(),T(I),R(I)});{let I=document.createElement("div");I.className="hit",Object.assign(I.style,{left:`${a.SL.x-10}px`,top:`${a.SL.y-13}px`,width:`${a.SL.w+20}px`,height:"26px"});let j=ue=>{let[pe]=S(ue.clientX,ue.clientY);y.duty=Math.round(Yn((pe-a.SL.x)/a.SL.w,0,1)*100)/100,U=w};I.addEventListener("pointerdown",ue=>{N(),I.setPointerCapture(ue.pointerId);let pe=()=>{removeEventListener("pointermove",j),removeEventListener("pointerup",pe)};addEventListener("pointermove",j),addEventListener("pointerup",pe),j(ue)}),a.root.appendChild(I)}addEventListener("keydown",I=>{if(I.altKey||I.ctrlKey||I.metaKey)return;let j=I.key.toLowerCase(),ue={arrowup:"avanzar",arrowdown:"retroceder",arrowleft:"izquierda",arrowright:"derecha"," ":"frenar",1:"heroe",2:"frente",3:"arriba",4:"motor",5:"puente",x:"rayos",e:"despiece",c:"cables",l:"etiquetas"};if(ue[j])a.btn[ue[j]].click();else if(j==="+"||j==="=")y.duty=Yn(y.duty+.05,0,1);else if(j==="-")y.duty=Yn(y.duty-.05,0,1);else return;N(),I.preventDefault()});let X=null;n.addEventListener("pointerdown",I=>{X={x:I.clientX,y:I.clientY},n.setPointerCapture(I.pointerId),n.classList.add("drag")}),n.addEventListener("pointermove",I=>{X&&(b.az-=(I.clientX-X.x)/h*.3,b.el=Yn(b.el+(I.clientY-X.y)/h*.2,-20,70),X={x:I.clientX,y:I.clientY},U=w)});let ce=()=>{X=null,n.classList.remove("drag")};n.addEventListener("pointerup",ce),n.addEventListener("pointercancel",ce),n.addEventListener("wheel",I=>{I.preventDefault(),N(),b.k=Yn(b.k*Math.exp(I.deltaY*.0012),.4,2.4)},{passive:!1}),V();let Z=performance.now(),ne={n:0,sum:0,slow:0,age:0},re=["izq","der"],Re=0,Ce=I=>{let j=Math.min(.1,Math.max(0,(I-Z)/1e3));Z=I,w+=j,d<o.length-1&&(ne.age+=j,ne.age>.6&&(ne.sum+=j,ne.n++,ne.sum>=.5&&ne.n>=6&&(ne.slow=ne.sum/ne.n>.022?ne.slow+1:0,ne.sum=0,ne.n=0,ne.slow>=(ne.age<6?1:2)&&(d++,g(),Object.assign(ne,{age:0,slow:0})))));let ue;if(C.on){let D=w-C.t0;for(D>=Dx&&(V(),C.loop=1,D=0);C.idx<xi.length&&xi[C.idx].t<=D;){let me=xi[C.idx++];me.k?(R(me.k),T(me.k)):(y.duty=me.slider,P={t:w,x:a.SL.x+a.SL.w*me.slider,y:a.SL.y})}let H=xi.find(me=>me.slider!==void 0&&D>me.t-.9&&D<me.t);H&&(y.duty=Math.max(y.duty,Math.round((.75+(H.slider-.75)*ll(H.t-.6,H.t,D))*100)/100));let ee=Q(D),fe=Math.max(0,1-(w-P.t)/.55);ue={...ee,ring:fe,ringX:P.x,ringY:P.y}}else w-U>Rx&&V(),ue={x:-99,y:-99,press:!1,ring:Math.max(0,1-(w-P.t)/.55),ringX:P.x,ringY:P.y};let pe=Yu[y.man],q={};for(let D of re){let H=pe[D],ee=Uc(y.duty,H,y.driver,y.variante,dt.bat[y.bat]);y.rpm[D]+=(ee.rpm-y.rpm[D])*(1-Math.exp(-j/Cx)),y.ang[D]+=y.rpm[D]/60*2*Math.PI*j;let fe=Fc(y.rpm[D],y.variante);y.cuenta[D]+=fe.hz*4*j*Math.sign(y.rpm[D]),q[D]={dir:H,in:qu(H),m:ee,rpm:y.rpm[D],vel:Math.PI*dt.ruedaD*y.rpm[D]/60,hz:fe.hz,cuenta:y.cuenta[D]}}let{v:he,w:z}=$u(q.izq.vel,q.der.vel);y.pose.th+=z*j,y.pose.x+=Math.sin(y.pose.th)*he*j,y.pose.z+=Math.cos(y.pose.th)*he*j,Math.hypot(y.pose.x,y.pose.z)>3&&Object.assign(y.pose,{x:.8,z:-.15,th:0});let W=Fc(1,y.variante);y.scope+=q.izq.hz*j/Px;let K={},ie={};for(let D of re){let H=q[D].m.ratio;K[D]=y.ang[D]*H/ad;let ee=Math.abs(q[D].rpm*H)/60/ad*11,fe=K[D]*11/(2*Math.PI),me=se=>(se%1+1)%1;ie[D]=ee>12?[1,1]:[me(fe)<.5?1:0,me(fe-.25)<.5?1:0]}let ae=D=>q[D].dir!==0?y.duty:0,xe={ena:ae("izq"),enb:ae("der"),in1:q.izq.in[0],in2:q.izq.in[1],in3:q.der.in[0],in4:q.der.in[1],bat_l298:Math.max(ae("izq"),ae("der")),bat_lm:.5,lm_esp:.5,gnd:.4,mot_izq:ae("izq"),mot_der:ae("der"),enc_izq_a:Math.min(1,q.izq.hz/250),enc_izq_b:Math.min(1,q.izq.hz/250),enc_der_a:Math.min(1,q.der.hz/250),enc_der_b:Math.min(1,q.der.hz/250)},ge=y.flow,Ee=(D,H)=>ge[D]=(ge[D]??0)+H*j;for(let D of["ena","enb","in1","in2","in3","in4"])Ee(D,.7);Ee("bat_l298",.3+.9*xe.bat_l298),Ee("bat_lm",.4),Ee("lm_esp",.4),Ee("gnd",-.35),Ee("mot_izq",(.3+.9*y.duty)*Math.sign(q.izq.dir)),Ee("mot_der",(.3+.9*y.duty)*Math.sign(q.der.dir));for(let D of re)for(let H of["a","b"])Ee(`enc_${D}_${H}`,Math.min(1.6,q[D].hz/300));let Be=w-y.viewAt0,L={...od[y.view]};L.az+=b.az+(y.display.girar?12*(w-y.dispT.girar):0),L.el=Yn(L.el+b.el,-15,88),L.d*=b.k;let je=1-Math.exp(-j/(C.on?.22:.35));E.az+=Lx(L.az-E.az)*je;for(let D of["tx","ty","tz","el","d"])E[D]+=(L[D]-E[D])*je;let qe=_("despiece",.9);r.frame({pose:y.pose,ang:y.ang,arm:K,hall:ie,xray:_("rayos"),explode:qe,wires:_("cables",.5),flow:ge,act:xe},{...E,az:E.az*rd,el:E.el*rd,sy:-40});let A={};for(let[D,H]of Object.entries(r.robot.anchors))A[D]=r.project(H);let x=Uc(y.duty,1,y.driver,y.variante,dt.bat[y.bat]).vel;a.update({man:y.man,nombre:pe.nombre,v:he,w:z,vMax:x,duty:y.duty,driver:y.driver,variante:y.variante,bat:y.bat,vbat:dt.bat[y.bat],view:y.view,display:y.display,izq:q.izq,der:q.der,scope:y.scope,porVuelta:W.porVuelta,proj:A,labels:_("etiquetas",.5)*ll(.6,1.2,Be)*(1-qe)*(["heroe","frente","arriba"].includes(y.view)?1:0),cursor:ue}),(m.classList.contains("on")!==C.on||!m.firstChild)&&(m.classList.toggle("on",C.on),m.innerHTML=C.on?"<i></i>RECORRIDO AUTOM\xC1TICO \xB7 TOCA PARA MANEJAR":"\u25B6 VOLVER AL RECORRIDO"),window.SIM_SHOWN||(window.SIM_SHOWN=!0,dispatchEvent(new Event("simframe"))),Re++,(Re===2||Re===30)&&d<l&&r.lienzoVacio()&&(console.warn("El lienzo qued\xF3 vac\xEDo con efectos: paso a calidad m\xEDnima"),d=l,g()),Re===2&&s.listo()},Je=0,J=I=>{try{Ce(I),Je=0}catch(j){if(console.error(j),Je++,d<l)d=l,g();else if(Je>5){s.error("La simulaci\xF3n se detuvo","Hubo un error al dibujar: "+String(j.message||j).slice(0,120));return}}requestAnimationFrame(J)},Te=!1,k=()=>{Te||(Te=!0,Z=performance.now(),requestAnimationFrame(J))};try{Wu(r.renderer,r.composer,r.scene,r.camera).then(k,k)}catch(I){console.error(I)}setTimeout(k,2500),window.LIVE={st:r,S:y,cam:E,act:R,startTour:V,takeOver:N,get T(){return w},get tier(){return d}}}ld();
 
 </script>
+<!-- paneles-plegables v1: solo interfaz. No toca la escena 3D. -->
+<style id="pl-css">
+/* --- modo escenario (P03, P08): paneles dibujados sobre el lienzo 1600 × 900 --- */
+.pl-m{transition:opacity .2s ease,visibility .2s ease,background .15s,color .15s}
+.pl-cp,.pl-cab{transition:top .25s ease,height .25s ease}
+.pl-oculto{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+.pl-bar{position:absolute;z-index:3;pointer-events:auto;cursor:pointer;background:transparent;border:0;margin:0;padding:0 46px 0 0;display:flex;align-items:center;justify-content:flex-end;font:700 17px 'JetBrains Mono',monospace;line-height:1;color:#0F9D84;border-radius:12px;transition:top .25s ease}
+.pl-bar:hover{color:#0F9D84}
+.pl-bar:focus-visible,.pl-todo:focus-visible,.pl-tg:focus-visible{outline:2.5px solid #6B4EE6;outline-offset:2px}
+.pl-todo{position:absolute;left:470px;top:104px;height:26px;padding:0 13px;border:1.5px solid #14213D;border-radius:999px;background:rgba(255,255,255,.92);color:#14213D;font:700 9.5px 'JetBrains Mono',monospace;letter-spacing:1.2px;cursor:pointer;pointer-events:auto;white-space:nowrap}
+.pl-todo:hover{background:#14213D;color:#fff}
+/* --- modo P01: paneles HTML normales --- */
+.pl-tg{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;background:transparent;border:0;padding:0;margin:0;cursor:pointer;font:700 15px 'Bricolage Grotesque',sans-serif;color:#14213D;text-transform:uppercase;letter-spacing:.05em;text-align:left}
+.pl-tg small{font:600 11px 'JetBrains Mono',monospace;color:#5b6b7a;letter-spacing:.06em;text-transform:none}
+.pl-tg::after{content:'+';font:700 18px 'JetBrains Mono',monospace;line-height:1;color:#0F9D84}
+.pl-abierto>.pl-tg::after,.pl-abierto>.cons-cab>.pl-tg::after{content:'−'}
+.pl-cuerpo{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s ease}
+.pl-abierto>.pl-cuerpo{grid-template-rows:1fr}
+.pl-in{overflow:hidden;min-height:0}
+.pl-abierto>.pl-cuerpo>.pl-in{padding-top:8px}
+.panel.pl-p,.leyenda.pl-p{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:rgba(255,255,255,.9)}
+.consola.pl-p{transition:height .25s ease}
+.consola.pl-p:not(.pl-abierto){height:38px!important}
+.consola .pl-tg{width:auto;color:#e8eef5;font-size:13.5px}
+.consola .pl-tg::after{color:#9fb0c4}
+.consola .pl-tg small{color:#9fb0c4}
+.consola.pl-p>.cons-cab>b,.consola.pl-p>.cons-cab>span{display:none}
+@media (prefers-reduced-motion:reduce){.pl-m,.pl-cp,.pl-cab,.pl-bar,.pl-cuerpo,.consola.pl-p{transition:none!important}}
+</style>
+<script id="pl-js">
+(function () {
+  var avisar = function () { setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 280); };
+
+  // ---------- Modo escenario (P03 y P08) ----------
+  function modoEscenario(ui) {
+    var W = 1600, H = 900, EXCLUIR = /\b(call|cur|ring|tourchip|turn|pl-bar|pl-todo)\b/;
+    var cps = Array.prototype.slice.call(ui.querySelectorAll(':scope > .cp'));
+    var px = function (v) { return v === '' ? NaN : parseFloat(v); };
+    var paneles = cps.map(function (cp) {
+      var r = {x: px(cp.style.left), y: px(cp.style.top), w: px(cp.style.width), h: px(cp.style.height)};
+      return {cp: cp, r: r, abajo: r.y > H / 2, miembros: [], ph: null, pn: null, abierto: true};
+    });
+    Array.prototype.forEach.call(ui.children, function (n) {
+      if (n.classList.contains('cp')) return;
+      var cls = n.getAttribute('class') || '';
+      if (EXCLUIR.test(cls)) return;
+      var x = px(n.style.left), y = px(n.style.top);
+      if (isNaN(x) && !isNaN(px(n.style.right))) x = W - px(n.style.right) - 12; // los números de panel se ubican por la derecha
+      if (isNaN(x) || isNaN(y)) return;
+      for (var i = 0; i < paneles.length; i++) {
+        var r = paneles[i].r;
+        if (x >= r.x - 1 && x < r.x + r.w && y >= r.y - 1 && y < r.y + r.h) {
+          if (n.classList.contains('ph')) paneles[i].ph = n;
+          else if (n.classList.contains('pn')) paneles[i].pn = n;
+          else { n.classList.add('pl-m'); paneles[i].miembros.push(n); }
+          return;
+        }
+      }
+    });
+    var BAR = 40, CAB = 30;
+    paneles.forEach(function (p) {
+      p.cp.classList.add('pl-cp');
+      [p.ph, p.pn].forEach(function (e) { if (e) { e.classList.add('pl-cab'); e.dataset.top = px(e.style.top) - p.r.y; } });
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'pl-bar';
+      b.style.left = p.r.x + 'px';
+      b.style.width = p.r.w + 'px';
+      b.style.height = (p.abajo ? BAR : CAB) + 'px';
+      var titulo = p.ph ? p.ph.textContent.trim() : 'panel';
+      b.addEventListener('click', function () { poner(p, !p.abierto); avisar(); });
+      ui.appendChild(b);
+      p.bar = b;
+      p.titulo = titulo;
+    });
+    function poner(p, abierto) {
+      p.abierto = abierto;
+      var r = p.r, y0 = abierto || !p.abajo ? r.y : r.y + r.h - BAR;
+      p.cp.style.top = y0 + 'px';
+      p.cp.style.height = (abierto ? r.h : BAR) + 'px';
+      [p.ph, p.pn].forEach(function (e) { if (e) e.style.top = (y0 + Number(e.dataset.top)) + 'px'; });
+      p.bar.style.top = y0 + 'px';
+      p.bar.style.height = (abierto ? CAB : BAR) + 'px';
+      p.bar.textContent = abierto ? '−' : '+';
+      p.bar.setAttribute('aria-expanded', abierto);
+      p.bar.setAttribute('aria-label', (abierto ? 'Cerrar el panel ' : 'Abrir el panel ') + p.titulo);
+      p.miembros.forEach(function (m) { m.classList.toggle('pl-oculto', !abierto); });
+      todo.textContent = paneles.some(function (q) { return q.abierto; }) ? 'CERRAR PANELES' : 'ABRIR PANELES';
+    }
+    var todo = document.createElement('button');
+    todo.type = 'button';
+    todo.className = 'pl-todo';
+    todo.addEventListener('click', function () {
+      var abrir = !paneles.some(function (q) { return q.abierto; });
+      paneles.forEach(function (p) { poner(p, abrir); });
+      avisar();
+    });
+    ui.appendChild(todo);
+    paneles.forEach(function (p) { poner(p, false); }); // cerrados al empezar
+    avisar();
+  }
+
+  // ---------- Modo P01 (paneles HTML) ----------
+  function plegable(caja, titulo, sub) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'pl-tg';
+    b.innerHTML = titulo + (sub ? ' <small>' + sub + '</small>' : '');
+    var cuerpo = document.createElement('div');
+    cuerpo.className = 'pl-cuerpo';
+    var dentro = document.createElement('div');
+    dentro.className = 'pl-in';
+    while (caja.firstChild) dentro.appendChild(caja.firstChild); // se mueven los mismos nodos: los botones siguen funcionando
+    cuerpo.appendChild(dentro);
+    caja.appendChild(b);
+    caja.appendChild(cuerpo);
+    caja.classList.add('pl-p');
+    var poner = function (a) {
+      caja.classList.toggle('pl-abierto', a);
+      b.setAttribute('aria-expanded', a);
+      dentro.inert = !a;
+    };
+    b.addEventListener('click', function () { poner(!caja.classList.contains('pl-abierto')); avisar(); });
+    poner(false);
+  }
+  function modoP01() {
+    var panel = document.querySelector('#app > .panel');
+    var ley = document.querySelector('#app > .leyenda');
+    var cons = document.querySelector('#app > .consola');
+    if (panel) plegable(panel, 'Controles', 'QoS, orden, alarma, LWT');
+    if (ley && ley.children.length) plegable(ley, 'Buzones', '5 tópicos');
+    if (cons) {
+      var cab = cons.querySelector('.cons-cab');
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'pl-tg';
+      b.innerHTML = 'Consola <small>lo que ve el broker</small>';
+      cab.insertBefore(b, cab.firstChild);
+      cons.classList.add('pl-p');
+      var poner = function (a) { cons.classList.toggle('pl-abierto', a); b.setAttribute('aria-expanded', a); };
+      b.addEventListener('click', function () { poner(!cons.classList.contains('pl-abierto')); avisar(); });
+      poner(false);
+    }
+    avisar();
+  }
+
+  // Espera a que la interfaz exista (la arma el módulo después de cargar)
+  var intentos = 0;
+  (function esperar() {
+    var ui = document.querySelector('.ui');
+    if (ui && ui.querySelector(':scope > .cp')) return setTimeout(function () { modoEscenario(ui); }, 400);
+    if (document.querySelector('#app > .panel .acc')) return modoP01();
+    if (++intentos < 100) setTimeout(esperar, 100);
+  })();
+})();
+</script>
+
 </body>
 </html>
