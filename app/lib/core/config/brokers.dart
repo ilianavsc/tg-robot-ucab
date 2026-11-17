@@ -1,12 +1,8 @@
-/// Catálogo de brokers para las pruebas.
+/// Catálogo de brokers para las pruebas y telemetría en vivo.
 ///
-/// **Orden de intento:** el servicio prueba el primero de la lista y, si falla
-/// dos veces, pasa al siguiente. Ahora **Local es el primero** para poder
-/// probar sin internet (el ISP bloquea los WebSockets externos).
-///
-/// ⚠️ Para la prueba con el robot real: el ESP32 publica en HiveMQ, así que hay
-/// que dejar `HiveMQ` como primera entrada (mover el bloque "Local" al final) o
-/// reflashear el firmware con `MQTT_BROKER` apuntando al broker local.
+/// **Orden de intento:** sincronizado exactamente con P10 (HiveMQ → EMQX → Mosquitto → Local).
+/// En celular y web sobre HTTPS, los brokers seguros (WSS) van primero para evitar
+/// que el navegador móvil bloquee la conexión por Mixed Content (ws://).
 class BrokerEndpoint {
   const BrokerEndpoint({
     required this.nombre,
@@ -38,34 +34,35 @@ class BrokerEndpoint {
   String get urlWeb => '$esquemaWeb://$host:$puertoWeb/mqtt';
 }
 
-/// Orden de intento: local primero (sin internet), luego los públicos.
+/// Orden de intento sincronizado con P10: HiveMQ → EMQX → Mosquitto → Local.
 const List<BrokerEndpoint> brokers = <BrokerEndpoint>[
-  // Mosquitto instalado en esta PC: TCP 1883 y WebSocket 9001 sin TLS.
-  BrokerEndpoint(
-    nombre: 'Local',
-    host: 'localhost',
-    puertoNativo: 1883,
-    puertoWeb: 9001,
-    seguroWeb: false,
-  ),
   BrokerEndpoint(
     nombre: 'HiveMQ',
     host: 'broker.hivemq.com',
     puertoNativo: 1883,
     puertoWeb: 8884,
+    seguroWeb: true,
   ),
-  // WebSocket SIN cifrar de EMQX: sirve para diagnosticar bloqueos de WSS.
   BrokerEndpoint(
     nombre: 'EMQX',
     host: 'broker.emqx.io',
     puertoNativo: 1883,
-    puertoWeb: 8083,
-    seguroWeb: false,
+    puertoWeb: 8084,
+    seguroWeb: true,
   ),
   BrokerEndpoint(
     nombre: 'Mosquitto',
     host: 'test.mosquitto.org',
     puertoNativo: 1883,
     puertoWeb: 8081,
+    seguroWeb: true,
+  ),
+  // Mosquitto local: TCP 1883 y WebSocket 9001 sin TLS (al final).
+  BrokerEndpoint(
+    nombre: 'Local',
+    host: 'localhost',
+    puertoNativo: 1883,
+    puertoWeb: 9001,
+    seguroWeb: false,
   ),
 ];

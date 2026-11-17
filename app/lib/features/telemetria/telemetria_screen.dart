@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -225,6 +226,54 @@ class _TarjetaConexionYControles extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: List<Widget>.generate(servicio.listaBrokers.length, (int i) {
+                final b = servicio.listaBrokers[i];
+                final bool activo = i == servicio.indiceBroker;
+                return InkWell(
+                  onTap: () => servicio.seleccionarBroker(i),
+                  borderRadius: BorderRadius.circular(999),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: activo ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: activo ? const Color(0xFF0F172A) : const Color(0xFFCBD5E1),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        if (activo && servicio.conectado) ...<Widget>[
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF22C55E),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                        ],
+                        Text(
+                          '${b.nombre} (:${kIsWeb ? b.puertoWeb : b.puertoNativo})',
+                          style: TextStyle(
+                            fontFamily: 'monospace',
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: activo ? Colors.white : const Color(0xFF475569),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
             ),
             if (servicio.ultimoError != null && !servicio.simulando) ...<Widget>[
               const SizedBox(height: 12),

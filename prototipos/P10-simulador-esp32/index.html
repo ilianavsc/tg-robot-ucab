@@ -229,7 +229,7 @@
         <div class="broker-panel" aria-live="polite">
           <div class="broker-actual-info">
             <span class="broker-actual-titulo" id="broker-titulo">Enlace MQTT · HiveMQ (Listo para conectar)</span>
-            <span class="broker-actual-sub" id="broker-sub">broker.hivemq.com:8884 · Respaldo automático: HiveMQ → EMQX → Mosquitto</span>
+            <span class="broker-actual-sub" id="broker-sub">broker.hivemq.com:8884 · Respaldo automático: HiveMQ → EMQX → Mosquitto → Local</span>
           </div>
           <div class="brokers-lista" id="brokers-pills" aria-label="Selector de broker MQTT"></div>
         </div>
@@ -241,7 +241,7 @@
           <span style="font-family:var(--font-mono);font-size:12px;color:#38bdf8" id="contador-enviados">0 paquetes enviados</span>
         </div>
         <div class="log-mqtt" id="log-mqtt">
-          <div class="ts">[Sistema listo] Pulsa "Encender ESP32 Virtual" para conectar (HiveMQ → EMQX → Mosquitto) y transmitir telemetría...</div>
+          <div class="ts">[Sistema listo] Pulsa "Encender ESP32 Virtual" para conectar (HiveMQ → EMQX → Mosquitto → Local) y transmitir telemetría...</div>
         </div>
       </div>
     </div>
@@ -462,12 +462,17 @@
       return;
     }
 
-    cliente = window.mqtt.connect(b.url, {
-      clientId: "ucab-esp32-sim-" + Math.random().toString(16).slice(2, 10),
-      keepalive: 20,
-      connectTimeout: 5000,
-      reconnectPeriod: 0
-    });
+    try {
+      cliente = window.mqtt.connect(b.url, {
+        clientId: "ucab-esp32-sim-" + Math.random().toString(16).slice(2, 10),
+        keepalive: 20,
+        connectTimeout: 5000,
+        reconnectPeriod: 0
+      });
+    } catch (e) {
+      registrarFalloBroker("error al crear WebSocket (" + (e && e.message ? e.message : e) + ")");
+      return;
+    }
 
     timerTimeout = setTimeout(function () {
       if (!conectado && encendido) {

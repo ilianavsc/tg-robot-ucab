@@ -36,14 +36,14 @@ class MqttService extends ChangeNotifier {
   /// Tópico de telemetría del robot (QoS 0, cada 2 s).
   final String topicoEstado;
 
-  static const Duration _esperaMinima = Duration(seconds: 3);
+  static const Duration _esperaMinima = Duration(seconds: 1);
   static const Duration _esperaMaxima = Duration(seconds: 30);
 
   /// Si no llega telemetría en este tiempo, se considera el enlace caído.
   static const Duration _limiteSinDatos = Duration(seconds: 8);
 
-  /// Intentos contra un mismo broker antes de saltar al de respaldo.
-  static const int _intentosPorBroker = 2;
+  /// Intentos contra un mismo broker antes de saltar al de respaldo (1 para fallback ágil en web).
+  static const int _intentosPorBroker = 1;
 
   MqttClient? _cliente;
   StreamSubscription<List<MqttReceivedMessage<MqttMessage>>>? _suscripcion;
@@ -74,6 +74,12 @@ class MqttService extends ChangeNotifier {
 
   /// Broker que se está usando ahora mismo.
   BrokerEndpoint get broker => brokers[_indiceBroker];
+
+  /// Índice del broker activo (0..N).
+  int get indiceBroker => _indiceBroker;
+
+  /// Lista inmutable de brokers configurados para la UI.
+  List<BrokerEndpoint> get listaBrokers => brokers;
 
   /// Nombre corto del broker activo (`HiveMQ`, `EMQX`, `Mosquitto`).
   String get nombreBroker => broker.nombre;
@@ -167,6 +173,24 @@ class MqttService extends ChangeNotifier {
     _cambiarConexion(EstadoConexion.desconectado);
   }
 
+  /// Permite seleccionar un broker específico manualmente desde la UI (igual que en P10).
+  void seleccionarBroker(int indice) {
+    if (indice < 0 || indice >= brokers.length) return;
+    if (_simulando) detenerSimulacion();
+    _desconexionManual = false;
+    _temporizadorReintento?.cancel();
+    try {
+      _cliente?.disconnect();
+    } catch (_) {}
+    _cliente = null;
+    _suscripcion?.cancel();
+    _suscripcion = null;
+    _indiceBroker = indice;
+    _intentosEnBroker = 0;
+    _esperaActual = _esperaMinima;
+    conectar();
+  }
+
   // ------------------------------------------------------- Modo Demo
 
   /// `true` mientras la pantalla muestra datos simulados.
@@ -227,7 +251,7 @@ class MqttService extends ChangeNotifier {
     );
     cliente.logging(on: false);
     cliente.keepAlivePeriod = 20;
-    cliente.connectTimeoutPeriod = 6000;
+    cliente.connectTimeoutPeriod = 4000;
     cliente.autoReconnect = false; // los reintentos los maneja _programarReintento
     cliente.onConnected = _alConectar;
     cliente.onDisconnected = _alDesconectar;
@@ -245,6 +269,7 @@ class MqttService extends ChangeNotifier {
     } catch (_) {
       // el cliente podía no estar conectado
     }
+    _cliente = null; // Limpiar para que el siguiente intento cree un cliente e ID nuevo
 
     if (avanzar) {
       _reemplazarCliente();
@@ -330,6 +355,10 @@ class MqttService extends ChangeNotifier {
   }
 
   void _decodificarEstado(String texto) {
+    // Al recibir telemetría real en el tópico, desactiva automáticamente el Modo Demo
+    if (_simulando) {
+      detenerSimulacion();
+    }
     try {
       final mapa = jsonDecode(texto);
       if (mapa is! Map<String, dynamic>) {
