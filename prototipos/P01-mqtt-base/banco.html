@@ -53,7 +53,7 @@ button.llega{background:var(--llega);border-color:var(--llega);color:var(--blanc
 <a class="volver" href="index.html">← Volver a P01</a>
 <p class="ceja">Prototipo P01 · Banco de pruebas</p>
 <h1>Probar el robot <em>desde el navegador</em></h1>
-<p class="bajada">Abre esta página al lado de Wokwi. Se conecta al mismo cartero (broker HiveMQ), envía pedidos, escucha todo lo que dice el robot y mide los tiempos. Al final descargas los resultados para el tomo.</p>
+<p class="bajada">Abre esta página al lado de Wokwi. Se conecta al cartero (broker MQTT: HiveMQ, y si está bloqueado, EMQX o Mosquitto), envía pedidos, escucha todo lo que dice el robot y mide los tiempos. Al final descargas los resultados para el tomo.</p>
 
 <section>
   <div class="tarjeta sombra barra-con">
@@ -130,7 +130,13 @@ button.llega{background:var(--llega);border-color:var(--llega);color:var(--blanc
 <script src="https://unpkg.com/mqtt@5/dist/mqtt.min.js"></script>
 <script>
 (function(){
-  var URL_BROKER = "wss://broker.hivemq.com:8884/mqtt";
+  /* Misma lista de respaldo que la app (P09) y el ESP32 virtual (P10) */
+  var BROKERS = [
+    { nombre: "HiveMQ", url: "wss://broker.hivemq.com:8884/mqtt" },
+    { nombre: "EMQX", url: "wss://broker.emqx.io:8084/mqtt" },
+    { nombre: "Mosquitto", url: "wss://test.mosquitto.org:8081/mqtt" }
+  ];
+  var iBroker = 0, intento = 0, timerEspera = null, timerReintento = null;
   var BASE = "ucab-tg-sf/robot/";
   var COLOR = { estado: "#0F9D84", ordenes: "#F2603D", "ordenes/ack": "#0F9D84", alertas: "#6B4EE6", conexion: "#B07A0E" };
   var $ = function(id){ return document.getElementById(id); };
@@ -165,19 +171,55 @@ button.llega{background:var(--llega);border-color:var(--llega);color:var(--blanc
   }
   setInterval(function(){ if (ultimoEstado) $("n-ultimo").textContent = seg(Date.now() - ultimoEstado); }, 500);
 
+  function soltarCliente(){
+    if (timerEspera) { clearTimeout(timerEspera); timerEspera = null; }
+    if (timerReintento) { clearTimeout(timerReintento); timerReintento = null; }
+    if (cliente) { try { cliente.removeAllListeners(); cliente.end(true); } catch (e) {} cliente = null; }
+  }
+
   function conectar(){
-    if (cliente) { cliente.end(true); cliente = null; }
-    luz("luz-broker", "espera", "Banco: conectando...");
-    cliente = mqtt.connect(URL_BROKER, { clientId: "banco-p01-" + Math.random().toString(16).slice(2, 8), clean: true, connectTimeout: 8000, reconnectPeriod: 3000, keepalive: 30 });
+    iBroker = 0;
+    intentar();
+  }
+
+  /* Prueba un broker; si no responde en 5 s o da error, salta al siguiente (HiveMQ, EMQX, Mosquitto) */
+  function intentar(){
+    soltarCliente();
+    var b = BROKERS[iBroker], miIntento = ++intento, listo = false;
+    luz("luz-broker", "espera", "Banco: conectando a " + b.nombre + "...");
+    $("b-uno").disabled = true; $("b-lote").disabled = true;
+    var fallo = function(motivo){
+      if (miIntento !== intento || listo) return;
+      anotar("banco", b.nombre + " no respondió (" + motivo + "). Pruebo el siguiente broker.");
+      iBroker = (iBroker + 1) % BROKERS.length;
+      timerReintento = setTimeout(intentar, iBroker === 0 ? 3000 : 800);
+    };
+    try {
+      cliente = mqtt.connect(b.url, { clientId: "banco-p01-" + Math.random().toString(16).slice(2, 8), clean: true, connectTimeout: 5000, reconnectPeriod: 0, keepalive: 30 });
+    } catch (e) { fallo(String(e && e.message || e)); return; }
+    timerEspera = setTimeout(function(){ fallo("sin respuesta en 5 s"); }, 5500);
     cliente.on("connect", function(){
-      luz("luz-broker", "ok", "Banco: conectado");
+      if (miIntento !== intento) return;
+      listo = true;
+      clearTimeout(timerEspera); timerEspera = null;
+      luz("luz-broker", "ok", "Banco: conectado a " + b.nombre);
+      anotar("banco", "Conectado a " + b.nombre + " (" + b.url + ").");
       cliente.subscribe(BASE + "#", { qos: 2 });
       $("b-uno").disabled = false; $("b-lote").disabled = false;
       $("b-conectar").textContent = "Reconectar";
     });
-    cliente.on("reconnect", function(){ luz("luz-broker", "espera", "Banco: reconectando..."); });
-    cliente.on("close", function(){ luz("luz-broker", "mal", "Banco: sin conexión"); });
-    cliente.on("error", function(e){ luz("luz-broker", "mal", "Banco: error"); anotar("banco", String(e && e.message || e)); });
+    cliente.on("error", function(e){
+      if (!listo) fallo(String(e && e.message || e));
+      else anotar("banco", "Error en " + b.nombre + ": " + String(e && e.message || e));
+    });
+    cliente.on("close", function(){
+      if (!listo || miIntento !== intento) return;
+      // se cayó una conexión que sí funcionaba: reintenta el mismo broker y, si falla, sigue con la lista
+      listo = false;
+      luz("luz-broker", "mal", "Banco: sin conexión con " + b.nombre + ", reintentando...");
+      $("b-uno").disabled = true; $("b-lote").disabled = true;
+      timerReintento = setTimeout(intentar, 3000);
+    });
     cliente.on("message", recibir);
   }
 

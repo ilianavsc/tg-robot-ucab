@@ -73,8 +73,9 @@
     <ol>
       <li>Pulsa <b>"Conectar al broker"</b>.</li>
       <li>Mira el registro: ahí llegan los mensajes del robot.</li>
+      <li>Pulsa <b>"Enviar un pedido"</b>.</li>
     </ol>
-    <p class="ves"><b>Lo que debes ver</b>Los mensajes de <code>ucab-tg-sf/robot/estado</code> que manda el P10, cada 2 s.</p>
+    <p class="ves"><b>Lo que debes ver</b>El estado del P10 cada 2 s y, al pedir, "Confirmado P-0001 en … ms": el P10 recibió el pedido y lo confirmó.</p>
     <a class="abrir" href="P01-mqtt-base/banco.html" target="_blank" rel="noopener">2. Ver Panel de Control (P01)&nbsp;↗</a>
     <a class="alt" href="P01-mqtt-base/simulador-3d/simulador.html" target="_blank" rel="noopener">¿Cómo viajan los mensajes? Ver la animación 3D ↗</a>
   </section>
@@ -95,9 +96,9 @@
 <section class="aviso-pruebas" aria-labelledby="t-limites">
   <h2 id="t-limites">Si algo no aparece</h2>
   <ul>
-    <li><b>El panel (paso 2) no ve nada:</b> el panel solo usa HiveMQ. Si el P10 se conectó a EMQX o a Mosquitto, apágalo y enciéndelo otra vez hasta que diga HiveMQ.</li>
+    <li><b>El panel (paso 2) no ve nada:</b> los 3 prueban HiveMQ, luego EMQX y luego Mosquitto. Revisa que el P10 y el panel digan el mismo broker; si no, pulsa "Reconectar" en el panel.</li>
     <li><b>La app sigue en "Modo demo":</b> revisa que el P10 siga encendido y que los dos digan el mismo broker.</li>
-    <li><b>Los pedidos todavía no tienen respuesta:</b> el P10 por ahora solo manda su estado. Un pedido desde el panel llega al broker, pero nadie lo confirma hasta que el robot real (o el P10) escuche <code>ordenes</code>.</li>
+    <li><b>Un pedido no se confirma:</b> revisa que el P10 siga encendido. Si hay dos P10 abiertos (por ejemplo, otra persona probando a la vez), cada uno confirma y el panel marca el pedido como repetido.</li>
   </ul>
 </section>
 </main>

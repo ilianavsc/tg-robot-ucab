@@ -413,6 +413,7 @@
       <li><b>1. Enciende el ESP32 Virtual</b><span>Haz clic en <strong>"Encender ESP32 Virtual"</strong> arriba. El simulador probará la lista de respaldo hasta conectar y mostrará en pantalla a qué broker se enlazó.</span></li>
       <li><b>2. Verifica el mismo Broker en la App</b><span>Abre <a href="../../app/" target="_blank" rel="noopener">la Interfaz Flutter</a> y comprueba en la tarjeta superior ("Enlace MQTT · ...") que ambos estén en el mismo broker (HiveMQ, EMQX o Mosquitto).</span></li>
       <li><b>3. Observa la Telemetría en Vivo</b><span>Verás cómo la batería, el modo autónomo/manual y la posición de la línea cambian automáticamente cada 2 segundos.</span></li>
+      <li><b>4. Manda un pedido</b><span>Desde el <a href="../P01-mqtt-base/banco.html" target="_blank" rel="noopener">banco de pruebas P01</a> pulsa "Enviar un pedido": el ESP32 virtual lo recibe en <code>ordenes</code> y lo confirma en <code>ordenes/ack</code>. Lo verás en el registro de las dos páginas.</span></li>
     </ol>
   </section>
 </main>
@@ -425,6 +426,8 @@
 <script>
 (function () {
   var TOPICO = "ucab-tg-sf/robot/estado";
+  var T_ORDENES = "ucab-tg-sf/robot/ordenes";      /* lo escucha con QoS 1, igual que el robot real */
+  var T_ACK = "ucab-tg-sf/robot/ordenes/ack";      /* responde con QoS 1: {"id","recibidas","t"} */
   var INTENTOS_POR_BROKER = 2;
 
   /* Lista de brokers sincronizada con la App Flutter */
@@ -486,6 +489,7 @@
   var paso = 0;
   var secuencia = 5000;
   var enviados = 0;
+  var ordenesRecibidas = 0;  /* pedidos recibidos por ordenes (no los mensajes de estado) */
   var inicioMs = Date.now();
 
   function brokerActual() {
@@ -544,6 +548,10 @@
         publicarPaso();
       });
     });
+  }
+
+  function escaparHtml(t) {
+    return String(t).replace(/[&<>"]/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;"}[c]; });
   }
 
   function escribirLog(texto) {
@@ -634,7 +642,7 @@
       estado: p.estado,
       bateria: p.bateria,
       bateria_v: p.bateria_v,
-      ordenes: enviados,
+      ordenes: ordenesRecibidas,
       linea_mm: p.linea_mm,
       v_izq: p.v_izq,
       v_der: p.v_der,
@@ -738,7 +746,28 @@
       intentosEnBroker = 0;
       actualizarLed("activo", "CONECTADO EN VIVO · " + b.nombre + " (" + b.host + ":" + b.puerto + ")");
       escribirLog("✅ <b>Conectado exitosamente a " + b.nombre + "</b> (" + b.url + "). Transmitiendo en <code>" + TOPICO + "</code>");
+      cliente.subscribe(T_ORDENES, { qos: 1 }, function (err) {
+        if (err) escribirLog("❌ No pude suscribirme a <b>" + T_ORDENES + "</b>: " + escaparHtml(err.message || err));
+        else escribirLog("👂 Escuchando pedidos en <b>" + T_ORDENES + "</b> (QoS 1)");
+      });
       renderBrokers();
+    });
+
+    /* Pedido recibido: lo cuenta y confirma por ordenes/ack, como el sketch del robot real */
+    cliente.on("message", function (topico, carga) {
+      if (topico !== T_ORDENES) return;
+      var texto = carga.toString();
+      var pedido = null;
+      try { pedido = JSON.parse(texto); } catch (_) {}
+      var id = pedido && pedido.id ? String(pedido.id) : "sin-id";
+      ordenesRecibidas++;
+      escribirLog("📥 [" + b.nombre + "] SUB <b>" + T_ORDENES + "</b> → pedido <b>" + escaparHtml(id) + "</b> <code>" + escaparHtml(texto) + "</code>");
+      var ack = JSON.stringify({ id: id, recibidas: ordenesRecibidas, t: Date.now() - inicioMs });
+      if (!cliente) return;
+      cliente.publish(T_ACK, ack, { qos: 1 }, function (err) {
+        if (err) escribirLog("❌ No se pudo confirmar " + escaparHtml(id) + ": " + escaparHtml(err.message || err));
+        else escribirLog("📤 [" + b.nombre + "] PUB <b>" + T_ACK + "</b> ← <code>" + escaparHtml(ack) + "</code>");
+      });
     });
 
     cliente.on("error", function (err) {
