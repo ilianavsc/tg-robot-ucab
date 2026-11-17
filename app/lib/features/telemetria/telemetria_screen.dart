@@ -87,21 +87,33 @@ class TelemetriaScreen extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: <Widget>[
-              _TarjetaConexionYControles(
-                servicio: servicio,
-                colorEstado: colorEstado,
+              _Aparece(
+                indice: 0,
+                child: _TarjetaConexionYControles(
+                  servicio: servicio,
+                  colorEstado: colorEstado,
+                ),
               ),
               const SizedBox(height: 16),
-              _TarjetaOrdenes(servicio: servicio),
+              _Aparece(
+                indice: 1,
+                child: _TarjetaOrdenes(servicio: servicio),
+              ),
               const SizedBox(height: 16),
               if (estado == null)
-                _TarjetaEsperandoDatos(servicio: servicio)
+                _Aparece(
+                  indice: 2,
+                  child: _TarjetaEsperandoDatos(servicio: servicio),
+                )
               else ...<Widget>[
-                _TarjetaBateria(estado: estado),
+                _Aparece(indice: 2, child: _TarjetaBateria(estado: estado)),
                 const SizedBox(height: 16),
-                _TarjetaModoYLinea(estado: estado),
+                _Aparece(indice: 3, child: _TarjetaModoYLinea(estado: estado)),
                 const SizedBox(height: 16),
-                _TarjetaTraccionYSistema(estado: estado),
+                _Aparece(
+                  indice: 4,
+                  child: _TarjetaTraccionYSistema(estado: estado),
+                ),
               ],
             ],
           ),
@@ -498,7 +510,9 @@ class _TarjetaOrdenes extends StatelessWidget {
     final Color color = detener
         ? TelemetriaScreen._rojoError
         : (auto ? TelemetriaScreen._verdePrimario : _azulOrden);
-    return SizedBox(
+    return _Presionable(
+      habilitado: activo,
+      child: SizedBox(
       height: 56,
       child: FilledButton.icon(
         onPressed: activo ? () => _enviar(context, comando) : null,
@@ -517,6 +531,7 @@ class _TarjetaOrdenes extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
         ),
+      ),
       ),
     );
   }
@@ -689,7 +704,9 @@ class _CajaUltimoAck extends StatelessWidget {
           ' · llegó a las ${_hora(a.llegada)}';
     }
 
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -697,7 +714,11 @@ class _CajaUltimoAck extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withValues(alpha: 0.45), width: 1.5),
       ),
-      child: Row(
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        switchInCurve: Curves.easeOutCubic,
+        child: Row(
+        key: ValueKey<String>('$titulo|$detalle'),
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Icon(icono, color: color, size: 22),
@@ -723,6 +744,7 @@ class _CajaUltimoAck extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -785,11 +807,18 @@ class _TarjetaBateria extends StatelessWidget {
             const SizedBox(height: 14),
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: estado.bateria.clamp(0, 100) / 100.0,
-                minHeight: 14,
-                backgroundColor: const Color(0xFFE2E8F0),
-                valueColor: AlwaysStoppedAnimation<Color>(colorBarra),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(end: estado.bateria.clamp(0, 100) / 100.0),
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeOutCubic,
+                builder: (BuildContext context, double valor, Widget? _) {
+                  return LinearProgressIndicator(
+                    value: valor,
+                    minHeight: 14,
+                    backgroundColor: const Color(0xFFE2E8F0),
+                    valueColor: AlwaysStoppedAnimation<Color>(colorBarra),
+                  );
+                },
               ),
             ),
             const SizedBox(height: 8),
@@ -1068,6 +1097,72 @@ class _ChipDato extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+
+/// Entrada suave de una tarjeta: opacidad + subida corta, con ease-out.
+/// Se anima una sola vez al aparecer (no se repite con cada mensaje de telemetría).
+/// Si el sistema pide menos movimiento, no anima.
+class _Aparece extends StatelessWidget {
+  const _Aparece({required this.indice, required this.child});
+
+  final int indice;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (MediaQuery.of(context).disableAnimations) return child;
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: Duration(milliseconds: 220 + 50 * indice),
+      curve: Curves.easeOutCubic,
+      builder: (BuildContext context, double t, Widget? hijo) {
+        return Opacity(
+          opacity: t,
+          child: Transform.translate(
+            offset: Offset(0, 8 * (1 - t)),
+            child: hijo,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+}
+
+/// Respuesta al pulsar: el botón se encoge un 3 % mientras el dedo está encima.
+/// Usa [Listener], así no interfiere con el clic del botón de adentro.
+class _Presionable extends StatefulWidget {
+  const _Presionable({required this.child, this.habilitado = true});
+
+  final Widget child;
+  final bool habilitado;
+
+  @override
+  State<_Presionable> createState() => _PresionableState();
+}
+
+class _PresionableState extends State<_Presionable> {
+  bool _abajo = false;
+
+  void _poner(bool valor) {
+    if (_abajo != valor && mounted) setState(() => _abajo = valor);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerDown: (_) => _poner(widget.habilitado),
+      onPointerUp: (_) => _poner(false),
+      onPointerCancel: (_) => _poner(false),
+      child: AnimatedScale(
+        scale: _abajo ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOutCubic,
+        child: widget.child,
       ),
     );
   }

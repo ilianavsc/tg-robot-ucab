@@ -67,3 +67,19 @@ body{font-family:'Atkinson Hyperlegible',system-ui,sans-serif;color:var(--tinta)
 
 .barra h1,.panel h2,.leyenda h2{color:var(--tinta)!important}.top code,.top small,.nota{color:var(--tinta)}.top small{color:#5b6b7a}
 .lento,.tiempo,.top small{font-family:'Atkinson Hyperlegible',sans-serif}
+
+/* ---- Pulido de interfaz (solo CSS, no toca la escena 3D) ---- */
+:root{--ease-out:cubic-bezier(.23,1,.32,1)}
+.panel,.leyenda{box-shadow:5px 5px 0 var(--tinta),0 10px 24px rgba(20,33,61,.10)}
+.qb,.acc,.cons-cab button{transition:transform .16s var(--ease-out),background-color .15s ease-out,border-color .15s ease-out,color .15s ease-out,box-shadow .16s var(--ease-out),opacity .15s ease-out}
+.qb:active:not(:disabled),.acc:active:not(:disabled),.cons-cab button:active{transform:scale(.97)}
+.barra-t i{transition:width .2s var(--ease-out)}
+@media (hover:hover) and (pointer:fine){
+  .qb:hover:not(:disabled):not(.on){background:#f1eefc}
+  .acc:hover:not(:disabled){box-shadow:0 6px 14px rgba(20,33,61,.18);transform:translateY(-1px)}
+  .acc:active:not(:disabled){transform:scale(.97)}
+  .cons-cab button:hover{color:#e8eef5;border-color:#6b7e9c}
+}
+.ln{animation:ln-in .18s var(--ease-out)}
+@keyframes ln-in{from{opacity:0;transform:translateY(4px)}}
+@media (prefers-reduced-motion:reduce){.qb,.acc,.cons-cab button,.barra-t i{transition:none}.ln{animation:none}}

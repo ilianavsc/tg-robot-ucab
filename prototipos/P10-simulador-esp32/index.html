@@ -88,7 +88,7 @@
   background: #0f172a;
   color: #cbd5e1;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: transform 0.16s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out, box-shadow 0.16s ease-out;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
@@ -135,7 +135,7 @@
   padding: 14px 14px 16px;
   box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.25);
   opacity: 0.78;
-  transition: opacity 0.3s ease, box-shadow 0.3s ease;
+  transition: opacity 0.3s ease-out, box-shadow 0.3s ease-out;
 }
 .placa.encendida { opacity: 1; box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.25), 0 0 22px rgba(34, 197, 94, 0.28); }
 .placa-cabecera { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-family: var(--font-mono); font-size: 11px; color: #a7f3d0; letter-spacing: 0.06em; }
@@ -166,7 +166,7 @@
   width: 18px; height: 18px; border-radius: 50%;
   background: #334155;
   border: 2px solid rgba(0, 0, 0, 0.45);
-  transition: background 0.2s ease, box-shadow 0.2s ease;
+  transition: background-color 0.2s ease-out, box-shadow 0.2s ease-out;
 }
 .esp-led.ok { background: #22c55e; box-shadow: 0 0 12px #22c55e; }
 .esp-led.warn { background: #f59e0b; box-shadow: 0 0 12px #f59e0b; }
@@ -186,7 +186,7 @@
 .valor-grande { font-family: var(--font-display); font-weight: 800; font-size: 26px; color: #fff; line-height: 1.1; }
 .valor-grande small { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: #94a3b8; margin-left: 6px; }
 .bat-barra { height: 16px; border-radius: 8px; background: #0f172a; border: 1.5px solid #334155; overflow: hidden; margin-top: 10px; }
-.bat-fill { height: 100%; width: 0; border-radius: 6px; background: #22c55e; transition: width 0.5s ease, background 0.3s ease; }
+.bat-fill { height: 100%; width: 0; border-radius: 6px; background: #22c55e; transition: width 0.4s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.3s ease-out; }
 .bat-fill.media { background: #f59e0b; }
 .bat-fill.baja { background: #f43f5e; }
 .modo-pill {
@@ -207,7 +207,7 @@
   display: flex; flex-direction: column; align-items: center; gap: 6px;
   font-family: var(--font-mono); font-size: 11px; color: #64748b;
 }
-.sensor i { width: 22px; height: 22px; border-radius: 50%; background: #0f172a; border: 2px solid #334155; transition: all 0.25s ease; }
+.sensor i { width: 22px; height: 22px; border-radius: 50%; background: #0f172a; border: 2px solid #334155; transition: background-color 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out; }
 .sensor.on { color: #fde68a; }
 .sensor.on i { background: #facc15; border-color: #facc15; box-shadow: 0 0 12px rgba(250, 204, 21, 0.8); }
 .linea-txt { font-family: var(--font-mono); font-size: 12.5px; color: #cbd5e1; }
@@ -217,7 +217,7 @@
 .motor-fila output { color: #e2e8f0; font-weight: 600; text-align: right; }
 .motor-pista { position: relative; height: 14px; border-radius: 7px; background: #0f172a; border: 1.5px solid #334155; overflow: hidden; }
 .motor-pista::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #475569; }
-.motor-fill { position: absolute; top: 0; bottom: 0; width: 0; left: 50%; background: #22c55e; transition: all 0.4s ease; }
+.motor-fill { position: absolute; top: 0; bottom: 0; width: 0; left: 50%; background: #22c55e; transition: width 0.3s cubic-bezier(0.23, 1, 0.32, 1), left 0.3s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.2s ease-out; }
 .motor-fill.atras { background: #f59e0b; }
 
 /* ---- Perfiles ---- */
@@ -229,7 +229,7 @@
   padding: 14px 16px;
   min-height: 44px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: transform 0.16s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out, box-shadow 0.16s ease-out;
   text-align: left;
   color: #e2e8f0;
   font-family: var(--font-body);
@@ -282,6 +282,10 @@
 @media (prefers-reduced-motion: reduce) {
   .esp-led.parpadeo, .esp-led.tx.pulso { animation: none; }
 }
+
+/* Pulido: respuesta al pulsar y hover solo con puntero */
+button:not(:disabled):active, .perfil-item:active, .broker-pill:active { transform: scale(0.97); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }
 </style>
 </head>
 <body data-pagina="prototipos" data-base="../../">
