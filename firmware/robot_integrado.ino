@@ -423,9 +423,12 @@ uint32_t ultimoBoton = 0;
 bool botonAntes = true;                 // BOOT está en alto cuando no se aprieta
 bool alertaBateriaEnviada = false;      // para no repetir la alerta de batería baja
 
-// Cola de pedidos que falta confirmar (se confirma en loop, no en el callback)
+// Cola de pedidos que falta confirmar (se confirma en loop, no en el callback).
+// Se guarda también cuántas órdenes llevaba el robot AL RECIBIR cada una, para
+// que "recibidas" sea el mismo número que manda el ESP32 virtual P10.
 const int MAX_PENDIENTES = 60;
 String idsPendientes[MAX_PENDIENTES];
+unsigned long recibidasPendientes[MAX_PENDIENTES];
 int cantidadPendientes = 0;
 
 // Medidas de los encoders (se actualizan cada 10 ms)
@@ -488,6 +491,7 @@ bool leerNumero(const String &json, const char *campo, float &valor) {
 // 11. MQTT: recepción, conexión y publicación
 // =====================================================================
 void alRecibirMensaje(String &topico, String &mensaje) {
+  if (topico != T_ORDENES) return;   // solo se escucha ordenes; por si acaso
   ordenesRecibidas++;
   String id = leerCadena(mensaje, "id");
   if (id.length() == 0) id = "sin-id";
@@ -495,7 +499,11 @@ void alRecibirMensaje(String &topico, String &mensaje) {
 
   // 1) Se encola la confirmación (se publica desde loop, no aquí)
   if (cantidadPendientes < MAX_PENDIENTES) {
-    idsPendientes[cantidadPendientes++] = id;
+    idsPendientes[cantidadPendientes] = id;
+    recibidasPendientes[cantidadPendientes] = ordenesRecibidas;
+    cantidadPendientes++;
+  } else {
+    Serial.println("Cola de confirmaciones llena: " + id + " no se confirmara");
   }
 
   // 2) Si la orden trae "cmd", es una orden de movimiento
@@ -581,16 +589,25 @@ void gestionarRed() {
   }
 }
 
-// Confirma un pedido por vuelta de loop (QoS 1)
+// Arma la confirmación con el mismo JSON que el ESP32 virtual P10:
+// {"id":"<id de la orden>","recibidas":N,"t":<millis>}
+String armarAck(const String &id, unsigned long recibidas, unsigned long t) {
+  return "{\"id\":\"" + id + "\",\"recibidas\":" + String(recibidas) +
+         ",\"t\":" + String(t) + "}";
+}
+
+// Confirma un pedido por vuelta de loop (QoS 1).
+// Si no hay conexión o la publicación falla, el pedido SIGUE en la cola y se
+// confirma al reconectar (antes se sacaba de la cola y el ack se perdía).
 void procesarAcks() {
-  if (cantidadPendientes == 0) return;
-  String id = idsPendientes[0];
-  for (int i = 1; i < cantidadPendientes; i++) idsPendientes[i - 1] = idsPendientes[i];
+  if (cantidadPendientes == 0 || !mqtt.connected()) return;
+  String ack = armarAck(idsPendientes[0], recibidasPendientes[0], millis());
+  if (!mqtt.publish(T_ACK, ack, false, 1)) return;   // reintenta en la próxima vuelta
+  for (int i = 1; i < cantidadPendientes; i++) {
+    idsPendientes[i - 1] = idsPendientes[i];
+    recibidasPendientes[i - 1] = recibidasPendientes[i];
+  }
   cantidadPendientes--;
-  if (!mqtt.connected()) return;
-  String ack = "{\"id\":\"" + id + "\",\"recibidas\":" + String(ordenesRecibidas) +
-               ",\"t\":" + String(millis()) + "}";
-  mqtt.publish(T_ACK, ack, false, 1);
 }
 
 // Alerta con QoS 2 (antirrobo, batería baja, etc.)
