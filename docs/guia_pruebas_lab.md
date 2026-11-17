@@ -2,9 +2,9 @@
 
 **Proyecto:** Robot móvil para transporte de componentes en el laboratorio con app y alertas
 **Autores:** Iliana Cascitelli · Andrea _[apellido]_
-**Firmware bajo prueba:** `firmware/robot_integrado.ino` — 35.614 bytes · 71 % flash · 15 % RAM
+**Firmware bajo prueba:** `firmware/robot_integrado.ino` — 35.614 bytes · 71 % flash · 15 % RAM · lógica de órdenes y ACK validada en PC (13/13 tests, MQTT falso)
 **Hardware del 18/11:** ESP32 DevKit 30 pines (CP2102) **solo**, alimentado por USB — sin L298N, sensores ni batería (el pedido llega a Miami 15-28 dic)
-**Duración prevista:** 1 h 30 min → A: 40 min · B: 40 min · margen: 10 min
+**Duración prevista:** 1 h 30 min → A: 40 min · B: 40 min · margen: 10 min (el bloque D, 20 min, se hace con el margen o en la sesión siguiente)
 **Versiones:** core `esp32:esp32` 3.3.12 · librería `MQTT` 2.5.3 · `arduino-cli` 1.6.0
 
 > ⚠️ **Alcance real del 18/11 = prueba H0.** Solo ESP32 + Wi-Fi + MQTT. El bloque B (latencia) se hace
@@ -21,6 +21,7 @@
 - [ ] Cable USB-C **de datos** + puerto del laptop (alimenta el ESP32)
 - [ ] Laptop con `arduino-cli` 1.6.0 en el PATH (`arduino-cli version` responde)
 - [ ] MQTTX instalado y conectado a `broker.hivemq.com:1883`
+- [ ] App Flutter abierta en `https://ilianavsc.github.io/tg-robot-ucab/app/` (para el bloque D)
 - [ ] Hotspot 2,4 GHz del celular listo (la red UCAB es WPA2-Enterprise y **no** funciona con este firmware)
 
 ---
@@ -138,6 +139,49 @@ Incluye subida por Wi-Fi + broker público + procesamiento del robot + vuelta.
 
 ---
 
+## Bloque D · Prueba física con la App Flutter (20 min)
+
+**Objetivo:** repetir con el ESP32 real el ciclo que ya funciona en el simulador P10: orden desde la app, recepción en el robot, ACK de vuelta. Flujo corto también en `docs/centro_de_pruebas.md`.
+
+### D.1 · Flujo
+1. [ ] **Conectar el ESP32** por USB; en el monitor deben salir `Wi-Fi listo` y `MQTT conectado`.
+2. [ ] **Abrir la App** (`https://ilianavsc.github.io/tg-robot-ucab/app/`). Si dice MODO DEMO, salir de él y pulsar **Conectar**. Debe decir `Enlace MQTT · HiveMQ` (el ESP32 usa HiveMQ).
+3. [ ] Comprobar que llega la telemetría cada 2 s.
+4. [ ] **Enviar orden:** pulsar **Frenar** (segura, no mueve nada).
+5. [ ] **Verificar ACK:** la caja de la app pasa de gris a ámbar a verde (`confirmó "frenar" en N ms`) y el monitor muestra `Pedido #1 (<uuid>): ...`.
+6. [ ] **Latencia:** repetir 10 veces, una cada 5 s, y llenar la tabla D.2.
+7. [ ] Pulsar **Auto · seguir la línea solo**: monitor con `Modo AUTONOMO` y ACK verde.
+
+### D.2 · Registro de latencia (app → ESP32 → app)
+
+| # | Orden | ACK en la app (ms) | `Pedido #` en el monitor | ¿Verde? |
+|---|---|---|---|---|
+| 1 | frenar | | | |
+| 2 | frenar | | | |
+| 3 | frenar | | | |
+| 4 | frenar | | | |
+| 5 | frenar | | | |
+| 6 | frenar | | | |
+| 7 | frenar | | | |
+| 8 | frenar | | | |
+| 9 | frenar | | | |
+| 10 | frenar | | | |
+| **Mediana** | | | | |
+| **Máximo** | | | | |
+
+> Esta medida viene de la app, no de MQTTX: incluye el WebSocket del navegador hacia HiveMQ. Para el RNF-04 anotar mediana y máximo.
+
+### Fallos típicos del bloque D
+
+| Síntoma | Causa | Solución |
+|---|---|---|
+| La app dice EMQX o Mosquitto | HiveMQ falló y la app usó el respaldo | **Desconectar** y **Conectar** hasta ver HiveMQ |
+| Caja ámbar que no pasa a verde | El ESP32 no recibió la orden | Mirar el monitor: si no sale `Pedido #`, revisar el broker |
+| ACK verde con ~300 ms exactos | Es el Modo Demo (ACK simulado) | Salir del Modo Demo |
+| Tras una caída de red no llega el ACK | Se reenvía al reconectar | Esperar `MQTT conectado`; el ACK pendiente sale solo |
+
+---
+
 ## Bloque C · Calibración del PD (POSPUESTO — no aplica el 18/11)
 
 > ⏸️ **No se ejecuta hoy.** Requiere motores, encoders y los 4 TCRT5000, que llegan al casillero de
@@ -214,7 +258,7 @@ const float PD_KD   = 0.0015f;  // PWM por cada mm/s de cambio del error
 
 | | Nombre | Firma | Hora |
 |---|---|---|---|
-| Pruebas A y B | Andrea _[apellido]_ | | |
+| Pruebas A, B y D | Andrea _[apellido]_ | | |
 | Pruebas C y firmware | Iliana Cascitelli | | |
 
 - [ ] ESP32 desconectado del USB y guardado
