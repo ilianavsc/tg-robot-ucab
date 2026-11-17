@@ -2,13 +2,16 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>P10 · Simulador Web de Telemetría ESP32 · TG Robot UCAB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../assets/css/style.css">
 <style>
+/* ======================================================================
+   P10 · Simulador ESP32 · tarjetas técnicas oscuras (coherente con portafolio y App M3)
+   ====================================================================== */
 .consola-esp32 {
   background: #0f172a;
   color: #e2e8f0;
@@ -25,11 +28,12 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px 16px;
   border-bottom: 1px solid #334155;
   font-family: var(--font-mono);
   font-size: 13px;
 }
+.consola-barra strong { overflow-wrap: anywhere; }
 .led-estado {
   display: inline-block;
   width: 10px;
@@ -38,141 +42,245 @@
   background: #64748b;
   margin-right: 8px;
 }
-.led-estado.activo {
-  background: #22c55e;
-  box-shadow: 0 0 10px #22c55e;
+.led-estado.activo { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+.led-estado.conectando { background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
+.led-estado.error { background: #f43f5e; box-shadow: 0 0 10px #f43f5e; }
+.consola-cuerpo { padding: 24px; }
+
+/* ---- Cabecera de control ---- */
+.esp-control {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 20px;
+  align-items: center;
+  justify-content: space-between;
 }
-.led-estado.conectando {
-  background: #f59e0b;
-  box-shadow: 0 0 10px #f59e0b;
-}
-.led-estado.error {
-  background: #f43f5e;
-  box-shadow: 0 0 10px #f43f5e;
-}
-.consola-cuerpo {
-  padding: 24px;
-}
+.esp-control h2 { color: #fff; margin: 0 0 4px; font-size: 22px; }
+.esp-control p { margin: 0; color: #94a3b8; font-size: 14.5px; max-width: 560px; }
+.esp-botones { display: flex; flex-wrap: wrap; gap: 10px; }
+.esp-botones .btn { min-height: 46px; }
+
+/* ---- Brokers ---- */
 .broker-panel {
   background: #1e293b;
   border: 1.5px solid #334155;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 14px 18px;
-  margin: 18px 0;
+  margin: 18px 0 20px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
 }
-.broker-actual-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.broker-actual-titulo {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 16px;
-  color: #ffffff;
-}
-.broker-actual-sub {
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  color: #94a3b8;
-}
-.brokers-lista {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
+.broker-actual-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 260px; }
+.broker-actual-titulo { font-family: var(--font-display); font-weight: 800; font-size: 16px; color: #fff; overflow-wrap: anywhere; }
+.broker-actual-sub { font-family: var(--font-mono); font-size: 12.5px; color: #94a3b8; overflow-wrap: anywhere; }
+.brokers-lista { display: flex; flex-wrap: wrap; gap: 10px; }
 .broker-pill {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  padding: 6px 12px;
+  min-height: 44px;
+  padding: 8px 16px;
   border-radius: 999px;
   border: 1.5px solid #475569;
   background: #0f172a;
   color: #cbd5e1;
   cursor: pointer;
   transition: all 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
-.broker-pill:hover {
-  border-color: #38bdf8;
-  color: #ffffff;
-}
-.broker-pill.seleccionado {
-  border-color: #f59e0b;
-  background: rgba(245, 158, 11, 0.15);
-  color: #fde68a;
-}
-.broker-pill.conectado {
-  border-color: #22c55e;
-  background: rgba(34, 197, 94, 0.18);
-  color: #86efac;
-}
-.perfiles-grid {
+.broker-pill:hover { border-color: #38bdf8; color: #fff; }
+.broker-pill.seleccionado { border-color: #f59e0b; background: rgba(245, 158, 11, 0.15); color: #fde68a; }
+.broker-pill.conectado { border-color: #22c55e; background: rgba(34, 197, 94, 0.18); color: #86efac; }
+
+/* ---- Rejilla placa + telemetría ---- */
+.esp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 12px;
-  margin: 20px 0;
+  grid-template-columns: minmax(260px, 340px) 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
 }
+.tarjeta {
+  background: #1e293b;
+  border: 1.5px solid #334155;
+  border-radius: 14px;
+  padding: 14px 16px;
+  min-width: 0;
+}
+.tarjeta-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin: 0 0 10px;
+}
+.tarjeta-titulo b { color: #e2e8f0; font-weight: 700; }
+
+/* ---- Placa ESP32 virtual ---- */
+.placa {
+  position: relative;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(250, 204, 21, 0.10) 0 2px, transparent 3px) 0 0 / 22px 22px,
+    linear-gradient(160deg, #0d4a38 0%, #083226 100%);
+  border: 2px solid #14705a;
+  border-radius: 14px;
+  padding: 14px 14px 16px;
+  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.25);
+  opacity: 0.78;
+  transition: opacity 0.3s ease, box-shadow 0.3s ease;
+}
+.placa.encendida { opacity: 1; box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.25), 0 0 22px rgba(34, 197, 94, 0.28); }
+.placa-cabecera { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-family: var(--font-mono); font-size: 11px; color: #a7f3d0; letter-spacing: 0.06em; }
+.placa-cabecera .usb { width: 34px; height: 14px; border-radius: 3px; background: #cbd5e1; border: 2px solid #64748b; }
+.placa-cuerpo { display: grid; grid-template-columns: 1fr 86px; gap: 12px; align-items: stretch; }
+.placa-chip {
+  background: #0b1220;
+  border: 2px solid #334155;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  color: #cbd5e1;
+  min-height: 96px;
+}
+.placa-chip b { font-size: 15px; color: #fff; letter-spacing: 0.04em; }
+.placa-chip small { font-size: 10.5px; color: #94a3b8; }
+.placa-chip .antena { height: 6px; border-radius: 3px; background: repeating-linear-gradient(90deg, #facc15 0 6px, transparent 6px 10px); opacity: 0.8; margin-top: 4px; }
+.placa-pines { display: flex; flex-direction: column; justify-content: space-between; gap: 6px; }
+.placa-pines i { display: block; height: 6px; border-radius: 2px; background: #facc15; opacity: 0.75; }
+.leds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+.led-item { display: flex; flex-direction: column; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; color: #d1fae5; letter-spacing: 0.04em; text-align: center; }
+.led-item small { color: #6ee7b7; font-size: 10px; letter-spacing: 0; }
+.esp-led {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #334155;
+  border: 2px solid rgba(0, 0, 0, 0.45);
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+.esp-led.ok { background: #22c55e; box-shadow: 0 0 12px #22c55e; }
+.esp-led.warn { background: #f59e0b; box-shadow: 0 0 12px #f59e0b; }
+.esp-led.err { background: #f43f5e; box-shadow: 0 0 12px #f43f5e; }
+.esp-led.parpadeo { animation: parpadeo 1.2s ease-in-out infinite; }
+.esp-led.tx.cola { background: #f59e0b; box-shadow: 0 0 12px #f59e0b; }
+.esp-led.tx.pulso { animation: pulso-tx 0.7s ease-out 1; }
+@keyframes parpadeo { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@keyframes pulso-tx {
+  0%   { background: #38bdf8; box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.85), 0 0 16px #38bdf8; transform: scale(1.25); }
+  100% { background: #1e3a5f; box-shadow: 0 0 0 14px rgba(56, 189, 248, 0), 0 0 0 #38bdf8; transform: scale(1); }
+}
+
+/* ---- Tarjetas de telemetría ---- */
+.tele-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-content: start; }
+.tele-grid .ancha { grid-column: 1 / -1; }
+.valor-grande { font-family: var(--font-display); font-weight: 800; font-size: 26px; color: #fff; line-height: 1.1; }
+.valor-grande small { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: #94a3b8; margin-left: 6px; }
+.bat-barra { height: 16px; border-radius: 8px; background: #0f172a; border: 1.5px solid #334155; overflow: hidden; margin-top: 10px; }
+.bat-fill { height: 100%; width: 0; border-radius: 6px; background: #22c55e; transition: width 0.5s ease, background 0.3s ease; }
+.bat-fill.media { background: #f59e0b; }
+.bat-fill.baja { background: #f43f5e; }
+.modo-pill {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1.5px solid #475569;
+  color: #94a3b8;
+}
+.modo-pill.autonomo { border-color: #22c55e; background: rgba(34, 197, 94, 0.15); color: #86efac; }
+.modo-pill.manual { border-color: #38bdf8; background: rgba(56, 189, 248, 0.15); color: #7dd3fc; }
+.sensores { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 6px 0 10px; }
+.sensor {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 11px; color: #64748b;
+}
+.sensor i { width: 22px; height: 22px; border-radius: 50%; background: #0f172a; border: 2px solid #334155; transition: all 0.25s ease; }
+.sensor.on { color: #fde68a; }
+.sensor.on i { background: #facc15; border-color: #facc15; box-shadow: 0 0 12px rgba(250, 204, 21, 0.8); }
+.linea-txt { font-family: var(--font-mono); font-size: 12.5px; color: #cbd5e1; }
+.linea-txt.perdida { color: #fda4af; }
+.motor-fila { display: grid; grid-template-columns: 54px 1fr 74px; gap: 10px; align-items: center; margin-top: 8px; font-family: var(--font-mono); font-size: 12px; color: #94a3b8; }
+.motor-fila:first-of-type { margin-top: 0; }
+.motor-fila output { color: #e2e8f0; font-weight: 600; text-align: right; }
+.motor-pista { position: relative; height: 14px; border-radius: 7px; background: #0f172a; border: 1.5px solid #334155; overflow: hidden; }
+.motor-pista::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #475569; }
+.motor-fill { position: absolute; top: 0; bottom: 0; width: 0; left: 50%; background: #22c55e; transition: all 0.4s ease; }
+.motor-fill.atras { background: #f59e0b; }
+
+/* ---- Perfiles ---- */
+.perfiles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 0 0 20px; }
 .perfil-item {
   background: #1e293b;
   border: 1.5px solid #334155;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 14px 16px;
+  min-height: 44px;
   cursor: pointer;
   transition: all 0.15s ease;
   text-align: left;
   color: #e2e8f0;
   font-family: var(--font-body);
+  touch-action: manipulation;
 }
-.perfil-item:hover {
-  border-color: #38bdf8;
-}
-.perfil-item.activo {
-  border-color: #22c55e;
-  background: rgba(34, 197, 94, 0.12);
-  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);
-}
-.perfil-item .num {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: #38bdf8;
-  font-weight: 700;
-  display: block;
-  margin-bottom: 4px;
-}
-.perfil-item strong {
-  display: block;
-  font-size: 15px;
-  margin-bottom: 4px;
-}
-.perfil-item span {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: #94a3b8;
-}
+.perfil-item:hover { border-color: #38bdf8; }
+.perfil-item.activo { border-color: #22c55e; background: rgba(34, 197, 94, 0.12); box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25); }
+.perfil-item .num { font-family: var(--font-mono); font-size: 12px; color: #38bdf8; font-weight: 700; display: block; margin-bottom: 4px; }
+.perfil-item strong { display: block; font-size: 15px; margin-bottom: 4px; }
+.perfil-item span { font-family: var(--font-mono); font-size: 12px; color: #94a3b8; }
+
+/* ---- Consola JSON ---- */
+.log-cab { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; margin-bottom: 8px; }
+.log-cab .t { font-family: var(--font-mono); font-size: 12px; color: #94a3b8; text-transform: uppercase; overflow-wrap: anywhere; }
+.log-cab .c { font-family: var(--font-mono); font-size: 12px; color: #38bdf8; }
 .log-mqtt {
   background: #020617;
   border: 1px solid #1e293b;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 14px 16px;
   font-family: var(--font-mono);
   font-size: 12.5px;
   height: 220px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   color: #a7f3d0;
   line-height: 1.55;
 }
-.log-mqtt div {
-  margin-bottom: 4px;
-  word-break: break-all;
+.log-mqtt div { margin-bottom: 4px; word-break: break-all; }
+.log-mqtt .ts { color: #64748b; }
+
+/* ---- Móvil ---- */
+@media (max-width: 768px) {
+  .consola-cuerpo { padding: 16px 14px 22px; }
+  .consola-barra { padding: 12px 14px; }
+  .esp-control h2 { font-size: 19px; }
+  .esp-botones { width: 100%; }
+  .esp-botones .btn { flex: 1 1 100%; min-height: 48px; }
+  .broker-panel { padding: 14px; margin-bottom: 26px; }
+  .brokers-lista { width: 100%; }
+  .broker-pill { flex: 1 1 100%; min-height: 48px; font-size: 14px; }
+  .esp-grid { grid-template-columns: 1fr; }
+  .tele-grid { grid-template-columns: 1fr; }
+  .perfiles-grid { grid-template-columns: 1fr; margin-bottom: 26px; }
+  .log-mqtt { height: 200px; font-size: 12px; }
 }
-.log-mqtt .ts {
-  color: #64748b;
+@media (min-width: 769px) and (max-width: 1000px) {
+  .esp-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .esp-led.parpadeo, .esp-led.tx.pulso { animation: none; }
 }
 </style>
 </head>
@@ -210,12 +318,12 @@
       </div>
 
       <div class="consola-cuerpo">
-        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
+        <div class="esp-control">
           <div>
-            <h2 style="color:#ffffff;margin:0 0 4px;font-size:22px">Panel de Emisión del Robot Virtual</h2>
-            <p style="margin:0;color:#94a3b8;font-size:14.5px">Pulsa el botón principal para encender el ciclo automático de 6 perfiles o cambia de broker manualmente si lo necesitas.</p>
+            <h2 id="t-simulador">Panel de Emisión del Robot Virtual</h2>
+            <p>Pulsa el botón principal para encender el ciclo automático de 6 perfiles o cambia de broker manualmente si lo necesitas.</p>
           </div>
-          <div style="display:flex;flex-wrap:wrap;gap:10px">
+          <div class="esp-botones">
             <button type="button" id="btn-encender" class="btn btn-principal">
               ⚡ Encender ESP32 Virtual
             </button>
@@ -234,11 +342,63 @@
           <div class="brokers-lista" id="brokers-pills" aria-label="Selector de broker MQTT"></div>
         </div>
 
+        <!-- Placa virtual + tarjetas de telemetría en tiempo real -->
+        <div class="esp-grid">
+          <div class="tarjeta">
+            <p class="tarjeta-titulo"><span>Placa ESP32 Virtual</span><b id="placa-estado">APAGADA</b></p>
+            <div class="placa" id="placa">
+              <div class="placa-cabecera"><span>ESP32-WROOM-32 · DevKit</span><span class="usb" aria-hidden="true"></span></div>
+              <div class="placa-cuerpo">
+                <div class="placa-chip">
+                  <b>ESP32</b>
+                  <small>240 MHz · Wi-Fi + BT</small>
+                  <small id="placa-clientid">clientId: ucab-esp32-sim-…</small>
+                  <span class="antena" aria-hidden="true"></span>
+                </div>
+                <div class="placa-pines" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="leds" role="group" aria-label="Indicadores LED de la placa">
+                <div class="led-item"><span class="esp-led" id="led-wifi"></span>WI-FI<small id="txt-wifi">apagado</small></div>
+                <div class="led-item"><span class="esp-led" id="led-broker"></span>BROKER<small id="txt-broker">sin enlace</small></div>
+                <div class="led-item"><span class="esp-led tx" id="led-tx"></span>TX<small id="txt-tx">cada 2 s</small></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tele-grid" aria-live="off">
+            <div class="tarjeta ancha">
+              <p class="tarjeta-titulo"><span>Batería</span><b id="bat-v">— V</b></p>
+              <div class="valor-grande"><span id="bat-pct">—</span></div>
+              <div class="bat-barra" role="progressbar" aria-label="Nivel de batería" aria-valuemin="0" aria-valuemax="100"><div class="bat-fill" id="bat-fill"></div></div>
+            </div>
+            <div class="tarjeta">
+              <p class="tarjeta-titulo"><span>Modo actual</span></p>
+              <span class="modo-pill" id="modo-pill">—</span>
+            </div>
+            <div class="tarjeta">
+              <p class="tarjeta-titulo"><span>Sensores de línea</span></p>
+              <div class="sensores" id="sensores">
+                <div class="sensor"><i></i>S1</div>
+                <div class="sensor"><i></i>S2</div>
+                <div class="sensor"><i></i>S3</div>
+                <div class="sensor"><i></i>S4</div>
+                <div class="sensor"><i></i>S5</div>
+              </div>
+              <div class="linea-txt" id="linea-txt">Sin datos</div>
+            </div>
+            <div class="tarjeta ancha">
+              <p class="tarjeta-titulo"><span>Velocidad de motores</span><b>norm. −0.6 … +0.6</b></p>
+              <div class="motor-fila"><span>Izq.</span><div class="motor-pista"><div class="motor-fill" id="m-izq"></div></div><output id="m-izq-v">—</output></div>
+              <div class="motor-fila"><span>Der.</span><div class="motor-pista"><div class="motor-fill" id="m-der"></div></div><output id="m-der-v">—</output></div>
+            </div>
+          </div>
+        </div>
+
         <div class="perfiles-grid" id="grid-perfiles"></div>
 
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <span style="font-family:var(--font-mono);font-size:12px;color:#94a3b8;text-transform:uppercase">Monitor Serie / Payloads Publicados en ucab-tg-sf/robot/estado</span>
-          <span style="font-family:var(--font-mono);font-size:12px;color:#38bdf8" id="contador-enviados">0 paquetes enviados</span>
+        <div class="log-cab">
+          <span class="t">Monitor Serie / Payloads Publicados en ucab-tg-sf/robot/estado</span>
+          <span class="c" id="contador-enviados">0 paquetes enviados</span>
         </div>
         <div class="log-mqtt" id="log-mqtt">
           <div class="ts">[Sistema listo] Pulsa "Encender ESP32 Virtual" para conectar (HiveMQ → EMQX → Mosquitto) y transmitir telemetría...</div>
@@ -293,6 +453,28 @@
   var brokersPillsEl = document.getElementById("brokers-pills");
   var btnOn = document.getElementById("btn-encender");
   var btnOff = document.getElementById("btn-apagar");
+
+  /* Elementos visuales nuevos (placa virtual + tarjetas) */
+  var placaEl = document.getElementById("placa");
+  var placaEstadoEl = document.getElementById("placa-estado");
+  var placaClientEl = document.getElementById("placa-clientid");
+  var ledWifi = document.getElementById("led-wifi");
+  var ledBroker = document.getElementById("led-broker");
+  var ledTx = document.getElementById("led-tx");
+  var txtWifi = document.getElementById("txt-wifi");
+  var txtBroker = document.getElementById("txt-broker");
+  var txtTx = document.getElementById("txt-tx");
+  var batPctEl = document.getElementById("bat-pct");
+  var batVEl = document.getElementById("bat-v");
+  var batFillEl = document.getElementById("bat-fill");
+  var modoPillEl = document.getElementById("modo-pill");
+  var sensoresEls = document.querySelectorAll("#sensores .sensor");
+  var lineaTxtEl = document.getElementById("linea-txt");
+  var mIzqEl = document.getElementById("m-izq");
+  var mDerEl = document.getElementById("m-der");
+  var mIzqVEl = document.getElementById("m-izq-v");
+  var mDerVEl = document.getElementById("m-der-v");
+  var POS_SENSORES = [-24, -12, 0, 12, 24];
 
   var indiceBroker = 0;
   var intentosEnBroker = 0;
@@ -372,9 +554,71 @@
     logEl.scrollTop = logEl.scrollHeight;
   }
 
+  /* ---- Placa virtual: LEDs Wi-Fi / Broker / TX ---- */
+  function actualizarPlaca(clase) {
+    placaEl.classList.toggle("encendida", encendido);
+    placaEstadoEl.textContent = encendido ? "ENCENDIDA" : "APAGADA";
+
+    ledWifi.className = "esp-led" + (encendido ? " ok parpadeo" : "");
+    txtWifi.textContent = encendido ? "enlazado" : "apagado";
+
+    var cls = "", txt = "sin enlace";
+    if (clase === "activo") { cls = " ok"; txt = brokerActual().nombre; }
+    else if (clase === "conectando") { cls = " warn parpadeo"; txt = "conectando…"; }
+    else if (clase === "error") { cls = " err"; txt = "falló · reintento"; }
+    ledBroker.className = "esp-led" + cls;
+    txtBroker.textContent = txt;
+
+    if (!encendido) {
+      ledTx.className = "esp-led tx";
+      txtTx.textContent = "cada 2 s";
+    }
+  }
+
+  function pulsoTx(enviado) {
+    ledTx.className = "esp-led tx";
+    void ledTx.offsetWidth; /* reinicia la animación */
+    ledTx.className = "esp-led tx " + (enviado ? "pulso" : "cola");
+    txtTx.textContent = enviado ? "enviado #" + enviados : "en cola";
+  }
+
+  /* ---- Tarjetas de telemetría en tiempo real ---- */
+  function pintarMotor(barEl, txtEl, v) {
+    var pct = Math.min(1, Math.abs(v) / 0.6) * 50;
+    barEl.style.width = pct + "%";
+    barEl.style.left = (v >= 0 ? 50 : 50 - pct) + "%";
+    barEl.className = "motor-fill" + (v < 0 ? " atras" : "");
+    txtEl.textContent = (v > 0 ? "+" : "") + v.toFixed(2) + (v > 0 ? " ▲" : v < 0 ? " ▼" : " ■");
+  }
+
+  function pintarTelemetria(p) {
+    var bat = Math.max(0, Math.min(100, p.bateria));
+    batFillEl.style.width = bat + "%";
+    batFillEl.className = "bat-fill" + (bat > 50 ? "" : bat > 20 ? " media" : " baja");
+    batFillEl.parentNode.setAttribute("aria-valuenow", String(bat));
+    batPctEl.textContent = bat + "%";
+    batVEl.textContent = p.bateria_v.toFixed(2) + " V";
+
+    modoPillEl.textContent = p.estado === "autonomo" ? "AUTÓNOMO" : "MANUAL";
+    modoPillEl.className = "modo-pill " + p.estado;
+
+    var activos = 0;
+    sensoresEls.forEach(function (s, i) {
+      var on = Math.abs(p.linea_mm - POS_SENSORES[i]) <= 8;
+      s.classList.toggle("on", on);
+      if (on) activos++;
+    });
+    lineaTxtEl.textContent = activos ? "Línea detectada · " + p.linea_mm.toFixed(1) + " mm" : "Línea perdida · " + p.linea_mm.toFixed(1) + " mm";
+    lineaTxtEl.classList.toggle("perdida", !activos);
+
+    pintarMotor(mIzqEl, mIzqVEl, p.v_izq);
+    pintarMotor(mDerEl, mDerVEl, p.v_der);
+  }
+
   function actualizarLed(clase, texto) {
     ledEl.className = "led-estado " + clase;
     estadoEl.textContent = texto;
+    actualizarPlaca(clase);
   }
 
   function publicarPaso() {
@@ -400,11 +644,14 @@
     var jsonStr = JSON.stringify(payload);
     renderPerfiles(idx);
     contEl.textContent = enviados + " paquetes enviados";
+    pintarTelemetria(payload);
 
     if (cliente && conectado) {
       cliente.publish(TOPICO, jsonStr, { qos: 0 });
+      pulsoTx(true);
       escribirLog("[" + b.nombre + "] PUB <b>" + TOPICO + "</b> ← <code>" + jsonStr + "</code>");
     } else {
+      pulsoTx(false);
       escribirLog("(En cola mientras conecta a " + b.nombre + "...) <code>" + jsonStr + "</code>");
     }
   }
@@ -461,9 +708,12 @@
       return;
     }
 
+    var clientId = "ucab-esp32-sim-" + Math.random().toString(16).slice(2, 10);
+    placaClientEl.textContent = "clientId: " + clientId;
+
     try {
       cliente = window.mqtt.connect(b.url, {
-        clientId: "ucab-esp32-sim-" + Math.random().toString(16).slice(2, 10),
+        clientId: clientId,
         keepalive: 20,
         connectTimeout: 5000,
         reconnectPeriod: 0
@@ -538,6 +788,7 @@
   btnOff.addEventListener("click", apagar);
   renderBrokers();
   renderPerfiles(-1);
+  actualizarPlaca("");
 })();
 </script>
 </body>

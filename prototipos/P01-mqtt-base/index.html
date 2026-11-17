@@ -75,7 +75,7 @@ dialog img{max-width:100%;max-height:80vh;display:block;border-radius:8px}
 dialog p{margin:10px 4px 2px;font-size:16px}
 footer{border-top:2px solid var(--tinta);padding-top:18px;font-size:15px;color:var(--suave)}
 @media (max-width:768px){
-  main{padding:24px 16px 60px}
+  main{padding:24px 16px calc(90px + env(safe-area-inset-bottom,0px))}
   .buzones li{grid-template-columns:1fr}
   .prueba{grid-template-columns:44px 1fr}
   .prueba .mini{grid-column:2;width:100%;height:110px}

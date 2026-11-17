@@ -193,11 +193,13 @@ body{font-family:'Atkinson Hyperlegible',system-ui,sans-serif;color:var(--tinta)
 @media (max-width:900px){.leyenda{display:none}.barra{right:24px}.panel{top:96px;width:260px}}
 @media (max-height:700px){.consola{height:160px}.nota{min-height:0}}
 @media (max-width:768px){
-  #app{position:relative;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;height:100%;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+  html,body{height:auto;overflow-x:hidden}
+  #app{position:relative;overflow:visible;height:auto;min-height:0;display:flex;flex-direction:column;box-sizing:border-box;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+  .embebido #app{padding-bottom:14px}
   .barra{position:static;padding:14px 14px 6px;right:auto;pointer-events:auto;background:var(--papel,#EEF3F1)}
   .barra h1{font-size:22px;margin:2px 0}
   .sub{font-size:14px;line-height:1.35}
-  #gl{position:sticky;top:0;height:40vh;min-height:230px;max-height:320px;width:100%;flex:none;z-index:1;touch-action:pan-y}
+  #gl{position:relative;inset:auto;height:var(--gl-h,26vh);min-height:150px;max-height:260px;width:100%;flex:none;z-index:1;touch-action:pan-y}
   .panel{position:static;width:auto;margin:10px 12px;padding:14px;border-radius:14px;box-shadow:4px 4px 0 var(--tinta);z-index:2}
   .panel h2{font-size:14px}
   .qos{gap:8px}
@@ -4473,6 +4475,43 @@ void main() {
 ${i.cantidad} \xD7 ${i.componente}`,Gn(),mt(`APP muestra "${i.id} confirmado" al usuario`,Pe.sale,"APP")}function Mu(i){we.ocupado=i;for(let e of["b-orden","b-manip","b-lwt","b-reco"])document.getElementById(e).disabled=i;document.querySelectorAll(".qb").forEach(e=>e.disabled=i)}async function Ao(i){if(!we.ocupado){Mu(!0);try{await i()}finally{Mu(!1),Ou()}}}var dc=()=>Ao(async()=>{we.alerta=!1,Gn(),we.n++;let i=xu(we.n);we.ultimo=`${i.id}: enviando\u2026`,Gn(),(await wo("ordenes","app","robot",we.qos,i)).entregado?await Fu(i):(we.ultimo=`${i.id}: sin respuesta
 (robot desconectado)`,Gn())}),fc=()=>Ao(async()=>{if(!we.robotOn){mt("El robot est\xE1 apagado: no puede mandar la alarma.",Pe.rojo,"AVISO");return}we.alarmas++,mt("ROBOT detecta que lo est\xE1n moviendo o levantando (sensor de movimiento)",Pe.qos,"ROBOT");let i=yu(we.alarmas,Math.round(performance.now()));await wo("alertas","robot","app",_n.alertas.qos,i),we.alerta=!0,Gn(),mt("APP muestra la pantalla roja: manipulaci\xF3n detectada. Lleg\xF3 una sola vez (QoS 2).",Pe.rojo,"APP")}),pc=()=>Ao(async()=>{if(!we.robotOn)return;Ei.userData.set('\xDAltima voluntad: "desconectado"',Pe.tinta,Pe.pend),Ei.visible=!0,mt(`El robot dej\xF3 registrado al conectarse su \xFAltima voluntad (LWT): "desconectado" en ${_n.conexion.nombre}, retenido, QoS 1.`,Pe.pend,"LWT"),await S0(we.lento?1600:900),we.robotOn=!1,Nu.material.color.set("#e9b4ae"),ps.visible=!0,zt.children[0].material=Lt("#b9c0be"),To(),mt("ROBOT se apaga de golpe (bater\xEDa, Wi-Fi o corte): no alcanza a despedirse.",Pe.rojo,"ROBOT");let i=document.getElementById("tiempo"),e=document.getElementById("tfill"),t=document.getElementById("tdet");i.hidden=!1;let n=5,s=rr/n*1e3*(we.lento?2:1),r=performance.now();mt(`BROKER: no oye al robot. Espera 1,5 \xD7 ${tc} s = ${rr} s antes de darlo por ca\xEDdo.`,Pe.qos,"BROKER"),await new Promise(o=>{let l=()=>{let c=Math.min(1,(performance.now()-r)/s);e.style.width=c*100+"%",t.textContent=`${(c*rr).toFixed(1)} s de ${rr} s (acelerado \xD7${n})`,c<1?requestAnimationFrame(l):o()};l()}),i.hidden=!0,mt("BROKER: tiempo cumplido. Publica la \xFAltima voluntad del robot.",Pe.pend,"BROKER");let a=jl(_n.conexion.qos,go.app);await vo({qos:a,paquetes:mo("broker","app",a)},_n.conexion.nombre,Pe.pend,"desconectado"),we.appEstado="desconectado",Gn(),Ei.visible=!1,mt('APP avisa: "Robot desconectado". (En la prueba T6 del P01 (Wokwi) el aviso lleg\xF3 en 22 s.)',Pe.pend,"APP")}),mc=()=>Ao(async()=>{if(!we.robotOn)for(mt("ROBOT vuelve a encender y se conecta al Wi-Fi y al broker.",Pe.sale,"ROBOT"),we.robotOn=!0,Nu.material.color.set("#d3dedb"),ps.visible=!1,zt.children[0].material=Au,To(),await wo("conexion","robot","app",_n.conexion.qos,"en l\xEDnea"),we.appEstado="en l\xEDnea",Gn(),mt('APP avisa: "Robot en l\xEDnea".',Pe.sale,"APP");we.pendientes.length;){let i=we.pendientes.shift();mt(`BROKER entrega al robot el pedido que guard\xF3 (${i.payload.id}).`,Pe.qos,"BROKER");let e=ec("ordenes","app","robot",i.qos),t=_n.ordenes;await vo(e.tramos[1],t.nombre,t.color,null),await Fu(i.payload)}});function Ou(){document.getElementById("b-reco").hidden=we.robotOn,document.getElementById("b-lwt").hidden=!we.robotOn,document.getElementById("b-manip").disabled=!we.robotOn}var D0={0:"QoS 0: se manda una vez y no se confirma. R\xE1pido, pero si se pierde, se perdi\xF3.",1:"QoS 1: el que recibe confirma (PUBACK). Llega al menos una vez. Es el que usa el pedido en el robot real.",2:"QoS 2: 4 pasos para que llegue exactamente una vez. El robot real lo usa para las alarmas."};function Ro(i){we.qos=i,document.querySelectorAll(".qb").forEach(e=>e.classList.toggle("on",Number(e.dataset.q)===i)),document.getElementById("qosnota").textContent=D0[i]}document.querySelectorAll(".qb").forEach(i=>i.onclick=()=>!we.ocupado&&Ro(Number(i.dataset.q)));document.getElementById("b-orden").onclick=dc;document.getElementById("b-manip").onclick=fc;document.getElementById("b-lwt").onclick=pc;document.getElementById("b-reco").onclick=mc;document.getElementById("lento").onchange=i=>we.lento=i.target.checked;addEventListener("keydown",i=>{if(i.altKey||i.ctrlKey||i.metaKey)return;let e=i.key;e==="0"||e==="1"||e==="2"?!we.ocupado&&Ro(Number(e)):e===" "||e==="Enter"?(dc(),i.preventDefault()):e==="m"?fc():e==="l"&&(we.robotOn?pc():mc())});window.__sim={paquetes:ar,scene:Mt,renderer:an,S:we,elegirQos:Ro,enviarOrden:dc,manipulacion:fc,desconexion:pc,reconectar:mc,cam:Pt};Gn();To();Ro(1);Ou();mt('Listo. App, Broker y Robot conectados. Elige un QoS y pulsa "Enviar orden".',Pe.sale,"INICIO");mt(`El robot est\xE1 suscrito a ${_n.ordenes.nombre} (QoS 1). La app, a todo ${hi}# (QoS 2).`,Pe.tinta,"INFO");Uu();var bu=performance.now(),N0=0;an.setAnimationLoop(i=>{let e=Math.min(Eu?.2:.05,(i-bu)/1e3);bu=i,uc+=e*1e3,A0(i),C0(e,i),!bi&&!we.ocupado&&(Pt.yaw+=(Math.sin(i/5e3)*.18-Pt.yaw)*.01),I0();try{an.render(Mt,fs),++N0===2&&or.listo()}catch(t){console.error(t),an.setAnimationLoop(null),or.error("La simulaci\xF3n se detuvo","Hubo un error al dibujar: "+String(t.message||t).slice(0,120))}});
 
+</script>
+<script>
+/* Embebido en iframe (movil): sin doble scroll. Mide la altura real y se la envia a la pagina padre. */
+(function () {
+  var emb = false;
+  try { emb = window.self !== window.top; } catch (e) { emb = true; }
+  if (!emb) return;
+  var root = document.documentElement;
+  root.classList.add("embebido");
+  var mq = window.matchMedia("(max-width:768px)");
+  var ultimo = -1;
+  function altoPadre() {
+    try { return window.parent.innerHeight; } catch (e) { return window.screen.height; }
+  }
+  function medir() {
+    var app = document.getElementById("app");
+    if (!app) return;
+    var h = null;
+    if (mq.matches) {
+      root.style.setProperty("--gl-h", Math.round(altoPadre() * 0.26) + "px");
+      h = Math.ceil(app.getBoundingClientRect().height);
+    } else {
+      root.style.removeProperty("--gl-h");
+    }
+    if (h === ultimo) return;
+    ultimo = h;
+    try { window.parent.postMessage({ tipo: "p01-altura", h: h }, "*"); } catch (e) {}
+  }
+  window.addEventListener("load", medir);
+  window.addEventListener("resize", medir);
+  if (mq.addEventListener) mq.addEventListener("change", medir);
+  if (window.ResizeObserver) {
+    var app0 = document.getElementById("app");
+    if (app0) new ResizeObserver(medir).observe(app0);
+  }
+  medir();
+})();
 </script>
 </body>
 </html>
