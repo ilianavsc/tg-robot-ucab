@@ -591,7 +591,7 @@ section {
 
 @media (max-width: 768px) {
   .simulador-embed-frame {
-    height: 460px;
+    height: 620px;
   }
 }
 
@@ -868,12 +868,21 @@ section {
    RESPONSIVE
    ========================================================================== */
 @media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden;
+  }
+  main {
+    padding: 24px 16px 60px;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
   #menu {
-    padding: 10px 16px;
+    padding: 10px 14px;
   }
   #menu nav {
     width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
   #menu nav::-webkit-scrollbar {
@@ -881,21 +890,54 @@ section {
   }
   #menu nav ul {
     flex-wrap: nowrap;
+    gap: 6px;
   }
   #menu a, #menu .pronto {
     white-space: nowrap;
-    padding: 5px 10px;
+    padding: 8px 12px;
     font-size: 14px;
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
   }
   .hero-bienvenida {
-    padding: 24px 20px;
+    padding: 20px 16px;
+  }
+  .hero-frase {
+    font-size: clamp(24px, 6vw, 36px);
   }
   .hero-acciones {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
   }
   .btn {
     width: 100%;
+    min-height: 48px;
+    padding: 12px 18px;
+    font-size: 15px;
+    box-sizing: border-box;
+  }
+  .rejilla,
+  .estado-grid,
+  .galeria,
+  .pasos,
+  .laboratorio-grid-placeholders {
+    grid-template-columns: 1fr;
+  }
+  .estado-card {
+    padding: 18px 16px;
+  }
+  .frase-explicativa, .frase {
+    font-size: 19px;
+    padding: 18px 16px;
+    margin-bottom: 24px;
+  }
+  .tabla {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -1068,8 +1110,37 @@ dialog.modal-md::backdrop {
   margin: 8px 0;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+  dialog.modal-md {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 92vh !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: 4px 4px 0px var(--border-dark) !important;
+    margin: auto !important;
+  }
+  .modal-md-cabecera {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .modal-md-cerrar {
+    min-height: 44px;
+    padding: 8px 14px;
+    font-size: 14px;
+  }
   .modal-md-cuerpo {
-    padding: 20px 18px 28px;
+    padding: 16px 14px 24px;
+    font-size: 15px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .modal-md-cuerpo table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .modal-md-cuerpo pre {
+    padding: 12px 14px;
+    font-size: 12.5px;
   }
 }

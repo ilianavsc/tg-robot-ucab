@@ -49,7 +49,14 @@ a.ir:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hard-hover)}
 .detalles-tecnicos summary{cursor:pointer;display:inline-block;font-weight:700;font-size:15px;color:var(--accent-primary);list-style:none}
 .detalles-tecnicos summary::after{content:" ▾"}
 .detalles-tecnicos[open] summary::after{content:" ▴"}
-@media (max-width:640px){.celda{height:24px}.celda.hoy{height:32px}.tira{gap:4px}.lista-pend li{grid-template-columns:1fr}}
+@media (max-width:768px){
+  .reloj{padding:18px 14px 16px}
+  .tira{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px;gap:6px}
+  .celda{height:24px;min-width:6px}
+  .celda.hoy{height:32px;margin-top:-4px}
+  .lista-pend li{grid-template-columns:1fr;gap:6px;padding:12px 14px}
+  .avance .cols{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body data-pagina="inicio" data-base="">

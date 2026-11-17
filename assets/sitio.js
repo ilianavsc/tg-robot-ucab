@@ -116,6 +116,9 @@
     dlg.addEventListener("click", function (ev) {
       if (ev.target === dlg) dlg.close();
     });
+    dlg.addEventListener("close", function () {
+      document.body.style.overflow = "";
+    });
     return dlg;
   }
 
@@ -139,7 +142,10 @@
     var cuerpo = document.getElementById("modal-md-cuerpo");
     etiqueta.textContent = titulo ? titulo + " · " + ruta : ruta;
     cuerpo.innerHTML = '<p class="suave">Cargando documento…</p>';
-    if (!dlg.open) dlg.showModal();
+    if (!dlg.open) {
+      document.body.style.overflow = "hidden";
+      dlg.showModal();
+    }
 
     Promise.all([
       asegurarMarked(),

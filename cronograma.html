@@ -29,7 +29,14 @@
 .protos{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .protos a,.protos span{text-decoration:none}
 .eventos{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-@media (max-width:600px){.fase{grid-template-columns:1fr;gap:6px}}
+.desliza{-webkit-overflow-scrolling:touch}
+@media (max-width:768px){
+  .fase{grid-template-columns:1fr;gap:8px;padding:16px}
+  .fase .num{font-size:32px;display:flex;align-items:baseline;gap:8px}
+  .fase .num small{display:inline;margin-top:0}
+  .eventos{grid-template-columns:1fr}
+  .protos a, .protos span{min-height:36px;display:inline-flex;align-items:center}
+}
 </style>
 </head>
 <body data-pagina="cronograma" data-base="">
