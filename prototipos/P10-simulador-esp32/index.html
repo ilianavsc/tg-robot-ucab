@@ -53,6 +53,65 @@
 .consola-cuerpo {
   padding: 24px;
 }
+.broker-panel {
+  background: #1e293b;
+  border: 1.5px solid #334155;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin: 18px 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.broker-actual-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.broker-actual-titulo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16px;
+  color: #ffffff;
+}
+.broker-actual-sub {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: #94a3b8;
+}
+.brokers-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.broker-pill {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1.5px solid #475569;
+  background: #0f172a;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.broker-pill:hover {
+  border-color: #38bdf8;
+  color: #ffffff;
+}
+.broker-pill.seleccionado {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.15);
+  color: #fde68a;
+}
+.broker-pill.conectado {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.18);
+  color: #86efac;
+}
 .perfiles-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -131,13 +190,13 @@
 
   <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px">
     <span class="chip hecho">Simulador Activo</span>
-    <span class="chip">mqtt.js · WSS 8884</span>
-    <span class="chip">broker.hivemq.com</span>
+    <span class="chip">mqtt.js · Fallback Automático</span>
+    <span class="chip">HiveMQ → EMQX → Mosquitto</span>
     <span class="chip">6 Perfiles de Telemetría</span>
   </div>
 
   <div class="frase-explicativa">
-    <strong>En pocas palabras:</strong> Esta página actúa como un <strong>ESP32 virtual en el navegador</strong>. Al encenderlo, se conecta por WebSockets seguros (puerto 8884) a <code>broker.hivemq.com</code> y publica cada 2 segundos los 6 perfiles de telemetría real en el tópico <code>ucab-tg-sf/robot/estado</code> para alimentar la App Flutter en vivo desde cualquier dispositivo.
+    <strong>En pocas palabras:</strong> Esta página actúa como un <strong>ESP32 virtual en el navegador</strong> con la misma lista de brokers de respaldo que la App Flutter: intenta primero con <code>wss://broker.hivemq.com:8884/mqtt</code> y, si la red lo bloquea, salta automáticamente a <code>wss://broker.emqx.io:8084/mqtt</code> y luego a <code>wss://test.mosquitto.org:8081/mqtt</code>, publicando cada 2 segundos en <code>ucab-tg-sf/robot/estado</code>.
   </div>
 
   <section aria-labelledby="t-simulador">
@@ -145,7 +204,7 @@
       <div class="consola-barra">
         <div>
           <span class="led-estado" id="led-mqtt"></span>
-          <span id="estado-mqtt">DESCONECTADO · wss://broker.hivemq.com:8884/mqtt</span>
+          <span id="estado-mqtt">DESCONECTADO · En espera de arranque</span>
         </div>
         <div>Tópico: <strong>ucab-tg-sf/robot/estado</strong> (QoS 0 · 2 s)</div>
       </div>
@@ -154,7 +213,7 @@
         <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
           <div>
             <h2 style="color:#ffffff;margin:0 0 4px;font-size:22px">Panel de Emisión del Robot Virtual</h2>
-            <p style="margin:0;color:#94a3b8;font-size:14.5px">Pulsa el botón principal para encender el ciclo automático de 6 perfiles o haz clic en un perfil para enviarlo al instante.</p>
+            <p style="margin:0;color:#94a3b8;font-size:14.5px">Pulsa el botón principal para encender el ciclo automático de 6 perfiles o cambia de broker manualmente si lo necesitas.</p>
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:10px">
             <button type="button" id="btn-encender" class="btn btn-principal">
@@ -166,6 +225,15 @@
           </div>
         </div>
 
+        <!-- Panel de estado del Broker conectado (igual que la App Flutter) -->
+        <div class="broker-panel" aria-live="polite">
+          <div class="broker-actual-info">
+            <span class="broker-actual-titulo" id="broker-titulo">Enlace MQTT · HiveMQ (Listo para conectar)</span>
+            <span class="broker-actual-sub" id="broker-sub">broker.hivemq.com:8884 · Respaldo automático: HiveMQ → EMQX → Mosquitto</span>
+          </div>
+          <div class="brokers-lista" id="brokers-pills" aria-label="Selector de broker MQTT"></div>
+        </div>
+
         <div class="perfiles-grid" id="grid-perfiles"></div>
 
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
@@ -173,7 +241,7 @@
           <span style="font-family:var(--font-mono);font-size:12px;color:#38bdf8" id="contador-enviados">0 paquetes enviados</span>
         </div>
         <div class="log-mqtt" id="log-mqtt">
-          <div class="ts">[Sistema listo] Pulsa "Encender ESP32 Virtual" para conectar con broker.hivemq.com:8884 y transmitir telemetría...</div>
+          <div class="ts">[Sistema listo] Pulsa "Encender ESP32 Virtual" para conectar (HiveMQ → EMQX → Mosquitto) y transmitir telemetría...</div>
         </div>
       </div>
     </div>
@@ -182,9 +250,9 @@
   <section aria-labelledby="t-como-probar">
     <h2 id="t-como-probar">Cómo probar junto con la App Flutter (P09)</h2>
     <ol class="pasos">
-      <li><b>1. Enciende el ESP32 Virtual</b><span>Haz clic en <strong>"Encender ESP32 Virtual"</strong> arriba. El indicador pasará a verde al conectar a <code>broker.hivemq.com:8884</code>.</span></li>
-      <li><b>2. Abre la App Web (P09)</b><span>Abre <a href="../../app/" target="_blank" rel="noopener">la Interfaz Flutter</a> en otra pestaña o ventana al lado.</span></li>
-      <li><b>3. Observa la Telemetría en Vivo</b><span>Verás cómo la batería, el modo autónomo/manual y la posición de la línea cambian automáticamente cada 2 segundos a través de internet.</span></li>
+      <li><b>1. Enciende el ESP32 Virtual</b><span>Haz clic en <strong>"Encender ESP32 Virtual"</strong> arriba. El simulador probará la lista de respaldo hasta conectar y mostrará en pantalla a qué broker se enlazó.</span></li>
+      <li><b>2. Verifica el mismo Broker en la App</b><span>Abre <a href="../../app/" target="_blank" rel="noopener">la Interfaz Flutter</a> y comprueba en la tarjeta superior ("Enlace MQTT · ...") que ambos estén en el mismo broker (HiveMQ, EMQX, Mosquitto o Local).</span></li>
+      <li><b>3. Observa la Telemetría en Vivo</b><span>Verás cómo la batería, el modo autónomo/manual y la posición de la línea cambian automáticamente cada 2 segundos.</span></li>
     </ol>
   </section>
 </main>
@@ -196,8 +264,16 @@
 <script src="../../assets/sitio.js"></script>
 <script>
 (function () {
-  var BROKER_URL = "wss://broker.hivemq.com:8884/mqtt";
   var TOPICO = "ucab-tg-sf/robot/estado";
+  var INTENTOS_POR_BROKER = 2;
+
+  /* Lista de brokers sincronizada con la App Flutter */
+  var BROKERS = [
+    { nombre: "HiveMQ", host: "broker.hivemq.com", puerto: 8884, url: "wss://broker.hivemq.com:8884/mqtt" },
+    { nombre: "EMQX", host: "broker.emqx.io", puerto: 8084, url: "wss://broker.emqx.io:8084/mqtt" },
+    { nombre: "Mosquitto", host: "test.mosquitto.org", puerto: 8081, url: "wss://test.mosquitto.org:8081/mqtt" },
+    { nombre: "Local", host: "localhost", puerto: 9001, url: "ws://localhost:9001/mqtt" }
+  ];
 
   var PERFILES = [
     { titulo: "Batería llena · Autónomo centrado", estado: "autonomo", bateria: 100, bateria_v: 12.60, linea_mm: 0.0, v_izq: 0.41, v_der: 0.41 },
@@ -213,15 +289,63 @@
   var ledEl = document.getElementById("led-mqtt");
   var estadoEl = document.getElementById("estado-mqtt");
   var contEl = document.getElementById("contador-enviados");
+  var brokerTituloEl = document.getElementById("broker-titulo");
+  var brokerSubEl = document.getElementById("broker-sub");
+  var brokersPillsEl = document.getElementById("brokers-pills");
   var btnOn = document.getElementById("btn-encender");
   var btnOff = document.getElementById("btn-apagar");
 
+  var indiceBroker = 0;
+  var intentosEnBroker = 0;
+  var conectado = false;
+  var encendido = false;
   var cliente = null;
   var timer = null;
+  var timerTimeout = null;
   var paso = 0;
   var secuencia = 5000;
   var enviados = 0;
   var inicioMs = Date.now();
+
+  function brokerActual() {
+    return BROKERS[indiceBroker];
+  }
+
+  function renderBrokers() {
+    var b = brokerActual();
+    if (conectado) {
+      brokerTituloEl.textContent = "Conectado a Broker: " + b.nombre + " (" + b.host + ":" + b.puerto + ")";
+      brokerSubEl.textContent = "URL activa: " + b.url + " · Publicando en " + TOPICO;
+    } else if (encendido) {
+      brokerTituloEl.textContent = "Enlace MQTT · Probando " + b.nombre + " (intento " + (intentosEnBroker + 1) + " de " + INTENTOS_POR_BROKER + ")";
+      brokerSubEl.textContent = b.url + " · Respaldo automático: HiveMQ → EMQX → Mosquitto → Local";
+    } else {
+      brokerTituloEl.textContent = "Enlace MQTT · " + b.nombre + " (Listo para conectar)";
+      brokerSubEl.textContent = b.host + ":" + b.puerto + " · Respaldo automático: HiveMQ → EMQX → Mosquitto → Local";
+    }
+
+    brokersPillsEl.innerHTML = BROKERS.map(function (br, i) {
+      var cls = "broker-pill";
+      if (i === indiceBroker) cls += conectado ? " conectado" : " seleccionado";
+      return '<button type="button" class="' + cls + '" data-bidx="' + i + '">' +
+        (i === indiceBroker && conectado ? "● " : "") + br.nombre + " (:" + br.puerto + ")" +
+      "</button>";
+    }).join("");
+
+    brokersPillsEl.querySelectorAll(".broker-pill").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var nuevoIdx = parseInt(btn.getAttribute("data-bidx"), 10);
+        indiceBroker = nuevoIdx;
+        intentosEnBroker = 0;
+        escribirLog("🔀 Broker seleccionado manualmente: <b>" + brokerActual().nombre + "</b> (" + brokerActual().url + ")");
+        if (encendido) {
+          conectarBrokerActual();
+        } else {
+          renderBrokers();
+        }
+      });
+    });
+  }
 
   function renderPerfiles(activoIdx) {
     grid.innerHTML = PERFILES.map(function (p, i) {
@@ -257,6 +381,7 @@
   function publicarPaso() {
     var idx = paso % PERFILES.length;
     var p = PERFILES[idx];
+    var b = brokerActual();
     paso++;
     secuencia++;
     enviados++;
@@ -277,63 +402,137 @@
     renderPerfiles(idx);
     contEl.textContent = enviados + " paquetes enviados";
 
-    if (cliente && cliente.connected) {
+    if (cliente && conectado) {
       cliente.publish(TOPICO, jsonStr, { qos: 0 });
-      escribirLog("PUB <b>" + TOPICO + "</b> ← <code>" + jsonStr + "</code>");
+      escribirLog("[" + b.nombre + "] PUB <b>" + TOPICO + "</b> ← <code>" + jsonStr + "</code>");
     } else {
-      escribirLog("(Simulación local, conectando al broker...) <code>" + jsonStr + "</code>");
+      escribirLog("(En cola mientras conecta a " + b.nombre + "...) <code>" + jsonStr + "</code>");
     }
   }
 
+  function limpiarCliente() {
+    if (timerTimeout) {
+      clearTimeout(timerTimeout);
+      timerTimeout = null;
+    }
+    if (cliente) {
+      try {
+        cliente.removeAllListeners();
+        cliente.end(true);
+      } catch (_) {}
+      cliente = null;
+    }
+    conectado = false;
+  }
+
+  function registrarFalloBroker(motivo) {
+    if (!encendido) return;
+    limpiarCliente();
+    var fallido = brokerActual();
+    intentosEnBroker++;
+
+    if (intentosEnBroker >= INTENTOS_POR_BROKER) {
+      indiceBroker = (indiceBroker + 1) % BROKERS.length;
+      intentosEnBroker = 0;
+      var sig = brokerActual();
+      actualizarLed("error", "SIN RESPUESTA EN " + fallido.nombre.toUpperCase() + " · Saltando a " + sig.nombre + " (" + sig.url + ")");
+      escribirLog("⚠️ <b>" + fallido.nombre + "</b> falló tras " + INTENTOS_POR_BROKER + " intentos (" + motivo + "). Cambiando a broker de respaldo: <b>" + sig.nombre + "</b> (" + sig.url + ")");
+    } else {
+      actualizarLed("conectando", "REINTENTANDO " + fallido.nombre.toUpperCase() + " (intento " + (intentosEnBroker + 1) + "/" + INTENTOS_POR_BROKER + ")");
+      escribirLog("⚠️ Fallo en " + fallido.nombre + " (" + motivo + "). Reintentando...");
+    }
+
+    renderBrokers();
+    setTimeout(function () {
+      if (encendido) conectarBrokerActual();
+    }, 1500);
+  }
+
+  function conectarBrokerActual() {
+    if (!encendido) return;
+    limpiarCliente();
+
+    var b = brokerActual();
+    actualizarLed("conectando", "CONECTANDO A " + b.nombre.toUpperCase() + " · " + b.url + " ...");
+    escribirLog("Conectando a <b>" + b.nombre + "</b> (" + b.url + ")...");
+    renderBrokers();
+
+    if (!window.mqtt) {
+      escribirLog("❌ Librería mqtt.js no disponible.");
+      return;
+    }
+
+    cliente = window.mqtt.connect(b.url, {
+      clientId: "ucab-esp32-sim-" + Math.random().toString(16).slice(2, 10),
+      keepalive: 20,
+      connectTimeout: 5000,
+      reconnectPeriod: 0
+    });
+
+    timerTimeout = setTimeout(function () {
+      if (!conectado && encendido) {
+        registrarFalloBroker("tiempo de espera agotado 5 s");
+      }
+    }, 5500);
+
+    cliente.on("connect", function () {
+      if (timerTimeout) {
+        clearTimeout(timerTimeout);
+        timerTimeout = null;
+      }
+      conectado = true;
+      intentosEnBroker = 0;
+      actualizarLed("activo", "CONECTADO EN VIVO · " + b.nombre + " (" + b.host + ":" + b.puerto + ")");
+      escribirLog("✅ <b>Conectado exitosamente a " + b.nombre + "</b> (" + b.url + "). Transmitiendo en <code>" + TOPICO + "</code>");
+      renderBrokers();
+    });
+
+    cliente.on("error", function (err) {
+      if (!conectado) {
+        registrarFalloBroker(err && err.message ? err.message : "error de WebSocket");
+      }
+    });
+
+    cliente.on("close", function () {
+      if (conectado && encendido) {
+        conectado = false;
+        registrarFalloBroker("conexión cerrada");
+      }
+    });
+  }
+
   function encender() {
+    encendido = true;
     btnOn.disabled = true;
     btnOff.disabled = false;
     inicioMs = Date.now();
-    actualizarLed("conectando", "CONECTANDO A wss://broker.hivemq.com:8884/mqtt ...");
-    escribirLog("Iniciando conexión WebSocket seguro con broker.hivemq.com:8884...");
+    intentosEnBroker = 0;
+
+    conectarBrokerActual();
 
     if (!timer) {
       publicarPaso();
       timer = setInterval(publicarPaso, 2000);
     }
-
-    if (window.mqtt) {
-      cliente = window.mqtt.connect(BROKER_URL, {
-        clientId: "ucab-esp32-sim-" + Math.random().toString(16).slice(2, 10),
-        keepalive: 20,
-        connectTimeout: 6000,
-        reconnectPeriod: 4000
-      });
-
-      cliente.on("connect", function () {
-        actualizarLed("activo", "CONECTADO EN VIVO · wss://broker.hivemq.com:8884/mqtt");
-        escribirLog("✅ Conectado a broker.hivemq.com:8884. Transmitiendo en " + TOPICO);
-      });
-
-      cliente.on("error", function (err) {
-        actualizarLed("error", "ERROR DE BROKER · Transmitiendo en consola local");
-        escribirLog("⚠️ Aviso de red: " + (err && err.message ? err.message : err));
-      });
-    }
   }
 
   function apagar() {
+    encendido = false;
     if (timer) {
       clearInterval(timer);
       timer = null;
     }
-    if (cliente) {
-      try { cliente.end(true); } catch (_) {}
-      cliente = null;
-    }
+    limpiarCliente();
     btnOn.disabled = false;
     btnOff.disabled = true;
-    actualizarLed("", "DETENIDO · wss://broker.hivemq.com:8884/mqtt");
+    actualizarLed("", "DETENIDO · En espera de arranque");
+    renderBrokers();
     escribirLog("⏹ Emisión del ESP32 Virtual detenida.");
   }
 
   btnOn.addEventListener("click", encender);
   btnOff.addEventListener("click", apagar);
+  renderBrokers();
   renderPerfiles(-1);
 })();
 </script>
