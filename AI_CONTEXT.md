@@ -8,6 +8,23 @@
 
 ---
 
+## 0. Estado más reciente (17 nov 2026)
+
+- **Fase:** Fase I cierra el 20 nov (documento de requerimientos y matriz de hardware v2). Cronograma de 32 semanas: 26/10/2026 a 11/06/2027.
+- **Prototipos listos:** 5 de 12 (P01, P03, P08, P09, P10). La web los muestra como "5/12 prototipos listos".
+- **P09 (App Flutter Web):** `app/`, desplegada por GitHub Actions (`deploy_web.yml`) en `https://ilianavsc.github.io/tg-robot-ucab/app/`. Botones Adelante, Atrás, Izquierda, Derecha, Frenar y Auto; cada uno publica en `ordenes` (QoS 1) y espera el ACK. Muestra la latencia de cada confirmación. Tiene Modo Demo (ACK simulado a 300 ms). Lista de brokers de respaldo: HiveMQ, EMQX, Mosquitto.
+- **P10 (ESP32 Virtual en el navegador):** `prototipos/P10-simulador-esp32/`. Publica `estado` cada 2 s, recibe `ordenes`, responde en `ordenes/ack` y entiende `adelante, atras, izquierda, derecha, frenar, auto`. No envía testamento LWT al detenerse.
+- **Contrato de órdenes y ACK:**
+  - Orden: `{"id":"<uuid>","cmd":"<comando>"}` (un pedido sin `cmd` solo se confirma).
+  - ACK: `{"id":"...","recibidas":N,"t":millis}`; el firmware real y el P10 usan el mismo formato.
+- **Firmware C++ validado (13/13 tests):** la lógica de órdenes y ACK (`firmware/robot_integrado.ino`) se probó en el PC con un MQTT falso. Se corrigieron 2 fallos: el ACK se perdía si no había conexión (ahora se reintenta) y `recibidas` no coincidía con el P10. **No** está compilado con el Arduino IDE ni probado en un ESP32 real.
+- **Web:** insignia "Firmware C++ validado (13/13 tests)" en `index.html`; interfaz pulida (ease-out, hover solo con puntero, paneles colapsables, animaciones en la app Flutter). `prototipos/centro-pruebas.html` guía al jurado en 3 pasos.
+- **Documentos para las pruebas:** `docs/guia_pruebas_lab.md` (bloques A, B, C y D), `docs/centro_de_pruebas.md` (flujo físico con ESP32 y app) y `docs/guion_defensa.md` (demostración en 4 pasos).
+- **Hardware:** pedido de Amazon hecho el 16 nov (motores, 3 ESP32, BMS, ultrasónicos), llega a Miami entre el 15 y el 28 dic. Pendiente: cargador 12,6 V (buscar el de casa) y compras en Mercado Libre.
+- **Pendientes:** compilar el `.ino` en el Arduino IDE, prueba H0 de Wi-Fi en el laboratorio, pista real del P08 con medidas del laboratorio, mover la prueba física de P03 a enero si el pedido tarda, WPA2-Enterprise de la red UCAB (el firmware usa Wi-Fi simple), broker de producción sin decidir, la app no tiene tests unitarios.
+
+---
+
 ## 1. Arquitectura de Prototipos de Ingeniería
 
 El proyecto descompone el desarrollo del robot en prototipos medibles y modulares antes de la integración física:
@@ -22,6 +39,8 @@ El proyecto descompone el desarrollo del robot en prototipos medibles y modulare
   - **Función:** Cinemática diferencial con 2 micromotores JGA25-371 (Speed 200, reducción 1:21,3) comandados por puente H L298N.
   - **Medición:** Encoders óptico/magnéticos de 11 pulsos/rev (cuadratura, 937 cuentas por vuelta de rueda) leídos por interrupciones de hardware.
   - **Simulación:** Simulador 3D interactivo con modo Rayos X para visualizar imanes Hall y tren de engranes.
+
+- **P09 (App Flutter Web) y P10 (ESP32 Virtual):** ver sección 0. Cierran el ciclo app, broker y robot sin hardware.
 
 - **P08 (Seguidor de Línea Óptico):**
   - **Función:** Navegación en pasillo siguiendo cinta negra de 19 mm sobre piso de granito con regleta de 4 sensores infrarrojos TCRT5000 en ADC1.
@@ -51,7 +70,7 @@ Unificación en C++ (Arduino IDE, ESP32 core 3.x) de P01, P03 y P08 en un solo e
 ### Niveles QoS y Tópicos MQTT
 - `ucab-tg-sf/robot/estado` (QoS 0): Telemetría cada 2 s (batería %, V, estado, orden contador).
 - `ucab-tg-sf/robot/ordenes` (QoS 1): Comandos y pedidos desde la app móvil.
-- `ucab-tg-sf/robot/ordenes/ack` (QoS 1): Confirmación obligatoria de recepción.
+- `ucab-tg-sf/robot/ordenes/ack` (QoS 1): Confirmación obligatoria de recepción, formato `{"id","recibidas","t"}`. Si no hay conexión, el ACK queda en cola y se reenvía al reconectar.
 - `ucab-tg-sf/robot/alertas` (QoS 2): Alarma antirrobo por acelerómetro (handshake de 4 pasos).
 - `ucab-tg-sf/robot/conexion` (QoS 1 retenido): Notificación de conexión y testamento LWT.
 
