@@ -252,15 +252,16 @@ a.ir:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hard-hover)}
       <a class="tarjeta sombra ir" href="arquitectura.html"><h3>🏗️ Arquitectura</h3><p>Diagrama de bloques, tópicos MQTT y flujo de señales.</p></a>
       <a class="tarjeta sombra ir" href="decisiones.html"><h3>💡 Decisiones</h3><p>Criterios de ingeniería: por qué elegimos cada tecnología.</p></a>
       <a class="tarjeta sombra ir" href="bitacora.html"><h3>📖 Bitácora</h3><p>Registro semanal detallado del trabajo realizado.</p></a>
-      <a class="tarjeta sombra ir" href="https://github.com/ilianavsc/tg-robot-ucab/blob/main/docs/guia_pruebas_lab.md" target="_blank" rel="noopener"><h3>🧪 Guía de pruebas</h3><p>Protocolo del laboratorio del 18/11: Wi-Fi y MQTT, latencia y calibración del PD.</p></a>
-      <a class="tarjeta sombra ir" href="https://github.com/ilianavsc/tg-robot-ucab/blob/main/docs/checklist_hardware.md" target="_blank" rel="noopener"><h3>🔌 Checklist de hardware</h3><p>Seguridad eléctrica, pull-down de 10 kΩ y tabla de conexiones del ESP32.</p></a>
-      <a class="tarjeta sombra ir" href="https://github.com/ilianavsc/tg-robot-ucab/blob/main/docs/guia_mqttx.md" target="_blank" rel="noopener"><h3>📡 Guía MQTTX</h3><p>Tópicos del robot, payloads listos para copiar y prueba de humo de 7 pasos.</p></a>
+      <a class="tarjeta sombra ir" href="docs/guia_pruebas_lab.md" data-md="docs/guia_pruebas_lab.md" data-titulo="Guía de pruebas en laboratorio"><h3>🧪 Guía de pruebas</h3><p>Protocolo del laboratorio del 18/11: Wi-Fi y MQTT, latencia y calibración del PD.</p></a>
+      <a class="tarjeta sombra ir" href="docs/checklist_hardware.md" data-md="docs/checklist_hardware.md" data-titulo="Checklist de hardware"><h3>🔌 Checklist de hardware</h3><p>Seguridad eléctrica, pull-down de 10 kΩ y tabla de conexiones del ESP32.</p></a>
+      <a class="tarjeta sombra ir" href="docs/guia_mqttx.md" data-md="docs/guia_mqttx.md" data-titulo="Guía MQTTX"><h3>📡 Guía MQTTX</h3><p>Tópicos del robot, payloads listos para copiar y prueba de humo de 7 pasos.</p></a>
     </div>
   </section>
 </main>
 
 <footer id="pie"></footer>
 
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="datos/proyecto.js"></script>
 <script src="assets/sitio.js"></script>
 
@@ -271,11 +272,13 @@ a.ir:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hard-hover)}
   var descripciones = {
     "P01": "Comunicación bidireccional entre la app y el robot vía Wi-Fi con confirmación obligatoria (QoS 1/2) y aviso de desconexión.",
     "P03": "Control de motores DC con encoders de cuadratura para avanzar en línea recta exacta sin desviarse del pasillo.",
-    "P08": "Seguimiento óptico con 4 sensores infrarrojos sobre granito y cinta negra a 100 Hz con control proporcional-derivativo (PD)."
+    "P08": "Seguimiento óptico con 4 sensores infrarrojos sobre granito y cinta negra a 100 Hz con control proporcional-derivativo (PD).",
+    "P09": "Interfaz web en Flutter con telemetría en tiempo real y Modo Demo integrado para simular recorridos y alertas sin red."
   };
 
   TG.prototipos.filter(function(p){ return p.principal; }).forEach(function(p){
     var desc = descripciones[p.codigo] || p.nombre;
+    var btnLabel = p.codigo === "P09" ? (p.simuladorTexto || "Abrir Interfaz Web / Modo Demo") : "Ver Prototipo & Simulador 3D";
     h += '<div class="proto-card">' +
       '<div class="proto-card-top">' +
         '<span class="proto-tag">' + p.codigo + ' · ' + p.tema + '</span>' +
@@ -285,13 +288,13 @@ a.ir:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hard-hover)}
       '<div class="proto-acciones">' +
         '<a href="' + p.url + '" class="btn btn-principal" style="width:100%">' +
           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>' +
-          'Ver Prototipo & Simulador 3D' +
+          btnLabel +
         '</a>' +
         (p.ino ? '<a href="' + p.ino + '" download class="btn-descargar" style="justify-content:center">' +
           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>' +
           'Descargar Código (.ino)' +
-        '</a>' : '<span style="font-size:14px;color:var(--text-light);text-align:center;padding:6px 0">Código ESP32: próximamente</span>') +
-        (p.historico ? '<a href="' + p.historico + '" class="btn-descargar" style="justify-content:center">' +
+        '</a>' : (p.codigo === "P09" ? '' : '<span style="font-size:14px;color:var(--text-light);text-align:center;padding:6px 0">Código ESP32: próximamente</span>')) +
+        (p.historico ? '<a href="' + p.historico + '" data-md="' + p.historico + '" data-titulo="Registro T1–T7 (P01 MQTT base)" class="btn-descargar" style="justify-content:center">' +
           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12H4z"></path><path d="M8 8h8M8 12h8M8 16h5"></path></svg>' +
           'Ver registro T1–T7' +
         '</a>' : '') +
@@ -333,7 +336,7 @@ a.ir:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hard-hover)}
   document.getElementById("prueba-dias").innerHTML = faltanPrueba > 0 ? faltanPrueba + " <small>días</small>"
     : (faltanPrueba === 0 ? "Hoy <small>es</small>" : "Hecha <small>ya</small>");
   document.getElementById("prueba-texto").innerHTML = "Laboratorio UCAB · " + U.largo(prueba) +
-    ' · <a href="https://github.com/ilianavsc/tg-robot-ucab/blob/main/docs/guia_pruebas_lab.md" target="_blank" rel="noopener">guía de pruebas</a>';
+    ' · <a href="docs/guia_pruebas_lab.md" data-md="docs/guia_pruebas_lab.md" data-titulo="Guía de pruebas en laboratorio">guía de pruebas</a>';
 
   var P = D.prototipos, listos = P.filter(function(p){return p.estado !== "pendiente";}).length;
   document.getElementById("proto-cifra").innerHTML = listos + " <small>de " + P.length + " en marcha</small>";

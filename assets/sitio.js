@@ -1,4 +1,4 @@
-/* Menú, pie de página y utilidades de fechas, compartidos por todo el sitio */
+/* Menú, pie de página, modal de documentación (.md) y utilidades de fechas, compartidos por todo el sitio */
 (function () {
   var MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
   var DIA = 864e5;
@@ -77,4 +77,107 @@
       ' · <a href="' + window.TG.repo + '" target="_blank" rel="noopener">Repositorio en GitHub</a>' +
       ' · <a class="pie-enlace-historial" href="' + base + 'archivo-fase-1.html">Ver historial de desarrollo</a>';
   }
+
+  /* =====================================================================
+     VISOR MODAL DE DOCUMENTACIÓN MARKDOWN (marked.js vía CDN)
+     ===================================================================== */
+  var markedPromesa = null;
+  function asegurarMarked() {
+    if (window.marked) return Promise.resolve(window.marked);
+    if (markedPromesa) return markedPromesa;
+    markedPromesa = new Promise(function (resolve, reject) {
+      var s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/marked/marked.min.js";
+      s.onload = function () { resolve(window.marked); };
+      s.onerror = function () { reject(new Error("No se pudo cargar marked.js")); };
+      document.head.appendChild(s);
+    });
+    return markedPromesa;
+  }
+
+  function obtenerModal() {
+    var dlg = document.getElementById("modal-md");
+    if (dlg) return dlg;
+    dlg = document.createElement("dialog");
+    dlg.id = "modal-md";
+    dlg.className = "modal-md";
+    dlg.setAttribute("aria-label", "Visor de documentación");
+    dlg.innerHTML =
+      '<div class="modal-md-cabecera">' +
+        '<span class="modal-md-ruta" id="modal-md-ruta">Documento</span>' +
+        '<button type="button" class="modal-md-cerrar" id="modal-md-cerrar">✕ Cerrar</button>' +
+      '</div>' +
+      '<div class="modal-md-cuerpo" id="modal-md-cuerpo"></div>';
+    document.body.appendChild(dlg);
+
+    document.getElementById("modal-md-cerrar").addEventListener("click", function () {
+      dlg.close();
+    });
+    dlg.addEventListener("click", function (ev) {
+      if (ev.target === dlg) dlg.close();
+    });
+    return dlg;
+  }
+
+  function normalizarRutaMd(enlace) {
+    var dataMd = enlace.getAttribute("data-md");
+    if (dataMd) {
+      return /\/$/.test(dataMd) ? dataMd + "README.md" : dataMd;
+    }
+    var href = enlace.getAttribute("href") || "";
+    if (!href || href.hasAttribute && enlace.hasAttribute("download")) return null;
+    var ghMatch = href.match(/^https?:\/\/github\.com\/ilianavsc\/tg-robot-ucab\/blob\/main\/(.+\.md)$/i);
+    if (ghMatch) return base + ghMatch[1];
+    if (/^https?:\/\//i.test(href)) return null;
+    if (/\.md(#.*)?$/i.test(href)) return href.split("#")[0];
+    return null;
+  }
+
+  function abrirModalMd(ruta, titulo) {
+    var dlg = obtenerModal();
+    var etiqueta = document.getElementById("modal-md-ruta");
+    var cuerpo = document.getElementById("modal-md-cuerpo");
+    etiqueta.textContent = titulo ? titulo + " · " + ruta : ruta;
+    cuerpo.innerHTML = '<p class="suave">Cargando documento…</p>';
+    if (!dlg.open) dlg.showModal();
+
+    Promise.all([
+      asegurarMarked(),
+      fetch(ruta).then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.text();
+      })
+    ]).then(function (res) {
+      var markedLib = res[0];
+      var textoMd = res[1];
+      var htmlRender = markedLib.parse ? markedLib.parse(textoMd) : markedLib(textoMd);
+      cuerpo.innerHTML = htmlRender;
+
+      // Resolver rutas relativas (imágenes y enlaces) respecto a la carpeta del .md
+      var dir = ruta.indexOf("/") >= 0 ? ruta.slice(0, ruta.lastIndexOf("/") + 1) : "";
+      if (dir) {
+        cuerpo.querySelectorAll("img[src]").forEach(function (img) {
+          var src = img.getAttribute("src");
+          if (src && !/^(https?:|data:|\/)/i.test(src)) img.setAttribute("src", dir + src);
+        });
+        cuerpo.querySelectorAll("a[href]").forEach(function (a) {
+          var h = a.getAttribute("href");
+          if (h && !/^(https?:|mailto:|#|\/)/i.test(h)) a.setAttribute("href", dir + h);
+        });
+      }
+      cuerpo.scrollTop = 0;
+    }).catch(function (err) {
+      cuerpo.innerHTML = '<div class="aviso-grande"><p><b>No se pudo cargar el documento:</b> ' + ruta + '</p><p class="suave">' + err.message + '</p></div>';
+    });
+  }
+
+  document.addEventListener("click", function (ev) {
+    var a = ev.target && ev.target.closest ? ev.target.closest("a") : null;
+    if (!a) return;
+    var rutaMd = normalizarRutaMd(a);
+    if (!rutaMd) return;
+    ev.preventDefault();
+    var titulo = a.getAttribute("data-titulo") || (a.querySelector("h3") ? a.querySelector("h3").textContent.trim() : a.textContent.trim());
+    abrirModalMd(rutaMd, titulo);
+  });
 })();
