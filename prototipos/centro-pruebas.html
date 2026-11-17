@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TG Robot UCAB · Centro de pruebas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/estilo.css">
+<style>
+/* Centro de pruebas: 3 pasos en orden, como un tablero de encendido */
+.flujo{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:26px 0 10px;counter-reset:paso}
+.paso{position:relative;display:flex;flex-direction:column;background:var(--blanco);border:2px solid var(--tinta);border-radius:18px;box-shadow:6px 6px 0 var(--tinta);padding:20px 20px 18px}
+.paso:not(:last-child)::after{content:"→";position:absolute;right:-17px;top:56px;z-index:2;width:28px;height:28px;border-radius:50%;background:var(--tinta);color:#fff;font:700 16px/28px var(--mono);text-align:center}
+.paso .num{font:700 56px/0.9 var(--display);color:var(--c);letter-spacing:-2px}
+.paso .tag{font:600 12.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--suave);margin:10px 0 2px}
+.paso h2{font:700 24px/1.12 var(--display);margin:0 0 12px}
+.paso ol{margin:0 0 14px;padding-left:20px;font-size:16px;line-height:1.45}
+.paso ol li{margin:4px 0}
+.ves{background:color-mix(in srgb,var(--c) 10%,#fff);border-left:4px solid var(--c);border-radius:8px;padding:9px 12px;font-size:15px;line-height:1.4;margin:auto 0 16px}
+.ves b{display:block;font:600 11.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--suave);margin-bottom:2px}
+.abrir{display:flex;align-items:center;justify-content:center;gap:10px;min-height:54px;padding:12px 16px;border-radius:12px;background:var(--c);color:#fff;font:700 16.5px/1.25 var(--texto);text-align:center;text-decoration:none;border:2px solid var(--tinta);transition:transform .12s,box-shadow .12s;box-shadow:3px 3px 0 var(--tinta)}
+.abrir:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--tinta)}
+.abrir:focus-visible{outline:3px solid var(--qos);outline-offset:3px}
+.abrir.oscuro{color:var(--tinta)}
+.abrir span{white-space:nowrap}
+.alt{display:block;text-align:center;margin-top:9px;font-size:14.5px;color:var(--suave)}
+.antes{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;background:var(--blanco);border:2px dashed var(--suave);border-radius:14px;padding:12px 18px;font-size:15.5px}
+.antes b{font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase}
+.aviso-pruebas{background:#fff7e6;border:2px solid var(--pend);border-radius:14px;padding:14px 18px;font-size:15.5px;line-height:1.45}
+.aviso-pruebas h2{font:700 18px var(--display);margin:0 0 6px}
+.aviso-pruebas ul{margin:0;padding-left:20px}
+.aviso-pruebas li{margin:4px 0}
+@media (max-width:900px){
+  .flujo{grid-template-columns:1fr;gap:26px}
+  .paso:not(:last-child)::after{content:"↓";right:auto;left:50%;top:auto;bottom:-24px;transform:translateX(-50%)}
+}
+@media (prefers-reduced-motion:reduce){.abrir{transition:none}}
+</style>
+</head>
+<body data-pagina="pruebas" data-base="../">
+<header id="menu"></header>
+<main>
+<p class="ceja">Centro de pruebas · para el jurado</p>
+<h1>El flujo completo, <em>en 3 pasos</em></h1>
+<p class="bajada">El robot virtual manda sus datos, el panel los ve pasar y la app los muestra. Hazlo en este orden: cada herramienta se abre en una pestaña nueva y esta guía queda aquí.</p>
+
+<div class="antes">
+  <b>Antes de empezar</b>
+  <span>Usa una computadora con Chrome o Edge.</span>
+  <span>Ten internet: los 3 se hablan por un broker MQTT público.</span>
+  <span>Deja las pestañas abiertas una al lado de la otra.</span>
+</div>
+
+<div class="flujo">
+  <section class="paso" style="--c:var(--sale)" aria-labelledby="p1">
+    <span class="num" aria-hidden="true">1</span>
+    <p class="tag">P10 · el robot</p>
+    <h2 id="p1">Encender el ESP32 virtual</h2>
+    <ol>
+      <li>Pulsa <b>"⚡ Encender ESP32 Virtual"</b>.</li>
+      <li>Espera la luz verde y mira a qué broker se conectó.</li>
+    </ol>
+    <p class="ves"><b>Lo que debes ver</b>Cada 2 s sale un mensaje de estado: batería, modo y posición de la línea.</p>
+    <a class="abrir" href="P10-simulador-esp32/" target="_blank" rel="noopener">1. Encender ESP32 Virtual (P10)&nbsp;↗</a>
+  </section>
+
+  <section class="paso" style="--c:var(--qos)" aria-labelledby="p2">
+    <span class="num" aria-hidden="true">2</span>
+    <p class="tag">P01 · el panel de control</p>
+    <h2 id="p2">Ver el panel de control</h2>
+    <ol>
+      <li>Pulsa <b>"Conectar al broker"</b>.</li>
+      <li>Mira el registro: ahí llegan los mensajes del robot.</li>
+    </ol>
+    <p class="ves"><b>Lo que debes ver</b>Los mensajes de <code>ucab-tg-sf/robot/estado</code> que manda el P10, cada 2 s.</p>
+    <a class="abrir" href="P01-mqtt-base/banco.html" target="_blank" rel="noopener">2. Ver Panel de Control (P01)&nbsp;↗</a>
+    <a class="alt" href="P01-mqtt-base/simulador-3d/simulador.html" target="_blank" rel="noopener">¿Cómo viajan los mensajes? Ver la animación 3D ↗</a>
+  </section>
+
+  <section class="paso" style="--c:var(--pend)" aria-labelledby="p3">
+    <span class="num" aria-hidden="true">3</span>
+    <p class="tag">P09 · la app</p>
+    <h2 id="p3">Abrir la app móvil</h2>
+    <ol>
+      <li>Espera unos segundos a que conecte.</li>
+      <li>Revisa arriba ("Enlace MQTT") que use el mismo broker que el P10.</li>
+    </ol>
+    <p class="ves"><b>Lo que debes ver</b>La app sale del "Modo demo" y muestra la batería y la línea del robot en vivo.</p>
+    <a class="abrir oscuro" href="../app/" target="_blank" rel="noopener">3. Abrir App Móvil (P09)&nbsp;↗</a>
+  </section>
+</div>
+
+<section class="aviso-pruebas" aria-labelledby="t-limites">
+  <h2 id="t-limites">Si algo no aparece</h2>
+  <ul>
+    <li><b>El panel (paso 2) no ve nada:</b> el panel solo usa HiveMQ. Si el P10 se conectó a EMQX o a Mosquitto, apágalo y enciéndelo otra vez hasta que diga HiveMQ.</li>
+    <li><b>La app sigue en "Modo demo":</b> revisa que el P10 siga encendido y que los dos digan el mismo broker.</li>
+    <li><b>Los pedidos todavía no tienen respuesta:</b> el P10 por ahora solo manda su estado. Un pedido desde el panel llega al broker, pero nadie lo confirma hasta que el robot real (o el P10) escuche <code>ordenes</code>.</li>
+  </ul>
+</section>
+</main>
+<footer id="pie"></footer>
+<script src="../datos/proyecto.js"></script>
+<script src="../assets/sitio.js"></script>
+</body>
+</html>

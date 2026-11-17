@@ -50,6 +50,7 @@
     ["inicio", "Inicio", "index.html"],
     ["cronograma", "Cronograma", "cronograma.html"],
     ["prototipos", "Prototipos", "prototipos/index.html"],
+    ["pruebas", "Centro de pruebas", "prototipos/centro-pruebas.html"],
     ["requerimientos", "Requerimientos", "requerimientos.html"],
     ["hardware", "Hardware", "hardware.html"],
     ["arquitectura", "Arquitectura", "arquitectura.html"],
