@@ -42,6 +42,13 @@
 .ir{display:block;text-decoration:none;color:var(--text-main);transition:transform .12s, box-shadow .12s}
 a.ir:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hard-hover)}
 .ir p{margin:0;font-size:15px;color:var(--text-muted)}
+.proto-categorias{display:grid;gap:34px;margin-top:8px}
+.proto-cat h3{font-family:var(--font-display);font-size:20px;margin:0 0 12px;color:var(--text-main)}
+.proto-cat-vacio{color:var(--text-light);font-size:15.5px;background:var(--surface-alt);border:1px dashed var(--border);border-radius:var(--radius-md);padding:16px 18px}
+.detalles-tecnicos{margin-top:20px}
+.detalles-tecnicos summary{cursor:pointer;display:inline-block;font-weight:700;font-size:15px;color:var(--accent-primary);list-style:none}
+.detalles-tecnicos summary::after{content:" ▾"}
+.detalles-tecnicos[open] summary::after{content:" ▴"}
 @media (max-width:640px){.celda{height:24px}.celda.hoy{height:32px}.tira{gap:4px}.lista-pend li{grid-template-columns:1fr}}
 </style>
 </head>
@@ -59,11 +66,11 @@ a.ir:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hard-hover)}
     </div>
     
     <div class="hero-frase" id="t-bienvenida">
-      Somos Iliana y Andrea. Este es el desarrollo de nuestro robot para la UCAB.
+      Un robot que busca y lleva los componentes del laboratorio.
     </div>
 
     <p class="hero-desc">
-      Un robot móvil autónomo de telecomunicaciones diseñado para <strong>buscar, clasificar y transportar</strong> componentes y herramientas dentro del laboratorio de la universidad. Aquí documentamos nuestra arquitectura, el firmware en ESP32, los simuladores físicos 3D interactivos y la preparación de las pruebas experimentales.
+      Pides una pieza desde la app y el robot la recoge y te la lleva. Aquí contamos cómo lo estamos construyendo.
     </p>
 
     <div class="hero-acciones">
@@ -78,10 +85,6 @@ a.ir:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hard-hover)}
       <a href="#t-protos" class="btn btn-secundario">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
         Explorar Simuladores 3D
-      </a>
-      <a href="PLAN.md" class="btn btn-secundario" title="Ver plan en Markdown">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-        El Plan (PLAN.md)
       </a>
     </div>
   </section>
@@ -197,9 +200,23 @@ a.ir:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hard-hover)}
        SECCIÓN 5: LOS 3 PROTOTIPOS ESTRELLA (P01, P03, P08)
        ==================================================================== -->
   <section aria-labelledby="t-protos">
-    <h2 id="t-protos">Los 3 Prototipos</h2>
-    <p class="bajada">Cada prototipo cuenta con su propio simulador 3D interactivo en Three.js y el código Arduino (.ino) listo para programar en el ESP32.</p>
-    <div class="rejilla" id="tres-protos"></div>
+    <h2 id="t-protos">Lo que ya funciona</h2>
+    <p class="bajada">Tres frentes en marcha: la simulación, el robot y la app.</p>
+
+    <div class="proto-categorias">
+      <div class="proto-cat">
+        <h3>🧩 Software y Simuladores</h3>
+        <div class="rejilla" id="cat-software"></div>
+      </div>
+      <div class="proto-cat">
+        <h3>🔌 Firmware y Hardware</h3>
+        <div class="proto-cat-vacio" id="cat-hardware"></div>
+      </div>
+      <div class="proto-cat">
+        <h3>📱 App Móvil y Web</h3>
+        <div class="rejilla" id="cat-app"></div>
+      </div>
+    </div>
   </section>
 
   <!-- ====================================================================
@@ -218,10 +235,13 @@ a.ir:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hard-hover)}
         <li><strong>Protección de Batería:</strong> Monitoreo continuo del paquete Li-Ion 3S con alerta de desconexión por debajo de 9,9 V.</li>
         <li><strong>Arquitectura No Bloqueante:</strong> Cero llamadas a <code>delay()</code>; temporización estricta por marcas de tiempo con <code>millis()</code>.</li>
       </ul>
-      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:20px">
-        <a href="https://github.com/ilianavsc/tg-robot-ucab/blob/main/firmware/robot_integrado.ino" target="_blank" rel="noopener" class="btn btn-principal">Ver código (.ino) en GitHub</a>
-        <a href="https://github.com/ilianavsc/tg-robot-ucab/blob/main/firmware/README.md" target="_blank" rel="noopener" class="btn btn-secundario">Leer Documentación Técnica</a>
-      </div>
+      <details class="detalles-tecnicos">
+        <summary>Ver detalles técnicos</summary>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:16px">
+          <a href="https://github.com/ilianavsc/tg-robot-ucab/blob/main/firmware/robot_integrado.ino" target="_blank" rel="noopener" class="btn btn-secundario">Código (.ino) en GitHub</a>
+          <a href="https://github.com/ilianavsc/tg-robot-ucab/blob/main/firmware/README.md" target="_blank" rel="noopener" class="btn btn-secundario">Documentación técnica</a>
+        </div>
+      </details>
     </div>
   </section>
 
@@ -267,8 +287,6 @@ a.ir:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hard-hover)}
 
 <script>
 (function(){
-  // Renderizado dinámico de tarjetas de prototipos con diseño moderno
-  var cont = document.getElementById("tres-protos"), h = "";
   var descripciones = {
     "P01": "Comunicación bidireccional entre la app y el robot vía Wi-Fi con confirmación obligatoria (QoS 1/2) y aviso de desconexión.",
     "P03": "Control de motores DC con encoders de cuadratura para avanzar en línea recta exacta sin desviarse del pasillo.",
@@ -276,32 +294,35 @@ a.ir:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hard-hover)}
     "P09": "Interfaz web en Flutter con telemetría en tiempo real y Modo Demo integrado para simular recorridos y alertas sin red."
   };
 
-  TG.prototipos.filter(function(p){ return p.principal; }).forEach(function(p){
+  function tarjeta(p) {
     var desc = descripciones[p.codigo] || p.nombre;
-    var btnLabel = p.codigo === "P09" ? (p.simuladorTexto || "Abrir Interfaz Web / Modo Demo") : "Ver Prototipo & Simulador 3D";
-    h += '<div class="proto-card">' +
-      '<div class="proto-card-top">' +
-        '<span class="proto-tag">' + p.codigo + ' · ' + p.tema + '</span>' +
-        '<h3 class="proto-titulo">' + p.nombre + '</h3>' +
-        '<p class="proto-desc">' + desc + '</p>' +
-      '</div>' +
-      '<div class="proto-acciones">' +
-        '<a href="' + p.url + '" class="btn btn-principal" style="width:100%">' +
-          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>' +
-          btnLabel +
-        '</a>' +
-        (p.ino ? '<a href="' + p.ino + '" download class="btn-descargar" style="justify-content:center">' +
-          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>' +
-          'Descargar Código (.ino)' +
-        '</a>' : (p.codigo === "P09" ? '' : '<span style="font-size:14px;color:var(--text-light);text-align:center;padding:6px 0">Código ESP32: próximamente</span>')) +
-        (p.historico ? '<a href="' + p.historico + '" data-md="' + p.historico + '" data-titulo="Registro T1–T7 (P01 MQTT base)" class="btn-descargar" style="justify-content:center">' +
-          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12H4z"></path><path d="M8 8h8M8 12h8M8 16h5"></path></svg>' +
-          'Ver registro T1–T7' +
-        '</a>' : '') +
-      '</div>' +
-    '</div>';
-  });
-  cont.innerHTML = h;
+    var btnLabel = p.codigo === "P09" ? (p.simuladorTexto || "Abrir App Web") : "Ver Simulador 3D";
+    var acciones = '<a href="' + p.url + '" class="btn btn-principal" style="width:100%">' +
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>' +
+      btnLabel + '</a>';
+    if (p.ino) {
+      acciones += '<a href="' + p.ino + '" download class="btn-descargar" style="justify-content:center">' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>' +
+        'Código (.ino)' + '</a>';
+    }
+    if (p.historico) {
+      acciones += '<a href="' + p.historico + '" data-md="' + p.historico + '" data-titulo="Registro T1–T7 (P01 MQTT base)" class="btn-descargar" style="justify-content:center">' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v12H4z"></path><path d="M8 8h8M8 12h8M8 16h5"></path></svg>' +
+        'Registro T1–T7' + '</a>';
+    }
+    return '<div class="proto-card">' +
+      '<div class="proto-card-top"><span class="proto-tag">' + p.codigo + ' · ' + p.tema + '</span>' +
+      '<h3 class="proto-titulo">' + p.nombre + '</h3>' +
+      '<p class="proto-desc">' + desc + '</p></div>' +
+      '<div class="proto-acciones">' + acciones + '</div></div>';
+  }
+
+  var principales = TG.prototipos.filter(function(p){ return p.principal; });
+  document.getElementById("cat-software").innerHTML = principales.filter(function(p){ return p.categoria === "software"; }).map(tarjeta).join("");
+  document.getElementById("cat-app").innerHTML = principales.filter(function(p){ return p.categoria === "app"; }).map(tarjeta).join("");
+  document.getElementById("cat-hardware").innerHTML =
+    'El firmware y la electrónica del robot están aquí: ' +
+    '<a href="#t-firmware">firmware integrado</a> · <a href="hardware.html">lista de materiales</a>.';
 })();
 </script>
 

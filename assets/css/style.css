@@ -19,10 +19,10 @@
   --accent-primary: #0F9D84;     /* Verde éxito / firmware / validado */
   --accent-primary-hover: #0b7e6a;
   --accent-secondary: #3b82f6;   /* Azul telemetría / red */
-  --accent-coral: #f43f5e;       /* Alerta / atención / vivo */
-  --accent-purple: #7c3aed;      /* Fase en curso / QoS */
-  --accent-amber: #f59e0b;       /* Pendiente / hardware en tránsito */
-  --accent-amber-bg: #fffbeb;
+  --accent-coral: #c26070;       /* Alerta / atención / vivo (desaturado) */
+  --accent-purple: #7b6ba8;      /* Fase en curso / QoS (desaturado) */
+  --accent-amber: #c9993f;       /* Pendiente / hardware en tránsito (desaturado) */
+  --accent-amber-bg: #faf5e8;
 
   /* Tipografías */
   --font-display: "Bricolage Grotesque", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
