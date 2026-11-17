@@ -414,6 +414,7 @@
       <li><b>2. Verifica el mismo Broker en la App</b><span>Abre <a href="../../app/" target="_blank" rel="noopener">la Interfaz Flutter</a> y comprueba en la tarjeta superior ("Enlace MQTT · ...") que ambos estén en el mismo broker (HiveMQ, EMQX o Mosquitto).</span></li>
       <li><b>3. Observa la Telemetría en Vivo</b><span>Verás cómo la batería, el modo autónomo/manual y la posición de la línea cambian automáticamente cada 2 segundos.</span></li>
       <li><b>4. Manda un pedido</b><span>Desde el <a href="../P01-mqtt-base/banco.html" target="_blank" rel="noopener">banco de pruebas P01</a> pulsa "Enviar un pedido": el ESP32 virtual lo recibe en <code>ordenes</code> y lo confirma en <code>ordenes/ack</code>. Lo verás en el registro de las dos páginas.</span></li>
+      <li><b>5. Maneja el robot desde la app</b><span>En la app, los botones de dirección y <strong>Frenar</strong> pasan el ESP32 virtual a MANUAL (velocidades de la orden). <strong>Auto</strong> lo vuelve a AUTÓNOMO y retoma los 6 perfiles.</span></li>
     </ol>
   </section>
 </main>
@@ -487,6 +488,20 @@
   var timer = null;
   var timerTimeout = null;
   var paso = 0;
+  /* Modo del robot virtual, como en firmware/robot_integrado.ino:
+     "auto"   = AUTÓNOMO: recorre los 6 perfiles en bucle (así arranca al encender)
+     "manual" = lo maneja la app: adelante, atras, izquierda, derecha o frenar */
+  var modoP10 = "auto";
+  var ultimoPerfil = PERFILES[0];
+  var velManual = { izq: 0, der: 0 };
+  var VEL_MANUAL = 0.40; /* m/s de cada rueda en modo manual */
+  var CMDS = {
+    adelante: { izq: VEL_MANUAL, der: VEL_MANUAL },
+    atras: { izq: -VEL_MANUAL, der: -VEL_MANUAL },
+    izquierda: { izq: -VEL_MANUAL, der: VEL_MANUAL },
+    derecha: { izq: VEL_MANUAL, der: -VEL_MANUAL },
+    frenar: { izq: 0, der: 0 }
+  };
   var secuencia = 5000;
   var enviados = 0;
   var ordenesRecibidas = 0;  /* pedidos recibidos por ordenes (no los mensajes de estado) */
@@ -629,23 +644,52 @@
     actualizarPlaca(clase);
   }
 
+  /* Igual que aplicarCmd() del firmware: "auto" vuelve a AUTÓNOMO; lo demás pasa a MANUAL.
+     Un comando desconocido frena, por seguridad. */
+  function aplicarCmd(cmd) {
+    if (cmd === "auto") {
+      modoP10 = "auto";
+      escribirLog("🤖 Orden <b>auto</b>: modo <b>AUTÓNOMO</b>. Vuelve a recorrer los 6 perfiles en bucle.");
+      return;
+    }
+    var v = CMDS[cmd];
+    if (!v) {
+      v = CMDS.frenar;
+      escribirLog("⚠️ Comando desconocido <b>" + escaparHtml(cmd) + "</b>: el robot frena por seguridad.");
+    }
+    modoP10 = "manual";
+    velManual = { izq: v.izq, der: v.der };
+    escribirLog(cmd === "frenar"
+      ? "🛑 Orden <b>frenar</b>: modo <b>MANUAL</b>, ruedas en 0 m/s. Sigue mandando su estado cada 2 s."
+      : "🕹️ Orden <b>" + escaparHtml(cmd) + "</b>: modo <b>MANUAL</b>, ruedas " + v.izq.toFixed(2) + " / " + v.der.toFixed(2) + " m/s.");
+  }
+
   function publicarPaso() {
-    var idx = paso % PERFILES.length;
-    var p = PERFILES[idx];
     var b = brokerActual();
-    paso++;
+    var idx = -1;
+    var p;
+    if (modoP10 === "auto") {
+      /* AUTÓNOMO: siguiente perfil del bucle */
+      idx = paso % PERFILES.length;
+      p = PERFILES[idx];
+      ultimoPerfil = p;
+      paso++;
+    } else {
+      /* MANUAL: misma batería y línea del último perfil, con las velocidades de la orden */
+      p = ultimoPerfil;
+    }
     secuencia++;
     enviados++;
 
     var payload = {
       n: secuencia,
-      estado: p.estado,
+      estado: modoP10 === "auto" ? "autonomo" : "manual",
       bateria: p.bateria,
       bateria_v: p.bateria_v,
       ordenes: ordenesRecibidas,
       linea_mm: p.linea_mm,
-      v_izq: p.v_izq,
-      v_der: p.v_der,
+      v_izq: modoP10 === "auto" ? p.v_izq : velManual.izq,
+      v_der: modoP10 === "auto" ? p.v_der : velManual.der,
       t: Date.now() - inicioMs
     };
 
@@ -760,6 +804,7 @@
       var pedido = null;
       try { pedido = JSON.parse(texto); } catch (_) {}
       var id = pedido && pedido.id ? String(pedido.id) : "sin-id";
+      var cmd = pedido && typeof pedido.cmd === "string" ? pedido.cmd : null;
       ordenesRecibidas++;
       escribirLog("📥 [" + b.nombre + "] SUB <b>" + T_ORDENES + "</b> → pedido <b>" + escaparHtml(id) + "</b> <code>" + escaparHtml(texto) + "</code>");
       var ack = JSON.stringify({ id: id, recibidas: ordenesRecibidas, t: Date.now() - inicioMs });
@@ -768,6 +813,11 @@
         if (err) escribirLog("❌ No se pudo confirmar " + escaparHtml(id) + ": " + escaparHtml(err.message || err));
         else escribirLog("📤 [" + b.nombre + "] PUB <b>" + T_ACK + "</b> ← <code>" + escaparHtml(ack) + "</code>");
       });
+      /* Una orden con "cmd" maneja el robot; sin "cmd" es un pedido de componente: solo se confirma */
+      if (cmd !== null) {
+        aplicarCmd(cmd);
+        publicarPaso(); /* el estado nuevo sale de inmediato, sin esperar los 2 s */
+      }
     });
 
     cliente.on("error", function (err) {
@@ -786,6 +836,7 @@
 
   function encender() {
     encendido = true;
+    modoP10 = "auto";
     btnOn.disabled = true;
     btnOff.disabled = false;
     inicioMs = Date.now();

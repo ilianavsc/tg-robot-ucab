@@ -459,7 +459,9 @@ class _TarjetaEsperandoDatos extends StatelessWidget {
   }
 }
 
-/// Tarjeta de órdenes: 5 botones de manejo y la última confirmación (ack).
+/// Tarjeta de órdenes: 4 direcciones, Frenar, Auto y la última confirmación (ack).
+///
+/// Las direcciones y Frenar pasan el robot a MANUAL; Auto lo vuelve a AUTÓNOMO.
 ///
 /// Cada botón publica `{"id":"<uuid>","cmd":"<comando>"}` en
 /// `ucab-tg-sf/robot/ordenes` (QoS 1). Los comandos son los del firmware.
@@ -490,9 +492,12 @@ class _TarjetaOrdenes extends StatelessWidget {
     required String comando,
     required IconData icono,
     bool detener = false,
+    bool auto = false,
   }) {
     final bool activo = servicio.puedeEnviarOrdenes;
-    final Color color = detener ? TelemetriaScreen._rojoError : _azulOrden;
+    final Color color = detener
+        ? TelemetriaScreen._rojoError
+        : (auto ? TelemetriaScreen._verdePrimario : _azulOrden);
     return SizedBox(
       height: 56,
       child: FilledButton.icon(
@@ -583,7 +588,7 @@ class _TarjetaOrdenes extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: _boton(context,
-                              etiqueta: 'Detener',
+                              etiqueta: 'Frenar',
                               comando: 'frenar',
                               icono: Icons.stop,
                               detener: true),
@@ -610,6 +615,15 @@ class _TarjetaOrdenes extends StatelessWidget {
                         ),
                         const Spacer(),
                       ],
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: _boton(context,
+                          etiqueta: 'Auto · seguir la línea solo',
+                          comando: 'auto',
+                          icono: Icons.smart_toy,
+                          auto: true),
                     ),
                   ],
                 ),
