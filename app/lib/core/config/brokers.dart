@@ -1,8 +1,8 @@
 /// Catálogo de brokers para las pruebas y telemetría en vivo.
 ///
-/// **Orden de intento:** sincronizado exactamente con P10 (HiveMQ → EMQX → Mosquitto → Local).
-/// En celular y web sobre HTTPS, los brokers seguros (WSS) van primero para evitar
-/// que el navegador móvil bloquee la conexión por Mixed Content (ws://).
+/// **Orden de intento:** sincronizado exactamente con P10 (HiveMQ → EMQX → Mosquitto).
+/// Todos los brokers son seguros (WSS) para evitar que el navegador bloquee la
+/// conexión por Mixed Content cuando la app corre sobre HTTPS.
 class BrokerEndpoint {
   const BrokerEndpoint({
     required this.nombre,
@@ -34,7 +34,7 @@ class BrokerEndpoint {
   String get urlWeb => '$esquemaWeb://$host:$puertoWeb/mqtt';
 }
 
-/// Orden de intento sincronizado con P10: HiveMQ → EMQX → Mosquitto → Local.
+/// Orden de intento sincronizado con P10: HiveMQ → EMQX → Mosquitto.
 const List<BrokerEndpoint> brokers = <BrokerEndpoint>[
   BrokerEndpoint(
     nombre: 'HiveMQ',
@@ -56,13 +56,5 @@ const List<BrokerEndpoint> brokers = <BrokerEndpoint>[
     puertoNativo: 1883,
     puertoWeb: 8081,
     seguroWeb: true,
-  ),
-  // Mosquitto local: TCP 1883 y WebSocket 9001 sin TLS (al final).
-  BrokerEndpoint(
-    nombre: 'Local',
-    host: 'localhost',
-    puertoNativo: 1883,
-    puertoWeb: 9001,
-    seguroWeb: false,
   ),
 ];

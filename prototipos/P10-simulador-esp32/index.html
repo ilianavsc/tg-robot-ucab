@@ -229,7 +229,7 @@
         <div class="broker-panel" aria-live="polite">
           <div class="broker-actual-info">
             <span class="broker-actual-titulo" id="broker-titulo">Enlace MQTT · HiveMQ (Listo para conectar)</span>
-            <span class="broker-actual-sub" id="broker-sub">broker.hivemq.com:8884 · Respaldo automático: HiveMQ → EMQX → Mosquitto → Local</span>
+            <span class="broker-actual-sub" id="broker-sub">broker.hivemq.com:8884 · Respaldo automático: HiveMQ → EMQX → Mosquitto</span>
           </div>
           <div class="brokers-lista" id="brokers-pills" aria-label="Selector de broker MQTT"></div>
         </div>
@@ -241,7 +241,7 @@
           <span style="font-family:var(--font-mono);font-size:12px;color:#38bdf8" id="contador-enviados">0 paquetes enviados</span>
         </div>
         <div class="log-mqtt" id="log-mqtt">
-          <div class="ts">[Sistema listo] Pulsa "Encender ESP32 Virtual" para conectar (HiveMQ → EMQX → Mosquitto → Local) y transmitir telemetría...</div>
+          <div class="ts">[Sistema listo] Pulsa "Encender ESP32 Virtual" para conectar (HiveMQ → EMQX → Mosquitto) y transmitir telemetría...</div>
         </div>
       </div>
     </div>
@@ -251,7 +251,7 @@
     <h2 id="t-como-probar">Cómo probar junto con la App Flutter (P09)</h2>
     <ol class="pasos">
       <li><b>1. Enciende el ESP32 Virtual</b><span>Haz clic en <strong>"Encender ESP32 Virtual"</strong> arriba. El simulador probará la lista de respaldo hasta conectar y mostrará en pantalla a qué broker se enlazó.</span></li>
-      <li><b>2. Verifica el mismo Broker en la App</b><span>Abre <a href="../../app/" target="_blank" rel="noopener">la Interfaz Flutter</a> y comprueba en la tarjeta superior ("Enlace MQTT · ...") que ambos estén en el mismo broker (HiveMQ, EMQX, Mosquitto o Local).</span></li>
+      <li><b>2. Verifica el mismo Broker en la App</b><span>Abre <a href="../../app/" target="_blank" rel="noopener">la Interfaz Flutter</a> y comprueba en la tarjeta superior ("Enlace MQTT · ...") que ambos estén en el mismo broker (HiveMQ, EMQX o Mosquitto).</span></li>
       <li><b>3. Observa la Telemetría en Vivo</b><span>Verás cómo la batería, el modo autónomo/manual y la posición de la línea cambian automáticamente cada 2 segundos.</span></li>
     </ol>
   </section>
@@ -271,8 +271,7 @@
   var BROKERS = [
     { nombre: "HiveMQ", host: "broker.hivemq.com", puerto: 8884, url: "wss://broker.hivemq.com:8884/mqtt" },
     { nombre: "EMQX", host: "broker.emqx.io", puerto: 8084, url: "wss://broker.emqx.io:8084/mqtt" },
-    { nombre: "Mosquitto", host: "test.mosquitto.org", puerto: 8081, url: "wss://test.mosquitto.org:8081/mqtt" },
-    { nombre: "Local", host: "localhost", puerto: 9001, url: "ws://localhost:9001/mqtt" }
+    { nombre: "Mosquitto", host: "test.mosquitto.org", puerto: 8081, url: "wss://test.mosquitto.org:8081/mqtt" }
   ];
 
   var PERFILES = [
@@ -318,10 +317,10 @@
       brokerSubEl.textContent = "URL activa: " + b.url + " · Publicando en " + TOPICO;
     } else if (encendido) {
       brokerTituloEl.textContent = "Enlace MQTT · Probando " + b.nombre + " (intento " + (intentosEnBroker + 1) + " de " + INTENTOS_POR_BROKER + ")";
-      brokerSubEl.textContent = b.url + " · Respaldo automático: HiveMQ → EMQX → Mosquitto → Local";
+      brokerSubEl.textContent = b.url + " · Respaldo automático: HiveMQ → EMQX → Mosquitto";
     } else {
       brokerTituloEl.textContent = "Enlace MQTT · " + b.nombre + " (Listo para conectar)";
-      brokerSubEl.textContent = b.host + ":" + b.puerto + " · Respaldo automático: HiveMQ → EMQX → Mosquitto → Local";
+      brokerSubEl.textContent = b.host + ":" + b.puerto + " · Respaldo automático: HiveMQ → EMQX → Mosquitto";
     }
 
     brokersPillsEl.innerHTML = BROKERS.map(function (br, i) {
