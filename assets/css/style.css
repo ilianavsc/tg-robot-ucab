@@ -633,6 +633,12 @@ section {
   padding: 24px 28px;
   margin: 0 0 32px;
   box-shadow: var(--shadow-hard);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.frase-explicativa code {
+  overflow-wrap: anywhere;
+  word-break: break-all;
 }
 
 /* ==========================================================================

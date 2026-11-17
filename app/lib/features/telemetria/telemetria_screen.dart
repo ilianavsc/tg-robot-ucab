@@ -48,21 +48,26 @@ class TelemetriaScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            const Text(
-              'TG Robot UCAB · Telemetría',
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19),
+            const Expanded(
+              child: Text(
+                'TG Robot UCAB · Telemetría',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+              ),
             ),
           ],
         ),
         actions: <Widget>[
           Padding(
-            padding: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.only(right: 12),
             child: Chip(
+              visualDensity: VisualDensity.compact,
               avatar: Icon(
                 servicio.simulando
                     ? Icons.science
                     : (servicio.conectado ? Icons.cloud_done : Icons.cloud_off),
-                size: 16,
+                size: 15,
                 color: Colors.white,
               ),
               label: Text(
@@ -72,7 +77,7 @@ class TelemetriaScreen extends StatelessWidget {
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontSize: 11,
                 ),
               ),
               backgroundColor: colorEstado,
@@ -513,25 +518,27 @@ class _TarjetaOrdenes extends StatelessWidget {
     return _Presionable(
       habilitado: activo,
       child: SizedBox(
-      height: 56,
-      child: FilledButton.icon(
-        onPressed: activo ? () => _enviar(context, comando) : null,
-        style: FilledButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+        height: 52,
+        child: FilledButton.icon(
+          onPressed: activo ? () => _enviar(context, comando) : null,
+          style: FilledButton.styleFrom(
+            backgroundColor: color,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          icon: Icon(icono, size: 18),
+          label: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              etiqueta,
+              maxLines: 1,
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+            ),
           ),
         ),
-        icon: Icon(icono, size: 22),
-        label: Text(
-          etiqueta,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
-        ),
-      ),
       ),
     );
   }
@@ -822,28 +829,33 @@ class _TarjetaBateria extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                const Text(
-                  'Corte seguro: 9.90 V (0 %)',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                ),
-                if (baja)
+            SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                spacing: 12,
+                runSpacing: 4,
+                children: <Widget>[
                   const Text(
-                    '¡ALERTA: BATERÍA BAJA!',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: TelemetriaScreen._rojoError,
-                    ),
-                  )
-                else
-                  const Text(
-                    'Carga máxima: 12.60 V (100 %)',
+                    'Corte seguro: 9.90 V (0 %)',
                     style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                   ),
-              ],
+                  if (baja)
+                    const Text(
+                      '¡ALERTA: BATERÍA BAJA!',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: TelemetriaScreen._rojoError,
+                      ),
+                    )
+                  else
+                    const Text(
+                      'Carga máxima: 12.60 V (100 %)',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                    ),
+                ],
+              ),
             ),
           ],
         ),
@@ -865,6 +877,25 @@ class _TarjetaModoYLinea extends StatelessWidget {
         ? TelemetriaScreen._verdePrimario
         : TelemetriaScreen._rojoError;
 
+    final Widget itemModo = _ItemMetricaIcono(
+      icono: estado.esAutonomo ? Icons.smart_toy : Icons.sports_esports,
+      colorIcono: estado.esAutonomo
+          ? TelemetriaScreen._verdePrimario
+          : const Color(0xFF7C3AED),
+      titulo: 'Modo de Operación',
+      valor: estado.esAutonomo
+          ? 'Autónomo (PD 100 Hz)'
+          : 'Manual (Control Remoto)',
+    );
+
+    final Widget itemLinea = _ItemMetricaIcono(
+      icono: veLinea ? Icons.timeline : Icons.warning_amber,
+      colorIcono: colorLinea,
+      titulo: 'Posición de Línea (4× TCRT5000)',
+      valor:
+          '${estado.lineaMm.toStringAsFixed(1)} mm (${veLinea ? "En pista" : "Perdida"})',
+    );
+
     return Card(
       elevation: 0,
       color: Colors.white,
@@ -874,38 +905,26 @@ class _TarjetaModoYLinea extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            if (constraints.maxWidth < 480) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  itemModo,
+                  const SizedBox(height: 12),
+                  itemLinea,
+                ],
+              );
+            }
+            return Row(
               children: <Widget>[
-                Expanded(
-                  child: _ItemMetricaIcono(
-                    icono: estado.esAutonomo
-                        ? Icons.smart_toy
-                        : Icons.sports_esports,
-                    colorIcono: estado.esAutonomo
-                        ? TelemetriaScreen._verdePrimario
-                        : const Color(0xFF7C3AED),
-                    titulo: 'Modo de Operación',
-                    valor: estado.esAutonomo
-                        ? 'Autónomo (PD 100 Hz)'
-                        : 'Manual (Control Remoto)',
-                  ),
-                ),
+                Expanded(child: itemModo),
                 const SizedBox(width: 16),
-                Expanded(
-                  child: _ItemMetricaIcono(
-                    icono: veLinea ? Icons.timeline : Icons.warning_amber,
-                    colorIcono: colorLinea,
-                    titulo: 'Posición de Línea (4× TCRT5000)',
-                    valor:
-                        '${estado.lineaMm.toStringAsFixed(1)} mm (${veLinea ? "En pista" : "Perdida"})',
-                  ),
-                ),
+                Expanded(child: itemLinea),
               ],
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
@@ -936,9 +955,11 @@ class _TarjetaTraccionYSistema extends StatelessWidget {
               children: <Widget>[
                 Icon(Icons.speed, color: Color(0xFF0F172A), size: 22),
                 SizedBox(width: 8),
-                Text(
-                  'Tracción Diferencial y Telemetría de Sistema',
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                Expanded(
+                  child: Text(
+                    'Tracción Diferencial y Telemetría de Sistema',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                  ),
                 ),
               ],
             ),
