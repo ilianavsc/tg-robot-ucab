@@ -180,6 +180,12 @@
   document.addEventListener("click", function (ev) {
     var a = ev.target && ev.target.closest ? ev.target.closest("a") : null;
     if (!a) return;
+    var href = a.getAttribute("href") || "";
+    if (location.protocol === "file:" && /(^|\/)app\/?$/.test(href)) {
+      ev.preventDefault();
+      window.open("https://ilianavsc.github.io/tg-robot-ucab/app/", "_blank", "noopener");
+      return;
+    }
     var rutaMd = normalizarRutaMd(a);
     if (!rutaMd) return;
     ev.preventDefault();

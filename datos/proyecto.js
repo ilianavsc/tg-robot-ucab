@@ -60,15 +60,56 @@ window.TG = {
     { codigo: "P12", nombre: "Pruebas y estadística", tema: "Análisis", semana: 27, estado: "pendiente", categoria: "hardware" }
   ],
 
-  /* Lo que hay que hacer ya. hecho: true cuando se cumpla */
+  /* ---------- PORTADA Y CRONOGRAMA RESUMIDOS ---------- */
+  /* Frase corta de qué resuelve el robot (portada) */
+  queResuelve: "Un robot que lleva los componentes del laboratorio UCAB hasta tu puesto.",
+
+  /* Enlaces principales de la portada */
+  enlaces: {
+    app: "https://ilianavsc.github.io/tg-robot-ucab/app/",
+    simuladorEsp32: "prototipos/P10-simulador-esp32/index.html",
+    cronograma: "cronograma.html"
+  },
+
+  /* Las 7 fases agrupadas en 4 etapas fáciles de leer.
+     fases = ids de TG.fases · semanas = [primera, última] */
+  etapas: [
+    { n: 1, icono: "🔎", nombre: "Entender y diseñar", fases: ["I", "II"], semanas: [1, 8],
+      frase: "Hablar con el laboratorio, elegir piezas y diseñar el sistema." },
+    { n: 2, icono: "🛠️", nombre: "Construir y programar", fases: ["III", "IV"], semanas: [9, 19],
+      frase: "Armar el robot, programar el ESP32 y hacerlo navegar." },
+    { n: 3, icono: "📱", nombre: "App y alertas", fases: ["V", "VI"], semanas: [20, 27],
+      frase: "Crear la app, conectarla al robot y activar la alarma." },
+    { n: 4, icono: "🏁", nombre: "Pruebas y entrega", fases: ["VII"], semanas: [28, 32],
+      frase: "Probar 20+ veces, analizar datos y escribir el tomo." }
+  ],
+
+  /* Texto corto de cada prototipo para las tarjetas: nombre corto + qué hace en 1 línea */
+  protoResumen: {
+    P01: { corto: "App ↔ robot (MQTT)", linea: "Mensajes que no se pierden entre la app y el robot." },
+    P02: { corto: "Sensores", linea: "Los ojos del robot: línea, obstáculos y movimiento." },
+    P03: { corto: "Motores parejos", linea: "Las dos ruedas avanzan igual, en línea recta." },
+    P04: { corto: "Ubicación BLE o QR", linea: "Elegir cómo sabe el robot dónde está." },
+    P05: { corto: "Robot virtual", linea: "Un robot de prueba conectado a Firebase." },
+    P06: { corto: "App versión 1", linea: "Primera app para pedir piezas y ver el estado." },
+    P07: { corto: "Firmware completo", linea: "Todo el código del ESP32 trabajando junto." },
+    P08: { corto: "Seguir la línea", linea: "El robot sigue la cinta negra sin salirse." },
+    P09: { corto: "App web (Modo Demo)", linea: "Pide y mira el robot desde el celular, sin robot." },
+    P10: { corto: "Simulador ESP32", linea: "Un ESP32 virtual que envía datos a la app." },
+    P11: { corto: "Alarma al teléfono", linea: "Si lo levantan, la alerta llega a la app." },
+    P12: { corto: "Pruebas y estadística", linea: "20+ repeticiones y análisis de resultados." }
+  },
+
+  /* Lo que hay que hacer ya. hecho: true cuando se cumpla
+     corto = texto de 1 línea para la portada (si falta, se usa "que") */
   pendientes: [
     { que: "Cerrar P01: alarma con QoS 2 y 50 órdenes seguidas", fecha: "2026-11-13", hecho: true },
-        { que: "Pedido de Amazon: 2 kits de motor (<a href=\"https://www.amazon.com/dp/B0H2JP84J7\">Emoshayoga JGA25-371</a>, Speed 200), 3 ESP32 (<a href=\"https://www.amazon.com/dp/B0FBV7QGC4\">AITRIP</a>), el BMS (<a href=\"https://www.amazon.com/dp/B07JMY631D\">daier 3S 25 A</a>), el cargador (<a href=\"https://www.amazon.com/dp/B07P8DMSZ8\">TalentCell 12,6 V</a>) el puerto de carga (<a href=\"https://www.amazon.com/dp/B0DX1ZQ84K\">DC-022D</a>) y 2 ultrasónicos (<a href=\"https://www.amazon.com/dp/B0GL8NJCVT\">HC-SR04P</a>). Total ~US$ 106 + 7 % de impuesto de Florida + courier; revisar que pese menos de 1 kg", fecha: "2026-11-16", hecho: true },
-    { que: "Ajustar el Capítulo II y enviarlo (<a href=\"docs/tomo/capitulo-ii-cambios.md\">lista de cambios</a>)", fecha: "2026-11-14", hecho: true },
+        { corto: "Pedir en Amazon motores, ESP32, BMS y sensores", que: "Pedido de Amazon: 2 kits de motor (<a href=\"https://www.amazon.com/dp/B0H2JP84J7\">Emoshayoga JGA25-371</a>, Speed 200), 3 ESP32 (<a href=\"https://www.amazon.com/dp/B0FBV7QGC4\">AITRIP</a>), el BMS (<a href=\"https://www.amazon.com/dp/B07JMY631D\">daier 3S 25 A</a>), el cargador (<a href=\"https://www.amazon.com/dp/B07P8DMSZ8\">TalentCell 12,6 V</a>) el puerto de carga (<a href=\"https://www.amazon.com/dp/B0DX1ZQ84K\">DC-022D</a>) y 2 ultrasónicos (<a href=\"https://www.amazon.com/dp/B0GL8NJCVT\">HC-SR04P</a>). Total ~US$ 106 + 7 % de impuesto de Florida + courier; revisar que pese menos de 1 kg", fecha: "2026-11-16", hecho: true },
+    { corto: "Ajustar y enviar el Capítulo II", que: "Ajustar el Capítulo II y enviarlo (<a href=\"docs/tomo/capitulo-ii-cambios.md\">lista de cambios</a>)", fecha: "2026-11-14", hecho: true },
     { que: "Entrevista en el laboratorio", fecha: "2026-11-14", hecho: true },
-    { que: "Llega el pedido de Amazon al casillero en Miami (estimado de Amazon: 15 al 28 dic). Luego falta el envío a Venezuela", fecha: "2026-12-28", hecho: false },
-    { que: "Buscar el cargador en casa y revisar que diga 12,6 V (cargador de litio 3S), no una fuente de 12 V", fecha: "2026-11-23", hecho: false },
-    { que: "Comprar lo de Mercado Libre: pilas, porta pilas, L298N, LM2596, 4 TCRT5000, MPU6050, fusible e interruptor", fecha: "2026-11-27", hecho: false },
+    { corto: "Llega el pedido de Amazon a Miami (15–28 dic)", que: "Llega el pedido de Amazon al casillero en Miami (estimado de Amazon: 15 al 28 dic). Luego falta el envío a Venezuela", fecha: "2026-12-28", hecho: false },
+    { corto: "Buscar el cargador de litio 12,6 V en casa", que: "Buscar el cargador en casa y revisar que diga 12,6 V (cargador de litio 3S), no una fuente de 12 V", fecha: "2026-11-23", hecho: false },
+    { corto: "Comprar en Mercado Libre: pilas, driver y sensores", que: "Comprar lo de Mercado Libre: pilas, porta pilas, L298N, LM2596, 4 TCRT5000, MPU6050, fusible e interruptor", fecha: "2026-11-27", hecho: false },
     { que: "Observación en el laboratorio + prueba H0 (Wi-Fi)", fecha: "2026-11-18", hecho: false },
     { que: "Documento de requerimientos y matriz de hardware v2", fecha: "2026-11-20", hecho: false }
   ],

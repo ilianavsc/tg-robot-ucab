@@ -1144,3 +1144,332 @@ dialog.modal-md::backdrop {
     font-size: 12.5px;
   }
 }
+
+/* ==========================================================================
+   REDISEÑO EJECUTIVO: HERO CON BARRA DE AVANCE, FILTROS Y ACORDEONES
+   ========================================================================== */
+
+/* Frases cortas de máximo 2 líneas */
+.linea-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.45;
+}
+
+/* Barra de avance en el Hero y Cronograma */
+.hero-progreso {
+  background: var(--surface-alt);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  margin: 0 0 22px;
+  max-width: 680px;
+}
+
+.hero-progreso-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.hero-progreso-top span:last-child {
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  color: var(--accent-primary);
+}
+
+.barra-avance {
+  width: 100%;
+  height: 14px;
+  background: #e2e8f0;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--border-dark);
+  overflow: hidden;
+  position: relative;
+}
+
+.barra-avance-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-primary) 0%, #10b981 100%);
+  border-radius: var(--radius-full);
+  transition: width 0.35s ease;
+}
+
+/* Filtros rápidos de prototipos */
+.filtros-barra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 20px;
+}
+
+.filtro-btn {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  min-height: 44px;
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--border-dark);
+  background: #ffffff;
+  color: var(--text-main);
+  cursor: pointer;
+  box-shadow: 3px 3px 0px var(--border-dark);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+  touch-action: manipulation;
+}
+
+.filtro-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px var(--border-dark);
+  background: var(--surface-alt);
+}
+
+.filtro-btn.activo {
+  background: var(--border-dark);
+  color: #ffffff;
+}
+
+/* Tarjeta compacta de prototipo */
+.proto-card-compacta {
+  background: #ffffff;
+  border: 2px solid var(--border-dark);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-hard);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.proto-card-compacta:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hard-hover);
+}
+
+.proto-card-compacta.en-camino {
+  background: #fcfcfd;
+  border-style: dashed;
+  box-shadow: 3px 3px 0px #94a3b8;
+}
+
+.proto-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.proto-num {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--surface-alt);
+  border: 1.5px solid var(--border-dark);
+  border-radius: var(--radius-sm);
+  padding: 3px 9px;
+  color: var(--text-main);
+}
+
+.proto-nombre-corto {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  margin: 4px 0 4px;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.proto-una-linea {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Botón desplegable "Ver detalle técnico" */
+details.desplegable-tecnico {
+  margin-top: 10px;
+  border-top: 1px dashed var(--border);
+  padding-top: 10px;
+}
+
+details.desplegable-tecnico > summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  padding: 6px 12px;
+  min-height: 38px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-alt);
+  border: 1.5px solid var(--border);
+  user-select: none;
+  touch-action: manipulation;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+details.desplegable-tecnico > summary::-webkit-details-marker {
+  display: none;
+}
+
+details.desplegable-tecnico > summary::after {
+  content: "▾";
+  font-size: 12px;
+  transition: transform 0.18s ease;
+}
+
+details.desplegable-tecnico[open] > summary::after {
+  transform: rotate(180deg);
+}
+
+details.desplegable-tecnico > summary:hover {
+  background: #e2e8f0;
+  border-color: var(--border-dark);
+}
+
+.desplegable-cuerpo {
+  margin-top: 12px;
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+/* Cronograma de 4 fases visuales con acordeones */
+.etapas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.etapa-card {
+  background: #ffffff;
+  border: 2px solid var(--border-dark);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  box-shadow: var(--shadow-hard);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.etapa-card.activa {
+  border-top: 8px solid var(--accent-purple);
+}
+
+.etapa-card.hecha {
+  border-top: 8px solid var(--accent-primary);
+}
+
+.etapa-card.futura {
+  border-top: 8px solid #cbd5e1;
+}
+
+.etapa-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.etapa-num {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.etapa-titulo {
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.etapa-frase {
+  margin: 0;
+  font-size: 15.5px;
+  color: var(--text-muted);
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.semanas-lista {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.semana-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-alt);
+  border-left: 4px solid #cbd5e1;
+  font-size: 14px;
+}
+
+.semana-item.pasada {
+  border-left-color: var(--accent-primary);
+}
+
+.semana-item.actual {
+  border-left-color: var(--accent-coral);
+  background: #fff1f2;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .filtros-barra {
+    gap: 8px;
+  }
+  .filtro-btn {
+    flex: 1 1 auto;
+    text-align: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+  .etapas-grid {
+    grid-template-columns: 1fr;
+  }
+  .proto-card-compacta {
+    padding: 16px;
+  }
+  details.desplegable-tecnico > summary {
+    width: 100%;
+    justify-content: space-between;
+    min-height: 44px;
+  }
+}
