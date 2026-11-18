@@ -20,6 +20,8 @@ class TelemetriaScreen extends StatelessWidget {
   static const Color _verdePrimario = Color(0xFF0F9D84);
   static const Color _rojoError = Color(0xFFE11D48);
   static const Color _ambarAviso = Color(0xFFD97706);
+  static const Color _violetaDemo = Color(0xFF7C3AED);
+  static const Color _violetaDemoBorde = Color(0xFFC4B5FD);
 
   @override
   Widget build(BuildContext context) {
@@ -95,6 +97,10 @@ class TelemetriaScreen extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: <Widget>[
+              if (servicio.simulando) ...<Widget>[
+                _BannerModoDemo(onDetener: servicio.detenerSimulacion),
+                const SizedBox(height: 12),
+              ],
               _Aparece(
                 indice: 0,
                 child: _TarjetaConexionYControles(
@@ -114,13 +120,28 @@ class TelemetriaScreen extends StatelessWidget {
                   child: _TarjetaEsperandoDatos(servicio: servicio),
                 )
               else ...<Widget>[
-                _Aparece(indice: 2, child: _TarjetaBateria(estado: estado)),
+                _Aparece(
+                  indice: 2,
+                  child: _TarjetaBateria(
+                    estado: estado,
+                    simulando: servicio.simulando,
+                  ),
+                ),
                 const SizedBox(height: 16),
-                _Aparece(indice: 3, child: _TarjetaModoYLinea(estado: estado)),
+                _Aparece(
+                  indice: 3,
+                  child: _TarjetaModoYLinea(
+                    estado: estado,
+                    simulando: servicio.simulando,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 _Aparece(
                   indice: 4,
-                  child: _TarjetaTraccionYSistema(estado: estado),
+                  child: _TarjetaTraccionYSistema(
+                    estado: estado,
+                    simulando: servicio.simulando,
+                  ),
                 ),
               ],
               const SizedBox(height: 16),
@@ -136,7 +157,7 @@ class TelemetriaScreen extends StatelessWidget {
   }
 
   static Color _colorConexion(MqttService servicio) {
-    if (servicio.simulando) return _verdePrimario;
+    if (servicio.simulando) return _violetaDemo;
     switch (servicio.conexion) {
       case EstadoConexion.conectado:
         return _verdePrimario;
@@ -342,23 +363,23 @@ class _TarjetaConexionYControles extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFECFDF5),
-                  border: Border.all(color: const Color(0xFF6EE7B7)),
+                  color: const Color(0xFFF5F3FF),
+                  border: Border.all(color: TelemetriaScreen._violetaDemoBorde),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Row(
                   children: <Widget>[
                     Icon(
-                      Icons.check_circle,
-                      color: TelemetriaScreen._verdePrimario,
+                      Icons.science,
+                      color: TelemetriaScreen._violetaDemo,
                       size: 20,
                     ),
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'MODO DEMO ACTIVO · Emitiendo los 6 perfiles de telemetría cada 2 s sin red.',
+                        'MODO DEMO · Datos simulados localmente (6 perfiles cada 2 s sin red).',
                         style: TextStyle(
-                          color: Color(0xFF065F46),
+                          color: Color(0xFF5B21B6),
                           fontWeight: FontWeight.w700,
                           fontSize: 13,
                         ),
@@ -400,7 +421,7 @@ class _TarjetaConexionYControles extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: servicio.iniciarSimulacion,
                   style: FilledButton.styleFrom(
-                    backgroundColor: TelemetriaScreen._verdePrimario,
+                    backgroundColor: TelemetriaScreen._violetaDemo,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 18,
@@ -468,13 +489,25 @@ class _TarjetaEsperandoDatos extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(color: Color(0xFF64748B), fontSize: 14),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             FilledButton.icon(
               onPressed: servicio.iniciarSimulacion,
               style: FilledButton.styleFrom(
-                backgroundColor: TelemetriaScreen._verdePrimario,
+                backgroundColor: TelemetriaScreen._violetaDemo,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                minimumSize: const Size(0, 34),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+                textStyle: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-              icon: const Icon(Icons.play_arrow),
+              icon: const Icon(Icons.play_arrow, size: 16),
               label: const Text('Activar Modo Demo ahora'),
             ),
           ],
@@ -765,11 +798,94 @@ class _CajaUltimoAck extends StatelessWidget {
   }
 }
 
+/// Banner superior visible cuando el Modo Demo está activo para distinguir
+/// claramente los datos simulados de la telemetría MQTT real.
+class _BannerModoDemo extends StatelessWidget {
+  const _BannerModoDemo({required this.onDetener});
+
+  final VoidCallback onDetener;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F3FF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: TelemetriaScreen._violetaDemo, width: 1.5),
+      ),
+      child: Row(
+        children: <Widget>[
+          const Icon(
+            Icons.science,
+            color: TelemetriaScreen._violetaDemo,
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Text(
+              'MODO DEMO · Datos simulados localmente',
+              style: TextStyle(
+                color: Color(0xFF5B21B6),
+                fontWeight: FontWeight.w800,
+                fontSize: 13.5,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: onDetener,
+            style: TextButton.styleFrom(
+              foregroundColor: TelemetriaScreen._violetaDemo,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              minimumSize: const Size(0, 30),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
+            ),
+            child: const Text(
+              'Salir',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Etiqueta compacta 'DEMO' para las tarjetas de telemetría cuando están simulando.
+class _EtiquetaDemo extends StatelessWidget {
+  const _EtiquetaDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3E8FF),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: TelemetriaScreen._violetaDemoBorde),
+      ),
+      child: const Text(
+        'DEMO',
+        style: TextStyle(
+          color: TelemetriaScreen._violetaDemo,
+          fontWeight: FontWeight.w800,
+          fontSize: 10.5,
+          letterSpacing: 0.4,
+        ),
+      ),
+    );
+  }
+}
+
 /// Tarjeta de Batería Li-Ion 3S con barra de progreso y alerta de voltaje bajo.
 class _TarjetaBateria extends StatelessWidget {
-  const _TarjetaBateria({required this.estado});
+  const _TarjetaBateria({required this.estado, this.simulando = false});
 
   final Estado estado;
+  final bool simulando;
 
   @override
   Widget build(BuildContext context) {
@@ -778,7 +894,9 @@ class _TarjetaBateria extends StatelessWidget {
         ? TelemetriaScreen._rojoError
         : (estado.bateria <= 40
               ? TelemetriaScreen._ambarAviso
-              : TelemetriaScreen._verdePrimario);
+              : (simulando
+                    ? TelemetriaScreen._violetaDemo
+                    : TelemetriaScreen._verdePrimario));
 
     return Card(
       elevation: 0,
@@ -786,7 +904,11 @@ class _TarjetaBateria extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: baja ? TelemetriaScreen._rojoError : const Color(0xFFCBD5E1),
+          color: baja
+              ? TelemetriaScreen._rojoError
+              : (simulando
+                    ? TelemetriaScreen._violetaDemoBorde
+                    : const Color(0xFFCBD5E1)),
           width: 1.5,
         ),
       ),
@@ -809,6 +931,10 @@ class _TarjetaBateria extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                   ),
                 ),
+                if (simulando) ...<Widget>[
+                  const _EtiquetaDemo(),
+                  const SizedBox(width: 8),
+                ],
                 Text(
                   '${estado.bateria} % · ${estado.bateriaV.toStringAsFixed(2)} V',
                   style: TextStyle(
@@ -874,23 +1000,28 @@ class _TarjetaBateria extends StatelessWidget {
 
 /// Tarjeta de Modo de Operación (Autónomo / Manual) y Seguimiento de Línea.
 class _TarjetaModoYLinea extends StatelessWidget {
-  const _TarjetaModoYLinea({required this.estado});
+  const _TarjetaModoYLinea({required this.estado, this.simulando = false});
 
   final Estado estado;
+  final bool simulando;
 
   @override
   Widget build(BuildContext context) {
     final bool veLinea = estado.veLaLinea;
     final Color colorLinea = veLinea
-        ? TelemetriaScreen._verdePrimario
+        ? (simulando
+              ? TelemetriaScreen._violetaDemo
+              : TelemetriaScreen._verdePrimario)
         : TelemetriaScreen._rojoError;
 
     final Widget itemModo = _ItemMetricaIcono(
       icono: estado.esAutonomo ? Icons.smart_toy : Icons.sports_esports,
-      colorIcono: estado.esAutonomo
-          ? TelemetriaScreen._verdePrimario
-          : const Color(0xFF7C3AED),
-      titulo: 'Modo de Operación',
+      colorIcono: simulando
+          ? TelemetriaScreen._violetaDemo
+          : (estado.esAutonomo
+                ? TelemetriaScreen._verdePrimario
+                : const Color(0xFF7C3AED)),
+      titulo: simulando ? 'Modo de Operación · DEMO' : 'Modo de Operación',
       valor: estado.esAutonomo
           ? 'Autónomo (PD 100 Hz)'
           : 'Manual (Control Remoto)',
@@ -909,7 +1040,12 @@ class _TarjetaModoYLinea extends StatelessWidget {
       color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.5),
+        side: BorderSide(
+          color: simulando
+              ? TelemetriaScreen._violetaDemoBorde
+              : const Color(0xFFCBD5E1),
+          width: 1.5,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -941,9 +1077,13 @@ class _TarjetaModoYLinea extends StatelessWidget {
 
 /// Tarjeta de Velocidades de Ruedas (P03) y Contadores de Sistema (P01).
 class _TarjetaTraccionYSistema extends StatelessWidget {
-  const _TarjetaTraccionYSistema({required this.estado});
+  const _TarjetaTraccionYSistema({
+    required this.estado,
+    this.simulando = false,
+  });
 
   final Estado estado;
+  final bool simulando;
 
   @override
   Widget build(BuildContext context) {
@@ -952,23 +1092,35 @@ class _TarjetaTraccionYSistema extends StatelessWidget {
       color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.5),
+        side: BorderSide(
+          color: simulando
+              ? TelemetriaScreen._violetaDemoBorde
+              : const Color(0xFFCBD5E1),
+          width: 1.5,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            const Row(
+            Row(
               children: <Widget>[
-                Icon(Icons.speed, color: Color(0xFF0F172A), size: 22),
-                SizedBox(width: 8),
-                Expanded(
+                Icon(
+                  Icons.speed,
+                  color: simulando
+                      ? TelemetriaScreen._violetaDemo
+                      : const Color(0xFF0F172A),
+                  size: 22,
+                ),
+                const SizedBox(width: 8),
+                const Expanded(
                   child: Text(
                     'Tracción Diferencial y Telemetría de Sistema',
                     style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                   ),
                 ),
+                if (simulando) const _EtiquetaDemo(),
               ],
             ),
             const Divider(height: 24),
@@ -1172,10 +1324,15 @@ class _TarjetaUltrasonicosState extends State<_TarjetaUltrasonicos> {
     final Ultrasonido? ult = context.select<MqttService, Ultrasonido?>(
       (MqttService s) => s.ultimoUltrasonido,
     );
+    final bool simulando = context.select<MqttService, bool>(
+      (MqttService s) => s.simulando,
+    );
     final bool hayDatos = ult != null;
     final bool sinSenal =
         ult != null && DateTime.now().difference(ult.llegada) > _limiteFrescura;
-    final Color acento = sinSenal ? _gris : const Color(0xFF2563EB);
+    final Color acento = sinSenal
+        ? _gris
+        : (simulando ? TelemetriaScreen._violetaDemo : const Color(0xFF2563EB));
 
     final Widget frente = _FilaDistancia(
       etiqueta: 'Frente',
@@ -1198,7 +1355,11 @@ class _TarjetaUltrasonicosState extends State<_TarjetaUltrasonicos> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: sinSenal ? _gris : const Color(0xFFCBD5E1),
+          color: sinSenal
+              ? _gris
+              : (simulando
+                    ? TelemetriaScreen._violetaDemoBorde
+                    : const Color(0xFFCBD5E1)),
           width: 1.5,
         ),
       ),
@@ -1217,6 +1378,10 @@ class _TarjetaUltrasonicosState extends State<_TarjetaUltrasonicos> {
                     style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
                   ),
                 ),
+                if (simulando && !sinSenal) ...<Widget>[
+                  const _EtiquetaDemo(),
+                  const SizedBox(width: 8),
+                ],
                 if (sinSenal)
                   Container(
                     padding:
