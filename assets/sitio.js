@@ -46,31 +46,116 @@
   /* Menú */
   var base = document.body.getAttribute("data-base") || "";
   var actual = document.body.getAttribute("data-pagina") || "";
-  var secciones = [
-    ["inicio", "Inicio", "index.html"],
-    ["cronograma", "Cronograma", "cronograma.html"],
-    ["prototipos", "Prototipos", "prototipos/index.html"],
-    ["pruebas", "Centro de pruebas", "prototipos/centro-pruebas.html"],
-    ["requerimientos", "Requerimientos", "requerimientos.html"],
-    ["hardware", "Hardware", "hardware.html"],
-    ["arquitectura", "Arquitectura", "arquitectura.html"],
-    ["decisiones", "Decisiones", "decisiones.html"],
-    ["bitacora", "Bitácora", "bitacora.html"],
-    ["docs", "Documentación", "index.html#t-explora"],
-    // La app Flutter vive en su propia subcarpeta de GitHub Pages
-    ["app", "App web", "https://ilianavsc.github.io/tg-robot-ucab/app/"]
+  /* Menú en 5 grupos: tipo "enlace" va solo, tipo "grupo" despliega sus hijos.
+     Cada hijo es [clave de data-pagina, texto, url]. */
+  var APP_URL = "https://ilianavsc.github.io/tg-robot-ucab/app/"; // la app Flutter vive en su propia subcarpeta de GitHub Pages
+  var grupos = [
+    { tipo: "enlace", clave: "inicio", texto: "Inicio", url: "index.html" },
+    { tipo: "grupo", id: "proyecto", texto: "El Proyecto", hijos: [
+      ["cronograma", "Cronograma", "cronograma.html"],
+      ["requerimientos", "Requerimientos", "requerimientos.html"],
+      ["hardware", "Hardware", "hardware.html"],
+      ["arquitectura", "Arquitectura", "arquitectura.html"],
+      ["decisiones", "Decisiones", "decisiones.html"]
+    ] },
+    { tipo: "enlace", clave: "prototipos", texto: "Prototipos", url: "prototipos/index.html" },
+    { tipo: "grupo", id: "avances", texto: "Avances", hijos: [
+      ["pruebas", "Centro de pruebas", "prototipos/centro-pruebas.html"],
+      ["bitacora", "Bitácora", "bitacora.html"],
+      ["docs", "Documentación", "index.html#t-explora"]
+    ] },
+    { tipo: "enlace", clave: "app", texto: "App Web", url: APP_URL, destacado: true }
   ];
 
   // Los enlaces absolutos no llevan el prefijo `base` de las subpáginas.
   function urlDe(u) { return /^https?:\/\//.test(u) ? u : base + u; }
+  var CHEVRON = '<svg class="menu-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>';
+  var ICONO_MENU = '<svg class="icono-hamb" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
   var menu = document.getElementById("menu");
   if (menu) {
-    var html = '<a class="menu-marca" href="' + base + 'index.html"><span class="punto-marca" aria-hidden="true"></span>TG Robot UCAB</a><nav aria-label="Secciones"><ul>';
-    secciones.forEach(function (s) {
-      if (s[2]) html += '<li><a href="' + urlDe(s[2]) + '"' + (s[0] === actual ? ' aria-current="page"' : "") + ">" + s[1] + "</a></li>";
-      else html += '<li><span class="pronto" title="Próximamente">' + s[1] + "</span></li>";
+    var html = '<a class="menu-marca" href="' + base + 'index.html"><span class="punto-marca" aria-hidden="true"></span>TG Robot UCAB</a>' +
+      '<button type="button" class="menu-hamburguesa" id="menu-hamburguesa" aria-expanded="false" aria-controls="menu-nav" aria-label="Abrir menú de navegación">' + ICONO_MENU + '<span>Menú</span></button>' +
+      '<nav id="menu-nav" aria-label="Secciones"><ul class="menu-lista">';
+    grupos.forEach(function (g) {
+      if (g.tipo === "enlace") {
+        html += '<li><a' + (g.destacado ? ' class="menu-app"' : "") + ' href="' + urlDe(g.url) + '"' + (g.clave === actual ? ' aria-current="page"' : "") + ">" + g.texto + "</a></li>";
+        return;
+      }
+      var activo = g.hijos.some(function (h) { return h[0] === actual; });
+      html += '<li class="menu-grupo' + (activo ? " tiene-actual" : "") + '">' +
+        '<button type="button" class="menu-grupo-btn" aria-expanded="false" aria-haspopup="true" aria-controls="mg-' + g.id + '">' + g.texto + CHEVRON + "</button>" +
+        '<ul class="menu-sub" id="mg-' + g.id + '">';
+      g.hijos.forEach(function (h) {
+        html += '<li><a href="' + urlDe(h[2]) + '"' + (h[0] === actual ? ' aria-current="page"' : "") + ">" + h[1] + "</a></li>";
+      });
+      html += "</ul></li>";
     });
     menu.innerHTML = html + "</ul></nav>";
+
+    /* Botón hamburguesa en móvil */
+    var btnHamb = document.getElementById("menu-hamburguesa");
+    var cerrarMovil = function () {
+      menu.classList.remove("menu-movil-abierto");
+      if (btnHamb) btnHamb.setAttribute("aria-expanded", "false");
+    };
+    if (btnHamb) {
+      btnHamb.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var abierto = menu.classList.toggle("menu-movil-abierto");
+        btnHamb.setAttribute("aria-expanded", abierto ? "true" : "false");
+        if (!abierto) items.forEach(cerrarG);
+      });
+    }
+
+    /* Despliegue: hover en PC, clic en PC y móvil/táctil; Esc, clic afuera y salir con Tab lo cierran. */
+    var conHover = window.matchMedia("(hover: hover) and (pointer: fine)");
+    var items = [].slice.call(menu.querySelectorAll(".menu-grupo"));
+    var temporizadores = new WeakMap();
+    var cerrarG = function (g) {
+      g.classList.remove("abierto");
+      g.querySelector(".menu-grupo-btn").setAttribute("aria-expanded", "false");
+    };
+    var abrirG = function (g) {
+      items.forEach(function (o) { if (o !== g) cerrarG(o); });
+      g.classList.add("abierto");
+      g.querySelector(".menu-grupo-btn").setAttribute("aria-expanded", "true");
+    };
+    items.forEach(function (g) {
+      var btn = g.querySelector(".menu-grupo-btn");
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (g.classList.contains("abierto")) cerrarG(g);
+        else abrirG(g);
+      });
+      g.addEventListener("mouseenter", function () {
+        if (!conHover.matches) return;
+        clearTimeout(temporizadores.get(g));
+        abrirG(g);
+      });
+      g.addEventListener("mouseleave", function () {
+        if (!conHover.matches) return;
+        temporizadores.set(g, setTimeout(function () { cerrarG(g); }, 140));
+      });
+      g.addEventListener("focusout", function (e) {
+        if (!g.contains(e.relatedTarget)) cerrarG(g);
+      });
+    });
+    document.addEventListener("click", function (e) {
+      if (!menu.contains(e.target)) {
+        items.forEach(cerrarG);
+        cerrarMovil();
+      }
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape") return;
+      items.forEach(function (g) {
+        if (g.classList.contains("abierto")) {
+          cerrarG(g);
+          if (g.contains(document.activeElement)) g.querySelector(".menu-grupo-btn").focus();
+        }
+      });
+      cerrarMovil();
+    });
   }
   var pie = document.getElementById("pie");
   if (pie) {

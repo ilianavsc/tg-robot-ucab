@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import '../config/brokers.dart';
 import '../models/estado.dart';
 import '../models/orden_ack.dart';
+import '../models/ultrasonido.dart';
 import 'mqtt_client_platform_stub.dart'
     if (dart.library.io) 'mqtt_client_platform_io.dart'
     if (dart.library.js_interop) 'mqtt_client_platform_web.dart';
@@ -36,6 +37,7 @@ class MqttService extends ChangeNotifier {
     this.topicoEstado = 'ucab-tg-sf/robot/estado',
     this.topicoOrdenes = 'ucab-tg-sf/robot/ordenes',
     this.topicoAck = 'ucab-tg-sf/robot/ordenes/ack',
+    this.topicoUltrasonido = 'ucab-tg-sf/robot/ultrasonido',
   });
 
   /// Tópico de telemetría del robot (QoS 0, cada 2 s).
@@ -46,6 +48,9 @@ class MqttService extends ChangeNotifier {
 
   /// Tópico donde el robot confirma cada orden (QoS 1).
   final String topicoAck;
+
+  /// Tópico de los 2 sensores ultrasónicos: `frente_cm` y `atras_cm` (QoS 0).
+  final String topicoUltrasonido;
 
   /// Órdenes recientes enviadas por esta app, por id (para medir la latencia).
   static const int _maxOrdenesGuardadas = 50;
@@ -79,6 +84,7 @@ class MqttService extends ChangeNotifier {
 
   EstadoConexion _conexion = EstadoConexion.desconectado;
   Estado? _ultimoEstado;
+  Ultrasonido? _ultimoUltrasonido;
   DateTime? _ultimoMensaje;
   String? _ultimoError;
 
@@ -114,6 +120,9 @@ class MqttService extends ChangeNotifier {
 
   /// Última telemetría válida recibida (null hasta el primer mensaje).
   Estado? get ultimoEstado => _ultimoEstado;
+
+  /// Últimas distancias de los ultrasónicos (null hasta el primer mensaje).
+  Ultrasonido? get ultimoUltrasonido => _ultimoUltrasonido;
 
   /// Momento en que llegó el último mensaje (hora del teléfono).
   DateTime? get ultimoMensaje => _ultimoMensaje;
@@ -182,6 +191,7 @@ class MqttService extends ChangeNotifier {
       }
       cliente.subscribe(topicoEstado, MqttQos.atMostOnce);
       cliente.subscribe(topicoAck, MqttQos.atLeastOnce);
+      cliente.subscribe(topicoUltrasonido, MqttQos.atMostOnce);
       // El stream `updates` se crea dentro de connect(): hay que escucharlo
       // aquí y no en el constructor, donde todavía es null. En cada conexión
       // el gestor de suscripciones es nuevo, así que se cancela el anterior.
@@ -403,13 +413,19 @@ class MqttService extends ChangeNotifier {
 
   void _procesarMensajes(List<MqttReceivedMessage<MqttMessage>> eventos) {
     for (final evento in eventos) {
-      if (evento.topic != topicoEstado && evento.topic != topicoAck) continue;
+      if (evento.topic != topicoEstado &&
+          evento.topic != topicoAck &&
+          evento.topic != topicoUltrasonido) {
+        continue;
+      }
       if (evento.payload is! MqttPublishMessage) continue;
       final publicacion = evento.payload as MqttPublishMessage;
       final texto =
           MqttPublishPayload.bytesToStringAsString(publicacion.payload.message);
       if (evento.topic == topicoEstado) {
         _decodificarEstado(texto);
+      } else if (evento.topic == topicoUltrasonido) {
+        _decodificarUltrasonido(texto);
       } else {
         _decodificarAck(texto);
       }
@@ -489,9 +505,34 @@ class MqttService extends ChangeNotifier {
       vDer: perfil.vDer,
       t: _tDemo,
     );
+    _ultimoUltrasonido = Ultrasonido(
+      frenteCm: _frenteDemo[_pasoDemo % _frenteDemo.length],
+      atrasCm: _atrasDemo[_pasoDemo % _atrasDemo.length],
+      llegada: DateTime.now(),
+      t: _tDemo,
+    );
     _ultimoMensaje = DateTime.now();
     _ultimoError = null;
     notifyListeners();
+  }
+
+  // Distancias de ejemplo del Modo Demo (una por paso, en cm).
+  static const List<double> _frenteDemo = <double>[150, 90, 45, 18, 70, 120];
+  static const List<double> _atrasDemo = <double>[160, 160, 110, 60, 25, 90];
+
+  /// Guarda las últimas distancias de los ultrasónicos. No toca el Modo Demo
+  /// ni el estado general: es un tópico aparte.
+  void _decodificarUltrasonido(String texto) {
+    try {
+      final mapa = jsonDecode(texto);
+      if (mapa is! Map<String, dynamic>) {
+        throw const FormatException('el payload no es un objeto JSON');
+      }
+      _ultimoUltrasonido = Ultrasonido.fromJson(mapa);
+    } catch (e) {
+      _ultimoError = 'JSON inválido en $topicoUltrasonido: $e';
+    }
+    if (!_descartado) notifyListeners();
   }
 
   void _decodificarEstado(String texto) {

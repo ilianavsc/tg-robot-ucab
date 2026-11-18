@@ -887,19 +887,6 @@ section {
   #menu {
     padding: 10px 14px;
   }
-  #menu nav {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  #menu nav::-webkit-scrollbar {
-    display: none;
-  }
-  #menu nav ul {
-    flex-wrap: nowrap;
-    gap: 6px;
-  }
   #menu a, #menu .pronto {
     white-space: nowrap;
     padding: 8px 12px;
@@ -1564,4 +1551,203 @@ dialog.modal-md[open]::backdrop {
 }
 @keyframes modal-fondo {
   from { opacity: 0; }
+}
+
+/* ==========================================================================
+   MENÚ EN 5 GRUPOS CON DESPLEGABLES
+   Hover en PC (con 140 ms de tolerancia), clic en móvil. Entrada con ease-out
+   desde la esquina del botón; la salida es más rápida que la entrada.
+   ========================================================================== */
+#menu .menu-lista { align-items: center; }
+
+#menu .menu-grupo { position: relative; }
+
+#menu .menu-grupo-btn {
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.15s ease-out, color 0.15s ease-out, transform 0.16s var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+#menu .menu-grupo-btn:active { transform: scale(0.97); }
+#menu .menu-grupo-btn:focus-visible,
+#menu a:focus-visible { outline: 2.5px solid var(--accent-secondary); outline-offset: 2px; }
+
+#menu .menu-grupo.abierto > .menu-grupo-btn,
+#menu .menu-grupo-btn:hover { background: var(--surface-alt); color: var(--text-main); }
+#menu .menu-grupo.tiene-actual > .menu-grupo-btn { color: var(--text-main); box-shadow: inset 0 -3px 0 var(--accent-primary); border-radius: var(--radius-sm) var(--radius-sm) 0 0; }
+
+.menu-chevron { transition: transform 0.2s var(--ease-out); flex: none; }
+#menu .menu-grupo.abierto .menu-chevron { transform: rotate(180deg); }
+
+/* Panel desplegable */
+#menu .menu-sub {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 220px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 2px;
+  background: #ffffff;
+  border: 2px solid var(--border-dark);
+  border-radius: var(--radius-md);
+  box-shadow: 4px 4px 0 var(--border-dark), 0 12px 24px rgba(15, 23, 42, 0.12);
+  z-index: 60;
+
+  /* cerrado: sale rápido (120 ms) */
+  opacity: 0;
+  transform: translateY(-4px) scale(0.97);
+  transform-origin: top left;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.12s ease-out, transform 0.12s ease-out, visibility 0s linear 0.12s;
+}
+/* puente invisible para que el puntero no "caiga" al pasar del botón al panel */
+#menu .menu-sub::before { content: ""; position: absolute; left: 0; right: 0; top: -10px; height: 10px; }
+
+#menu .menu-grupo.abierto > .menu-sub {
+  opacity: 1;
+  transform: none;
+  visibility: visible;
+  pointer-events: auto;
+  /* abierto: entra en 170 ms con ease-out fuerte */
+  transition: opacity 0.17s var(--ease-out), transform 0.17s var(--ease-out), visibility 0s;
+}
+
+#menu .menu-sub a {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  white-space: nowrap;
+  font-size: 15px;
+}
+
+/* App Web: botón destacado */
+#menu a.menu-app {
+  background: var(--accent-primary);
+  color: #ffffff;
+  border: 2px solid var(--border-dark);
+  box-shadow: 3px 3px 0 var(--border-dark);
+  padding: 4px 14px;
+}
+#menu a.menu-app:hover { background: var(--accent-primary-hover); color: #ffffff; }
+@media (hover: hover) and (pointer: fine) {
+  #menu a.menu-app:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--border-dark); }
+}
+#menu a.menu-app:active { transform: scale(0.97); box-shadow: 1px 1px 0 var(--border-dark); }
+
+/* Botón hamburguesa: oculto en escritorio, visible en móvil */
+.menu-hamburguesa {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border-dark);
+  background: #ffffff;
+  color: var(--text-main);
+  box-shadow: 2px 2px 0 var(--border-dark);
+  cursor: pointer;
+  min-height: 40px;
+}
+.menu-hamburguesa:active { transform: scale(0.97); }
+
+/* En escritorio, el desplegable de Avances se alinea a la derecha para no salirse nunca */
+#mg-avances {
+  left: auto;
+  right: 0;
+  transform-origin: top right;
+}
+
+/* Móvil: menú hamburguesa desplegable y submenús tipo acordeón que nunca se salen de 390px */
+@media (max-width: 768px) {
+  .menu-hamburguesa {
+    display: inline-flex;
+  }
+  #menu.menu-movil-abierto .menu-hamburguesa {
+    background: var(--border-dark);
+    color: #ffffff;
+  }
+  #menu nav {
+    display: none;
+    width: 100%;
+    overflow: visible;
+    padding-top: 8px;
+    border-top: 1.5px solid var(--border);
+  }
+  #menu.menu-movil-abierto nav {
+    display: block;
+  }
+  #menu .menu-lista {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    width: 100%;
+  }
+  #menu .menu-lista > li {
+    width: 100%;
+  }
+  #menu .menu-lista > li > a,
+  #menu .menu-grupo-btn {
+    width: 100%;
+    justify-content: space-between;
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 15px;
+    box-sizing: border-box;
+  }
+  #menu .menu-grupo {
+    position: static;
+  }
+  #menu .menu-sub {
+    position: static;
+    min-width: 0;
+    width: 100%;
+    margin: 4px 0 6px;
+    padding: 6px;
+    box-sizing: border-box;
+    box-shadow: none;
+    background: var(--surface-alt);
+    border: 1.5px solid var(--border);
+    display: none;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
+  }
+  #menu .menu-grupo.abierto > .menu-sub {
+    display: flex;
+  }
+  #menu .menu-sub::before { display: none; }
+  #menu .menu-sub a {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    font-size: 14.5px;
+    white-space: normal;
+  }
+  #menu a.menu-app {
+    justify-content: center;
+    margin-top: 4px;
+    min-height: 44px;
+  }
 }

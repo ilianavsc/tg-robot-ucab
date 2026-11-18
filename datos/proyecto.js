@@ -57,7 +57,8 @@ window.TG = {
     { codigo: "P09", nombre: "Interfaz Web / Modo Demo", tema: "Flutter", semana: 15, estado: "hecho", categoria: "app", url: "app/", principal: true, simulador: "app/", simuladorTexto: "Abrir App Web (Modo Demo)" },
     { codigo: "P10", nombre: "Simulador ESP32 Virtual", tema: "MQTT Web", semana: 21, estado: "hecho", categoria: "app", url: "prototipos/P10-simulador-esp32/index.html", principal: true, simulador: "prototipos/P10-simulador-esp32/index.html", simuladorTexto: "Abrir Simulador ESP32" },
     { codigo: "P11", nombre: "La alarma llega al teléfono", tema: "Alertas", semana: 23, estado: "pendiente", categoria: "app" },
-    { codigo: "P12", nombre: "Pruebas y estadística", tema: "Análisis", semana: 27, estado: "pendiente", categoria: "hardware" }
+    { codigo: "P12", nombre: "Pruebas y estadística", tema: "Análisis", semana: 27, estado: "pendiente", categoria: "hardware" },
+    { codigo: "P13", nombre: "Radar Ultrasónico (Frente/Atrás)", tema: "Ultrasonido", semana: 5, estado: "pruebas", categoria: "hardware", url: "prototipos/P13-sensores-ultrasonicos/index.html", principal: true, simulador: "prototipos/P13-sensores-ultrasonicos/index.html", simuladorTexto: "Abrir simulador de ultrasonido" },
   ],
 
   /* ---------- PORTADA Y CRONOGRAMA RESUMIDOS ---------- */
@@ -97,7 +98,8 @@ window.TG = {
     P09: { corto: "App web (Modo Demo)", linea: "Pide y mira el robot desde el celular, sin robot." },
     P10: { corto: "Simulador ESP32", linea: "Un ESP32 virtual que envía datos a la app." },
     P11: { corto: "Alarma al teléfono", linea: "Si lo levantan, la alerta llega a la app." },
-    P12: { corto: "Pruebas y estadística", linea: "20+ repeticiones y análisis de resultados." }
+    P12: { corto: "Pruebas y estadística", linea: "20+ repeticiones y análisis de resultados." },
+    P13: { corto: "Radar Ultrasónico (Frente/Atrás)", linea: "El robot mide qué tan lejos está lo que tiene delante y detrás." }
   },
 
   /* Lo que hay que hacer ya. hecho: true cuando se cumpla
