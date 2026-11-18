@@ -133,11 +133,11 @@ a.ir:hover {
 
     <div class="hero-progreso" aria-label="Avance de prototipos">
       <div class="hero-progreso-top">
-        <span id="hero-avance-label">5/12 prototipos listos</span>
-        <span id="hero-avance-pct">42 % completado</span>
+        <span id="hero-avance-label">6/12 prototipos listos</span>
+        <span id="hero-avance-pct">50 % completado</span>
       </div>
-      <div class="barra-avance" role="progressbar" aria-valuemin="0" aria-valuemax="12" aria-valuenow="5" id="hero-barra-aria">
-        <div class="barra-avance-fill" id="hero-barra-fill" style="width:41.7%"></div>
+      <div class="barra-avance" role="progressbar" aria-valuemin="0" aria-valuemax="12" aria-valuenow="6" id="hero-barra-aria">
+        <div class="barra-avance-fill" id="hero-barra-fill" style="width:50%"></div>
       </div>
     </div>
 
@@ -150,6 +150,10 @@ a.ir:hover {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
         Abrir Simulador ESP32
       </a>
+      <a href="prototipos/P11-sensores-ultrasonicos/index.html" class="btn btn-secundario">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12a10 10 0 0 1 20 0"></path><path d="M6 12a6 6 0 0 1 12 0"></path><circle cx="12" cy="12" r="2"></circle></svg>
+        Radar Ultrasónico (P11)
+      </a>
       <a href="cronograma.html" class="btn btn-secundario">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
         Ver Cronograma
@@ -158,7 +162,7 @@ a.ir:hover {
   </section>
 
   <!-- ====================================================================
-       2. PROTOTIPOS CON FILTROS RÁPIDOS ("Todos", "Listos (5)", "En camino (7)")
+       2. PROTOTIPOS CON FILTROS RÁPIDOS ("Todos", "Listos (6)", "En camino (6)")
        ==================================================================== -->
   <section aria-labelledby="t-protos">
     <h2 id="t-protos">Prototipos del Proyecto</h2>
@@ -166,8 +170,8 @@ a.ir:hover {
 
     <div class="filtros-barra" role="tablist" aria-label="Filtrar prototipos">
       <button type="button" class="filtro-btn activo" data-filtro="todos" role="tab" aria-selected="true" id="f-todos">Todos</button>
-      <button type="button" class="filtro-btn" data-filtro="listos" role="tab" aria-selected="false" id="f-listos">Listos (5)</button>
-      <button type="button" class="filtro-btn" data-filtro="camino" role="tab" aria-selected="false" id="f-camino">En camino (7)</button>
+      <button type="button" class="filtro-btn" data-filtro="listos" role="tab" aria-selected="false" id="f-listos">Listos (6)</button>
+      <button type="button" class="filtro-btn" data-filtro="camino" role="tab" aria-selected="false" id="f-camino">En camino (6)</button>
     </div>
 
     <div class="rejilla" id="grid-prototipos" aria-live="polite"></div>
@@ -208,12 +212,12 @@ a.ir:hover {
       <div class="estado-card completado">
         <div class="estado-header">
           <span class="chip hecho">Validado en Software</span>
-          <span class="mono" style="font-size:13px;font-weight:700;color:var(--accent-primary)">5/5 listos</span>
+          <span class="mono" style="font-size:13px;font-weight:700;color:var(--accent-primary)">6/6 listos</span>
         </div>
-        <h3 style="margin:0 0 6px">Simuladores 3D, App y Firmware</h3>
+        <h3 style="margin:0 0 6px">Simuladores 3D, Radar, App y Firmware</h3>
         <p style="margin:0 0 8px"><span class="chip hecho" title="Lógica de órdenes y ACK probada en el PC con un MQTT falso. Falta la prueba en el ESP32 real.">✓ Firmware C++ validado (13/13 tests)</span></p>
         <p class="linea-2" style="margin:0;font-size:15.5px;color:var(--text-muted)">
-          Comunicación MQTT, control de motores, seguidor de línea y app móvil funcionando en tiempo real.
+          Comunicación MQTT, control de motores, seguidor de línea, radar ultrasónico y app móvil en tiempo real.
         </p>
 
         <details class="desplegable-tecnico" id="t-firmware">
@@ -223,6 +227,7 @@ a.ir:hover {
               <li class="estado-item"><span class="estado-icon check">✓</span><div><strong>P01 (MQTT):</strong> 0 órdenes perdidas en 50 envíos y detección de caída LWT en 22 s.</div></li>
               <li class="estado-item"><span class="estado-icon check">✓</span><div><strong>P03 (Tracción):</strong> PWM a 20 kHz e interrupciones de encoders con batería Li-Ion 3S.</div></li>
               <li class="estado-item"><span class="estado-icon check">✓</span><div><strong>P08 (Línea):</strong> Control PD a 100 Hz con 4 sensores TCRT5000 a 0,41 m/s.</div></li>
+              <li class="estado-item"><span class="estado-icon check">✓</span><div><strong>P11 (Ultrasonido):</strong> Radar interactivo en canvas (Izq, Centro, Der) publicando en <code>ucab-tg-sf/robot/ultrasonido</code>.</div></li>
               <li class="estado-item"><span class="estado-icon check">✓</span><div><strong>Firmware C++ validado (13/13 tests):</strong> órdenes y ACK probados en el PC con un MQTT falso; el ACK sale idéntico al del simulador P10. Falta la prueba con el ESP32 real (<a href="docs/centro_de_pruebas.md" data-md="docs/centro_de_pruebas.md" data-titulo="Centro de pruebas">flujo de la prueba física</a>).</div></li>
               <li class="estado-item"><span class="estado-icon check">✓</span><div><strong>Firmware Integrado:</strong> Un solo archivo <code>.ino</code> sin <code>delay()</code> (71 % Flash, 15 % RAM) con fail-safe y corte por batería baja (9,9 V).</div></li>
             </ul>
