@@ -887,19 +887,6 @@ section {
   #menu {
     padding: 10px 14px;
   }
-  #menu nav {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  #menu nav::-webkit-scrollbar {
-    display: none;
-  }
-  #menu nav ul {
-    flex-wrap: nowrap;
-    gap: 6px;
-  }
   #menu a, #menu .pronto {
     white-space: nowrap;
     padding: 8px 12px;
@@ -1665,22 +1652,102 @@ dialog.modal-md[open]::backdrop {
 }
 #menu a.menu-app:active { transform: scale(0.97); box-shadow: 1px 1px 0 var(--border-dark); }
 
-/* Móvil: los 5 grupos caben en 1 o 2 filas, así que ya no hace falta el scroll lateral
-   (que recortaría los desplegables). El panel se abre a todo el ancho, debajo de la barra. */
+/* Botón hamburguesa: oculto en escritorio, visible en móvil */
+.menu-hamburguesa {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border-dark);
+  background: #ffffff;
+  color: var(--text-main);
+  box-shadow: 2px 2px 0 var(--border-dark);
+  cursor: pointer;
+  min-height: 40px;
+}
+.menu-hamburguesa:active { transform: scale(0.97); }
+
+/* En escritorio, el desplegable de Avances se alinea a la derecha para no salirse nunca */
+#mg-avances {
+  left: auto;
+  right: 0;
+  transform-origin: top right;
+}
+
+/* Móvil: menú hamburguesa desplegable y submenús tipo acordeón que nunca se salen de 390px */
 @media (max-width: 768px) {
-  #menu nav { overflow: visible; }
-  #menu .menu-lista { flex-wrap: wrap; gap: 6px; }
-  #menu .menu-grupo { position: static; }
-  #menu .menu-grupo-btn { min-height: 42px; padding: 8px 12px; font-size: 14px; }
+  .menu-hamburguesa {
+    display: inline-flex;
+  }
+  #menu.menu-movil-abierto .menu-hamburguesa {
+    background: var(--border-dark);
+    color: #ffffff;
+  }
+  #menu nav {
+    display: none;
+    width: 100%;
+    overflow: visible;
+    padding-top: 8px;
+    border-top: 1.5px solid var(--border);
+  }
+  #menu.menu-movil-abierto nav {
+    display: block;
+  }
+  #menu .menu-lista {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    width: 100%;
+  }
+  #menu .menu-lista > li {
+    width: 100%;
+  }
+  #menu .menu-lista > li > a,
+  #menu .menu-grupo-btn {
+    width: 100%;
+    justify-content: space-between;
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 15px;
+    box-sizing: border-box;
+  }
+  #menu .menu-grupo {
+    position: static;
+  }
   #menu .menu-sub {
-    top: 100%;
-    left: 10px;
-    right: 10px;
+    position: static;
     min-width: 0;
-    margin-top: 6px;
-    transform-origin: top center;
+    width: 100%;
+    margin: 4px 0 6px;
+    padding: 6px;
+    box-sizing: border-box;
+    box-shadow: none;
+    background: var(--surface-alt);
+    border: 1.5px solid var(--border);
+    display: none;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
+  }
+  #menu .menu-grupo.abierto > .menu-sub {
+    display: flex;
   }
   #menu .menu-sub::before { display: none; }
-  #menu .menu-sub a { min-height: 44px; display: flex; align-items: center; font-size: 15.5px; }
-  #menu a.menu-app { min-height: 42px; }
+  #menu .menu-sub a {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    font-size: 14.5px;
+    white-space: normal;
+  }
+  #menu a.menu-app {
+    justify-content: center;
+    margin-top: 4px;
+    min-height: 44px;
+  }
 }
