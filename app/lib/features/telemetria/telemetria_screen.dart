@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -124,7 +126,7 @@ class TelemetriaScreen extends StatelessWidget {
               const SizedBox(height: 16),
               _Aparece(
                 indice: 5,
-                child: _TarjetaUltrasonicos(datos: servicio.ultimoUltrasonido),
+                child: const _TarjetaUltrasonicos(),
               ),
             ],
           ),
@@ -1132,58 +1134,138 @@ class _ChipDato extends StatelessWidget {
 
 /// Tarjeta de los 2 sensores ultrasónicos: distancia al frente y atrás en cm,
 /// en vivo (se actualiza con cada mensaje de `ucab-tg-sf/robot/ultrasonido`).
-class _TarjetaUltrasonicos extends StatelessWidget {
-  const _TarjetaUltrasonicos({required this.datos});
+///
+/// Se reconstruye sola con `context.select` (el resto de la pantalla no se
+/// entera). Un [Timer] de 1 s reevalúa la frescura: si pasan más de 3 s sin
+/// mensajes nuevos, la tarjeta se pone gris y muestra "Sin señal". Sin ese
+/// reloj, cuando se corta la transmisión no llega nada que dispare el redibujo
+/// y los últimos valores quedarían congelados.
+class _TarjetaUltrasonicos extends StatefulWidget {
+  const _TarjetaUltrasonicos();
 
-  final Ultrasonido? datos;
+  @override
+  State<_TarjetaUltrasonicos> createState() => _TarjetaUltrasonicosState();
+}
+
+class _TarjetaUltrasonicosState extends State<_TarjetaUltrasonicos> {
+  static const Duration _limiteFrescura = Duration(seconds: 3);
+  static const Color _gris = Color(0xFF94A3B8);
+
+  Timer? _reloj;
+
+  @override
+  void initState() {
+    super.initState();
+    _reloj = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _reloj?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final Ultrasonido? d = datos;
+    final Ultrasonido? ult = context.select<MqttService, Ultrasonido?>(
+      (MqttService s) => s.ultimoUltrasonido,
+    );
+    final bool hayDatos = ult != null;
+    final bool sinSenal =
+        ult != null && DateTime.now().difference(ult.llegada) > _limiteFrescura;
+    final Color acento = sinSenal ? _gris : const Color(0xFF2563EB);
+
+    final Widget frente = _FilaDistancia(
+      etiqueta: 'Frente',
+      icono: Icons.arrow_upward,
+      cm: ult?.frenteCm,
+      hayDatos: hayDatos,
+      sinSenal: sinSenal,
+    );
+    final Widget atras = _FilaDistancia(
+      etiqueta: 'Atrás',
+      icono: Icons.arrow_downward,
+      cm: ult?.atrasCm,
+      hayDatos: hayDatos,
+      sinSenal: sinSenal,
+    );
+
     return Card(
       elevation: 0,
-      color: Colors.white,
+      color: sinSenal ? const Color(0xFFF1F5F9) : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.5),
+        side: BorderSide(
+          color: sinSenal ? _gris : const Color(0xFFCBD5E1),
+          width: 1.5,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            const Row(
+            Row(
               children: <Widget>[
-                Icon(Icons.sensors, color: Color(0xFF2563EB), size: 26),
-                SizedBox(width: 10),
-                Expanded(
+                Icon(Icons.sensors, color: acento, size: 26),
+                const SizedBox(width: 10),
+                const Expanded(
                   child: Text(
                     'Ultrasónicos',
                     style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
                   ),
                 ),
+                if (sinSenal)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _gris,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      'Sin señal',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
               ],
             ),
             const SizedBox(height: 4),
             Text(
-              d == null
+              !hayDatos
                   ? 'Esperando lecturas en ucab-tg-sf/robot/ultrasonido…'
-                  : 'Distancia a lo que tiene delante y detrás del robot.',
+                  : (sinSenal
+                      ? 'Sin señal: hace más de 3 s que no llegan lecturas.'
+                      : 'Distancia al frente y atrás del robot.'),
               style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
             ),
             const SizedBox(height: 16),
-            _FilaDistancia(
-              etiqueta: 'Frente',
-              icono: Icons.arrow_upward,
-              cm: d?.frenteCm,
-              hayDatos: d != null,
-            ),
-            const SizedBox(height: 14),
-            _FilaDistancia(
-              etiqueta: 'Atrás',
-              icono: Icons.arrow_downward,
-              cm: d?.atrasCm,
-              hayDatos: d != null,
+            LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints c) {
+                if (c.maxWidth >= 600) {
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Expanded(child: frente),
+                      const SizedBox(width: 24),
+                      Expanded(child: atras),
+                    ],
+                  );
+                }
+                return Column(
+                  children: <Widget>[
+                    frente,
+                    const SizedBox(height: 14),
+                    atras,
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -1194,18 +1276,21 @@ class _TarjetaUltrasonicos extends StatelessWidget {
 
 /// Una fila de distancia: etiqueta, valor en cm y barra de 0 a 200 cm.
 /// Verde con más de 50 cm, ámbar de 20 a 50 y rojo con menos de 20.
+/// Con [sinSenal] todo se muestra en gris.
 class _FilaDistancia extends StatelessWidget {
   const _FilaDistancia({
     required this.etiqueta,
     required this.icono,
     required this.cm,
     required this.hayDatos,
+    required this.sinSenal,
   });
 
   final String etiqueta;
   final IconData icono;
   final double? cm;
   final bool hayDatos;
+  final bool sinSenal;
 
   static const double _alcanceCm = 200;
 
@@ -1213,7 +1298,7 @@ class _FilaDistancia extends StatelessWidget {
   Widget build(BuildContext context) {
     final double? valor = cm;
     final Color color;
-    if (valor == null) {
+    if (sinSenal || valor == null) {
       color = const Color(0xFF94A3B8);
     } else if (valor < 20) {
       color = TelemetriaScreen._rojoError;
@@ -1228,51 +1313,55 @@ class _FilaDistancia extends StatelessWidget {
     final double fraccion =
         valor == null ? 0.0 : (valor / _alcanceCm).clamp(0.0, 1.0).toDouble();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            Icon(icono, size: 18, color: const Color(0xFF475569)),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Text(
-                etiqueta,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14.5,
-                  color: Color(0xFF334155),
+    return Semantics(
+      label: '$etiqueta: ${sinSenal ? 'sin señal' : texto}',
+      excludeSemantics: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(icono, size: 18, color: const Color(0xFF475569)),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  etiqueta,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14.5,
+                    color: Color(0xFF334155),
+                  ),
                 ),
               ),
-            ),
-            Text(
-              texto,
-              style: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 20,
-                color: color,
+              Text(
+                texto,
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 20,
+                  color: color,
+                ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: TweenAnimationBuilder<double>(
-            tween: Tween<double>(end: fraccion),
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOutCubic,
-            builder: (BuildContext context, double v, Widget? _) {
-              return LinearProgressIndicator(
-                value: v,
-                minHeight: 10,
-                backgroundColor: const Color(0xFFE2E8F0),
-                valueColor: AlwaysStoppedAnimation<Color>(color),
-              );
-            },
+            ],
           ),
-        ),
-      ],
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(end: fraccion),
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+              builder: (BuildContext context, double v, Widget? _) {
+                return LinearProgressIndicator(
+                  value: v,
+                  minHeight: 10,
+                  backgroundColor: const Color(0xFFE2E8F0),
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
