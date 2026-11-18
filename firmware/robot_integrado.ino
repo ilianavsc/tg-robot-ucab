@@ -89,14 +89,13 @@ const uint8_t PIN_SENSOR[4] = {36, 39, 34, 35};
 const uint8_t PIN_BATERIA = 32;  // divisor 100 kΩ + 22 kΩ (12,6 V -> 2,27 V)
 const uint8_t PIN_PRUEBA  = 0;   // botón BOOT de la placa (activo en bajo)
 
-// Ultrasonidos HC-SR04 (P11): 1 TRIG común + 3 ECHO para gastar solo 4 pines.
-// Solo se compraron 2 HC-SR04P (3,3 V); el tercero (der) queda listo para cuando
-// llegue. Si usas el HC-SR04 clásico de 5 V, pon un divisor 1k/2k en cada ECHO.
-// GPIO 5 y 15 son pines de arranque, pero como ECHO leen LOW en reposo: sin riesgo.
-const uint8_t PIN_ULTRA_TRIG = 23;   // disparo común a los 3 módulos
-const uint8_t PIN_ULTRA_IZQ  = 33;   // ECHO izquierdo
-const uint8_t PIN_ULTRA_CEN  = 5;    // ECHO centro
-const uint8_t PIN_ULTRA_DER  = 15;   // ECHO derecho
+// Ultrasonidos HC-SR04 (según BOM = 2 HC-SR04P): 1 TRIG común + 2 ECHO.
+// Adelante y Atrás. GPIO 15 queda libre. Si usas el HC-SR04 clásico de 5 V,
+// pon un divisor 1k/2k en cada ECHO. GPIO 5 es pin de arranque, pero como
+// ECHO lee LOW en reposo: sin riesgo.
+const uint8_t PIN_ULTRA_TRIG   = 23;   // disparo común a los 2 módulos
+const uint8_t PIN_ULTRA_FRENTE = 33;   // ECHO delantero
+const uint8_t PIN_ULTRA_ATRAS  = 5;    // ECHO trasero
 
 // =====================================================================
 // 2. RED Y MQTT
@@ -817,31 +816,26 @@ void imprimirTelemetria() {
 // =====================================================================
 // 13B. ULTRASONIDOS HC-SR04 (no bloqueante, por interrupción)
 // =====================================================================
-// Se disparan los 3 a la vez con un único TRIG; cada módulo devuelve su eco
+// Se disparan los 2 a la vez con un único TRIG; cada módulo devuelve su eco
 // por su propio ECHO. Los flancos los captura una ISR en cada pin: loop()
 // nunca espera. El único tiempo bloqueante es delayMicroseconds(10), que es
 // el pulso mínimo que exige el HC-SR04 (no cuenta como delay()).
-volatile unsigned long usInicioIzq = 0, usInicioCen = 0, usInicioDer = 0;
-volatile unsigned long usPulsoIzq  = 0, usPulsoCen  = 0, usPulsoDer  = 0;
+volatile unsigned long usInicioFrente = 0, usInicioAtras = 0;
+volatile unsigned long usPulsoFrente  = 0, usPulsoAtras  = 0;
 
-void IRAM_ATTR isrEchoIzq() {
-  if (digitalRead(PIN_ULTRA_IZQ)) usInicioIzq = micros();
-  else usPulsoIzq = micros() - usInicioIzq;
+void IRAM_ATTR isrEchoFrente() {
+  if (digitalRead(PIN_ULTRA_FRENTE)) usInicioFrente = micros();
+  else usPulsoFrente = micros() - usInicioFrente;
 }
-void IRAM_ATTR isrEchoCen() {
-  if (digitalRead(PIN_ULTRA_CEN)) usInicioCen = micros();
-  else usPulsoCen = micros() - usInicioCen;
-}
-void IRAM_ATTR isrEchoDer() {
-  if (digitalRead(PIN_ULTRA_DER)) usInicioDer = micros();
-  else usPulsoDer = micros() - usInicioDer;
+void IRAM_ATTR isrEchoAtras() {
+  if (digitalRead(PIN_ULTRA_ATRAS)) usInicioAtras = micros();
+  else usPulsoAtras = micros() - usInicioAtras;
 }
 
-// Dispara los 3 módulos y vuelve al instante; los pulsos los recogen las ISR.
+// Dispara los 2 módulos y vuelve al instante; los pulsos los recogen las ISR.
 void dispararUltrasonido() {
-  usPulsoIzq = 0;
-  usPulsoCen = 0;
-  usPulsoDer = 0;
+  usPulsoFrente = 0;
+  usPulsoAtras  = 0;
   digitalWrite(PIN_ULTRA_TRIG, HIGH);
   delayMicroseconds(10);
   digitalWrite(PIN_ULTRA_TRIG, LOW);
@@ -859,14 +853,13 @@ float cmUltrasonido(unsigned long pulso) {
 uint32_t ultimoDisparoUltra = 0;
 uint32_t ultimoPubUltra     = 0;
 const uint32_t PERIODO_DISPARO_ULTRA_MS = 100;  // dispara 10 veces/s
-const uint32_t PERIODO_PUB_ULTRA_MS     = 500;  // publica cada 0,5 s (igual que P11)
+const uint32_t PERIODO_PUB_ULTRA_MS     = 500;  // publica cada 0,5 s
 
 void publicarUltrasonido() {
   if (!mqtt.connected()) return;
-  // Contrato de P11: claves izq_cm / centro_cm / der_cm + t. QoS 0 (no bloquea).
-  String j = "{\"izq_cm\":" + String(cmUltrasonido(usPulsoIzq), 1) +
-             ",\"centro_cm\":" + String(cmUltrasonido(usPulsoCen), 1) +
-             ",\"der_cm\":" + String(cmUltrasonido(usPulsoDer), 1) +
+  // Contrato BOM: 2 sensores. Claves frente_cm / atras_cm + t. QoS 0 (no bloquea).
+  String j = "{\"frente_cm\":" + String(cmUltrasonido(usPulsoFrente), 1) +
+             ",\"atras_cm\":" + String(cmUltrasonido(usPulsoAtras), 1) +
              ",\"t\":" + String(millis()) + "}";
   mqtt.publish(T_ULTRASONIDO, j, false, 0);
 }
@@ -921,15 +914,13 @@ void setup() {
   }
   analogSetPinAttenuation(PIN_BATERIA, ADC_11db);
 
-  // Ultrasonidos (1 TRIG común + 3 ECHO por interrupción)
+  // Ultrasonidos (1 TRIG común + 2 ECHO por interrupción)
   pinMode(PIN_ULTRA_TRIG, OUTPUT);
   digitalWrite(PIN_ULTRA_TRIG, LOW);
-  pinMode(PIN_ULTRA_IZQ, INPUT);
-  pinMode(PIN_ULTRA_CEN, INPUT);
-  pinMode(PIN_ULTRA_DER, INPUT);
-  attachInterrupt(digitalPinToInterrupt(PIN_ULTRA_IZQ), isrEchoIzq, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(PIN_ULTRA_CEN), isrEchoCen, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(PIN_ULTRA_DER), isrEchoDer, CHANGE);
+  pinMode(PIN_ULTRA_FRENTE, INPUT);
+  pinMode(PIN_ULTRA_ATRAS, INPUT);
+  attachInterrupt(digitalPinToInterrupt(PIN_ULTRA_FRENTE), isrEchoFrente, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(PIN_ULTRA_ATRAS), isrEchoAtras, CHANGE);
 
   detener();
 

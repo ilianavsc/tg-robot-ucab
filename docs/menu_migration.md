@@ -1,51 +1,44 @@
-# Migración del menú · 11 enlaces → 5 grupos
+# Menú de navegación · 5 grupos
 
-**Estado:** auditoría de enlaces **aprobada**. El menú todavía tiene 11 entradas en
-`assets/sitio.js`; este documento fija el plan para compactarlo a 5 grupos **sin
-romper enlaces**, con las rutas ya verificadas.
+**Estado:** implementado (commit `32e2128`). El menú pasó de 11 enlaces planos a
+**5 grupos** (3 enlaces directos + 2 desplegables) con menú hamburguesa y acordeón
+en móvil. Todo vive en `assets/sitio.js`; el CSS del hamburguesa está en `assets/css/style.css`.
 
-## 1. Menú actual (verificado, todos los destinos existen)
+## Estructura actual
 
-| # | Etiqueta | Destino | ¿Existe? |
+| # | Grupo | Tipo | Destino / hijos |
 |---|---|---|---|
-| 1 | Inicio | `index.html` | ✅ |
-| 2 | Cronograma | `cronograma.html` | ✅ |
-| 3 | Prototipos | `prototipos/index.html` | ✅ |
-| 4 | Centro de pruebas | `prototipos/centro-pruebas.html` | ✅ |
-| 5 | Requerimientos | `requerimientos.html` | ✅ |
-| 6 | Hardware | `hardware.html` | ✅ |
-| 7 | Arquitectura | `arquitectura.html` | ✅ |
-| 8 | Decisiones | `decisiones.html` | ✅ |
-| 9 | Bitácora | `bitacora.html` | ✅ |
-| 10 | Documentación | `index.html#t-explora` (ancla `id="t-explora"` ✅) | ✅ |
-| 11 | App web | `https://ilianavsc.github.io/tg-robot-ucab/app/` | ✅ |
+| 1 | Inicio | enlace | `index.html` |
+| 2 | El Proyecto | grupo | Cronograma · Requerimientos · Hardware · Arquitectura · Decisiones |
+| 3 | Prototipos | enlace | `prototipos/index.html` |
+| 4 | Avances | grupo | Centro de pruebas · Bitácora · Documentación (`index.html#t-explora`) |
+| 5 | App Web | enlace (destacado) | `https://ilianavsc.github.io/tg-robot-ucab/app/` |
 
-## 2. Propuesta de 5 grupos
+## Mapa de destinos (verificado, todos existen)
 
-| Grupo | Destino | Qué absorbe |
+| Destino | Archivo | ¿Existe? |
 |---|---|---|
-| **Inicio** | `index.html` | — |
-| **Prototipos** | `prototipos/index.html` | catálogo + `centro-pruebas.html` (se enlaza desde dentro) |
-| **Documentación** | `index.html#t-explora` | requerimientos, hardware, arquitectura, decisiones, bitácora (ya están como tarjetas en esa sección) |
-| **Cronograma** | `cronograma.html` | — |
-| **App web** | `https://ilianavsc.github.io/tg-robot-ucab/app/` | — |
+| Inicio | `index.html` | ✅ |
+| Cronograma | `cronograma.html` | ✅ |
+| Requerimientos | `requerimientos.html` | ✅ |
+| Hardware | `hardware.html` | ✅ |
+| Arquitectura | `arquitectura.html` | ✅ |
+| Decisiones | `decisiones.html` | ✅ |
+| Prototipos | `prototipos/index.html` | ✅ |
+| Centro de pruebas | `prototipos/centro-pruebas.html` | ✅ |
+| Bitácora | `bitacora.html` | ✅ |
+| Documentación | `index.html#t-explora` (ancla `id="t-explora"` ✅) | ✅ |
+| App Web | URL absoluta de GitHub Pages | ✅ |
 
-> Las páginas individuales (`requerimientos.html`, etc.) no desaparecen: quedan
-> accesibles desde las tarjetas de "Explora la Documentación" en `index.html`.
+## Reglas de enlaces (verificadas)
 
-## 3. Reglas que garantizan que no se rompan enlaces
+1. Enlaces **absolutos** (`http(s)://`) no llevan el prefijo `base` → lo resuelve `urlDe()`.
+2. Enlaces **relativos** usan `base + ruta`; `data-base` es consistente en todas las
+   páginas (`""` en la raíz, `../` en `prototipos/`, `../../` y `../../../` en profundidad).
+3. Los desplegables ("El Proyecto", "Avances") usan `hijos` con triplas `[clave, texto, url]`.
+4. App Web se resalta con la clase `menu-app` (visible y destacada).
 
-1. **Enlaces absolutos** (`http(s)://`) no llevan prefijo `base` → `urlDe()` en
-   `sitio.js` ya lo resuelve. La App web es un enlace absoluto, así que funciona
-   igual en producción y en `file://` (hay un fallback que redirige `app/` a GitHub).
-2. **Enlaces relativos** del menú se construyen con `base + ruta`. `data-base` está
-   verificado y es consistente: `""` en la raíz, `../` en `prototipos/`, `../../`
-   en las carpetas de cada prototipo y `../../../` en sus simuladores.
-3. **Anclas** (`#t-explora`) apuntan a un `id` que existe en `index.html`.
+## Por qué se compactó
 
-## 4. Cómo aplicar el cambio (sin tocar CSS)
-
-En `assets/sitio.js`, reemplazar el array `secciones` (11 entradas) por el de 5
-grupos de la tabla anterior. Nada más cambia: el generador de `<li>` y el
-`aria-current` siguen igual. Si al implementarlo se quiere mantener "Centro de
-pruebas" visible, añadirlo como tarjeta en `prototipos/index.html`.
+Reducir el ruido para el jurado: 5 opciones en lugar de 11, con los detalles
+agrupados y el acceso a la app siempre visible.
