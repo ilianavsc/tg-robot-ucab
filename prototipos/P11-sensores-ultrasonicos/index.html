@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>P11 · Sensores ultrasónicos · TG Robot UCAB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/style.css">
+<style>
+/* ======================================================================
+   P11 · Sensores ultrasónicos: panel de 3 distancias + radar en canvas
+   ====================================================================== */
+:root { --p11-ease: cubic-bezier(0.23, 1, 0.32, 1); --verde: #22c55e; --ambar: #f59e0b; --rojo: #ef4444; }
+
+.consola-us {
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 2px solid var(--border-dark);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-hard), 0 10px 24px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+.us-barra {
+  background: #1e293b;
+  padding: 12px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+.led-us {
+  display: inline-block; width: 11px; height: 11px; border-radius: 50%;
+  background: #64748b; margin-right: 8px; vertical-align: middle;
+  transition: background-color 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+.led-us.ok { background: var(--verde); box-shadow: 0 0 8px var(--verde); }
+.led-us.espera { background: var(--ambar); box-shadow: 0 0 8px var(--ambar); }
+.led-us.error { background: var(--rojo); box-shadow: 0 0 8px var(--rojo); }
+
+.us-cuerpo { display: grid; grid-template-columns: minmax(280px, 340px) 1fr; gap: 24px; padding: 22px; }
+@media (max-width: 820px) { .us-cuerpo { grid-template-columns: 1fr; padding: 16px; } }
+
+.us-panel h2 { margin: 0 0 4px; font-size: 20px; color: #fff; }
+.us-panel p { margin: 0 0 14px; color: #94a3b8; font-size: 14px; line-height: 1.45; }
+
+.us-sensor {
+  background: #1e293b; border: 1.5px solid #334155; border-radius: 12px;
+  padding: 12px 14px; margin-bottom: 10px;
+  transition: border-color 0.2s ease-out, background-color 0.2s ease-out;
+}
+.us-sensor.zona-verde { border-color: #166534; }
+.us-sensor.zona-ambar { border-color: #b45309; }
+.us-sensor.zona-rojo { border-color: #b91c1c; background: #2a1a1f; }
+.us-fila { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.us-nombre { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #cbd5e1; }
+.us-valor { font-family: var(--font-display); font-weight: 800; font-size: 28px; color: #fff; line-height: 1; }
+.us-valor small { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: #94a3b8; margin-left: 4px; }
+.us-sensor input[type="range"] { width: 100%; accent-color: #38bdf8; min-height: 28px; cursor: pointer; }
+
+.us-opciones { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 0; }
+.us-chk { display: flex; align-items: center; gap: 8px; font-size: 14.5px; color: #cbd5e1; cursor: pointer; min-height: 32px; }
+.us-chk input { width: 18px; height: 18px; accent-color: #38bdf8; }
+
+.us-botones { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.us-botones .btn { min-height: 46px; flex: 1 1 140px; }
+.us-botones .btn:active:not(:disabled) { transform: scale(0.97); }
+.us-botones .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.us-radar-caja { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+#radar {
+  width: 100%; height: auto; aspect-ratio: 16 / 10; display: block;
+  background: radial-gradient(ellipse at 50% 100%, #12263f 0%, #0b1424 70%);
+  border: 1.5px solid #334155; border-radius: 14px;
+}
+.us-leyenda { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: #94a3b8; }
+.us-leyenda i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+.us-broker { font-family: var(--font-mono); font-size: 12.5px; color: #94a3b8; }
+.us-broker b { color: #e2e8f0; }
+.us-json {
+  background: #0b1424; border: 1.5px solid #334155; border-radius: 10px; padding: 10px 12px;
+  font-family: var(--font-mono); font-size: 12.5px; color: #7dd3fc; overflow-x: auto; white-space: pre;
+}
+.us-log {
+  background: #0b1424; border-top: 1.5px solid #1e293b; padding: 12px 20px; height: 150px; overflow-y: auto;
+  font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; color: #94a3b8;
+}
+.us-log .ok { color: #86efac; } .us-log .err { color: #fca5a5; } .us-log .inf { color: #7dd3fc; }
+.us-log div { animation: us-ln 0.18s var(--p11-ease); }
+@keyframes us-ln { from { opacity: 0; transform: translateY(4px); } }
+
+.us-nota { background: #fff7e6; border: 2px solid var(--accent-amber); border-radius: 14px; padding: 14px 18px; font-size: 15.5px; line-height: 1.5; }
+.us-nota ul { margin: 6px 0 0; padding-left: 20px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body data-pagina="prototipos" data-base="../../">
+<header id="menu"></header>
+
+<main>
+  <a class="volver" href="../index.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Volver al catálogo de prototipos
+  </a>
+
+  <p class="ceja">Prototipo P11 · Obstáculos · MQTT WebSockets · Rama fase-5-ultrasonido</p>
+  <h1>P11: Los <em>ojos de distancia</em> del robot</h1>
+
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px">
+    <span class="chip pruebas">En pruebas · Simulador</span>
+    <span class="chip">3 sensores: Izq, Centro, Der</span>
+    <span class="chip">HiveMQ → EMQX → Mosquitto</span>
+    <span class="chip">ucab-tg-sf/robot/ultrasonido</span>
+  </div>
+
+  <div class="frase-explicativa">
+    <strong>En pocas palabras:</strong> el robot mide qué tan lejos está lo que tiene enfrente. Mueve las 3 distancias y mira el radar.
+    Al pulsar <strong>Encender</strong>, la página publica las lecturas dos veces por segundo, como lo haría el ESP32.
+  </div>
+
+  <section aria-labelledby="t-us" style="margin-top:24px">
+    <div class="consola-us">
+      <div class="us-barra">
+        <div><span class="led-us" id="led" aria-hidden="true"></span><span id="estado" role="status">DETENIDO · pulsa Encender para publicar</span></div>
+        <div>Tópico: <strong>ucab-tg-sf/robot/ultrasonido</strong> (QoS 0 · 0,5 s)</div>
+      </div>
+
+      <div class="us-cuerpo">
+        <div class="us-panel">
+          <h2 id="t-us">Distancias (cm)</h2>
+          <p>Cada sensor mide de 2 a 200 cm. Debajo de 20 cm es peligro y por encima de 50 cm hay paso libre.</p>
+
+          <div class="us-sensor" id="s-izq">
+            <div class="us-fila"><span class="us-nombre">Izquierda</span><span class="us-valor"><span id="v-izq">120</span><small>cm</small></span></div>
+            <input type="range" id="r-izq" min="2" max="200" step="1" value="120" aria-label="Distancia izquierda en centímetros">
+          </div>
+          <div class="us-sensor" id="s-centro">
+            <div class="us-fila"><span class="us-nombre">Centro</span><span class="us-valor"><span id="v-centro">150</span><small>cm</small></span></div>
+            <input type="range" id="r-centro" min="2" max="200" step="1" value="150" aria-label="Distancia al centro en centímetros">
+          </div>
+          <div class="us-sensor" id="s-der">
+            <div class="us-fila"><span class="us-nombre">Derecha</span><span class="us-valor"><span id="v-der">120</span><small>cm</small></span></div>
+            <input type="range" id="r-der" min="2" max="200" step="1" value="120" aria-label="Distancia derecha en centímetros">
+          </div>
+
+          <div class="us-opciones">
+            <label class="us-chk"><input type="checkbox" id="chk-mover"> Mover solo (simula un pasillo)</label>
+          </div>
+
+          <div class="us-botones">
+            <button type="button" id="btn-on" class="btn btn-principal">⚡ Encender</button>
+            <button type="button" id="btn-off" class="btn btn-secundario" disabled>⏹ Detener</button>
+          </div>
+        </div>
+
+        <div class="us-radar-caja">
+          <canvas id="radar" width="800" height="500" role="img" aria-label="Radar con las distancias izquierda, centro y derecha"></canvas>
+          <div class="us-leyenda">
+            <span><i style="background:#22c55e"></i>Libre (más de 50 cm)</span>
+            <span><i style="background:#f59e0b"></i>Cerca (20 a 50 cm)</span>
+            <span><i style="background:#ef4444"></i>Peligro (menos de 20 cm)</span>
+          </div>
+          <div class="us-broker" aria-live="polite">Broker: <b id="broker">sin conexión</b></div>
+          <div class="us-json" id="json" aria-label="Mensaje que se publica">{ }</div>
+        </div>
+      </div>
+
+      <div class="us-log" id="log" role="log" aria-live="polite"><div class="inf">[listo] Pulsa Encender para conectar al broker.</div></div>
+    </div>
+  </section>
+
+  <div class="us-nota">
+    <strong>Antes de pasar a la prueba física:</strong>
+    <ul>
+      <li>El pedido de Amazon trae <strong>2</strong> sensores HC-SR04P, no 3. Este simulador usa 3 (Izq, Centro, Der) para decidir la disposición: con 2 hay que elegir entre Izq + Der o Centro + uno lateral.</li>
+      <li>El tópico <code>ucab-tg-sf/robot/ultrasonido</code> es nuevo: todavía no está en el contrato de 5 tópicos ni en el firmware.</li>
+      <li>Las distancias son manuales: no hay lectura real hasta que lleguen los sensores.</li>
+    </ul>
+  </div>
+</main>
+
+<footer id="pie"></footer>
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script src="../../datos/proyecto.js"></script>
+<script src="../../assets/sitio.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var TOPICO = "ucab-tg-sf/robot/ultrasonido";
+  var PERIODO_MS = 500;
+  var TIMEOUT_MS = 5000;
+  var DIST_MIN = 2, DIST_MAX = 200;
+  var LIMITE_PELIGRO = 20, LIMITE_CERCA = 50;
+
+  /* Misma lista de brokers de respaldo que la App Flutter y el P10 */
+  var BROKERS = [
+    { nombre: "HiveMQ", host: "broker.hivemq.com", puerto: 8884, url: "wss://broker.hivemq.com:8884/mqtt" },
+    { nombre: "EMQX", host: "broker.emqx.io", puerto: 8084, url: "wss://broker.emqx.io:8084/mqtt" },
+    { nombre: "Mosquitto", host: "test.mosquitto.org", puerto: 8081, url: "wss://test.mosquitto.org:8081/mqtt" }
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var ids = ["izq", "centro", "der"];
+  var rango = {}, valor = {}, caja = {};
+  ids.forEach(function (k) { rango[k] = $("r-" + k); valor[k] = $("v-" + k); caja[k] = $("s-" + k); });
+  var ledEl = $("led"), estadoEl = $("estado"), brokerEl = $("broker"), jsonEl = $("json"), logEl = $("log");
+  var btnOn = $("btn-on"), btnOff = $("btn-off"), chkMover = $("chk-mover");
+  var canvas = $("radar"), ctx = canvas.getContext("2d");
+
+  var dist = { izq: 120, centro: 150, der: 120 };
+  var encendido = false, conectado = false;
+  var cliente = null, indice = 0, timerPub = null, timerFallo = null, timerReintento = null;
+  var inicioMs = 0, enviados = 0;
+
+  function zona(cm) { return cm < LIMITE_PELIGRO ? "rojo" : (cm < LIMITE_CERCA ? "ambar" : "verde"); }
+  var COLOR = { verde: "#22c55e", ambar: "#f59e0b", rojo: "#ef4444" };
+
+  /* ---------------- registro en pantalla ---------------- */
+  function log(txt, tipo) {
+    var d = document.createElement("div");
+    if (tipo) d.className = tipo;
+    var h = new Date(); var p = function (n) { return (n < 10 ? "0" : "") + n; };
+    d.textContent = "[" + p(h.getHours()) + ":" + p(h.getMinutes()) + ":" + p(h.getSeconds()) + "] " + txt;
+    logEl.appendChild(d);
+    while (logEl.children.length > 60) logEl.removeChild(logEl.firstChild);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function estado(txt, led) {
+    estadoEl.textContent = txt;
+    ledEl.className = "led-us" + (led ? " " + led : "");
+  }
+
+  /* ---------------- radar ---------------- */
+  var ANG = { izq: -35, centro: 0, der: 35 };   /* grados desde la vertical */
+  var MEDIO_CONO = 13;                          /* media abertura del cono, en grados */
+
+  function ajustarCanvas() {
+    var ratio = Math.min(window.devicePixelRatio || 1, 2);
+    var w = canvas.clientWidth || 800;
+    var h = canvas.clientHeight || Math.round(w * 0.625);
+    canvas.width = Math.round(w * ratio);
+    canvas.height = Math.round(h * ratio);
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    dibujar();
+  }
+
+  function rad(g) { return g * Math.PI / 180; }
+
+  function dibujar() {
+    var W = canvas.clientWidth || 800, H = canvas.clientHeight || 500;
+    var ox = W / 2, oy = H - 22;
+    var R = Math.min(oy - 12, W / 2 - 14);
+    ctx.clearRect(0, 0, W, H);
+
+    /* anillos de distancia */
+    ctx.lineWidth = 1;
+    ctx.font = "11px 'JetBrains Mono', monospace";
+    ctx.fillStyle = "#64748b";
+    ctx.textAlign = "left";
+    [50, 100, 150, 200].forEach(function (cm) {
+      var r = R * cm / DIST_MAX;
+      ctx.strokeStyle = "rgba(148,163,184,0.25)";
+      ctx.beginPath(); ctx.arc(ox, oy, r, Math.PI, 2 * Math.PI); ctx.stroke();
+      ctx.fillText(cm + " cm", ox + 6, oy - r + 12);
+    });
+    /* líneas guía */
+    ctx.strokeStyle = "rgba(148,163,184,0.18)";
+    [-35, 0, 35].forEach(function (g) {
+      ctx.beginPath(); ctx.moveTo(ox, oy);
+      ctx.lineTo(ox + R * Math.sin(rad(g)), oy - R * Math.cos(rad(g))); ctx.stroke();
+    });
+
+    /* conos de cada sensor */
+    ids.forEach(function (k) {
+      var cm = dist[k], r = R * cm / DIST_MAX, c = COLOR[zona(cm)];
+      var a0 = rad(ANG[k] - MEDIO_CONO) - Math.PI / 2, a1 = rad(ANG[k] + MEDIO_CONO) - Math.PI / 2;
+      /* alcance máximo, solo contorno */
+      ctx.strokeStyle = "rgba(148,163,184,0.2)"; ctx.setLineDash([4, 5]);
+      ctx.beginPath(); ctx.arc(ox, oy, R, a0, a1); ctx.stroke(); ctx.setLineDash([]);
+      /* zona libre hasta el obstáculo */
+      ctx.fillStyle = c + "33";
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.arc(ox, oy, r, a0, a1); ctx.closePath(); ctx.fill();
+      /* borde del obstáculo */
+      ctx.strokeStyle = c; ctx.lineWidth = 4; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.arc(ox, oy, r, a0, a1); ctx.stroke();
+      ctx.lineWidth = 1;
+      /* etiqueta */
+      var am = rad(ANG[k]) - Math.PI / 2, rl = Math.max(r - 16, 22);
+      ctx.fillStyle = "#e2e8f0"; ctx.textAlign = "center";
+      ctx.font = "700 13px 'JetBrains Mono', monospace";
+      ctx.fillText(cm, ox + rl * Math.cos(am), oy + rl * Math.sin(am) + 4);
+    });
+
+    /* robot */
+    ctx.fillStyle = "#38bdf8";
+    ctx.beginPath();
+    ctx.moveTo(ox, oy - 14); ctx.lineTo(ox + 11, oy + 8); ctx.lineTo(ox - 11, oy + 8); ctx.closePath(); ctx.fill();
+  }
+
+  /* ---------------- lectura y mensaje ---------------- */
+  function mensaje() {
+    return { izq_cm: dist.izq, centro_cm: dist.centro, der_cm: dist.der, t: encendido ? Date.now() - inicioMs : 0 };
+  }
+
+  function refrescar() {
+    ids.forEach(function (k) {
+      valor[k].textContent = dist[k];
+      caja[k].className = "us-sensor zona-" + zona(dist[k]);
+    });
+    jsonEl.textContent = JSON.stringify(mensaje(), null, 2);
+    dibujar();
+  }
+
+  ids.forEach(function (k) {
+    rango[k].addEventListener("input", function () {
+      dist[k] = parseInt(rango[k].value, 10);
+      refrescar();
+    });
+  });
+  window.addEventListener("resize", ajustarCanvas);
+
+  /* "Mover solo": distancias que suben y bajan, para ver el radar vivo */
+  var rafId = null, t0 = 0;
+  function pasear(ts) {
+    if (!chkMover.checked) { rafId = null; return; }
+    var s = (ts - t0) / 1000;
+    var f = function (base, amp, vel, fase) { return Math.round(Math.max(DIST_MIN, Math.min(DIST_MAX, base + amp * Math.sin(s * vel + fase)))); };
+    dist.izq = f(100, 70, 0.7, 0);
+    dist.centro = f(110, 95, 0.5, 1.6);
+    dist.der = f(100, 70, 0.6, 3.1);
+    ids.forEach(function (k) { rango[k].value = dist[k]; });
+    refrescar();
+    rafId = requestAnimationFrame(pasear);
+  }
+  chkMover.addEventListener("change", function () {
+    ids.forEach(function (k) { rango[k].disabled = chkMover.checked; });
+    if (chkMover.checked && !rafId) { t0 = performance.now(); rafId = requestAnimationFrame(pasear); }
+  });
+
+  /* ---------------- MQTT con brokers de respaldo ---------------- */
+  function limpiarCliente() {
+    if (timerFallo) { clearTimeout(timerFallo); timerFallo = null; }
+    if (timerReintento) { clearTimeout(timerReintento); timerReintento = null; }
+    if (cliente) {
+      try { cliente.removeAllListeners(); cliente.end(true); } catch (e) {}
+      cliente = null;
+    }
+    conectado = false;
+  }
+
+  function siguienteBroker(motivo) {
+    if (!encendido) return;
+    var b = BROKERS[indice];
+    log(b.nombre + " no respondió (" + motivo + ").", "err");
+    limpiarCliente();
+    indice = (indice + 1) % BROKERS.length;
+    var espera = indice === 0 ? 3000 : 300;   /* si ya probó los 3, espera 3 s y vuelve a empezar */
+    if (indice === 0) log("Ningún broker respondió. Reintento en 3 s.", "err");
+    estado("SIN CONEXIÓN · reintentando", "error");
+    timerReintento = setTimeout(conectar, espera);
+  }
+
+  function conectar() {
+    if (!encendido) return;
+    if (!window.mqtt) {
+      estado("ERROR · no se cargó la librería MQTT (revisa internet)", "error");
+      log("No se cargó mqtt.js desde unpkg.com.", "err");
+      return;
+    }
+    var b = BROKERS[indice];
+    brokerEl.textContent = b.nombre + " (" + b.host + ":" + b.puerto + ")";
+    estado("CONECTANDO A " + b.nombre.toUpperCase() + " ...", "espera");
+    log("Conectando a " + b.url, "inf");
+    try {
+      cliente = window.mqtt.connect(b.url, {
+        clientId: "p11-us-" + Math.random().toString(16).slice(2, 10),
+        keepalive: 20, connectTimeout: TIMEOUT_MS, reconnectPeriod: 0
+      });
+    } catch (e) { siguienteBroker("no se pudo abrir el WebSocket"); return; }
+
+    timerFallo = setTimeout(function () { if (!conectado) siguienteBroker("tiempo de espera de 5 s"); }, TIMEOUT_MS + 500);
+
+    cliente.on("connect", function () {
+      if (timerFallo) { clearTimeout(timerFallo); timerFallo = null; }
+      conectado = true;
+      estado("CONECTADO EN VIVO · " + b.nombre, "ok");
+      log("Conectado a " + b.nombre + ". Publicando en " + TOPICO + " cada 0,5 s.", "ok");
+    });
+    cliente.on("error", function (e) { if (!conectado) siguienteBroker((e && e.message) || "error"); });
+    cliente.on("close", function () {
+      if (!encendido) return;
+      if (conectado) {
+        conectado = false;
+        log("Se cayó la conexión con " + b.nombre + ". Pruebo el siguiente broker.", "err");
+        limpiarCliente(); indice = (indice + 1) % BROKERS.length;
+        estado("SIN CONEXIÓN · reintentando", "error");
+        timerReintento = setTimeout(conectar, 500);
+      }
+    });
+  }
+
+  function publicar() {
+    var m = mensaje();
+    jsonEl.textContent = JSON.stringify(m, null, 2);
+    if (!cliente || !conectado) return;
+    cliente.publish(TOPICO, JSON.stringify(m), { qos: 0 }, function (err) {
+      if (err) { log("Error al publicar: " + err.message, "err"); return; }
+      enviados++;
+      if (enviados % 10 === 1) log("#" + enviados + " publicado: " + dist.izq + " / " + dist.centro + " / " + dist.der + " cm", "ok");
+    });
+  }
+
+  function encender() {
+    encendido = true; enviados = 0; indice = 0; inicioMs = Date.now();
+    btnOn.disabled = true; btnOff.disabled = false;
+    conectar();
+    timerPub = setInterval(publicar, PERIODO_MS);
+  }
+  function apagar() {
+    encendido = false;
+    if (timerPub) { clearInterval(timerPub); timerPub = null; }
+    limpiarCliente();
+    btnOn.disabled = false; btnOff.disabled = true;
+    brokerEl.textContent = "sin conexión";
+    estado("DETENIDO · pulsa Encender para publicar", "");
+    log("Emisión detenida (" + enviados + " mensajes enviados).", "inf");
+    refrescar();
+  }
+  btnOn.addEventListener("click", encender);
+  btnOff.addEventListener("click", apagar);
+
+  ajustarCanvas();
+  refrescar();
+})();
+</script>
+</body>
+</html>

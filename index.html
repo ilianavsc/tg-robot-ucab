@@ -318,6 +318,7 @@ a.ir:hover {
 
   function etiquetaEstado(p) {
     if (p.estado === "hecho") return '<span class="chip hecho">Listo</span>';
+    if (p.estado === "pruebas" && p.codigo === "P11") return '<span class="chip pruebas">Listo · Simulador</span>';
     if (p.estado === "pruebas") return '<span class="chip pruebas">Listo · Sim 3D</span>';
     return '<span class="chip pendiente">En camino · Sem. ' + p.semana + '</span>';
   }
@@ -325,6 +326,7 @@ a.ir:hover {
   function textoBoton(p) {
     if (p.codigo === "P09") return "Probar App en vivo";
     if (p.codigo === "P10") return "Abrir Simulador ESP32";
+    if (p.codigo === "P11") return "Abrir Simulador de Ultrasonido";
     if (p.url) return "Abrir Simulador 3D";
     return "Ver en Cronograma";
   }
