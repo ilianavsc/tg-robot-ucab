@@ -105,6 +105,24 @@ void main() {
       expect(c.principal!.clave, 'bateria_critica');
     });
 
+    test('corte por batería: parada del estado y alerta del robot', () {
+      final c = CentroAlertas();
+      final nuevas = c.evaluar(
+          estado: _estado(bat: 9.85, parada: 'corte_bateria'), ahora: t0);
+      expect(nuevas, contains('corte_bateria'));
+      expect(CentroAlertas.clavesParadaEmergencia, contains('corte_bateria'));
+      // El robot confirma con su alerta "bateria_critica" (= corte)
+      expect(
+          c.registrarDelRobot(<String, dynamic>{'tipo': 'bateria_critica', 'valor': 9.85}, ahora: t0),
+          isNull);
+      expect(c.activas.firstWhere((AlertaActiva a) => a.clave == 'corte_bateria').confirmadaPorRobot,
+          isTrue);
+      // "bateria_baja" del robot es el aviso preventivo de 10,30 V
+      final c2 = CentroAlertas();
+      expect(c2.registrarDelRobot(<String, dynamic>{'tipo': 'bateria_baja', 'valor': 10.2}, ahora: t0),
+          'bateria_critica');
+    });
+
     test('la crítica gana el banner y reconocer la saca de él', () {
       final c = CentroAlertas();
       c.evaluar(estado: _estado(parada: 'timeout'), ultrasonido: _ultra(14, 100), ahora: t0);

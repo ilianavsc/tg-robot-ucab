@@ -76,7 +76,7 @@ La lista oficial está en `datos/proyecto.js`. Estado al 18 nov 2026:
 | P04 | ¿BLE o QR? (re-localización) | Pendiente |
 | P05 | Robot virtual y puente Firebase | Pendiente |
 | P06 | Primera versión de la app con pedidos | Pendiente |
-| P07 | El cerebro completo (`firmware/robot_integrado.ino`) | En pruebas (35 escenarios en PC; falta el ESP32 real) |
+| P07 | El cerebro completo (`firmware/robot_integrado.ino`) | En pruebas (58 comprobaciones SIL en PC y CI; falta HIL con el ESP32 real) |
 | P08 | Seguir la línea (PD a 100 Hz, simulador 3D) | En pruebas (simulación) |
 | **P09** | **App Flutter Web con Modo Demo** (`app/`) | Hecho |
 | **P10** | **Simulador ESP32 Virtual** (robot falso en el navegador) | Hecho |
@@ -90,14 +90,16 @@ validado.
 
 ### Seguridad que ya está en el firmware y en el Gemelo Digital
 - Obstáculo frontal < 20 cm: parada, alerta QoS 2, solo se permite retroceder con atrás ≥ 20 cm y sensor válido.
-- Ultrasonido sin eco 500 ms: el sensor se marca en fallo y se bloquea esa dirección.
+- Ultrasonidos leídos alternados (frente/atrás cada 100 ms); sin eco 600 ms: el sensor se marca en fallo y se bloquea esa dirección.
 - Modo manual 5 s sin órdenes: el robot frena y se queda en manual (nunca pasa solo a autónomo).
-- Batería ≤ 10,3 V: aviso preventivo; < 9,9 V: corte seguro.
+- Batería ≤ 10,30 V: aviso preventivo (`bateria_baja`); ≤ 9,90 V: **corte** (frena, `bateria_critica`) hasta > 10,10 V y una orden nueva.
+- Órdenes repetidas por QoS 1 (mismo `id`): no se ejecutan dos veces.
+- Todo esto es validación **SIL** (software); la validación **HIL** (hardware) empieza en diciembre.
 
 ### Cómo levantar el Gemelo Digital
 1. `prototipos/P10-simulador-esp32/index.html` → **Encender ESP32 Virtual**.
 2. App `https://ilianavsc.github.io/tg-robot-ucab/app/` → mismo broker → **Conectar**.
-3. Panel **Inyección de Eventos / Pruebas HIL** del P10 → mirar el banner P11 y la tarjeta P12 en la app.
+3. Panel **Inyección de Eventos Virtuales (SIL)** del P10 → mirar el banner P11 y la tarjeta P12 en la app.
 
 ---
 

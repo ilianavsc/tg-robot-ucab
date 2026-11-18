@@ -73,6 +73,13 @@ class EventoAlerta {
 ///  * Proximidad frontal (`20 ≤ frente_cm < 50`) → aviso.
 ///  * Obstáculo trasero (`atras_cm < 20`) → aviso (solo bloquea el retroceso).
 ///  * Batería crítica (`≤ 10,3 V`, ignorando `0,00 V` en reposo) → crítica.
+///  * Corte por batería del firmware (`parada = corte_bateria`, ≤ 9,90 V) → crítica.
+///
+/// Tipos de alerta del robot para la batería (firmware/robot_integrado.ino):
+///  * `bateria_baja`    = aviso preventivo a ≤ 10,30 V (el robot sigue andando);
+///    en la app es la misma condición que "Batería crítica".
+///  * `bateria_critica` = CORTE a ≤ 9,90 V: motores bloqueados hasta > 10,10 V
+///    y una orden nueva.
 ///  * Parada por inactividad del modo manual (`parada = timeout`) → aviso.
 /// Y además registra las alertas que publica el robot en `robot/alertas`.
 class CentroAlertas {
@@ -92,6 +99,7 @@ class CentroAlertas {
     'obstaculo_atras',
     'fallo_sensor_frente',
     'fallo_sensor_atras',
+    'corte_bateria',
   };
 
   final Map<String, AlertaActiva> _activas = <String, AlertaActiva>{};
@@ -178,6 +186,14 @@ class CentroAlertas {
           NivelAlerta.critica,
           'Batería crítica',
           '${e.bateriaV.toStringAsFixed(2)} V (≤ 10,30 V). Volver a la base a cargar.',
+        );
+      }
+      if (e.parada == 'corte_bateria') {
+        condiciones['corte_bateria'] = _Condicion(
+          NivelAlerta.critica,
+          'Corte por batería (≤ 9,90 V)',
+          'Motores bloqueados con ${e.bateriaV.toStringAsFixed(2)} V. Se libera '
+              'por encima de 10,10 V y con una orden nueva.',
         );
       }
       if (e.parada == 'timeout') {
@@ -288,6 +304,7 @@ class CentroAlertas {
   bool _evaluable(String clave, Estado? e, Ultrasonido? u) {
     switch (clave) {
       case 'bateria_critica':
+      case 'corte_bateria':
       case 'timeout_manual':
         return e != null;
       default:
@@ -338,24 +355,36 @@ class CentroAlertas {
           'fallo_sensor_frente',
           NivelAlerta.critica,
           'Fallo de sensor frontal (sin eco)',
-          'El robot reporta 500 ms sin eco delantero: avance bloqueado.',
+          'El robot reporta 600 ms sin eco delantero: avance bloqueado.',
         );
       case 'fallo_sensor_atras':
         return const _DescripcionRobot(
           'fallo_sensor_atras',
           NivelAlerta.critica,
           'Fallo de sensor trasero (sin eco)',
-          'El robot reporta 500 ms sin eco trasero: retroceso bloqueado.',
+          'El robot reporta 600 ms sin eco trasero: retroceso bloqueado.',
         );
-      case 'bateria_critica':
       case 'bateria_baja':
+        // Aviso preventivo del robot (≤ 10,30 V): misma condición que la
+        // "Batería crítica" que la app deduce de la telemetría.
         return _DescripcionRobot(
           'bateria_critica',
           NivelAlerta.critica,
-          tipo == 'bateria_baja' ? 'Batería en corte (≤ 9,9 V)' : 'Batería crítica',
+          'Batería crítica',
           valor != null
-              ? 'El robot mide ${valor.toStringAsFixed(2)} V.'
-              : 'El robot reporta batería baja.',
+              ? 'El robot avisa: ${valor.toStringAsFixed(2)} V (≤ 10,30 V). Volver a cargar.'
+              : 'El robot avisa batería ≤ 10,30 V. Volver a cargar.',
+        );
+      case 'bateria_critica':
+        // Corte de seguridad del firmware (≤ 9,90 V): motores bloqueados.
+        return _DescripcionRobot(
+          'corte_bateria',
+          NivelAlerta.critica,
+          'Corte por batería (≤ 9,90 V)',
+          valor != null
+              ? 'Motores bloqueados con ${valor.toStringAsFixed(2)} V. Se libera '
+                  'por encima de 10,10 V y con una orden nueva.'
+              : 'Motores bloqueados por batería. Se libera por encima de 10,10 V.',
         );
       case 'timeout_manual':
         return const _DescripcionRobot(

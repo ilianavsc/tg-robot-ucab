@@ -68,13 +68,23 @@ no un prototipo numerado.
 2. Abre la **App (P09)**: <https://ilianavsc.github.io/tg-robot-ucab/app/>, elige **el mismo broker**
    en el selector segmentado y pulsa **Conectar**.
 3. En la App verás estado, ultrasonidos, **Centro de Alertas (P11)** y **Analítica de Sesión (P12)**.
-4. En el P10 usa el panel **Inyección de Eventos / Pruebas HIL** (obstáculo 14 cm, bloqueo total,
-   fallo de sensor sin eco, batería 10,05 V, restaurar). El P10 aplica la **misma regla de seguridad
+4. En el P10 usa el panel **Inyección de Eventos Virtuales (SIL)** (obstáculo 14 cm, bloqueo total,
+   fallo de sensor sin eco, batería 10,05 V, corte por batería 9,85 V, restaurar). El P10 aplica la **misma regla de seguridad
    que el firmware** y la App muestra el banner rojo/ámbar.
 5. En la App pulsa **Exportar Reporte CSV**. Sin internet: botón **Modo Demo** de la App (7 perfiles,
    misma regla de seguridad).
 
 Para correr la app en local: `cd app && flutter pub get && flutter run -d chrome`.
+
+**SIL vs. HIL (rigor de las pruebas):** todo lo anterior es **SIL** (*Software In the
+Loop*): el firmware se emula (P10, Modo Demo) o se compila en el PC con imitaciones del
+hardware (`firmware/pruebas_pc/`). Las pruebas **HIL** (*Hardware In the Loop*) empiezan
+cuando llegue el hardware: ESP32 real, sensores reales y la app; sus mediciones se anotan
+en [`prototipos/P02-sensores/README.md`](prototipos/P02-sensores/README.md).
+
+**Verificación automática (CI):** cada push a `main` corre las pruebas del firmware
+(`sh firmware/pruebas_pc/correr.sh`), `flutter analyze` y `flutter test` antes de publicar;
+si algo falla, no se despliega.
 Contratos JSON de todos los tópicos: [`docs/arquitectura/topicos-mqtt.md`](docs/arquitectura/topicos-mqtt.md).
 
 ## Carpetas
@@ -83,7 +93,7 @@ Contratos JSON de todos los tópicos: [`docs/arquitectura/topicos-mqtt.md`](docs
 - `assets/` estilo y menú compartidos por todas las páginas
 - `prototipos/` una carpeta por prototipo con su página visual (`index.html`), `codigo/` y `evidencias/`
 - `app/` la App Flutter Web (P09, con P11 y P12 dentro); se publica sola en `/app/` con cada push a `main`
-- `firmware/` firmware integrado del robot (`robot_integrado.ino`, P01 + P03 + P08 + ultrasonidos), su README y `pruebas_pc/` (35 escenarios de seguridad que corren en el PC)
+- `firmware/` firmware integrado del robot (`robot_integrado.ino`, P01 + P03 + P08 + ultrasonidos), su README y `pruebas_pc/` (58 comprobaciones SIL de seguridad que corren en el PC y en GitHub Actions)
 - `docs/` requerimientos, arquitectura (tópicos MQTT), guías de pruebas y del jurado
 - `hardware/materiales/` lista de materiales y registro de cambios
 

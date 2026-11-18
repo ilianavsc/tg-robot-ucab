@@ -8,7 +8,7 @@
 ///
 /// `parada` (opcional) es el motivo por el que el firmware tiene los motores en
 /// 0: `ninguna`, `obstaculo_frente`, `obstaculo_atras`, `fallo_sensor_frente`,
-/// `fallo_sensor_atras`, `timeout`, `red` o `arranque`. Los robots anteriores
+/// `fallo_sensor_atras`, `corte_bateria`, `timeout`, `red` o `arranque`. Los robots anteriores
 /// a este campo no lo mandan: queda en `ninguna`.
 ///
 /// Ojo con dos nombres: el firmware usa `n` (contador de estados), **no** `id`,

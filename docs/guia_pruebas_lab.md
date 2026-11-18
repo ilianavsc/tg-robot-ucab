@@ -78,7 +78,7 @@ Si se usa otra laptop, ajustar la ruta del sketch; el nombre de la carpeta **deb
 7. [ ] Confirmar en el monitor: `Pedido #1 (A-01): ...` y `Modo MANUAL: adelante`.
 8. [ ] Confirmar que llega el ACK en `ucab-tg-sf/robot/ordenes/ack` con el mismo `id`.
 9. [ ] No mandar órdenes durante 6 s: debe imprimir `Manual sin ordenes por 5 s: FRENO y quedo en MANUAL (fail-safe)`, publicar la alerta `timeout_manual` y el estado con `"estado":"manual","parada":"timeout"`. El robot **no** debe pasar a autónomo.
-   - [ ] Desconectar el cable ECHO del ultrasonido frontal con el robot en `adelante`: a los 0,5 s debe aparecer `FALLO ultrasonido FRENTE`, los motores en 0 y la alerta `fallo_sensor_frente`. Reconectar: vuelve a `US ok/ok`.
+   - [ ] Desconectar el cable ECHO del ultrasonido frontal con el robot en `adelante`: a los ≈ 0,6 s debe aparecer `FALLO ultrasonido FRENTE`, los motores en 0 y la alerta `fallo_sensor_frente`. Reconectar: vuelve a `US ok/ok`.
 
 ### A.3 · Pruebas de caída (importante para la seguridad)
 10. [ ] Publicar `{"id":"A-02","cmd":"adelante"}` y luego alejar el celular/router hasta que caiga el Wi-Fi.

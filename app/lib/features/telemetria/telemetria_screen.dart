@@ -1535,7 +1535,7 @@ class _FilaDistancia extends StatelessWidget {
   final bool hayDatos;
   final bool sinSenal;
 
-  /// `false` = el firmware reporta el sensor en fallo (sin eco 500 ms).
+  /// `false` = el firmware reporta el sensor en fallo (sin eco 600 ms).
   final bool sensorOk;
 
   static const double _alcanceCm = 200;

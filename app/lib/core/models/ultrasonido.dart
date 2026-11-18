@@ -6,8 +6,9 @@
 /// ```
 ///
 /// `frente_ok` / `atras_ok` (opcionales, por defecto `true`) los pone el
-/// firmware en `false` cuando el sensor lleva 5 disparos seguidos sin eco
-/// (500 ms): fallo o desconexión. En ese caso un `0.0` NO es camino despejado.
+/// firmware en `false` cuando el sensor lleva 3 lecturas propias seguidas sin
+/// eco (600 ms; los 2 sensores se leen alternados cada 100 ms): fallo o
+/// desconexión. En ese caso un `0.0` NO es camino despejado.
 ///
 /// `frente_cm` es el sensor que mira hacia adelante y `atras_cm` el que mira
 /// hacia atrás. Si un sensor no recibe eco, su valor puede faltar o ir en

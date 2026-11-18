@@ -18,12 +18,23 @@ Es la fusión de los tres prototipos en un solo firmware:
   (fail-safe). Nunca vuelve solo a autónomo: hace falta la orden `auto`.
 - **Obstáculo frontal < 20 cm:** frena avance, giros y autónomo; solo deja
   retroceder si el ultrasonido trasero es válido y marca ≥ 20 cm (o nada en rango).
-- **Fallo de ultrasonido:** 5 disparos seguidos sin eco (500 ms) marcan el
-  sensor en fallo (`frente_ok`/`atras_ok = false`), bloquean el movimiento en
+- **Ultrasonidos alternados:** frente en ciclos pares y atrás en impares (100 ms
+  por ciclo; cada sensor cada 200 ms). Con el TRIG común actual los dos módulos
+  emiten igual en cada disparo: para aislarlos de verdad, cablear el TRIG
+  trasero a GPIO 15 y poner `PIN_ULTRA_TRIG_ATRAS = 15`.
+- **Fallo de ultrasonido:** 3 lecturas propias seguidas sin eco (600 ms) marcan
+  el sensor en fallo (`frente_ok`/`atras_ok = false`), bloquean el movimiento en
   esa dirección y publican `fallo_sensor_frente` / `fallo_sensor_atras`.
+- **Corte por batería:** con ≤ 9,90 V (`VOLTAJE_CORTE_V`, 3 lecturas de 200 ms
+  seguidas) frena, publica `bateria_critica` y no se mueve hasta superar
+  10,10 V **y** recibir una orden nueva. Con ≤ 10,30 V avisa antes
+  (`bateria_baja`). Con ≤ 1 V (USB, sin batería) no corta.
+- **Órdenes duplicadas:** si llega el mismo `id` que la última orden (reentrega
+  QoS 1), no se ejecuta ni se cuenta; solo se reconfirma.
 - Manda el estado cada 2 s (con el campo `parada`) y las alertas con **QoS 2**,
   desde una cola en `loop()`: primero frena, después avisa.
-- Pruebas de la lógica en el PC: [`pruebas_pc/`](pruebas_pc/) (35 escenarios).
+- Pruebas de la lógica en el PC (SIL): [`pruebas_pc/`](pruebas_pc/) (58 comprobaciones
+  en 10 escenarios). También corren en GitHub Actions antes de cada despliegue.
 - **No usa `delay()`**: todo el tiempo se maneja con `millis()`.
 
 ## Librerías que hay que instalar

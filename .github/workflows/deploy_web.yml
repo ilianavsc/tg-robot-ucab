@@ -23,6 +23,12 @@ jobs:
       - name: Clonar el repositorio
         uses: actions/checkout@v4
 
+      # Pruebas SIL del firmware: compila robot_integrado.ino con g++
+      # (-Wall -Wextra -Werror) e imitaciones del core ESP32, y corre los
+      # escenarios de seguridad. Si falla, no se despliega nada.
+      - name: Pruebas del firmware en el PC (SIL)
+        run: sh firmware/pruebas_pc/correr.sh
+
       - name: Instalar Flutter (misma versión que en las pruebas)
         uses: subosito/flutter-action@v2
         with:
@@ -33,6 +39,14 @@ jobs:
       - name: Dependencias de la app
         working-directory: app
         run: flutter pub get
+
+      - name: Análisis estático de la app
+        working-directory: app
+        run: flutter analyze
+
+      - name: Pruebas unitarias de la app (P11, P12, modelos y Modo Demo)
+        working-directory: app
+        run: flutter test
 
       - name: Compilar Flutter Web en la subcarpeta /app/
         working-directory: app

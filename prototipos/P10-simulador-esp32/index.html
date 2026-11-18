@@ -313,24 +313,24 @@
 .seg-badge.peligro { border-color: #f43f5e; background: rgba(244, 63, 94, 0.18); color: #fda4af; }
 .seg-badge.aviso { border-color: #f59e0b; background: rgba(245, 158, 11, 0.16); color: #fde68a; }
 
-/* ---- Inyección de eventos / Pruebas HIL ---- */
-.hil-panel { background: #1e293b; border: 1.5px dashed #f59e0b; border-radius: 14px; padding: 12px 14px; margin: 0 0 20px; }
-.hil-cab { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; margin-bottom: 10px; }
-.hil-cab strong { font-family: var(--font-display); font-size: 15px; color: #fde68a; }
-.hil-cab span { font-family: var(--font-mono); font-size: 11.5px; color: #94a3b8; }
-.hil-botones { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; }
-.btn-hil {
+/* ---- Inyección de eventos / Pruebas SIL ---- */
+.sil-panel { background: #1e293b; border: 1.5px dashed #f59e0b; border-radius: 14px; padding: 12px 14px; margin: 0 0 20px; }
+.sil-cab { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; margin-bottom: 10px; }
+.sil-cab strong { font-family: var(--font-display); font-size: 15px; color: #fde68a; }
+.sil-cab span { font-family: var(--font-mono); font-size: 11.5px; color: #94a3b8; }
+.sil-botones { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; }
+.btn-sil {
   font-family: var(--font-mono); font-size: 12px; font-weight: 700; text-align: left;
   min-height: 44px; padding: 8px 12px; border-radius: 10px;
   border: 1.5px solid #475569; background: #0f172a; color: #e2e8f0; cursor: pointer;
   transition: transform 0.16s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.15s ease-out, border-color 0.15s ease-out;
   touch-action: manipulation; -webkit-tap-highlight-color: transparent;
 }
-.btn-hil.peligro { border-color: #f43f5e; color: #fda4af; }
-.btn-hil.aviso { border-color: #f59e0b; color: #fde68a; }
-.btn-hil.ok { border-color: #22c55e; color: #86efac; }
-.btn-hil.activo { background: rgba(245, 158, 11, 0.18); box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.35); }
-@media (hover: hover) and (pointer: fine) { .btn-hil:hover { background: #1e293b; } }
+.btn-sil.peligro { border-color: #f43f5e; color: #fda4af; }
+.btn-sil.aviso { border-color: #f59e0b; color: #fde68a; }
+.btn-sil.ok { border-color: #22c55e; color: #86efac; }
+.btn-sil.activo { background: rgba(245, 158, 11, 0.18); box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.35); }
+@media (hover: hover) and (pointer: fine) { .btn-sil:hover { background: #1e293b; } }
 
 /* ---- Perfiles ---- */
 .perfiles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 0 0 20px; }
@@ -387,7 +387,7 @@
   .tele-grid { grid-template-columns: 1fr; }
   .ultra-grid { grid-template-columns: 1fr; }
   .seg-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .hil-botones { grid-template-columns: 1fr; }
+  .sil-botones { grid-template-columns: 1fr; }
   .perfiles-grid { grid-template-columns: 1fr; margin-bottom: 26px; }
   .log-mqtt { height: 200px; font-size: 12px; }
 }
@@ -421,7 +421,7 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
     <span class="chip">HiveMQ → EMQX → Mosquitto</span>
     <span class="chip">6 Perfiles de Telemetría</span>
     <span class="chip">Paridad de seguridad con el firmware</span>
-    <span class="chip">Pruebas HIL sin hardware</span>
+    <span class="chip">Pruebas SIL (sin hardware)</span>
   </div>
 
   <div class="frase-explicativa">
@@ -552,17 +552,18 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
         </div>
 
         <!-- Inyección de eventos: valida las reacciones de seguridad y de la App (P11) sin hardware -->
-        <div class="hil-panel" role="group" aria-labelledby="t-hil">
-          <div class="hil-cab">
-            <strong id="t-hil">Inyección de Eventos / Pruebas HIL</strong>
-            <span>Fuerza un escenario y mira la reacción aquí y en la App (alertas P11)</span>
+        <div class="sil-panel" role="group" aria-labelledby="t-sil">
+          <div class="sil-cab">
+            <strong id="t-sil">Inyección de Eventos Virtuales (SIL)</strong>
+            <span>SIL = Software In the Loop: el firmware se emula aquí. Las pruebas HIL (Hardware In the Loop) son con el ESP32 y los sensores reales (diciembre).</span>
           </div>
-          <div class="hil-botones">
-            <button type="button" class="btn-hil peligro" data-hil="frontal">🧱 Simular Obstáculo Frontal (14 cm)</button>
-            <button type="button" class="btn-hil peligro" data-hil="bloqueo">⛔ Simular Obstáculo Trasero + Frontal (Bloqueo total)</button>
-            <button type="button" class="btn-hil aviso" data-hil="sin-eco">📡 Simular Fallo Sensor Frontal (sin eco)</button>
-            <button type="button" class="btn-hil aviso" data-hil="bateria">🪫 Simular Batería Crítica (10.05 V)</button>
-            <button type="button" class="btn-hil ok" data-hil="normal">♻️ Restaurar Ciclo Normal</button>
+          <div class="sil-botones">
+            <button type="button" class="btn-sil peligro" data-sil="frontal">🧱 Simular Obstáculo Frontal (14 cm)</button>
+            <button type="button" class="btn-sil peligro" data-sil="bloqueo">⛔ Simular Obstáculo Trasero + Frontal (Bloqueo total)</button>
+            <button type="button" class="btn-sil aviso" data-sil="sin-eco">📡 Simular Fallo Sensor Frontal (sin eco)</button>
+            <button type="button" class="btn-sil aviso" data-sil="bateria">🪫 Simular Batería Crítica (10.05 V)</button>
+            <button type="button" class="btn-sil peligro" data-sil="corte">🔌 Simular Corte por Batería (9.85 V)</button>
+            <button type="button" class="btn-sil ok" data-sil="normal">♻️ Restaurar Ciclo Normal</button>
           </div>
         </div>
 
@@ -587,7 +588,7 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
       <li><b>3. Observa la Telemetría en Vivo</b><span>Verás cómo la batería, el modo autónomo/manual y la posición de la línea cambian automáticamente cada 2 segundos.</span></li>
       <li><b>4. Manda un pedido</b><span>Desde el <a href="../P01-mqtt-base/banco.html" target="_blank" rel="noopener">banco de pruebas P01</a> pulsa "Enviar un pedido": el ESP32 virtual lo recibe en <code>ordenes</code> y lo confirma en <code>ordenes/ack</code>. Lo verás en el registro de las dos páginas.</span></li>
       <li><b>5. Maneja el robot desde la app</b><span>En la app, los botones de dirección y <strong>Frenar</strong> pasan el ESP32 virtual a MANUAL (velocidades de la orden). <strong>Auto</strong> lo vuelve a AUTÓNOMO y retoma los 6 perfiles. Igual que el firmware, si pasan <strong>5 s sin órdenes</strong> en MANUAL, el robot frena y se queda en MANUAL (nunca pasa solo a autónomo).</span></li>
-      <li><b>6. Prueba la seguridad (HIL)</b><span>Usa el panel <strong>Inyección de Eventos</strong>: con un obstáculo frontal a 14 cm el robot queda en <code>0.00 m/s</code>, publica la alerta en <code>ucab-tg-sf/robot/alertas</code> (QoS 2) y solo deja retroceder si atrás hay ≥ 20 cm con el sensor válido. La App muestra el banner rojo/ámbar del Centro de Alertas (P11).</span></li>
+      <li><b>6. Prueba la seguridad (SIL)</b><span>Usa el panel <strong>Inyección de Eventos Virtuales (SIL)</strong>: con un obstáculo frontal a 14 cm el robot queda en <code>0.00 m/s</code>, publica la alerta en <code>ucab-tg-sf/robot/alertas</code> (QoS 2) y solo deja retroceder si atrás hay ≥ 20 cm con el sensor válido. La App muestra el banner rojo/ámbar del Centro de Alertas (P11).</span></li>
     </ol>
   </section>
 </main>
@@ -609,8 +610,9 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
   var UMBRAL_PARADA_CM = 20.0;
   var UMBRAL_AVISO_CM = 50.0;
   var TIMEOUT_MANUAL_MS = 5000;
-  var BAT_BAJA_V = 9.9;       /* corte seguro */
-  var BAT_CRITICA_V = 10.3;   /* aviso preventivo */
+  var VOLTAJE_CORTE_V = 9.90;   /* <= : frena y bloquea, alerta bateria_critica */
+  var VOLTAJE_REARME_V = 10.10; /* >  : histéresis, se puede volver a mover con una orden */
+  var VOLTAJE_AVISO_V = 10.30;  /* <= : aviso preventivo, alerta bateria_baja */
   var BAT_LLENA_V = 12.6;
   var INTENTOS_POR_BROKER = 2;
 
@@ -704,8 +706,8 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
   /* Validez de cada HC-SR04P (false = sin eco persistente, como sensorFrenteOk/sensorAtrasOk) */
   var ultraFrenteOk = true;
   var ultraAtrasOk = true;
-  /* Inyección HIL: batería forzada (null = la del perfil) */
-  var hilBateriaV = null;
+  /* Inyección SIL: batería forzada (null = la del perfil) */
+  var silBateriaV = null;
   /* Estado de seguridad (latches y alertas, igual que el firmware) */
   var seg = {
     parada: "ninguna",
@@ -713,8 +715,9 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
     alertaObstaculoAtras: false,
     alertaFalloFrente: false,
     alertaFalloAtras: false,
-    alertaCritica: false,
-    alertaBaja: false,
+    alertaAvisoBateria: false,
+    bateriaEnCorte: false,
+    paroBateria: false,
     paroTimeout: false
   };
   var cmdManual = "frenar";
@@ -905,7 +908,7 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
       ultraBadgeEl.textContent = "ENVÍO PAUSADO";
       ultraBadgeEl.className = "ultra-badge pausado";
     } else if (ultraManual) {
-      ultraBadgeEl.textContent = "SLIDER / HIL";
+      ultraBadgeEl.textContent = "SLIDER / SIL";
       ultraBadgeEl.className = "ultra-badge manual";
     } else {
       ultraBadgeEl.textContent = "PERFIL AUTO";
@@ -969,20 +972,32 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
   }
 
   function bateriaPorcentaje(v) {
-    var pct = (v - BAT_BAJA_V) / (BAT_LLENA_V - BAT_BAJA_V) * 100;
+    var pct = (v - VOLTAJE_CORTE_V) / (BAT_LLENA_V - VOLTAJE_CORTE_V) * 100;
     return Math.round(Math.max(0, Math.min(100, pct)));
   }
 
-  /* Alertas de batería con histéresis de 0,3 V (publicarEstado() del firmware).
-     0 V = sin batería medida: no alerta. */
+  /* Batería = revisarBateria() del firmware.
+     <= 9.90 V: corte (frena, bloquea, alerta bateria_critica). Se rearma por
+     encima de 10.10 V, pero solo se mueve con una orden nueva.
+     <= 10.30 V: aviso preventivo bateria_baja (histéresis 0,3 V).
+     0 V = sin batería medida (USB): ni corta ni alerta.
+     (El firmware además exige 3 lecturas seguidas de 200 ms; aquí la tensión
+     inyectada no tiene ruido, así que basta una.) */
   function revisarBateria(v) {
     var hay = v > 1.0;
-    var critica = hay && v <= BAT_CRITICA_V;
-    if (critica && !seg.alertaCritica) { seg.alertaCritica = true; publicarAlerta("bateria_critica", v); }
-    else if (!critica && v > BAT_CRITICA_V + 0.3) { seg.alertaCritica = false; }
-    var baja = hay && v < BAT_BAJA_V;
-    if (baja && !seg.alertaBaja) { seg.alertaBaja = true; publicarAlerta("bateria_baja", v); }
-    else if (!baja && v > BAT_BAJA_V + 0.3) { seg.alertaBaja = false; }
+    if (!seg.bateriaEnCorte && hay && v <= VOLTAJE_CORTE_V) {
+      seg.bateriaEnCorte = true;
+      seg.paroBateria = true;
+      velManual = { izq: 0, der: 0 };
+      cmdManual = "frenar";
+      publicarAlerta("bateria_critica", v);
+    } else if (seg.bateriaEnCorte && (!hay || v > VOLTAJE_REARME_V)) {
+      seg.bateriaEnCorte = false;
+      escribirLog("🔋 Batería rearmada (&gt; 10.10 V): el robot espera una orden nueva para moverse.");
+    }
+    var aviso = hay && v <= VOLTAJE_AVISO_V;
+    if (aviso && !seg.alertaAvisoBateria) { seg.alertaAvisoBateria = true; publicarAlerta("bateria_baja", v); }
+    else if (!aviso && v > VOLTAJE_AVISO_V + 0.3) { seg.alertaAvisoBateria = false; }
   }
 
   /* Diagnóstico de sensores: alerta una vez por episodio (actualizarDistancias()) */
@@ -997,6 +1012,9 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
      Recibe la velocidad deseada y devuelve la que realmente se aplica. */
   function aplicarSeguridad(deseada) {
     var parar = function (motivo) { seg.parada = motivo; return { izq: 0, der: 0 }; };
+
+    /* 3a') Corte por batería: latch hasta > 10.10 V + orden nueva */
+    if (seg.paroBateria) return parar("corte_bateria");
 
     /* 3b) Fail-safe por inactividad del modo MANUAL */
     if (modoP10 === "manual" && seg.paroTimeout) return parar("timeout");
@@ -1027,6 +1045,7 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
   var TEXTO_PARADA = {
     ninguna: "ninguna",
     timeout: "timeout manual (5 s)",
+    corte_bateria: "corte por batería (≤ 9.90 V)",
     obstaculo_frente: "obstáculo frontal < 20 cm",
     obstaculo_atras: "obstáculo trasero < 20 cm",
     fallo_sensor_frente: "fallo sensor frente (sin eco)",
@@ -1097,6 +1116,7 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
   function aplicarCmd(cmd) {
     ultimaOrdenMs = Date.now();
     seg.paroTimeout = false;   /* cualquier orden nueva libera el paro por inactividad */
+    if (!seg.bateriaEnCorte) seg.paroBateria = false;   /* y el de batería, si ya se rearmó */
     if (cmd === "auto") {
       modoP10 = "auto";
       cmdManual = "frenar";
@@ -1118,12 +1138,12 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
 
   /* Arma y publica el estado con la regla de seguridad aplicada.
      Se llama cada 2 s y, además, en cuanto cambia algo que afecta la seguridad
-     (orden, slider, inyección HIL, timeout): el firmware reacciona a 100 Hz. */
+     (orden, slider, inyección SIL, timeout): el firmware reacciona a 100 Hz. */
   function publicarEstado() {
     var b = brokerActual();
     var p = ultimoPerfil;
-    var bateriaV = hilBateriaV !== null ? hilBateriaV : p.bateria_v;
-    var bateria = hilBateriaV !== null ? bateriaPorcentaje(hilBateriaV) : p.bateria;
+    var bateriaV = silBateriaV !== null ? silBateriaV : p.bateria_v;
+    var bateria = silBateriaV !== null ? bateriaPorcentaje(silBateriaV) : p.bateria;
     revisarBateria(bateriaV);
     revisarSensores();
 
@@ -1391,47 +1411,52 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
     reaccionar();
   });
 
-  /* ---- Inyección de eventos / Pruebas HIL ---- */
-  var hilBotones = document.querySelectorAll(".btn-hil");
-  function marcarHil(nombre) {
-    hilBotones.forEach(function (bt) {
-      bt.classList.toggle("activo", bt.getAttribute("data-hil") === nombre && nombre !== "normal");
+  /* ---- Inyección de eventos / Pruebas SIL ---- */
+  var silBotones = document.querySelectorAll(".btn-sil");
+  function marcarSil(nombre) {
+    silBotones.forEach(function (bt) {
+      bt.classList.toggle("activo", bt.getAttribute("data-sil") === nombre && nombre !== "normal");
     });
   }
-  var ESCENARIOS_HIL = {
+  var ESCENARIOS_SIL = {
     frontal: function () {
       ultraManual = true; ultraFrenteOk = true; ultraAtrasOk = true;
       ultraFrente = 14; ultraAtras = Math.max(ultraAtras, 60);
-      return "🧱 HIL: obstáculo frontal a <b>14 cm</b>. Esperado: 0.00 m/s, alerta <code>obstaculo</code>; 'atras' sigue permitido (atrás " + ultraAtras + " cm).";
+      return "🧱 SIL: obstáculo frontal a <b>14 cm</b>. Esperado: 0.00 m/s, alerta <code>obstaculo</code>; 'atras' sigue permitido (atrás " + ultraAtras + " cm).";
     },
     bloqueo: function () {
       ultraManual = true; ultraFrenteOk = true; ultraAtrasOk = true;
       ultraFrente = 14; ultraAtras = 12;
-      return "⛔ HIL: <b>bloqueo total</b> (frente 14 cm, atrás 12 cm). Esperado: ninguna dirección permitida; 'atras' publica <code>obstaculo_atras</code>.";
+      return "⛔ SIL: <b>bloqueo total</b> (frente 14 cm, atrás 12 cm). Esperado: ninguna dirección permitida; 'atras' publica <code>obstaculo_atras</code>.";
     },
     "sin-eco": function () {
       ultraManual = true; ultraFrenteOk = false; ultraAtrasOk = true;
-      return "📡 HIL: el HC-SR04P frontal deja de responder (equivale a 5 disparos sin eco = 500 ms). Esperado: <code>frente_ok:false</code>, alerta <code>fallo_sensor_frente</code>, avance/giros/autónomo bloqueados.";
+      return "📡 SIL: el HC-SR04P frontal deja de responder (equivale a 3 lecturas propias sin eco = 600 ms, lectura alternada). Esperado: <code>frente_ok:false</code>, alerta <code>fallo_sensor_frente</code>, avance/giros/autónomo bloqueados.";
     },
     bateria: function () {
-      hilBateriaV = 10.05;
-      return "🪫 HIL: batería forzada a <b>10.05 V</b> (" + bateriaPorcentaje(10.05) + " %). Esperado: alerta <code>bateria_critica</code> (≤ 10.3 V) y banner en la App.";
+      silBateriaV = 10.05;
+      return "🪫 SIL: batería forzada a <b>10.05 V</b> (" + bateriaPorcentaje(10.05) + " %). Esperado: aviso preventivo <code>bateria_baja</code> (≤ 10.30 V) y banner de batería crítica en la App. No hay corte (corte ≤ 9.90 V).";
+    },
+    corte: function () {
+      silBateriaV = 9.85;
+      return "🔌 SIL: batería forzada a <b>9.85 V</b>. Esperado: corte de seguridad (0.00 m/s, <code>parada:corte_bateria</code>), alerta <code>bateria_critica</code>; no se mueve hasta &gt; 10.10 V y una orden nueva.";
     },
     normal: function () {
-      ultraManual = false; ultraFrenteOk = true; ultraAtrasOk = true; hilBateriaV = null;
+      ultraManual = false; ultraFrenteOk = true; ultraAtrasOk = true; silBateriaV = null;
       modoP10 = "auto"; cmdManual = "frenar"; velManual = { izq: 0, der: 0 };
       seg.paroTimeout = false; seg.obstaculo = false; seg.alertaObstaculoAtras = false;
+      seg.bateriaEnCorte = false; seg.paroBateria = false;
       ultraFrente = ultimoPerfil.frente_cm; ultraAtras = ultimoPerfil.atras_cm;
       btnUltraPerfilEl.disabled = true;
-      return "♻️ HIL: <b>ciclo normal restaurado</b> (perfiles automáticos, sensores válidos, batería del perfil, modo AUTÓNOMO).";
+      return "♻️ SIL: <b>ciclo normal restaurado</b> (perfiles automáticos, sensores válidos, batería del perfil, modo AUTÓNOMO).";
     }
   };
-  hilBotones.forEach(function (bt) {
+  silBotones.forEach(function (bt) {
     bt.addEventListener("click", function () {
-      var nombre = bt.getAttribute("data-hil");
-      var texto = ESCENARIOS_HIL[nombre]();
-      if (nombre !== "normal" && nombre !== "bateria") btnUltraPerfilEl.disabled = false;
-      marcarHil(nombre);
+      var nombre = bt.getAttribute("data-sil");
+      var texto = ESCENARIOS_SIL[nombre]();
+      if (nombre !== "normal" && nombre !== "bateria" && nombre !== "corte") btnUltraPerfilEl.disabled = false;
+      marcarSil(nombre);
       escribirLog(texto + (encendido ? "" : " <i>(Enciende el ESP32 virtual para publicarlo.)</i>"));
       reaccionar();
     });

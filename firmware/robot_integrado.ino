@@ -24,9 +24,16 @@
     - En MANUAL, si no llega ninguna orden (MQTT o teclas) en 5 s, el robot
       FRENA y se queda detenido en MANUAL (fail-safe). NUNCA pasa solo a
       autónomo: hace falta una orden explícita ("auto" o la tecla o).
-    - Ultrasonidos: si un HC-SR04P no devuelve eco 5 disparos seguidos
-      (500 ms), se marca en fallo y se bloquea el movimiento en esa dirección
-      (frente: avanzar, girar y autónomo; atrás: retroceder) con una alerta.
+    - Ultrasonidos: se leen ALTERNADOS (frente en ciclos pares, atrás en
+      impares, 100 ms cada ciclo: cada sensor cada 200 ms). Si un HC-SR04P no
+      devuelve eco en 3 lecturas propias seguidas (600 ms), se marca en fallo y
+      se bloquea el movimiento en esa dirección (frente: avanzar, girar y
+      autónomo; atrás: retroceder) con una alerta.
+    - Batería: con <= 9,90 V (3 lecturas seguidas, 600 ms) el robot FRENA,
+      publica "bateria_critica" y no se mueve hasta que suba de 10,10 V Y
+      llegue una orden nueva. Con <= 10,30 V avisa antes con "bateria_baja".
+    - Órdenes repetidas (mismo "id" que la última, típico de QoS 1) no se
+      ejecutan ni se cuentan dos veces: solo se reconfirman.
     - Teclas del Monitor Serie (115200):
         w adelante   s atrás   a izquierda   d derecha
         espacio o x  frenar    + / -  suben/bajan la velocidad 5 %
@@ -96,11 +103,18 @@ const uint8_t PIN_SENSOR[4] = {36, 39, 34, 35};
 const uint8_t PIN_BATERIA = 32;  // divisor 100 kΩ + 22 kΩ (12,6 V -> 2,27 V)
 const uint8_t PIN_PRUEBA  = 0;   // botón BOOT de la placa (activo en bajo)
 
-// Ultrasonidos HC-SR04 (según BOM = 2 HC-SR04P): 1 TRIG común + 2 ECHO.
-// Adelante y Atrás. GPIO 15 queda libre. Si usas el HC-SR04 clásico de 5 V,
-// pon un divisor 1k/2k en cada ECHO. GPIO 5 es pin de arranque, pero como
-// ECHO lee LOW en reposo: sin riesgo.
-const uint8_t PIN_ULTRA_TRIG   = 23;   // disparo común a los 2 módulos
+// Ultrasonidos HC-SR04 (según BOM = 2 HC-SR04P): Adelante y Atrás.
+// Cableado actual (docs/sensores.md): 1 TRIG común (GPIO 23) + 2 ECHO.
+// Si usas el HC-SR04 clásico de 5 V, pon un divisor 1k/2k en cada ECHO.
+// GPIO 5 es pin de arranque, pero como ECHO lee LOW en reposo: sin riesgo.
+//
+// LECTURA ALTERNADA: en ciclos pares se dispara y escucha el de adelante; en
+// impares, el de atrás. Con TRIG común los DOS módulos emiten en cada disparo,
+// así que alternar la captura solo evita leer el eco del otro sensor en el
+// mismo ciclo: para separarlos acústicamente de verdad, cablea el TRIG trasero
+// a GPIO 15 (libre) y cambia PIN_ULTRA_TRIG_ATRAS a 15. No hay que tocar nada más.
+const uint8_t PIN_ULTRA_TRIG_FRENTE = 23;  // TRIG del módulo delantero
+const uint8_t PIN_ULTRA_TRIG_ATRAS  = 23;  // = 23 (común) hoy; 15 si se separa
 const uint8_t PIN_ULTRA_FRENTE = 33;   // ECHO delantero
 const uint8_t PIN_ULTRA_ATRAS  = 5;    // ECHO trasero
 
@@ -334,8 +348,15 @@ float pidPaso(Pid &p, float objetivo, float medida, float dt) {
 // =====================================================================
 const float DIVISOR      = (100.0f + 22.0f) / 22.0f;
 const float BAT_LLENA_V  = 12.6f;   // batería 3S llena
-const float BAT_BAJA_V   = 9.9f;    // corte seguro: alarma de batería baja (la de P08)
-const float BAT_CRITICA_V = 10.3f;  // aviso preventivo (mismo umbral que la app, P11)
+
+// Corte de seguridad Li-Ion 3S (3,30 V por celda). El BMS corta entre 2,3 y
+// 3,0 V por celda: el ESP32 debe frenar ANTES para no descargar de más.
+const float VOLTAJE_CORTE_V    = 9.90f;   // <= -> frena y bloquea (bateria_critica)
+const float VOLTAJE_REARME_V   = 10.10f;  // >  -> histéresis: se puede volver a mover
+const float VOLTAJE_AVISO_V    = 10.30f;  // <= -> aviso preventivo (bateria_baja)
+const float VOLTAJE_SIN_BAT_V  = 1.0f;    // <= -> no hay batería medida (USB en la mesa)
+const uint8_t LECTURAS_BAT_CONFIRMA = 3;  // 3 x 200 ms: ignora el bajón al arrancar motores
+const uint32_t PERIODO_BATERIA_MS   = 200;
 
 float leerBateriaV() {
   // analogReadMilliVolts usa la calibración de fábrica del ESP32
@@ -343,7 +364,7 @@ float leerBateriaV() {
 }
 
 int bateriaPorcentaje(float v) {
-  float p = (v - BAT_BAJA_V) / (BAT_LLENA_V - BAT_BAJA_V) * 100.0f;
+  float p = (v - VOLTAJE_CORTE_V) / (BAT_LLENA_V - VOLTAJE_CORTE_V) * 100.0f;
   return (int)(limitar(p, 0.0f, 100.0f) + 0.5f);
 }
 
@@ -387,6 +408,17 @@ bool paroPorRed = false;
 // quedarse quieto. Lo libera una orden nueva; NUNCA pasa a AUTONOMO solo.
 bool paroPorTimeout = false;
 
+// Corte por batería baja.
+//   bateriaEnCorte: la tensión está en zona de corte (<= 9,90 V); vuelve a
+//                   false solo por encima de 10,10 V (histéresis).
+//   paroPorBateria: latch de motores. Se activa con el corte y se libera con
+//                   una orden NUEVA, pero solo si bateriaEnCorte ya es false.
+//                   Así el rebote de tensión al frenar (la celda sube ~0,2 V
+//                   sin carga) no hace que el robot arranque y frene en bucle.
+bool bateriaEnCorte = false;
+bool paroPorBateria = false;
+float ultimaBateriaV = 0.0f;   // última lectura (la usa la telemetría)
+
 // Paro por obstáculo (RF-05): si el eco frontal baja de UMBRAL_PARADA_CM, el
 // robot frena. Se rearma solo cuando el camino vuelve a estar despejado.
 // Declarado aquí (antes de controlar()) porque controlar() lo consulta.
@@ -401,11 +433,12 @@ volatile float frenteCm = 0.0f, atrasCm = 0.0f;
 // hay objeto, de ~38 ms (timeout del HC-SR04P) si no hay nada en 4 m. Si no
 // llega NINGÚN pulso (cable suelto, módulo muerto, ECHO pegado), la lectura es
 // 0.0f "sin eco" y NO puede tomarse como camino despejado.
-//   FALLO_ECO_MAX disparos seguidos sin eco (5 x 100 ms = 500 ms) -> fallo.
-//   ECO_RECUPERA_MIN ecos válidos seguidos -> el sensor vuelve a estar OK.
+//   FALLO_ECO_MAX lecturas PROPIAS seguidas sin eco -> fallo. Con la lectura
+//   alternada cada sensor se lee cada 200 ms: 3 x 200 ms = 600 ms.
+//   ECO_RECUPERA_MIN ecos válidos seguidos (2 x 200 ms) -> vuelve a estar OK.
 // Arrancan en false: hasta ver ecos válidos el sensor no se considera fiable.
-const uint8_t FALLO_ECO_MAX    = 5;
-const uint8_t ECO_RECUPERA_MIN = 3;
+const uint8_t FALLO_ECO_MAX    = 3;
+const uint8_t ECO_RECUPERA_MIN = 2;
 uint8_t sinEcoFrente = 0, sinEcoAtras = 0;   // disparos seguidos sin eco
 uint8_t ecoOkFrente  = 0, ecoOkAtras  = 0;   // ecos válidos seguidos
 bool sensorFrenteOk = false, sensorAtrasOk = false;
@@ -449,6 +482,7 @@ void pasarAAutonomo() {
   modo = MODO_AUTONOMO;
   paroPorRed = false;                // una orden explícita libera el paro por red
   paroPorTimeout = false;
+  if (!bateriaEnCorte) paroPorBateria = false;   // tecla o: igual que una orden
   estadoLinea.hayError = false;      // sin historial: el término D arranca en 0
   estadoLinea.errorAnterior = 0.0f;
   estadoLinea.ultimaPos = 0.0f;
@@ -462,6 +496,7 @@ void aplicarCmd(const String &cmd, float vel) {
   ultimaOrdenMs = millis();
   paroPorRed = false;                // cualquier orden nueva libera el paro
   paroPorTimeout = false;            // ...y también el paro por inactividad
+  if (!bateriaEnCorte) paroPorBateria = false;   // batería ya rearmada (> 10,10 V)
 
   if (cmd == "auto") { pasarAAutonomo(); return; }
 
@@ -488,8 +523,13 @@ uint32_t ultimoImpreso = 0;
 uint32_t ultimoControl = 0;
 uint32_t ultimoBoton = 0;
 bool botonAntes = true;                 // BOOT está en alto cuando no se aprieta
-bool alertaBateriaEnviada = false;      // para no repetir la alerta de batería baja
-bool alertaCriticaEnviada = false;      // aviso preventivo de batería crítica (10,3 V)
+bool alertaAvisoBateriaEnviada = false; // aviso preventivo "bateria_baja" (10,30 V)
+
+// Deduplicación de órdenes (QoS 1 = "al menos una vez": el broker puede
+// reentregar la misma orden si se perdió el PUBACK). Se compara con la última.
+String ultimoIdOrden = "";
+unsigned long ultimoIdRecibidas = 0;    // "recibidas" con que se confirmó
+unsigned long ordenesDuplicadas = 0;
 
 // Cola de pedidos que falta confirmar (se confirma en loop, no en el callback).
 // Se guarda también cuántas órdenes llevaba el robot AL RECIBIR cada una, para
@@ -558,21 +598,43 @@ bool leerNumero(const String &json, const char *campo, float &valor) {
 // =====================================================================
 // 11. MQTT: recepción, conexión y publicación
 // =====================================================================
-void alRecibirMensaje(String &topico, String &mensaje) {
-  if (topico != T_ORDENES) return;   // solo se escucha ordenes; por si acaso
-  ordenesRecibidas++;
-  String id = leerCadena(mensaje, "id");
-  if (id.length() == 0) id = "sin-id";
-  Serial.println("Pedido #" + String(ordenesRecibidas) + " (" + id + "): " + mensaje);
-
-  // 1) Se encola la confirmación (se publica desde loop, no aquí)
+// Encola una confirmación (se publica desde loop, no aquí).
+void encolarAck(const String &id, unsigned long recibidas) {
   if (cantidadPendientes < MAX_PENDIENTES) {
     idsPendientes[cantidadPendientes] = id;
-    recibidasPendientes[cantidadPendientes] = ordenesRecibidas;
+    recibidasPendientes[cantidadPendientes] = recibidas;
     cantidadPendientes++;
   } else {
     Serial.println("Cola de confirmaciones llena: " + id + " no se confirmara");
   }
+}
+
+void alRecibirMensaje(String &topico, String &mensaje) {
+  if (topico != T_ORDENES) return;   // solo se escucha ordenes; por si acaso
+  String id = leerCadena(mensaje, "id");
+
+  // 0) Duplicado: mismo "id" que la última orden. NO se ejecuta, NO se cuenta
+  //    y NO renueva el timeout manual; solo se reconfirma con el mismo número
+  //    (si la app no recibió el primer ack, ahora lo recibe; si sí, lo marca
+  //    como repetido). Las órdenes sin "id" no se pueden deduplicar.
+  if (id.length() > 0 && id == ultimoIdOrden) {
+    ordenesDuplicadas++;
+    Serial.println("Orden duplicada ignorada (" + id + ")");
+    encolarAck(id, ultimoIdRecibidas);
+    return;
+  }
+
+  ordenesRecibidas++;
+  if (id.length() > 0) {
+    ultimoIdOrden = id;
+    ultimoIdRecibidas = ordenesRecibidas;
+  } else {
+    id = "sin-id";
+  }
+  Serial.println("Pedido #" + String(ordenesRecibidas) + " (" + id + "): " + mensaje);
+
+  // 1) Se encola la confirmación (se publica desde loop, no aquí)
+  encolarAck(id, ordenesRecibidas);
 
   // 2) Si la orden trae "cmd", es una orden de movimiento
   String cmd = leerCadena(mensaje, "cmd");
@@ -721,34 +783,65 @@ void procesarAlertas() {
   cantidadAlertas--;
 }
 
-// Estado periódico cada 2 s (QoS 0) + revisión de batería baja
+// ---------------------------------------------------------------------
+// Batería: corte de seguridad con histéresis + aviso preventivo
+// ---------------------------------------------------------------------
+// Se lee cada 200 ms. Cada cambio de zona exige 3 lecturas seguidas (600 ms)
+// para no cortar por el bajón de tensión al arrancar los motores.
+// Por debajo de 1 V se asume que no hay batería medida (robot por USB en la
+// mesa o divisor sin conectar): ni corta ni alerta por un "0,00 V" en reposo.
+uint32_t ultimaLecturaBat = 0;
+uint8_t lecturasBajoCorte = 0, lecturasSobreRearme = 0;
+
+void revisarBateria() {
+  uint32_t ahora = millis();
+  if (ahora - ultimaLecturaBat < PERIODO_BATERIA_MS) return;
+  ultimaLecturaBat = ahora;
+
+  float v = leerBateriaV();
+  ultimaBateriaV = v;
+  bool hayBateria = v > VOLTAJE_SIN_BAT_V;
+
+  // Corte (<= 9,90 V) y rearme (> 10,10 V), cada uno con 3 lecturas seguidas
+  lecturasBajoCorte   = (hayBateria && v <= VOLTAJE_CORTE_V)
+                        ? (uint8_t)min(lecturasBajoCorte + 1, 255) : 0;
+  lecturasSobreRearme = (!hayBateria || v > VOLTAJE_REARME_V)
+                        ? (uint8_t)min(lecturasSobreRearme + 1, 255) : 0;
+
+  if (!bateriaEnCorte && lecturasBajoCorte >= LECTURAS_BAT_CONFIRMA) {
+    bateriaEnCorte = true;
+    paroPorBateria = true;
+    dirIzq = 0;
+    dirDer = 0;
+    detener();                                   // primero frenar...
+    encolarAlerta("bateria_critica", false, v);  // ...después avisar
+    Serial.print("CORTE POR BATERIA: ");
+    Serial.print(v);
+    Serial.println(" V. Motores bloqueados hasta > 10,10 V y una orden nueva");
+  } else if (bateriaEnCorte && lecturasSobreRearme >= LECTURAS_BAT_CONFIRMA) {
+    bateriaEnCorte = false;   // el latch paroPorBateria espera una orden nueva
+    Serial.println("Bateria rearmada (> 10,10 V): esperando una orden nueva");
+  }
+
+  // Aviso preventivo (<= 10,30 V) con histéresis de 0,3 V
+  bool aviso = hayBateria && v <= VOLTAJE_AVISO_V;
+  if (aviso && !alertaAvisoBateriaEnviada) {
+    alertaAvisoBateriaEnviada = true;
+    encolarAlerta("bateria_baja", false, v);
+  } else if (!aviso && v > VOLTAJE_AVISO_V + 0.3f) {
+    alertaAvisoBateriaEnviada = false;
+  }
+}
+
+// Estado periódico cada 2 s (QoS 0)
 void publicarEstado() {
   uint32_t ahora = millis();
   if (ahora - ultimoEstado < PERIODO_ESTADO_MS) return;
   ultimoEstado = ahora;
   numeroEstado++;
 
-  float vbat = leerBateriaV();
+  float vbat = ultimaBateriaV;
   int pct = bateriaPorcentaje(vbat);
-
-  // Alertas de batería con histéresis (se rearman al recuperar 0,3 V).
-  // Por debajo de 1 V se asume que no hay batería medida (robot por USB en la
-  // mesa o divisor sin conectar): no se alerta por un "0,00 V" en reposo.
-  bool hayBateria = vbat > 1.0f;
-  bool critica = hayBateria && vbat <= BAT_CRITICA_V;
-  if (critica && !alertaCriticaEnviada) {
-    alertaCriticaEnviada = true;
-    encolarAlerta("bateria_critica", false, vbat);
-  } else if (!critica && vbat > BAT_CRITICA_V + 0.3f) {
-    alertaCriticaEnviada = false;
-  }
-  bool baja = hayBateria && vbat < BAT_BAJA_V;
-  if (baja && !alertaBateriaEnviada) {
-    alertaBateriaEnviada = true;
-    encolarAlerta("bateria_baja", false, vbat);
-  } else if (!baja && vbat > BAT_BAJA_V + 0.3f) {
-    alertaBateriaEnviada = false;
-  }
 
   if (!mqtt.connected()) return;
   String estado = "{\"n\":" + String(numeroEstado) +
@@ -869,6 +962,12 @@ void controlar() {
     return;
   }
 
+  // --- 3a') Corte por batería (<= 9,90 V): latch hasta > 10,10 V + orden ---
+  if (paroPorBateria) {
+    frenarControl("corte_bateria");
+    return;
+  }
+
   // --- 3b) Fail-safe por inactividad del modo MANUAL ---
   // 5 s sin órdenes: frena y se QUEDA en MANUAL detenido. Nunca pasa solo a
   // AUTONOMO (antes lo hacía: un robot que arranca por su cuenta al perder la
@@ -972,7 +1071,7 @@ void imprimirTelemetria() {
                 ultimaSalida.pos_mm, ultimaSalida.P, ultimaSalida.D,
                 ultimaSalida.perdida ? " PERDIDA" : "",
                 pwmIzqAplicado, pwmDerAplicado,
-                vIzq, vDer, leerBateriaV(),
+                vIzq, vDer, ultimaBateriaV,
                 sensorFrenteOk ? "ok" : "FALLO", sensorAtrasOk ? "ok" : "FALLO",
                 motivoParada);
 }
@@ -980,29 +1079,36 @@ void imprimirTelemetria() {
 // =====================================================================
 // 13B. ULTRASONIDOS HC-SR04 (no bloqueante, por interrupción)
 // =====================================================================
-// Se disparan los 2 a la vez con un único TRIG; cada módulo devuelve su eco
-// por su propio ECHO. Los flancos los captura una ISR en cada pin: loop()
-// nunca espera. El único tiempo bloqueante es delayMicroseconds(10), que es
-// el pulso mínimo que exige el HC-SR04 (no cuenta como delay()).
+// Lectura ALTERNADA: ciclo par = frente, ciclo impar = atrás (100 ms cada
+// ciclo, así cada sensor se lee cada 200 ms y nunca se escuchan los dos en el
+// mismo ciclo). Cada módulo devuelve su eco por su propio ECHO; los flancos los
+// captura una ISR que solo acepta el sensor "de turno": loop() nunca espera.
+// El único tiempo bloqueante es delayMicroseconds(10), el pulso mínimo que
+// exige el HC-SR04 (no cuenta como delay()).
 volatile unsigned long usInicioFrente = 0, usInicioAtras = 0;
 volatile unsigned long usPulsoFrente  = 0, usPulsoAtras  = 0;
+volatile bool turnoFrente = true;   // qué sensor se disparó en este ciclo
+uint32_t cicloUltra = 0;            // ciclos de disparo desde el arranque
 
 void IRAM_ATTR isrEchoFrente() {
+  if (!turnoFrente) return;          // no es su turno: se ignora el flanco
   if (digitalRead(PIN_ULTRA_FRENTE)) usInicioFrente = micros();
   else usPulsoFrente = micros() - usInicioFrente;
 }
 void IRAM_ATTR isrEchoAtras() {
+  if (turnoFrente) return;
   if (digitalRead(PIN_ULTRA_ATRAS)) usInicioAtras = micros();
   else usPulsoAtras = micros() - usInicioAtras;
 }
 
-// Dispara los 2 módulos y vuelve al instante; los pulsos los recogen las ISR.
-void dispararUltrasonido() {
-  usPulsoFrente = 0;
-  usPulsoAtras  = 0;
-  digitalWrite(PIN_ULTRA_TRIG, HIGH);
+// Dispara SOLO el sensor de turno y vuelve al instante; el pulso lo recoge su ISR.
+void dispararUltrasonido(bool frente) {
+  turnoFrente = frente;
+  if (frente) usPulsoFrente = 0; else usPulsoAtras = 0;
+  uint8_t trig = frente ? PIN_ULTRA_TRIG_FRENTE : PIN_ULTRA_TRIG_ATRAS;
+  digitalWrite(trig, HIGH);
   delayMicroseconds(10);
-  digitalWrite(PIN_ULTRA_TRIG, LOW);
+  digitalWrite(trig, LOW);
 }
 
 // Ancho de pulso (us) -> cm (58 us/cm ida y vuelta). 0 = sin eco / fuera de alcance.
@@ -1016,11 +1122,11 @@ float cmUltrasonido(unsigned long pulso) {
 
 uint32_t ultimoDisparoUltra = 0;
 uint32_t ultimoPubUltra     = 0;
-const uint32_t PERIODO_DISPARO_ULTRA_MS = 100;  // dispara 10 veces/s
+const uint32_t PERIODO_DISPARO_ULTRA_MS = 100;  // 1 ciclo = 100 ms (cada sensor: 200 ms)
 const uint32_t PERIODO_PUB_ULTRA_MS     = 500;  // publica cada 0,5 s
 
 // Lleva la cuenta de ecos de UN sensor y decide si está sano.
-//   pulso == 0 -> no llegó ningún pulso por ECHO en 100 ms: "sin eco".
+//   pulso == 0 -> no llegó ningún pulso por ECHO en su ciclo: "sin eco".
 //   pulso > 0  -> el módulo respondió (con objeto o con el pulso de timeout
 //                 de ~38 ms cuando no hay nada en 4 m, que da 0 cm "despejado").
 // Devuelve true en el instante en que el sensor PASA a fallo.
@@ -1040,35 +1146,35 @@ bool diagnosticarEco(unsigned long pulso, uint8_t &sinEco, uint8_t &ecoOk, bool 
   return false;
 }
 
-// Convierte los pulsos del último disparo en cm y los guarda en frenteCm/atrasCm.
-// Se llama ANTES de volver a disparar, cuando el eco ya está completo.
-// Además actualiza el diagnóstico de cada sensor y encola la alerta de fallo
-// (una sola vez por episodio; se rearma cuando el sensor se recupera).
-void actualizarDistancias() {
-  unsigned long pF = usPulsoFrente;
-  unsigned long pA = usPulsoAtras;
-  frenteCm = cmUltrasonido(pF);
-  atrasCm  = cmUltrasonido(pA);
-
-  diagnosticarEco(pF, sinEcoFrente, ecoOkFrente, sensorFrenteOk);
-  diagnosticarEco(pA, sinEcoAtras,  ecoOkAtras,  sensorAtrasOk);
-
-  // Alerta de diagnóstico: también cubre un módulo desconectado desde el
-  // arranque (sensorOk nunca llegó a true).
-  if (!sensorFrenteOk && sinEcoFrente >= FALLO_ECO_MAX && !alertaFalloFrenteEnviada) {
-    alertaFalloFrenteEnviada = true;
-    detener();
-    encolarAlerta("fallo_sensor_frente", false, NAN);
-    Serial.println("FALLO ultrasonido FRENTE: sin eco 500 ms, bloqueo el avance");
-  } else if (sensorFrenteOk) {
-    alertaFalloFrenteEnviada = false;
-  }
-  if (!sensorAtrasOk && sinEcoAtras >= FALLO_ECO_MAX && !alertaFalloAtrasEnviada) {
-    alertaFalloAtrasEnviada = true;
-    encolarAlerta("fallo_sensor_atras", false, NAN);
-    Serial.println("FALLO ultrasonido ATRAS: sin eco 500 ms, bloqueo el retroceso");
-  } else if (sensorAtrasOk) {
-    alertaFalloAtrasEnviada = false;
+// Convierte el pulso del sensor que se disparó en el ciclo anterior en cm.
+// Se llama ANTES de volver a disparar, cuando el eco ya está completo. Además
+// actualiza el diagnóstico de ESE sensor y encola la alerta de fallo (una sola
+// vez por episodio; se rearma cuando el sensor se recupera).
+void actualizarDistancia(bool frente) {
+  if (frente) {
+    unsigned long pF = usPulsoFrente;
+    frenteCm = cmUltrasonido(pF);
+    diagnosticarEco(pF, sinEcoFrente, ecoOkFrente, sensorFrenteOk);
+    // También cubre un módulo desconectado desde el arranque.
+    if (!sensorFrenteOk && sinEcoFrente >= FALLO_ECO_MAX && !alertaFalloFrenteEnviada) {
+      alertaFalloFrenteEnviada = true;
+      detener();
+      encolarAlerta("fallo_sensor_frente", false, NAN);
+      Serial.println("FALLO ultrasonido FRENTE: sin eco 600 ms, bloqueo el avance");
+    } else if (sensorFrenteOk) {
+      alertaFalloFrenteEnviada = false;
+    }
+  } else {
+    unsigned long pA = usPulsoAtras;
+    atrasCm = cmUltrasonido(pA);
+    diagnosticarEco(pA, sinEcoAtras, ecoOkAtras, sensorAtrasOk);
+    if (!sensorAtrasOk && sinEcoAtras >= FALLO_ECO_MAX && !alertaFalloAtrasEnviada) {
+      alertaFalloAtrasEnviada = true;
+      encolarAlerta("fallo_sensor_atras", false, NAN);
+      Serial.println("FALLO ultrasonido ATRAS: sin eco 600 ms, bloqueo el retroceso");
+    } else if (sensorAtrasOk) {
+      alertaFalloAtrasEnviada = false;
+    }
   }
 }
 
@@ -1094,7 +1200,7 @@ void publicarUltrasonido() {
   if (!mqtt.connected()) return;
   // Contrato BOM: 2 sensores. QoS 0 (no bloquea).
   //   frente_cm / atras_cm: distancia; 0.0 = nada en rango o sin eco.
-  //   frente_ok / atras_ok: false = sensor en FALLO (sin eco 500 ms).
+  //   frente_ok / atras_ok: false = sensor en FALLO (sin eco 600 ms).
   //   Con *_ok = false, un 0.0 NO significa despejado.
   String j = "{\"frente_cm\":" + String(frenteCm, 1) +
              ",\"atras_cm\":" + String(atrasCm, 1) +
@@ -1108,8 +1214,10 @@ void gestionarUltrasonidos() {
   uint32_t ahora = millis();
   if (ahora - ultimoDisparoUltra >= PERIODO_DISPARO_ULTRA_MS) {
     ultimoDisparoUltra = ahora;
-    actualizarDistancias();   // lee el eco del ciclo anterior
-    dispararUltrasonido();    // lanza el siguiente
+    if (cicloUltra > 0) actualizarDistancia(turnoFrente);  // eco del ciclo anterior
+    bool frente = (cicloUltra % 2 == 0);                    // pares frente, impares atrás
+    cicloUltra++;
+    dispararUltrasonido(frente);                            // lanza el siguiente
   }
   if (ahora - ultimoPubUltra >= PERIODO_PUB_ULTRA_MS) {
     ultimoPubUltra = ahora;
@@ -1155,9 +1263,11 @@ void setup() {
   }
   analogSetPinAttenuation(PIN_BATERIA, ADC_11db);
 
-  // Ultrasonidos (1 TRIG común + 2 ECHO por interrupción)
-  pinMode(PIN_ULTRA_TRIG, OUTPUT);
-  digitalWrite(PIN_ULTRA_TRIG, LOW);
+  // Ultrasonidos (TRIG común o separado + 2 ECHO por interrupción, alternados)
+  pinMode(PIN_ULTRA_TRIG_FRENTE, OUTPUT);
+  pinMode(PIN_ULTRA_TRIG_ATRAS, OUTPUT);     // mismo pin si el TRIG es común
+  digitalWrite(PIN_ULTRA_TRIG_FRENTE, LOW);
+  digitalWrite(PIN_ULTRA_TRIG_ATRAS, LOW);
   pinMode(PIN_ULTRA_FRENTE, INPUT);
   pinMode(PIN_ULTRA_ATRAS, INPUT);
   attachInterrupt(digitalPinToInterrupt(PIN_ULTRA_FRENTE), isrEchoFrente, CHANGE);
@@ -1201,6 +1311,7 @@ void loop() {
   atenderBotonYSerie();      // botón BOOT, teclas y alarma
   atenderIMU();              // gancho de la MPU6050 (por ahora no hace nada)
   controlar();               // PD o manual cada 10 ms (100 Hz)
+  revisarBateria();          // corte por batería con histéresis (cada 200 ms)
   publicarEstado();          // estado cada 2 s (QoS 0)
   gestionarUltrasonidos();   // dispara + publica ultrasonido (no bloqueante)
   imprimirTelemetria();      // monitor serie cada 1 s

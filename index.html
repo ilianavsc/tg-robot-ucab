@@ -115,7 +115,7 @@ a.ir:hover {
 
 <main>
   <!-- ====================================================================
-       1. HERO LIMPIO: TÍTULO, 1 FRASE, BARRA 5/12 Y 3 BOTONES PRINCIPALES
+       1. HERO LIMPIO: TÍTULO, 1 FRASE, BARRA DE AVANCE (P01–P13) Y 3 BOTONES PRINCIPALES
        ==================================================================== -->
   <section class="hero-bienvenida" aria-labelledby="t-bienvenida">
     <div class="badge-autores">
@@ -215,7 +215,7 @@ a.ir:hover {
           <span class="mono" style="font-size:13px;font-weight:700;color:var(--accent-primary)">6/6 listos</span>
         </div>
         <h3 style="margin:0 0 6px">Simuladores 3D, Radar, App y Firmware</h3>
-        <p style="margin:0 0 8px"><span class="chip hecho" title="Lógica de órdenes y ACK probada en el PC con un MQTT falso. Falta la prueba en el ESP32 real.">✓ Firmware C++ validado (13/13 tests)</span></p>
+        <p style="margin:0 0 8px"><span class="chip hecho" title="Firmware compilado en el PC con imitaciones del hardware (SIL) y probado en 58 comprobaciones; corre en GitHub Actions. Falta la prueba en el ESP32 real (HIL).">✓ Firmware C++ · 58/58 pruebas SIL</span></p>
         <p class="linea-2" style="margin:0;font-size:15.5px;color:var(--text-muted)">
           Comunicación MQTT, control de motores, seguidor de línea, radar ultrasónico y app móvil en tiempo real.
         </p>
@@ -228,7 +228,7 @@ a.ir:hover {
               <li class="estado-item"><span class="estado-icon check">✓</span><div><strong>P03 (Tracción):</strong> PWM a 20 kHz e interrupciones de encoders con batería Li-Ion 3S.</div></li>
               <li class="estado-item"><span class="estado-icon check">✓</span><div><strong>P08 (Línea):</strong> Control PD a 100 Hz con 4 sensores TCRT5000 a 0,41 m/s.</div></li>
               <li class="estado-item"><span class="estado-icon check">✓</span><div><strong>P13 (Ultrasonido):</strong> Radar interactivo en canvas (Adelante y Atrás) publicando en <code>ucab-tg-sf/robot/ultrasonido</code>.</div></li>
-              <li class="estado-item"><span class="estado-icon check">✓</span><div><strong>Firmware C++ validado (13/13 tests):</strong> órdenes y ACK probados en el PC con un MQTT falso; el ACK sale idéntico al del simulador P10. Falta la prueba con el ESP32 real (<a href="docs/centro_de_pruebas.md" data-md="docs/centro_de_pruebas.md" data-titulo="Centro de pruebas">flujo de la prueba física</a>).</div></li>
+              <li class="estado-item"><span class="estado-icon check">✓</span><div><strong>Firmware C++ · 58/58 pruebas SIL:</strong> órdenes, ACK, duplicados QoS 1, obstáculos, fallo de ultrasonido, timeout manual y corte por batería, probados en el PC (corren solos en GitHub Actions); el contrato MQTT es idéntico al del simulador P10. Falta la prueba con el ESP32 real (<a href="docs/centro_de_pruebas.md" data-md="docs/centro_de_pruebas.md" data-titulo="Centro de pruebas">flujo de la prueba física</a>).</div></li>
               <li class="estado-item"><span class="estado-icon check">✓</span><div><strong>Firmware Integrado:</strong> Un solo archivo <code>.ino</code> sin <code>delay()</code> (71 % Flash, 15 % RAM) con fail-safe y corte por batería baja (9,9 V).</div></li>
             </ul>
             <div style="display:flex;flex-wrap:wrap;gap:10px">
@@ -302,7 +302,7 @@ a.ir:hover {
   var listosArr = P.filter(function (p) { return p.estado !== "pendiente"; });
   var caminoArr = P.filter(function (p) { return p.estado === "pendiente"; });
 
-  /* 1. Hero: barra de avance 5/12 */
+  /* 1. Hero: barra de avance (calculada de TG.prototipos, P01–P13) */
   var pct = Math.round((listosArr.length / P.length) * 100);
   document.getElementById("hero-avance-label").textContent = listosArr.length + "/" + P.length + " prototipos listos";
   document.getElementById("hero-avance-pct").textContent = pct + " % completado";

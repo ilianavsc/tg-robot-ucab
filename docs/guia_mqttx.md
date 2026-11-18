@@ -85,7 +85,7 @@ En MQTTX: **suscribirse** a `ucab-tg-sf/robot/#` con QoS **1** y abrir además
 ```json
 {"n":1,"tipo":"antirrobo","prueba":true,"t":52310}
 ```
-Tipos posibles: `antirrobo` (botón BOOT o tecla `t`), `bateria_baja`, `antirrobo_imu` (reservado).
+Tipos posibles: `antirrobo` (botón BOOT o tecla `t`), `bateria_baja` (aviso ≤ 10,30 V), `bateria_critica` (corte ≤ 9,90 V), `obstaculo`, `obstaculo_atras`, `fallo_sensor_frente`, `fallo_sensor_atras`, `timeout_manual`, `antirrobo_imu` (reservado). Lista completa en `docs/arquitectura/topicos-mqtt.md`.
 
 ---
 
