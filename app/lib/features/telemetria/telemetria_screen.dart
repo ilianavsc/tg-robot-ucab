@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/models/estado.dart';
 import '../../core/models/orden_ack.dart';
+import '../../core/models/ultrasonido.dart';
 import '../../core/mqtt/mqtt_service.dart';
 
 /// Pantalla de telemetría con diseño Material 3 de nivel portafolio.
@@ -120,6 +121,11 @@ class TelemetriaScreen extends StatelessWidget {
                   child: _TarjetaTraccionYSistema(estado: estado),
                 ),
               ],
+              const SizedBox(height: 16),
+              _Aparece(
+                indice: 5,
+                child: _TarjetaUltrasonicos(datos: servicio.ultimoUltrasonido),
+              ),
             ],
           ),
         ),
@@ -1123,6 +1129,153 @@ class _ChipDato extends StatelessWidget {
   }
 }
 
+
+/// Tarjeta de los 2 sensores ultrasónicos: distancia al frente y atrás en cm,
+/// en vivo (se actualiza con cada mensaje de `ucab-tg-sf/robot/ultrasonido`).
+class _TarjetaUltrasonicos extends StatelessWidget {
+  const _TarjetaUltrasonicos({required this.datos});
+
+  final Ultrasonido? datos;
+
+  @override
+  Widget build(BuildContext context) {
+    final Ultrasonido? d = datos;
+    return Card(
+      elevation: 0,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.5),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            const Row(
+              children: <Widget>[
+                Icon(Icons.sensors, color: Color(0xFF2563EB), size: 26),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Ultrasónicos',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              d == null
+                  ? 'Esperando lecturas en ucab-tg-sf/robot/ultrasonido…'
+                  : 'Distancia a lo que tiene delante y detrás del robot.',
+              style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            _FilaDistancia(
+              etiqueta: 'Frente',
+              icono: Icons.arrow_upward,
+              cm: d?.frenteCm,
+              hayDatos: d != null,
+            ),
+            const SizedBox(height: 14),
+            _FilaDistancia(
+              etiqueta: 'Atrás',
+              icono: Icons.arrow_downward,
+              cm: d?.atrasCm,
+              hayDatos: d != null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Una fila de distancia: etiqueta, valor en cm y barra de 0 a 200 cm.
+/// Verde con más de 50 cm, ámbar de 20 a 50 y rojo con menos de 20.
+class _FilaDistancia extends StatelessWidget {
+  const _FilaDistancia({
+    required this.etiqueta,
+    required this.icono,
+    required this.cm,
+    required this.hayDatos,
+  });
+
+  final String etiqueta;
+  final IconData icono;
+  final double? cm;
+  final bool hayDatos;
+
+  static const double _alcanceCm = 200;
+
+  @override
+  Widget build(BuildContext context) {
+    final double? valor = cm;
+    final Color color;
+    if (valor == null) {
+      color = const Color(0xFF94A3B8);
+    } else if (valor < 20) {
+      color = TelemetriaScreen._rojoError;
+    } else if (valor < 50) {
+      color = TelemetriaScreen._ambarAviso;
+    } else {
+      color = TelemetriaScreen._verdePrimario;
+    }
+    final String texto = valor != null
+        ? '${valor.toStringAsFixed(0)} cm'
+        : (hayDatos ? 'sin eco' : '—');
+    final double fraccion =
+        valor == null ? 0.0 : (valor / _alcanceCm).clamp(0.0, 1.0).toDouble();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Icon(icono, size: 18, color: const Color(0xFF475569)),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                etiqueta,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14.5,
+                  color: Color(0xFF334155),
+                ),
+              ),
+            ),
+            Text(
+              texto,
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 20,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: TweenAnimationBuilder<double>(
+            tween: Tween<double>(end: fraccion),
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutCubic,
+            builder: (BuildContext context, double v, Widget? _) {
+              return LinearProgressIndicator(
+                value: v,
+                minHeight: 10,
+                backgroundColor: const Color(0xFFE2E8F0),
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 /// Entrada suave de una tarjeta: opacidad + subida corta, con ease-out.
 /// Se anima una sola vez al aparecer (no se repite con cada mensaje de telemetría).

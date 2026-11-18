@@ -56,8 +56,9 @@ window.TG = {
     { codigo: "P08", nombre: "Seguir la línea", tema: "Simulador 3D", semana: 13, estado: "pruebas", categoria: "software", url: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/", principal: true, simulador: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/simulador.html", simuladorTexto: "Simulador 3D del seguidor de línea", ino: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/codigo-esp32/seguidor_linea/seguidor_linea.ino" },
     { codigo: "P09", nombre: "Interfaz Web / Modo Demo", tema: "Flutter", semana: 15, estado: "hecho", categoria: "app", url: "app/", principal: true, simulador: "app/", simuladorTexto: "Abrir App Web (Modo Demo)" },
     { codigo: "P10", nombre: "Simulador ESP32 Virtual", tema: "MQTT Web", semana: 21, estado: "hecho", categoria: "app", url: "prototipos/P10-simulador-esp32/index.html", principal: true, simulador: "prototipos/P10-simulador-esp32/index.html", simuladorTexto: "Abrir Simulador ESP32" },
-    { codigo: "P11", nombre: "Sensores de distancia", tema: "Ultrasonido", semana: 23, estado: "pruebas", categoria: "hardware", url: "prototipos/P11-sensores-ultrasonicos/index.html", principal: true, simulador: "prototipos/P11-sensores-ultrasonicos/index.html", simuladorTexto: "Abrir simulador de ultrasonido" },
-    { codigo: "P12", nombre: "Pruebas y estadística", tema: "Análisis", semana: 27, estado: "pendiente", categoria: "hardware" }
+    { codigo: "P11", nombre: "La alarma llega al teléfono", tema: "Alertas", semana: 23, estado: "pendiente", categoria: "app" },
+    { codigo: "P12", nombre: "Pruebas y estadística", tema: "Análisis", semana: 27, estado: "pendiente", categoria: "hardware" },
+    { codigo: "P13", nombre: "Sensores de distancia", tema: "Ultrasonido", semana: 5, estado: "pruebas", categoria: "hardware", url: "prototipos/P13-sensores-ultrasonicos/index.html", principal: true, simulador: "prototipos/P13-sensores-ultrasonicos/index.html", simuladorTexto: "Abrir simulador de ultrasonido" },
   ],
 
   /* ---------- PORTADA Y CRONOGRAMA RESUMIDOS ---------- */
@@ -96,8 +97,9 @@ window.TG = {
     P08: { corto: "Seguir la línea", linea: "El robot sigue la cinta negra sin salirse." },
     P09: { corto: "App web (Modo Demo)", linea: "Pide y mira el robot desde el celular, sin robot." },
     P10: { corto: "Simulador ESP32", linea: "Un ESP32 virtual que envía datos a la app." },
-    P11: { corto: "Sensores de distancia", linea: "El robot mide qué tan lejos está lo que tiene enfrente." },
-    P12: { corto: "Pruebas y estadística", linea: "20+ repeticiones y análisis de resultados." }
+    P11: { corto: "Alarma al teléfono", linea: "Si lo levantan, la alerta llega a la app." },
+    P12: { corto: "Pruebas y estadística", linea: "20+ repeticiones y análisis de resultados." },
+    P13: { corto: "Sensores de distancia", linea: "El robot mide qué tan lejos está lo que tiene delante y detrás." }
   },
 
   /* Lo que hay que hacer ya. hecho: true cuando se cumpla

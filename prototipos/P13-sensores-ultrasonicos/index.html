@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>P11 · Sensores ultrasónicos · TG Robot UCAB</title>
+<title>P13 · Sensores ultrasónicos · TG Robot UCAB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../assets/css/style.css">
 <style>
 /* ======================================================================
-   P11 · Sensores ultrasónicos: panel de 3 distancias + radar en canvas
+   P13 · Sensores ultrasónicos: panel de 2 distancias (frente y atrás) + radar en canvas
    ====================================================================== */
 :root { --p11-ease: cubic-bezier(0.23, 1, 0.32, 1); --verde: #22c55e; --ambar: #f59e0b; --rojo: #ef4444; }
 
@@ -78,7 +78,7 @@
 
 .us-radar-caja { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 #radar {
-  width: 100%; height: auto; aspect-ratio: 16 / 10; display: block;
+  width: 100%; height: auto; aspect-ratio: 1 / 1; max-width: 520px; margin: 0 auto; display: block;
   background: radial-gradient(ellipse at 50% 100%, #12263f 0%, #0b1424 70%);
   border: 1.5px solid #334155; border-radius: 14px;
 }
@@ -116,18 +116,18 @@
     Volver al catálogo de prototipos
   </a>
 
-  <p class="ceja">Prototipo P11 · Obstáculos · MQTT WebSockets · Rama fase-5-ultrasonido</p>
-  <h1>P11: Los <em>ojos de distancia</em> del robot</h1>
+  <p class="ceja">Prototipo P13 · Obstáculos · MQTT WebSockets · Rama fase-5-ultrasonido</p>
+  <h1>P13: Los <em>ojos de distancia</em> del robot</h1>
 
   <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px">
     <span class="chip pruebas">En pruebas · Simulador</span>
-    <span class="chip">3 sensores: Izq, Centro, Der</span>
+    <span class="chip">2 sensores: Adelante y Atrás</span>
     <span class="chip">HiveMQ → EMQX → Mosquitto</span>
     <span class="chip">ucab-tg-sf/robot/ultrasonido</span>
   </div>
 
   <div class="frase-explicativa">
-    <strong>En pocas palabras:</strong> el robot mide qué tan lejos está lo que tiene enfrente. Mueve las 3 distancias y mira el radar.
+    <strong>En pocas palabras:</strong> el robot mide qué tan lejos está lo que tiene enfrente. Mueve las 2 distancias (adelante y atrás) y mira el radar.
     Al pulsar <strong>Encender</strong>, la página publica las lecturas dos veces por segundo, como lo haría el ESP32.
   </div>
 
@@ -143,17 +143,13 @@
           <h2 id="t-us">Distancias (cm)</h2>
           <p>Cada sensor mide de 2 a 200 cm. Debajo de 20 cm es peligro y por encima de 50 cm hay paso libre.</p>
 
-          <div class="us-sensor" id="s-izq">
-            <div class="us-fila"><span class="us-nombre">Izquierda</span><span class="us-valor"><span id="v-izq">120</span><small>cm</small></span></div>
-            <input type="range" id="r-izq" min="2" max="200" step="1" value="120" aria-label="Distancia izquierda en centímetros">
+          <div class="us-sensor" id="s-frente">
+            <div class="us-fila"><span class="us-nombre">Adelante</span><span class="us-valor"><span id="v-frente">120</span><small>cm</small></span></div>
+            <input type="range" id="r-frente" min="2" max="200" step="1" value="120" aria-label="Distancia adelante en centímetros">
           </div>
-          <div class="us-sensor" id="s-centro">
-            <div class="us-fila"><span class="us-nombre">Centro</span><span class="us-valor"><span id="v-centro">150</span><small>cm</small></span></div>
-            <input type="range" id="r-centro" min="2" max="200" step="1" value="150" aria-label="Distancia al centro en centímetros">
-          </div>
-          <div class="us-sensor" id="s-der">
-            <div class="us-fila"><span class="us-nombre">Derecha</span><span class="us-valor"><span id="v-der">120</span><small>cm</small></span></div>
-            <input type="range" id="r-der" min="2" max="200" step="1" value="120" aria-label="Distancia derecha en centímetros">
+          <div class="us-sensor" id="s-atras">
+            <div class="us-fila"><span class="us-nombre">Atrás</span><span class="us-valor"><span id="v-atras">150</span><small>cm</small></span></div>
+            <input type="range" id="r-atras" min="2" max="200" step="1" value="150" aria-label="Distancia atrás en centímetros">
           </div>
 
           <div class="us-opciones">
@@ -167,7 +163,7 @@
         </div>
 
         <div class="us-radar-caja">
-          <canvas id="radar" width="800" height="500" role="img" aria-label="Radar con las distancias izquierda, centro y derecha"></canvas>
+          <canvas id="radar" width="800" height="500" role="img" aria-label="Radar con las distancias adelante y atrás"></canvas>
           <div class="us-leyenda">
             <span><i style="background:#22c55e"></i>Libre (más de 50 cm)</span>
             <span><i style="background:#f59e0b"></i>Cerca (20 a 50 cm)</span>
@@ -185,8 +181,8 @@
   <div class="us-nota">
     <strong>Antes de pasar a la prueba física:</strong>
     <ul>
-      <li>El pedido de Amazon trae <strong>2</strong> sensores HC-SR04P, no 3. Este simulador usa 3 (Izq, Centro, Der) para decidir la disposición: con 2 hay que elegir entre Izq + Der o Centro + uno lateral.</li>
-      <li>El tópico <code>ucab-tg-sf/robot/ultrasonido</code> es nuevo: todavía no está en el contrato de 5 tópicos ni en el firmware.</li>
+      <li>El pedido de Amazon trae <strong>2</strong> sensores HC-SR04P: uno mira adelante y otro atrás. Este simulador usa esa disposición.</li>
+      <li>Mensaje: <code>{"frente_cm","atras_cm","t"}</code> en <code>ucab-tg-sf/robot/ultrasonido</code>. El firmware de la rama todavía publica <code>izq_cm / centro_cm / der_cm</code> con 3 sensores: hay que alinearlo antes de la prueba física.</li>
       <li>Las distancias son manuales: no hay lectura real hasta que lleguen los sensores.</li>
     </ul>
   </div>
@@ -215,14 +211,14 @@
   ];
 
   var $ = function (id) { return document.getElementById(id); };
-  var ids = ["izq", "centro", "der"];
+  var ids = ["frente", "atras"];
   var rango = {}, valor = {}, caja = {};
   ids.forEach(function (k) { rango[k] = $("r-" + k); valor[k] = $("v-" + k); caja[k] = $("s-" + k); });
   var ledEl = $("led"), estadoEl = $("estado"), brokerEl = $("broker"), jsonEl = $("json"), logEl = $("log");
   var btnOn = $("btn-on"), btnOff = $("btn-off"), chkMover = $("chk-mover");
   var canvas = $("radar"), ctx = canvas.getContext("2d");
 
-  var dist = { izq: 120, centro: 150, der: 120 };
+  var dist = { frente: 120, atras: 150 };
   var encendido = false, conectado = false;
   var cliente = null, indice = 0, timerPub = null, timerFallo = null, timerReintento = null;
   var inicioMs = 0, enviados = 0;
@@ -246,7 +242,7 @@
   }
 
   /* ---------------- radar ---------------- */
-  var ANG = { izq: -35, centro: 0, der: 35 };   /* grados desde la vertical */
+  var ANG = { frente: 0, atras: 180 };           /* grados desde la vertical (0 = adelante) */
   var MEDIO_CONO = 13;                          /* media abertura del cono, en grados */
 
   function ajustarCanvas() {
@@ -263,25 +259,26 @@
 
   function dibujar() {
     var W = canvas.clientWidth || 800, H = canvas.clientHeight || 500;
-    var ox = W / 2, oy = H - 22;
-    var R = Math.min(oy - 12, W / 2 - 14);
+    var ox = W / 2, oy = H / 2;                    /* el robot va en el centro */
+    var R = Math.min(W, H) / 2 - 14;
     ctx.clearRect(0, 0, W, H);
 
     /* anillos de distancia */
     ctx.lineWidth = 1;
     ctx.font = "11px 'JetBrains Mono', monospace";
     ctx.fillStyle = "#64748b";
-    ctx.textAlign = "left";
+    ctx.textAlign = "right";
     [50, 100, 150, 200].forEach(function (cm) {
       var r = R * cm / DIST_MAX;
       ctx.strokeStyle = "rgba(148,163,184,0.25)";
-      ctx.beginPath(); ctx.arc(ox, oy, r, Math.PI, 2 * Math.PI); ctx.stroke();
-      ctx.fillText(cm + " cm", ox + r * 0.88 - 32, oy - r * 0.42);
+      ctx.beginPath(); ctx.arc(ox, oy, r, 0, 2 * Math.PI); ctx.stroke();
+      ctx.fillText(cm + " cm", ox + r - 4, oy - 4);
     });
     /* líneas guía */
     ctx.strokeStyle = "rgba(148,163,184,0.18)";
-    [-35, 0, 35].forEach(function (g) {
-      ctx.beginPath(); ctx.moveTo(ox, oy);
+    [0, 90].forEach(function (g) {
+      ctx.beginPath();
+      ctx.moveTo(ox - R * Math.sin(rad(g)), oy + R * Math.cos(rad(g)));
       ctx.lineTo(ox + R * Math.sin(rad(g)), oy - R * Math.cos(rad(g))); ctx.stroke();
     });
 
@@ -314,7 +311,7 @@
 
   /* ---------------- lectura y mensaje ---------------- */
   function mensaje() {
-    return { izq_cm: dist.izq, centro_cm: dist.centro, der_cm: dist.der, t: encendido ? Date.now() - inicioMs : 0 };
+    return { frente_cm: dist.frente, atras_cm: dist.atras, t: encendido ? Date.now() - inicioMs : 0 };
   }
 
   function refrescar() {
@@ -340,9 +337,8 @@
     if (!chkMover.checked) { rafId = null; return; }
     var s = (ts - t0) / 1000;
     var f = function (base, amp, vel, fase) { return Math.round(Math.max(DIST_MIN, Math.min(DIST_MAX, base + amp * Math.sin(s * vel + fase)))); };
-    dist.izq = f(100, 70, 0.7, 0);
-    dist.centro = f(110, 95, 0.5, 1.6);
-    dist.der = f(100, 70, 0.6, 3.1);
+    dist.frente = f(110, 95, 0.5, 1.6);
+    dist.atras = f(100, 70, 0.7, 0);
     ids.forEach(function (k) { rango[k].value = dist[k]; });
     refrescar();
     rafId = requestAnimationFrame(pasear);
@@ -421,7 +417,7 @@
     cliente.publish(TOPICO, JSON.stringify(m), { qos: 0 }, function (err) {
       if (err) { log("Error al publicar: " + err.message, "err"); return; }
       enviados++;
-      if (enviados % 10 === 1) log("#" + enviados + " publicado: " + dist.izq + " / " + dist.centro + " / " + dist.der + " cm", "ok");
+      if (enviados % 10 === 1) log("#" + enviados + " publicado: " + dist.frente + " / " + dist.atras + " cm", "ok");
     });
   }
 
