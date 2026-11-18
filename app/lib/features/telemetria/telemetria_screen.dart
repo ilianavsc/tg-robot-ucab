@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -277,53 +276,7 @@ class _TarjetaConexionYControles extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: List<Widget>.generate(servicio.listaBrokers.length, (int i) {
-                final b = servicio.listaBrokers[i];
-                final bool activo = i == servicio.indiceBroker;
-                return InkWell(
-                  onTap: () => servicio.seleccionarBroker(i),
-                  borderRadius: BorderRadius.circular(999),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: activo ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                        color: activo ? const Color(0xFF0F172A) : const Color(0xFFCBD5E1),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        if (activo && servicio.conectado) ...<Widget>[
-                          Container(
-                            width: 7,
-                            height: 7,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF22C55E),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                        ],
-                        Text(
-                          '${b.nombre} (:${kIsWeb ? b.puertoWeb : b.puertoNativo})',
-                          style: TextStyle(
-                            fontFamily: 'monospace',
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: activo ? Colors.white : const Color(0xFF475569),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-            ),
+            _SelectorBrokerSegmentado(servicio: servicio),
             if (servicio.ultimoError != null && !servicio.simulando) ...<Widget>[
               const SizedBox(height: 12),
               Container(
@@ -393,31 +346,9 @@ class _TarjetaConexionYControles extends StatelessWidget {
             Wrap(
               spacing: 10,
               runSpacing: 10,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: <Widget>[
-                FilledButton.icon(
-                  onPressed: servicio.conectar,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F172A),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 12,
-                    ),
-                  ),
-                  icon: const Icon(Icons.wifi_tethering, size: 18),
-                  label: const Text('Conectar'),
-                ),
-                OutlinedButton.icon(
-                  onPressed: servicio.desconectar,
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                  icon: const Icon(Icons.link_off, size: 18),
-                  label: const Text('Desconectar'),
-                ),
+                _BotonConexionMqtt(servicio: servicio),
                 FilledButton.icon(
                   onPressed: servicio.simulando
                       ? servicio.detenerSimulacion
@@ -459,6 +390,151 @@ class _TarjetaConexionYControles extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Selector segmentado único de 3 opciones (HiveMQ, EMQX, Mosquitto).
+/// Se deshabilita mientras la conexión está activa o conectando para evitar
+/// cambios en caliente.
+class _SelectorBrokerSegmentado extends StatelessWidget {
+  const _SelectorBrokerSegmentado({required this.servicio});
+
+  final MqttService servicio;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool bloqueado =
+        servicio.conectado || servicio.conexion == EstadoConexion.conectando;
+
+    return Tooltip(
+      message: bloqueado
+          ? 'Desconéctate primero para cambiar de broker'
+          : 'Selecciona el broker MQTT',
+      child: SegmentedButton<int>(
+        showSelectedIcon: false,
+        segments: List<ButtonSegment<int>>.generate(
+          servicio.listaBrokers.length,
+          (int i) {
+            final b = servicio.listaBrokers[i];
+            return ButtonSegment<int>(
+              value: i,
+              label: Text(
+                b.nombre,
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            );
+          },
+        ),
+        selected: <int>{servicio.indiceBroker},
+        onSelectionChanged: bloqueado
+            ? null
+            : (Set<int> seleccion) {
+                if (seleccion.isNotEmpty) {
+                  servicio.seleccionarBroker(seleccion.first);
+                }
+              },
+        style: SegmentedButton.styleFrom(
+          backgroundColor: const Color(0xFFF1F5F9),
+          foregroundColor: const Color(0xFF475569),
+          selectedBackgroundColor: const Color(0xFF0F172A),
+          selectedForegroundColor: Colors.white,
+          disabledBackgroundColor: const Color(0xFFF8FAFC),
+          disabledForegroundColor: const Color(0xFF94A3B8),
+          side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.5),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          visualDensity: VisualDensity.compact,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+      ),
+    );
+  }
+}
+
+/// Botón único de conexión MQTT con 3 estados:
+/// - Desconectado / Error: 'Conectar' -> inicia la conexión.
+/// - Conectando: indicador de carga deshabilitado para evitar dobles clics.
+/// - Conectado: 'Conectado' en verde; en hover cambia a 'Desconectar' en rojo
+///   y al pulsarlo desconecta del broker.
+class _BotonConexionMqtt extends StatefulWidget {
+  const _BotonConexionMqtt({required this.servicio});
+
+  final MqttService servicio;
+
+  @override
+  State<_BotonConexionMqtt> createState() => _BotonConexionMqttState();
+}
+
+class _BotonConexionMqttState extends State<_BotonConexionMqtt> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final EstadoConexion estado = widget.servicio.conexion;
+    final bool conectado = estado == EstadoConexion.conectado;
+    final bool conectando = estado == EstadoConexion.conectando;
+
+    final Color fondo;
+    final Widget icono;
+    final String etiqueta;
+    final VoidCallback? accion;
+
+    if (conectando) {
+      fondo = TelemetriaScreen._ambarAviso;
+      icono = const SizedBox(
+        width: 15,
+        height: 15,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        ),
+      );
+      etiqueta = 'Conectando…';
+      accion = null;
+    } else if (conectado) {
+      fondo = _hover
+          ? TelemetriaScreen._rojoError
+          : TelemetriaScreen._verdePrimario;
+      icono = Icon(
+        _hover ? Icons.link_off : Icons.check_circle,
+        size: 17,
+      );
+      etiqueta = _hover ? 'Desconectar' : 'Conectado';
+      accion = widget.servicio.desconectar;
+    } else {
+      fondo = const Color(0xFF0F172A);
+      icono = const Icon(Icons.wifi_tethering, size: 17);
+      etiqueta = 'Conectar';
+      accion = widget.servicio.conectar;
+    }
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: FilledButton.icon(
+        onPressed: accion,
+        style: FilledButton.styleFrom(
+          backgroundColor: fondo,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: TelemetriaScreen._ambarAviso.withValues(
+            alpha: 0.75,
+          ),
+          disabledForegroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          minimumSize: const Size(0, 38),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          visualDensity: VisualDensity.compact,
+          textStyle: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        icon: icono,
+        label: Text(etiqueta),
       ),
     );
   }

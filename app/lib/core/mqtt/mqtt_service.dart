@@ -263,22 +263,23 @@ class MqttService extends ChangeNotifier {
     return true;
   }
 
-  /// Permite seleccionar un broker específico manualmente desde la UI (igual que en P10).
+  /// Cambia el broker seleccionado (HiveMQ, EMQX o Mosquitto) cuando no hay una
+  /// conexión activa o en curso, actualizando el host y puerto de inmediato.
   void seleccionarBroker(int indice) {
     if (indice < 0 || indice >= brokers.length) return;
-    if (_simulando) detenerSimulacion();
-    _desconexionManual = false;
+    if (_conexion == EstadoConexion.conectado ||
+        _conexion == EstadoConexion.conectando) {
+      return;
+    }
     _temporizadorReintento?.cancel();
-    try {
-      _cliente?.disconnect();
-    } catch (_) {}
     _cliente = null;
     _suscripcion?.cancel();
     _suscripcion = null;
     _indiceBroker = indice;
     _intentosEnBroker = 0;
     _esperaActual = _esperaMinima;
-    conectar();
+    _ultimoError = null;
+    if (!_descartado) notifyListeners();
   }
 
   // ------------------------------------------------------- Modo Demo
