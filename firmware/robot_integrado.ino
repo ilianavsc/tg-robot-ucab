@@ -373,6 +373,11 @@ int dirIzq = 0, dirDer = 0;       // +1 adelante, -1 atrás, 0 frena
 // frena y NO vuelve a arrancar hasta que llegue una orden nueva.
 bool paroPorRed = false;
 
+// Paro por obstáculo (RF-05): si el eco frontal baja de UMBRAL_PARADA_CM, el
+// robot frena. Se rearma solo cuando el camino vuelve a estar despejado.
+// Declarado aquí (antes de controlar()) porque controlar() lo consulta.
+bool obstaculoActivo = false;
+
 // Frena y latchea el paro. Sin esto, controlar() reaplicaría el PWM manual
 // a los 10 ms y el robot seguiría avanzando a ciegas.
 void paradaSegura() {
@@ -767,7 +772,14 @@ void controlar() {
     return;
   }
 
-  // --- 3b) Máquina de estados: timeout de seguridad del modo MANUAL ---
+  // --- 3b) Paro por obstáculo (RF-05): eco frontal < UMBRAL_PARADA_CM ---
+  verificarObstaculo();
+  if (obstaculoActivo) {
+    detener();
+    return;
+  }
+
+  // --- 3c) Máquina de estados: timeout de seguridad del modo MANUAL ---
   if (modo == MODO_MANUAL && (ahora - ultimaOrdenMs) > TIMEOUT_MANUAL_MS) {
     Serial.println("Manual sin ordenes por 5 s: vuelvo a AUTONOMO (seguridad)");
     pasarAAutonomo();
@@ -850,16 +862,49 @@ float cmUltrasonido(unsigned long pulso) {
   return cm;
 }
 
+// Distancias calculadas (cm), refrescadas cada 100 ms. 0 = sin obstáculo en rango.
+volatile float frenteCm = 0.0f, atrasCm = 0.0f;
+
+// Umbrales de seguridad RF-05 (obstáculos):
+//   < UMBRAL_PARADA_CM       -> detener el robot
+//   UMBRAL_PARADA_CM..AVISO  -> zona de aviso (ámbar en el radar P13)
+//   > UMBRAL_AVISO_CM        -> despejado
+const float UMBRAL_PARADA_CM = 20.0f;
+const float UMBRAL_AVISO_CM  = 50.0f;
+
 uint32_t ultimoDisparoUltra = 0;
 uint32_t ultimoPubUltra     = 0;
 const uint32_t PERIODO_DISPARO_ULTRA_MS = 100;  // dispara 10 veces/s
 const uint32_t PERIODO_PUB_ULTRA_MS     = 500;  // publica cada 0,5 s
 
+// Convierte los pulsos del último disparo en cm y los guarda en frenteCm/atrasCm.
+// Se llama ANTES de volver a disparar, cuando el eco ya está completo.
+void actualizarDistancias() {
+  frenteCm = cmUltrasonido(usPulsoFrente);
+  atrasCm  = cmUltrasonido(usPulsoAtras);
+}
+
+// Seguridad RF-05: si el eco frontal marca menos de UMBRAL_PARADA_CM, activa el
+// latch de paro. La llama controlar() a 100 Hz; solo dispara la alerta una vez.
+void verificarObstaculo() {
+  if (frenteCm > 0.0f && frenteCm < UMBRAL_PARADA_CM) {
+    if (!obstaculoActivo) {
+      obstaculoActivo = true;
+      enviarAlerta("obstaculo", false);
+      Serial.print("OBSTACULO a ");
+      Serial.print(frenteCm);
+      Serial.println(" cm: deteniendo");
+    }
+  } else {
+    obstaculoActivo = false;   // se rearma al despejarse
+  }
+}
+
 void publicarUltrasonido() {
   if (!mqtt.connected()) return;
   // Contrato BOM: 2 sensores. Claves frente_cm / atras_cm + t. QoS 0 (no bloquea).
-  String j = "{\"frente_cm\":" + String(cmUltrasonido(usPulsoFrente), 1) +
-             ",\"atras_cm\":" + String(cmUltrasonido(usPulsoAtras), 1) +
+  String j = "{\"frente_cm\":" + String(frenteCm, 1) +
+             ",\"atras_cm\":" + String(atrasCm, 1) +
              ",\"t\":" + String(millis()) + "}";
   mqtt.publish(T_ULTRASONIDO, j, false, 0);
 }
@@ -868,7 +913,8 @@ void gestionarUltrasonidos() {
   uint32_t ahora = millis();
   if (ahora - ultimoDisparoUltra >= PERIODO_DISPARO_ULTRA_MS) {
     ultimoDisparoUltra = ahora;
-    dispararUltrasonido();
+    actualizarDistancias();   // lee el eco del ciclo anterior
+    dispararUltrasonido();    // lanza el siguiente
   }
   if (ahora - ultimoPubUltra >= PERIODO_PUB_ULTRA_MS) {
     ultimoPubUltra = ahora;

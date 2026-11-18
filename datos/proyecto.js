@@ -47,12 +47,12 @@ window.TG = {
      categoria: "software" | "hardware" | "app"  (agrupación visual del portafolio) */
   prototipos: [
     { codigo: "P01", nombre: "Así se hablan el robot y la app", tema: "MQTT", semana: 3, estado: "hecho", categoria: "software", url: "prototipos/P01-mqtt-base/simulador-3d/", principal: true, simulador: "prototipos/P01-mqtt-base/simulador-3d/simulador.html", simuladorTexto: "Simulador 3D de los mensajes", ino: "prototipos/P01-mqtt-base/codigo-esp32/robot_mqtt/robot_mqtt.ino", historico: "prototipos/P01-mqtt-base/README.md", historicoTexto: "Registro de la Fase I: pruebas T1 a T7 y Wokwi" },
-    { codigo: "P02", nombre: "Los sentidos del robot", tema: "Sensores", semana: 5, estado: "pendiente", categoria: "hardware" },
+    { codigo: "P02", nombre: "Los sentidos del robot", tema: "Sensores", semana: 5, estado: "pruebas", categoria: "hardware" },
     { codigo: "P03", nombre: "Motores que van parejo", tema: "PID", semana: 6, estado: "pruebas", categoria: "software", url: "prototipos/P03-motores/avance-02-simulador-3d/", principal: true, simulador: "prototipos/P03-motores/avance-02-simulador-3d/simulador.html", simuladorTexto: "Simulador 3D de la tracción", ino: "prototipos/P03-motores/avance-02-simulador-3d/codigo-esp32/traccion_encoders/traccion_encoders.ino" },
     { codigo: "P04", nombre: "¿BLE o QR?", tema: "Ubicación", semana: 7, estado: "pendiente", categoria: "hardware" },
     { codigo: "P05", nombre: "Robot virtual y puente", tema: "Firebase", semana: 9, estado: "pendiente", categoria: "app" },
     { codigo: "P06", nombre: "Primera versión de la app", tema: "Flutter", semana: 10, estado: "pendiente", categoria: "app" },
-    { codigo: "P07", nombre: "El cerebro completo", tema: "Firmware", semana: 12, estado: "pendiente", categoria: "hardware" },
+    { codigo: "P07", nombre: "El cerebro completo", tema: "Firmware", semana: 12, estado: "pruebas", categoria: "hardware" },
     { codigo: "P08", nombre: "Seguir la línea", tema: "Simulador 3D", semana: 13, estado: "pruebas", categoria: "software", url: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/", principal: true, simulador: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/simulador.html", simuladorTexto: "Simulador 3D del seguidor de línea", ino: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/codigo-esp32/seguidor_linea/seguidor_linea.ino" },
     { codigo: "P09", nombre: "Interfaz Web / Modo Demo", tema: "Flutter", semana: 15, estado: "hecho", categoria: "app", url: "app/", principal: true, simulador: "app/", simuladorTexto: "Abrir App Web (Modo Demo)" },
     { codigo: "P10", nombre: "Simulador ESP32 Virtual", tema: "MQTT Web", semana: 21, estado: "hecho", categoria: "app", url: "prototipos/P10-simulador-esp32/index.html", principal: true, simulador: "prototipos/P10-simulador-esp32/index.html", simuladorTexto: "Abrir Simulador ESP32" },
@@ -123,7 +123,7 @@ window.TG = {
     { id: "RF-02", tipo: "RF", texto: "Informar su estado de forma periódica", criterio: "Un mensaje cada 2 s", valida: ["P01"], estado: "validado", nota: "Validado en simulación (T2)" },
     { id: "RF-03", tipo: "RF", texto: "Avisar si el robot se desconecta", criterio: "Aviso en menos de 30 s", valida: ["P01"], estado: "validado", nota: "Validado en simulación: 22 s (T6)" },
     { id: "RF-04", tipo: "RF", texto: "Ir por la línea del mostrador al estante y volver", criterio: "Error de posición ≤ ? cm al llegar", valida: ["P08", "H4"], estado: "pendiente", nota: "Simulado en una pista provisional: da la vuelta a 0,41 m/s (P08 avance 1). Falta la pista real" },
-    { id: "RF-05", tipo: "RF", texto: "Detectar un obstáculo y detenerse", criterio: "Se detiene a ≥ 20 cm del obstáculo", valida: ["P02"], estado: "pendiente" },
+    { id: "RF-05", tipo: "RF", texto: "Detectar un obstáculo y detenerse", criterio: "Se detiene a ≥ 20 cm del obstáculo", valida: ["P02"], estado: "pendiente", nota: "Parada por obstáculo (< 20 cm) implementada en firmware y simulada en P13/P10; falta validar con el hardware físico (diciembre)" },
     { id: "RF-06", tipo: "RF", texto: "Re-localizarse en puntos de referencia", criterio: "Corrige su posición en cada punto (BLE o QR)", valida: ["P04", "P09"], estado: "pendiente" },
         { id: "RF-07", tipo: "RF", texto: "Transportar los componentes pedidos", criterio: "Lleva 3 o 4 piezas pequeñas sin perder la línea", valida: ["H5"], estado: "pendiente", nota: "Entrevista: los pedidos son de 3 o 4 piezas muy livianas" },
         { id: "RF-08", tipo: "RF", texto: "Alarmar si alguien lo levanta o lo mueve sin una orden", criterio: "La alarma llega a la app 1 sola vez y genera un reporte para el encargado y la Escuela; ≤ ? falsas alarmas en N recorridos", valida: ["P11", "H6"], estado: "pendiente", nota: "Entrevista: preocupan igual robo, pérdida y daño" },
@@ -136,7 +136,7 @@ window.TG = {
     { id: "RNF-04", tipo: "RNF", texto: "Comunicación confiable", criterio: "0 pedidos perdidos; confirmación en ≤ ? s con el ESP32 real", valida: ["P01"], estado: "pendiente", nota: "En simulación: 0 perdidos, promedio 4,1 s" },
     { id: "RNF-05", tipo: "RNF", texto: "Seguridad de la comunicación", criterio: "Broker privado con usuario, contraseña y TLS para las pruebas finales", valida: ["Fase VI"], estado: "pendiente" },
         { id: "RNF-06", tipo: "RNF", texto: "Funcionar en la red del laboratorio", criterio: "El ESP32 llega al broker desde el Wi-Fi del laboratorio", valida: ["H0"], estado: "pendiente", nota: "Entrevista: la red UCAB pide usuario y clave; hay una red interna del laboratorio. Probar ambas en H0" },
-        { id: "RNF-07", tipo: "RNF", texto: "Convivir con las personas", criterio: "Circula solo por el pasillo, de 7:00 a 18:00, y se detiene ante obstáculos", valida: ["P02", "Entrevista"], estado: "pendiente", nota: "Entrevista: no hay otras reglas de seguridad" },
+        { id: "RNF-07", tipo: "RNF", texto: "Convivir con las personas", criterio: "Circula solo por el pasillo, de 7:00 a 18:00, y se detiene ante obstáculos", valida: ["P02", "Entrevista"], estado: "pendiente", nota: "Entrevista: no hay otras reglas de seguridad. La detección de obstáculos ya está en firmware (umbrales 20/50 cm); falta prueba física" },
     { id: "RNF-08", tipo: "RNF", texto: "Resultados confiables", criterio: "Mínimo 20 repeticiones por prueba", valida: ["Fase VII"], estado: "pendiente" }
   ],
 
@@ -289,6 +289,10 @@ window.TG = {
   /* ---------- DECISIONES (la más nueva primero) ----------
      estado: "tomada" | "abierta" */
   decisiones: [
+    { fecha: "2026-11-18", titulo: "Umbrales de obstáculo: parada a 20 cm y aviso a 50 cm", estado: "tomada",
+      decision: "Si el eco frontal del HC-SR04P mide menos de 20 cm, el firmware detiene el robot (detener()) y publica la alerta 'obstaculo'; entre 20 y 50 cm es zona de aviso; más de 50 cm es despejado.",
+      porque: "Cumple RF-05 ('se detiene a ≥ 20 cm') y RNF-07, y coincide con las zonas verde/ámbar/rojo del radar P13.",
+      evidencia: "firmware/robot_integrado.ino" },
     { fecha: "2026-11-14", titulo: "Seguidor de línea en el simulador 3D web", estado: "tomada",
       decision: "El seguidor de línea (P08) se simula en el navegador, copiando el simulador de la tracción de P03, en lugar de Webots.",
       porque: "Reutiliza el robot y el modelo del motor Speed 200 ya hechos y corre sin instalar nada. La pista es provisional hasta medir el laboratorio.",
