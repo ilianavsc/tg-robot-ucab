@@ -2,8 +2,12 @@
 /// `ucab-tg-sf/robot/ultrasonido` (QoS 0).
 ///
 /// ```json
-/// {"frente_cm":84.0,"atras_cm":151.5,"t":29452}
+/// {"frente_cm":84.0,"atras_cm":151.5,"frente_ok":true,"atras_ok":true,"t":29452}
 /// ```
+///
+/// `frente_ok` / `atras_ok` (opcionales, por defecto `true`) los pone el
+/// firmware en `false` cuando el sensor lleva 5 disparos seguidos sin eco
+/// (500 ms): fallo o desconexión. En ese caso un `0.0` NO es camino despejado.
 ///
 /// `frente_cm` es el sensor que mira hacia adelante y `atras_cm` el que mira
 /// hacia atrás. Si un sensor no recibe eco, su valor puede faltar o ir en
@@ -16,7 +20,24 @@ class Ultrasonido {
     this.atrasCm,
     required this.llegada,
     this.t,
+    this.frenteOk = true,
+    this.atrasOk = true,
   });
+
+  /// `false` si el sensor delantero está en fallo (sin eco persistente).
+  final bool frenteOk;
+
+  /// `false` si el sensor trasero está en fallo (sin eco persistente).
+  final bool atrasOk;
+
+  /// Distancia frontal utilizable: `null` si no hay dato, el sensor falla o
+  /// marca 0 (nada en rango).
+  double? get frenteValido =>
+      frenteOk && frenteCm != null && frenteCm! > 0 ? frenteCm : null;
+
+  /// Igual que [frenteValido], para el sensor trasero.
+  double? get atrasValido =>
+      atrasOk && atrasCm != null && atrasCm! > 0 ? atrasCm : null;
 
   /// Distancia al frente, en centímetros (`frente_cm`). `null` si no hubo eco.
   final double? frenteCm;
@@ -44,6 +65,8 @@ class Ultrasonido {
       atrasCm: atras is num ? atras.toDouble() : null,
       llegada: llegada ?? DateTime.now(),
       t: t is num ? t.toInt() : null,
+      frenteOk: json['frente_ok'] is bool ? json['frente_ok'] as bool : true,
+      atrasOk: json['atras_ok'] is bool ? json['atras_ok'] as bool : true,
     );
   }
 }

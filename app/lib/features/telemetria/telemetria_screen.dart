@@ -7,6 +7,8 @@ import '../../core/models/estado.dart';
 import '../../core/models/orden_ack.dart';
 import '../../core/models/ultrasonido.dart';
 import '../../core/mqtt/mqtt_service.dart';
+import 'alertas_p11.dart';
+import 'analitica_p12.dart';
 
 /// Pantalla de telemetría con diseño Material 3 de nivel portafolio.
 ///
@@ -100,6 +102,8 @@ class TelemetriaScreen extends StatelessWidget {
                 const _BannerModoDemo(),
                 const SizedBox(height: 12),
               ],
+              // P11: banner rojo (crítica) / ámbar (aviso) con "Reconocer".
+              const BannerAlertaActiva(),
               _Aparece(
                 indice: 0,
                 child: _TarjetaConexionYControles(
@@ -147,6 +151,16 @@ class TelemetriaScreen extends StatelessWidget {
               _Aparece(
                 indice: 5,
                 child: const _TarjetaUltrasonicos(),
+              ),
+              const SizedBox(height: 16),
+              const _Aparece(
+                indice: 6,
+                child: TarjetaCentroAlertas(),
+              ),
+              const SizedBox(height: 16),
+              const _Aparece(
+                indice: 7,
+                child: TarjetaAnaliticaSesion(),
               ),
             ],
           ),
@@ -330,7 +344,7 @@ class _TarjetaConexionYControles extends StatelessWidget {
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'MODO DEMO · Datos simulados localmente (6 perfiles cada 2 s sin red).',
+                        'MODO DEMO · Datos simulados localmente (7 perfiles cada 2 s sin red, con la misma regla de seguridad del firmware).',
                         style: TextStyle(
                           color: Color(0xFF5B21B6),
                           fontWeight: FontWeight.w700,
@@ -1401,6 +1415,7 @@ class _TarjetaUltrasonicosState extends State<_TarjetaUltrasonicos> {
       cm: ult?.frenteCm,
       hayDatos: hayDatos,
       sinSenal: sinSenal,
+      sensorOk: ult?.frenteOk ?? true,
     );
     final Widget atras = _FilaDistancia(
       etiqueta: 'Atrás',
@@ -1408,6 +1423,7 @@ class _TarjetaUltrasonicosState extends State<_TarjetaUltrasonicos> {
       cm: ult?.atrasCm,
       hayDatos: hayDatos,
       sinSenal: sinSenal,
+      sensorOk: ult?.atrasOk ?? true,
     );
 
     return Card(
@@ -1510,6 +1526,7 @@ class _FilaDistancia extends StatelessWidget {
     required this.cm,
     required this.hayDatos,
     required this.sinSenal,
+    this.sensorOk = true,
   });
 
   final String etiqueta;
@@ -1518,13 +1535,18 @@ class _FilaDistancia extends StatelessWidget {
   final bool hayDatos;
   final bool sinSenal;
 
+  /// `false` = el firmware reporta el sensor en fallo (sin eco 500 ms).
+  final bool sensorOk;
+
   static const double _alcanceCm = 200;
 
   @override
   Widget build(BuildContext context) {
-    final double? valor = cm;
+    final double? valor = sensorOk ? cm : null;
     final Color color;
-    if (sinSenal || valor == null) {
+    if (!sinSenal && !sensorOk) {
+      color = TelemetriaScreen._rojoError;
+    } else if (sinSenal || valor == null) {
       color = const Color(0xFF94A3B8);
     } else if (valor < 20) {
       color = TelemetriaScreen._rojoError;
@@ -1533,9 +1555,13 @@ class _FilaDistancia extends StatelessWidget {
     } else {
       color = TelemetriaScreen._verdePrimario;
     }
-    final String texto = valor != null
-        ? '${valor.toStringAsFixed(0)} cm'
-        : (hayDatos ? 'sin eco' : '—');
+    final String texto = !sensorOk
+        ? 'FALLO · sin eco'
+        : (valor != null
+            ? (valor > 0 || sinSenal
+                ? '${valor.toStringAsFixed(0)} cm'
+                : 'despejado')
+            : (hayDatos ? 'sin eco' : '—'));
     final double fraccion =
         valor == null ? 0.0 : (valor / _alcanceCm).clamp(0.0, 1.0).toDouble();
 

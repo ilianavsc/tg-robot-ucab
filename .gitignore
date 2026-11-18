@@ -18,3 +18,6 @@ __pycache__/
 ~$*
 .DS_Store
 Thumbs.db
+
+# Binario de las pruebas del firmware en el PC
+firmware/pruebas_pc/pruebas_seguridad

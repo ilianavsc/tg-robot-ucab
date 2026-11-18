@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:uuid/uuid.dart';
 
+import '../alertas/centro_alertas.dart';
+import '../analitica/analitica_sesion.dart';
 import '../config/brokers.dart';
 import '../models/estado.dart';
 import '../models/orden_ack.dart';
@@ -38,6 +40,7 @@ class MqttService extends ChangeNotifier {
     this.topicoOrdenes = 'ucab-tg-sf/robot/ordenes',
     this.topicoAck = 'ucab-tg-sf/robot/ordenes/ack',
     this.topicoUltrasonido = 'ucab-tg-sf/robot/ultrasonido',
+    this.topicoAlertas = 'ucab-tg-sf/robot/alertas',
   });
 
   /// Tópico de telemetría del robot (QoS 0, cada 2 s).
@@ -51,6 +54,15 @@ class MqttService extends ChangeNotifier {
 
   /// Tópico de los 2 sensores ultrasónicos: `frente_cm` y `atras_cm` (QoS 0).
   final String topicoUltrasonido;
+
+  /// Tópico de alertas del robot (QoS 2): `{"n","tipo","prueba","valor","t"}`.
+  final String topicoAlertas;
+
+  /// Centro de Alertas (P11): alertas activas y registro reciente.
+  final CentroAlertas centroAlertas = CentroAlertas();
+
+  /// Analítica de la sesión (P12): se reinicia al detener el demo o a mano.
+  final AnaliticaSesion analitica = AnaliticaSesion();
 
   /// Órdenes recientes enviadas por esta app, por id (para medir la latencia).
   static const int _maxOrdenesGuardadas = 50;
@@ -192,6 +204,7 @@ class MqttService extends ChangeNotifier {
       cliente.subscribe(topicoEstado, MqttQos.atMostOnce);
       cliente.subscribe(topicoAck, MqttQos.atLeastOnce);
       cliente.subscribe(topicoUltrasonido, MqttQos.atMostOnce);
+      cliente.subscribe(topicoAlertas, MqttQos.exactlyOnce);
       // El stream `updates` se crea dentro de connect(): hay que escucharlo
       // aquí y no en el constructor, donde todavía es null. En cada conexión
       // el gestor de suscripciones es nuevo, así que se cancela el anterior.
@@ -282,6 +295,49 @@ class MqttService extends ChangeNotifier {
     if (!_descartado) notifyListeners();
   }
 
+  // ------------------------------------------- P11 alertas · P12 analítica
+
+  /// El operador reconoce una alerta (sale del banner).
+  void reconocerAlerta(String clave) {
+    centroAlertas.reconocer(clave);
+    if (!_descartado) notifyListeners();
+  }
+
+  /// Reconoce todas las alertas pendientes.
+  void reconocerTodasLasAlertas() {
+    centroAlertas.reconocerTodas();
+    if (!_descartado) notifyListeners();
+  }
+
+  /// Pone la analítica y el Centro de Alertas a cero (botón "Reiniciar").
+  void reiniciarSesion() {
+    analitica.reiniciar();
+    centroAlertas.reiniciar();
+    if (!_descartado) notifyListeners();
+  }
+
+  /// Reporte CSV de la sesión (P12).
+  String reporteCsv() =>
+      analitica.toCsv(origen: _simulando ? 'Modo Demo' : 'MQTT ${broker.nombre}');
+
+  /// Revisa la telemetría con el Centro de Alertas y cuenta las paradas de
+  /// emergencia nuevas para la analítica.
+  void _evaluarAlertas() {
+    final nuevas = centroAlertas.evaluar(
+      estado: _ultimoEstado,
+      ultrasonido: _ultimoUltrasonido,
+    );
+    _contarParadas(nuevas);
+  }
+
+  void _contarParadas(Iterable<String> claves) {
+    for (final c in claves) {
+      if (CentroAlertas.clavesParadaEmergencia.contains(c)) {
+        analitica.registrarParadaEmergencia();
+      }
+    }
+  }
+
   // ------------------------------------------------------- Modo Demo
 
   /// `true` mientras la pantalla muestra datos simulados.
@@ -295,6 +351,8 @@ class MqttService extends ChangeNotifier {
     if (_descartado) return;
     detenerSimulacion();  // limpia temporizador previo
     desconectar();        // apaga MQTT y desactiva los reintentos
+    analitica.reiniciar();       // sesión nueva: las métricas empiezan en 0
+    centroAlertas.reiniciar();
     _simulando = true;
     _pasoDemo = 0;
     _tDemo = 0;
@@ -331,6 +389,9 @@ class MqttService extends ChangeNotifier {
         t: 0,
       );
       _ultimoMensaje = null;
+      // P11/P12: la sesión simulada termina con todo en cero.
+      analitica.reiniciar();
+      centroAlertas.reiniciar();
       if (_ultimoAck?.simulada ?? false) {
         _ultimoAck = null;
         _ultimaOrdenId = null;
@@ -446,7 +507,8 @@ class MqttService extends ChangeNotifier {
     for (final evento in eventos) {
       if (evento.topic != topicoEstado &&
           evento.topic != topicoAck &&
-          evento.topic != topicoUltrasonido) {
+          evento.topic != topicoUltrasonido &&
+          evento.topic != topicoAlertas) {
         continue;
       }
       if (evento.payload is! MqttPublishMessage) continue;
@@ -457,6 +519,8 @@ class MqttService extends ChangeNotifier {
         _decodificarEstado(texto);
       } else if (evento.topic == topicoUltrasonido) {
         _decodificarUltrasonido(texto);
+      } else if (evento.topic == topicoAlertas) {
+        _decodificarAlerta(texto);
       } else {
         _decodificarAck(texto);
       }
@@ -520,11 +584,22 @@ class MqttService extends ChangeNotifier {
   }
 
   /// Genera un [Estado] falso del siguiente perfil y avisa a la UI.
+  ///
+  /// Aplica la MISMA regla de seguridad del firmware y del P10: con obstáculo
+  /// frontal < 20 cm o el sensor delantero en fallo, las ruedas quedan en 0 y
+  /// el estado lleva el motivo en `parada`.
   void _emitirPasoDemo() {
     if (_descartado || !_simulando) return;
     final perfil = _perfilesDemo[_pasoDemo % _perfilesDemo.length];
     _pasoDemo++;
     _tDemo += _periodoDemo.inMilliseconds;
+    final ahora = DateTime.now();
+
+    final bool frenteBloqueado = !perfil.frenteOk ||
+        (perfil.frenteCm > 0 && perfil.frenteCm < CentroAlertas.umbralParadaCm);
+    final String parada = !perfil.frenteOk
+        ? 'fallo_sensor_frente'
+        : (frenteBloqueado ? 'obstaculo_frente' : 'ninguna');
     _ultimoEstado = Estado(
       numero: 9000 + _pasoDemo,
       modo: perfil.modo,
@@ -532,24 +607,46 @@ class MqttService extends ChangeNotifier {
       bateriaV: perfil.bateriaV,
       ordenes: _pasoDemo,
       lineaMm: perfil.lineaMm,
-      vIzq: perfil.vIzq,
-      vDer: perfil.vDer,
+      vIzq: frenteBloqueado ? 0.0 : perfil.vIzq,
+      vDer: frenteBloqueado ? 0.0 : perfil.vDer,
       t: _tDemo,
+      parada: parada,
     );
     _ultimoUltrasonido = Ultrasonido(
-      frenteCm: _frenteDemo[_pasoDemo % _frenteDemo.length],
-      atrasCm: _atrasDemo[_pasoDemo % _atrasDemo.length],
-      llegada: DateTime.now(),
+      frenteCm: perfil.frenteOk ? perfil.frenteCm : 0,
+      atrasCm: perfil.atrasCm,
+      frenteOk: perfil.frenteOk,
+      llegada: ahora,
       t: _tDemo,
     );
-    _ultimoMensaje = DateTime.now();
+    analitica.registrarUltrasonido(_ultimoUltrasonido!, ahora: ahora);
+    analitica.registrarEstado(_ultimoEstado!, ahora: ahora);
+    _evaluarAlertas();
+    _ultimoMensaje = ahora;
     _ultimoError = null;
     notifyListeners();
   }
 
-  // Distancias de ejemplo del Modo Demo (una por paso, en cm).
-  static const List<double> _frenteDemo = <double>[150, 90, 45, 18, 70, 120];
-  static const List<double> _atrasDemo = <double>[160, 160, 110, 60, 25, 90];
+  /// Solo para pruebas: emite el siguiente paso del Modo Demo sin esperar 2 s.
+  @visibleForTesting
+  void debugEmitirPasoDemo() => _emitirPasoDemo();
+
+  /// Lee una alerta del robot (`robot/alertas`, QoS 2) y la pasa al Centro de
+  /// Alertas (P11). Si activa una parada de emergencia, la cuenta (P12).
+  void _decodificarAlerta(String texto) {
+    try {
+      final mapa = jsonDecode(texto);
+      if (mapa is! Map<String, dynamic>) {
+        throw const FormatException('el payload no es un objeto JSON');
+      }
+      analitica.registrarAlerta();
+      final clave = centroAlertas.registrarDelRobot(mapa);
+      if (clave != null) _contarParadas(<String>[clave]);
+    } catch (e) {
+      _ultimoError = 'JSON inválido en $topicoAlertas: $e';
+    }
+    if (!_descartado) notifyListeners();
+  }
 
   /// Guarda las últimas distancias de los ultrasónicos. No toca el Modo Demo
   /// ni el estado general: es un tópico aparte.
@@ -560,6 +657,8 @@ class MqttService extends ChangeNotifier {
         throw const FormatException('el payload no es un objeto JSON');
       }
       _ultimoUltrasonido = Ultrasonido.fromJson(mapa);
+      analitica.registrarUltrasonido(_ultimoUltrasonido!);
+      _evaluarAlertas();
     } catch (e) {
       _ultimoError = 'JSON inválido en $topicoUltrasonido: $e';
     }
@@ -579,6 +678,8 @@ class MqttService extends ChangeNotifier {
       _ultimoEstado = Estado.fromJson(mapa);
       _ultimoMensaje = DateTime.now();
       _ultimoError = null;
+      analitica.registrarEstado(_ultimoEstado!);
+      _evaluarAlertas();
     } catch (e) {
       _ultimoError = 'JSON inválido en $topicoEstado: $e';
     }
@@ -610,6 +711,9 @@ class _PerfilDemo {
     required this.lineaMm,
     required this.vIzq,
     required this.vDer,
+    required this.frenteCm,
+    required this.atrasCm,
+    this.frenteOk = true,
   });
 
   final String modo;
@@ -618,15 +722,20 @@ class _PerfilDemo {
   final double lineaMm;
   final double vIzq;
   final double vDer;
+  final double frenteCm;
+  final double atrasCm;
+  final bool frenteOk;
 }
 
-/// Seis perfiles que rotan cada 2 s: batería alta/baja, línea centrada y
-/// perdida, ruedas opuestas. Mismo guion que `tool/telemetria_pc.dart`.
+/// Siete perfiles que rotan cada 2 s, alineados con los del P10. Cubren los
+/// cuatro casos del Centro de Alertas (P11): proximidad (45 cm), parada por
+/// obstáculo (18 cm) + batería crítica (9,95 V) y fallo de sensor sin eco.
 const List<_PerfilDemo> _perfilesDemo = <_PerfilDemo>[
-  _PerfilDemo(modo: 'autonomo', bateria: 100, bateriaV: 12.60, lineaMm: 0.0, vIzq: 0.41, vDer: 0.41),
-  _PerfilDemo(modo: 'manual', bateria: 15, bateriaV: 10.35, lineaMm: 27.0, vIzq: 0.30, vDer: 0.55),
-  _PerfilDemo(modo: 'autonomo', bateria: 45, bateriaV: 11.20, lineaMm: -32.4, vIzq: 0.05, vDer: 0.05),
-  _PerfilDemo(modo: 'autonomo', bateria: 5, bateriaV: 9.95, lineaMm: -27.0, vIzq: 0.55, vDer: 0.30),
-  _PerfilDemo(modo: 'manual', bateria: 60, bateriaV: 11.50, lineaMm: 9.0, vIzq: -0.40, vDer: 0.40),
-  _PerfilDemo(modo: 'autonomo', bateria: 90, bateriaV: 12.10, lineaMm: 0.5, vIzq: 0.52, vDer: 0.52),
+  _PerfilDemo(modo: 'autonomo', bateria: 100, bateriaV: 12.60, lineaMm: 0.0, vIzq: 0.41, vDer: 0.41, frenteCm: 150, atrasCm: 160),
+  _PerfilDemo(modo: 'manual', bateria: 17, bateriaV: 10.35, lineaMm: 27.0, vIzq: 0.30, vDer: 0.55, frenteCm: 90, atrasCm: 160),
+  _PerfilDemo(modo: 'autonomo', bateria: 48, bateriaV: 11.20, lineaMm: -32.4, vIzq: 0.05, vDer: 0.05, frenteCm: 45, atrasCm: 110),
+  _PerfilDemo(modo: 'autonomo', bateria: 2, bateriaV: 9.95, lineaMm: -27.0, vIzq: 0.55, vDer: 0.30, frenteCm: 18, atrasCm: 60),
+  _PerfilDemo(modo: 'manual', bateria: 59, bateriaV: 11.50, lineaMm: 9.0, vIzq: -0.40, vDer: 0.40, frenteCm: 70, atrasCm: 25),
+  _PerfilDemo(modo: 'autonomo', bateria: 81, bateriaV: 12.10, lineaMm: 0.5, vIzq: 0.52, vDer: 0.52, frenteCm: 120, atrasCm: 90),
+  _PerfilDemo(modo: 'autonomo', bateria: 78, bateriaV: 12.00, lineaMm: 1.2, vIzq: 0.45, vDer: 0.45, frenteCm: 0, atrasCm: 95, frenteOk: false),
 ];

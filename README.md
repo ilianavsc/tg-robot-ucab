@@ -35,35 +35,59 @@ Control con ESP32, navegación por línea con fusión de sensores, comunicación
 
 La semana de parciales (11 al 16 ene 2027) es semana extra de trabajo de la Fase III.
 
-## Prototipos
+## Prototipos (nomenclatura oficial P01 a P13)
 
-| Código | Nombre | Fase | Estado |
+La lista oficial vive en [`datos/proyecto.js`](datos/proyecto.js) (`TG.prototipos`); esta tabla la copia.
+
+| Código | Nombre | Tema | Estado |
 |---|---|---|---|
-| P00 | Repositorio | I | En curso |
-| P01 | MQTT base | I | Hecho |
-| H0 | Wi-Fi del laboratorio | I | Pendiente |
-| P02 | Sensores | II | Pendiente |
-| P03 | PID de velocidad | II | Avances 1 y 2 adelantados |
-| P04 | BLE o QR | II | Pendiente |
-| P05 | Robot virtual y puente | III | Pendiente |
-| P06 | App esqueleto | III | Pendiente |
-| P07 | Firmware integrado | III | Código unificado compilado; falta probarlo en el hardware |
-| P08 | Navegación en Webots | III | Pendiente |
-| P09 | Kalman y re-localización | IV | Pendiente |
-| P10 | App completa | V | Pendiente |
-| P11 | Alerta antirrobo de punta a punta | V | Pendiente |
-| P12 | Protocolo y estadística | VI | Pendiente |
+| P01 | Así se hablan el robot y la app | MQTT | Hecho |
+| P02 | Los sentidos del robot | Sensores (4× TCRT5000 + 2× HC-SR04P) | En pruebas (simulación) |
+| P03 | Motores que van parejo | PID / encoders | En pruebas (simulación) |
+| P04 | ¿BLE o QR? | Ubicación | Pendiente |
+| P05 | Robot virtual y puente | Firebase | Pendiente |
+| P06 | Primera versión de la app | Flutter | Pendiente |
+| P07 | El cerebro completo | Firmware integrado (`firmware/`) | En pruebas (lógica validada en PC) |
+| P08 | Seguir la línea | Simulador 3D | En pruebas (simulación) |
+| **P09** | **Interfaz Web / Modo Demo** | **App Flutter** (`app/`) | Hecho |
+| **P10** | **Simulador ESP32 Virtual** | **ESP32 en el navegador** (`prototipos/P10-simulador-esp32/`) | Hecho |
+| P11 | La alarma llega al teléfono | Centro de Alertas en la app | En pruebas (validado en simulación, falta hardware) |
+| P12 | Pruebas y estadística | Analítica de sesión + CSV en la app | En pruebas (validado en simulación, falta hardware) |
+| P13 | Radar Ultrasónico (Frente/Atrás) | 2× HC-SR04P | En pruebas (simulación) |
+
+**No confundir P09 con P10:** P09 es la **app** (Flutter Web, lo que usa el operador);
+P10 es el **robot falso** (una página que se comporta como el ESP32 y publica por MQTT).
+Juntos forman el Gemelo Digital. H0 (Wi-Fi del laboratorio) es una prueba de hardware,
+no un prototipo numerado.
+
+## Gemelo Digital: probar todo sin el robot (5 min)
+
+1. Abre el **ESP32 virtual (P10)**: `prototipos/P10-simulador-esp32/index.html`
+   (en el sitio: <https://ilianavsc.github.io/tg-robot-ucab/prototipos/P10-simulador-esp32/>)
+   y pulsa **Encender ESP32 Virtual**. Anota el broker al que se conectó (HiveMQ, EMQX o Mosquitto).
+2. Abre la **App (P09)**: <https://ilianavsc.github.io/tg-robot-ucab/app/>, elige **el mismo broker**
+   en el selector segmentado y pulsa **Conectar**.
+3. En la App verás estado, ultrasonidos, **Centro de Alertas (P11)** y **Analítica de Sesión (P12)**.
+4. En el P10 usa el panel **Inyección de Eventos / Pruebas HIL** (obstáculo 14 cm, bloqueo total,
+   fallo de sensor sin eco, batería 10,05 V, restaurar). El P10 aplica la **misma regla de seguridad
+   que el firmware** y la App muestra el banner rojo/ámbar.
+5. En la App pulsa **Exportar Reporte CSV**. Sin internet: botón **Modo Demo** de la App (7 perfiles,
+   misma regla de seguridad).
+
+Para correr la app en local: `cd app && flutter pub get && flutter run -d chrome`.
+Contratos JSON de todos los tópicos: [`docs/arquitectura/topicos-mqtt.md`](docs/arquitectura/topicos-mqtt.md).
 
 ## Carpetas
 - `index.html` y las demás páginas de la raíz: el sitio (inicio, cronograma, prototipos, requerimientos, hardware, arquitectura, decisiones y bitácora)
 - `datos/proyecto.js` **el único archivo que hay que editar para actualizar el sitio** (fases, prototipos, pendientes, decisiones, bitácora)
 - `assets/` estilo y menú compartidos por todas las páginas
 - `prototipos/` una carpeta por prototipo con su página visual (`index.html`), `codigo/` y `evidencias/`
-- `docs/requerimientos/` borrador del documento de requerimientos (hito de la Fase I)
+- `app/` la App Flutter Web (P09, con P11 y P12 dentro); se publica sola en `/app/` con cada push a `main`
+- `firmware/` firmware integrado del robot (`robot_integrado.ino`, P01 + P03 + P08 + ultrasonidos), su README y `pruebas_pc/` (35 escenarios de seguridad que corren en el PC)
+- `docs/` requerimientos, arquitectura (tópicos MQTT), guías de pruebas y del jurado
 - `hardware/materiales/` lista de materiales y registro de cambios
-- `firmware/` firmware integrado del robot (`robot_integrado.ino`, P01 + P03 + P08) y su README con las librerías y los pasos de carga
 
-Las carpetas de la app, el puente MQTT a Firebase, el CAD y los esquemáticos se crean cuando tengan contenido.
+El puente MQTT a Firebase (P05), el CAD y los esquemáticos se agregan cuando tengan contenido.
 
 ## Reglas de trabajo
 1. Cada tarea tiene una sola responsable.

@@ -3,7 +3,13 @@
 /// Las claves JSON son **exactamente** las del firmware
 /// `firmware/robot_integrado.ino` (función `publicarEstado()`):
 ///
-///   n · estado · bateria · bateria_v · ordenes · linea_mm · v_izq · v_der · t
+///   n · estado · bateria · bateria_v · ordenes · linea_mm · v_izq · v_der ·
+///   parada · t
+///
+/// `parada` (opcional) es el motivo por el que el firmware tiene los motores en
+/// 0: `ninguna`, `obstaculo_frente`, `obstaculo_atras`, `fallo_sensor_frente`,
+/// `fallo_sensor_atras`, `timeout`, `red` o `arranque`. Los robots anteriores
+/// a este campo no lo mandan: queda en `ninguna`.
 ///
 /// Ojo con dos nombres: el firmware usa `n` (contador de estados), **no** `id`,
 /// y `estado` ("autonomo" | "manual"), **no** `modo`. Usar otros nombres haría
@@ -48,6 +54,9 @@ class Estado {
   /// ESP32, no el del teléfono.
   final int t;
 
+  /// Motivo de la parada activa (`parada`), o `ninguna`.
+  final String parada;
+
   const Estado({
     required this.numero,
     required this.modo,
@@ -58,6 +67,7 @@ class Estado {
     required this.vIzq,
     required this.vDer,
     required this.t,
+    this.parada = 'ninguna',
   });
 
   /// Construye el modelo a partir del JSON recibido.
@@ -76,6 +86,7 @@ class Estado {
       vIzq: _decimal(json['v_izq']),
       vDer: _decimal(json['v_der']),
       t: _entero(json['t']),
+      parada: json['parada'] is String ? json['parada'] as String : 'ninguna',
     );
   }
 
@@ -89,6 +100,7 @@ class Estado {
         'linea_mm': lineaMm,
         'v_izq': vIzq,
         'v_der': vDer,
+        'parada': parada,
         't': t,
       };
 
@@ -102,6 +114,16 @@ class Estado {
 
   /// Umbral de aviso de batería baja: 20 % (≈ 10,4 V en una 3S).
   bool get bateriaBaja => bateria <= 20;
+
+  /// `true` si hay una tensión medida (> 1 V). Un `0.00 V` es el robot en
+  /// reposo / sin batería conectada (o la telemetría en cero): no es alarma.
+  bool get hayBateriaMedida => bateriaV > 1.0;
+
+  /// Batería crítica (P11): ≤ 10,3 V con batería medida.
+  bool get bateriaCritica => hayBateriaMedida && bateriaV <= 10.3;
+
+  /// `true` si el firmware informa que los motores están parados por seguridad.
+  bool get detenidoPorSeguridad => parada != 'ninguna' && parada != 'arranque';
 
   /// Velocidad media de las dos ruedas (m/s). En recta = velocidad real.
   double get velocidadMedia => (vIzq + vDer) / 2;
@@ -139,5 +161,5 @@ class Estado {
   String toString() =>
       'Estado(n=$numero, modo=$modo, bateria=$bateria%, ${bateriaV.toStringAsFixed(2)} V, '
       'ordenes=$ordenes, linea=${lineaMm.toStringAsFixed(1)} mm, '
-      'v=$vIzq/${vDer} m/s, t=$t)';
+      'v=$vIzq/$vDer m/s, parada=$parada, t=$t)';
 }

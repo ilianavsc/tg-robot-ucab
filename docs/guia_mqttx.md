@@ -203,7 +203,7 @@ assets/img/lab/2026-11-18_05-monitor-serie.png
 | No llega ningún `estado` | el robot no está en MQTT | revisar `MQTT conectado` en el monitor |
 | Llega `estado` pero no el ACK | se publicó en el tópico equivocado | publicar en `.../robot/ordenes`, no en `.../estado` |
 | El ACK llega pero el robot no se mueve | `cmd` mal escrito o modo autónomo | usar `adelante` exacto; el ACK confirma recepción, no la ejecución |
-| El robot se mueve solo a los 5 s | timeout de seguridad del modo manual | es el comportamiento diseñado: vuelve a autónomo |
+| El robot se detiene a los 5 s en manual | fail-safe del modo manual (5 s sin órdenes) | es el comportamiento diseñado: frena y se queda en manual (`parada:"timeout"`); manda otra orden o `auto` |
 | Dos ventanas MQTTX se desconectan entre sí | mismo Client ID | usar el ID automático en cada ventana |
 | La alerta no aparece | suscripción sin QoS 2 | suscribirse explícitamente a `.../alertas` con QoS 2 |
 

@@ -14,8 +14,16 @@ Es la fusión de los tres prototipos en un solo firmware:
 
 - Arranca en **modo autónomo**: sigue la línea con el PD.
 - Si llega una orden MQTT con `"cmd"`, pasa a **modo manual**.
-- Si en manual pasan **5 s sin órdenes**, vuelve solo a autónomo (seguridad).
-- Manda el estado cada 2 s y las alertas con **QoS 2**.
+- Si en manual pasan **5 s sin órdenes**, **frena y se queda detenido en manual**
+  (fail-safe). Nunca vuelve solo a autónomo: hace falta la orden `auto`.
+- **Obstáculo frontal < 20 cm:** frena avance, giros y autónomo; solo deja
+  retroceder si el ultrasonido trasero es válido y marca ≥ 20 cm (o nada en rango).
+- **Fallo de ultrasonido:** 5 disparos seguidos sin eco (500 ms) marcan el
+  sensor en fallo (`frente_ok`/`atras_ok = false`), bloquean el movimiento en
+  esa dirección y publican `fallo_sensor_frente` / `fallo_sensor_atras`.
+- Manda el estado cada 2 s (con el campo `parada`) y las alertas con **QoS 2**,
+  desde una cola en `loop()`: primero frena, después avisa.
+- Pruebas de la lógica en el PC: [`pruebas_pc/`](pruebas_pc/) (35 escenarios).
 - **No usa `delay()`**: todo el tiempo se maneja con `millis()`.
 
 ## Librerías que hay que instalar

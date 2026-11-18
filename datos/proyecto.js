@@ -56,8 +56,8 @@ window.TG = {
     { codigo: "P08", nombre: "Seguir la línea", tema: "Simulador 3D", semana: 13, estado: "pruebas", categoria: "software", url: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/", principal: true, simulador: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/simulador.html", simuladorTexto: "Simulador 3D del seguidor de línea", ino: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/codigo-esp32/seguidor_linea/seguidor_linea.ino" },
     { codigo: "P09", nombre: "Interfaz Web / Modo Demo", tema: "Flutter", semana: 15, estado: "hecho", categoria: "app", url: "app/", principal: true, simulador: "app/", simuladorTexto: "Abrir App Web (Modo Demo)" },
     { codigo: "P10", nombre: "Simulador ESP32 Virtual", tema: "MQTT Web", semana: 21, estado: "hecho", categoria: "app", url: "prototipos/P10-simulador-esp32/index.html", principal: true, simulador: "prototipos/P10-simulador-esp32/index.html", simuladorTexto: "Abrir Simulador ESP32" },
-    { codigo: "P11", nombre: "La alarma llega al teléfono", tema: "Alertas", semana: 23, estado: "pendiente", categoria: "app" },
-    { codigo: "P12", nombre: "Pruebas y estadística", tema: "Análisis", semana: 27, estado: "pendiente", categoria: "hardware" },
+    { codigo: "P11", nombre: "La alarma llega al teléfono", tema: "Alertas", semana: 23, estado: "pruebas", categoria: "app", url: "app/", simulador: "app/", simuladorTexto: "Abrir Centro de Alertas (App, Modo Demo o P10)", nota: "Validado en simulación (P10 + Modo Demo): obstáculo < 20 cm, sensor sin eco, proximidad 20–50 cm y batería ≤ 10,3 V. Pendiente de hardware físico (diciembre)." },
+    { codigo: "P12", nombre: "Pruebas y estadística", tema: "Análisis", semana: 27, estado: "pruebas", categoria: "app", url: "app/", simulador: "app/", simuladorTexto: "Abrir Analítica de Sesión y CSV (App)", nota: "Validado en simulación: velocidad media/máxima, distancia frontal mínima, error medio de línea, paquetes y paradas de emergencia con exportación CSV. Pendiente de los 20+ ensayos con el robot físico." },
     { codigo: "P13", nombre: "Radar Ultrasónico (Frente/Atrás)", tema: "Ultrasonido", semana: 5, estado: "pruebas", categoria: "hardware", url: "prototipos/P13-sensores-ultrasonicos/index.html", principal: true, simulador: "prototipos/P13-sensores-ultrasonicos/index.html", simuladorTexto: "Abrir simulador de ultrasonido" },
   ],
 
@@ -97,8 +97,8 @@ window.TG = {
     P08: { corto: "Seguir la línea", linea: "El robot sigue la cinta negra sin salirse." },
     P09: { corto: "App web (Modo Demo)", linea: "Pide y mira el robot desde el celular, sin robot." },
     P10: { corto: "Simulador ESP32", linea: "Un ESP32 virtual que envía datos a la app." },
-    P11: { corto: "Alarma al teléfono", linea: "Si lo levantan, la alerta llega a la app." },
-    P12: { corto: "Pruebas y estadística", linea: "20+ repeticiones y análisis de resultados." },
+    P11: { corto: "Centro de Alertas", linea: "Obstáculo, sensor sin eco, proximidad o batería crítica: la alerta llega a la app." },
+    P12: { corto: "Analítica y CSV", linea: "Métricas de cada sesión y reporte CSV para las 20+ repeticiones." },
     P13: { corto: "Radar Ultrasónico (Frente/Atrás)", linea: "El robot mide qué tan lejos está lo que tiene delante y detrás." }
   },
 
@@ -123,7 +123,7 @@ window.TG = {
     { id: "RF-02", tipo: "RF", texto: "Informar su estado de forma periódica", criterio: "Un mensaje cada 2 s", valida: ["P01"], estado: "validado", nota: "Validado en simulación (T2)" },
     { id: "RF-03", tipo: "RF", texto: "Avisar si el robot se desconecta", criterio: "Aviso en menos de 30 s", valida: ["P01"], estado: "validado", nota: "Validado en simulación: 22 s (T6)" },
     { id: "RF-04", tipo: "RF", texto: "Ir por la línea del mostrador al estante y volver", criterio: "Error de posición ≤ ? cm al llegar", valida: ["P08", "H4"], estado: "pendiente", nota: "Simulado en una pista provisional: da la vuelta a 0,41 m/s (P08 avance 1). Falta la pista real" },
-    { id: "RF-05", tipo: "RF", texto: "Detectar un obstáculo y detenerse", criterio: "Se detiene a ≥ 20 cm del obstáculo", valida: ["P02"], estado: "pendiente", nota: "Parada por obstáculo (< 20 cm) implementada en firmware y simulada en P13/P10; falta validar con el hardware físico (diciembre)" },
+    { id: "RF-05", tipo: "RF", texto: "Detectar un obstáculo y detenerse", criterio: "Se detiene a ≥ 20 cm del obstáculo", valida: ["P02", "P13"], estado: "pendiente", nota: "Parada por obstáculo (< 20 cm), fallo de sensor sin eco y fail-safe de 5 s implementados en firmware (35 escenarios en PC) y con la misma regla en P10 y en el Modo Demo; falta validar con el hardware físico (diciembre)" },
     { id: "RF-06", tipo: "RF", texto: "Re-localizarse en puntos de referencia", criterio: "Corrige su posición en cada punto (BLE o QR)", valida: ["P04", "P09"], estado: "pendiente" },
         { id: "RF-07", tipo: "RF", texto: "Transportar los componentes pedidos", criterio: "Lleva 3 o 4 piezas pequeñas sin perder la línea", valida: ["H5"], estado: "pendiente", nota: "Entrevista: los pedidos son de 3 o 4 piezas muy livianas" },
         { id: "RF-08", tipo: "RF", texto: "Alarmar si alguien lo levanta o lo mueve sin una orden", criterio: "La alarma llega a la app 1 sola vez y genera un reporte para el encargado y la Escuela; ≤ ? falsas alarmas en N recorridos", valida: ["P11", "H6"], estado: "pendiente", nota: "Entrevista: preocupan igual robo, pérdida y daño" },
@@ -289,6 +289,18 @@ window.TG = {
   /* ---------- DECISIONES (la más nueva primero) ----------
      estado: "tomada" | "abierta" */
   decisiones: [
+    { fecha: "2026-11-18", titulo: "Fail-safe del modo manual: 5 s sin órdenes = frenar y quedarse en manual", estado: "tomada",
+      decision: "Si en MANUAL pasan 5 s sin órdenes, el firmware ejecuta detener(), se queda en MANUAL con parada 'timeout' y publica la alerta 'timeout_manual'. Nunca pasa solo a AUTÓNOMO: hace falta una orden nueva o 'auto'. El P10 y el Modo Demo aplican la misma regla.",
+      porque: "Antes volvía solo a autónomo: si se caía la app, el robot arrancaba por su cuenta en un pasillo con personas (RNF-07). Un robot detenido es el estado seguro.",
+      evidencia: "firmware/robot_integrado.ino · firmware/pruebas_pc/ (T1)" },
+    { fecha: "2026-11-18", titulo: "Ultrasonido sin eco = fallo de sensor, no camino despejado", estado: "tomada",
+      decision: "Con 5 disparos seguidos sin ningún pulso de eco (500 ms) el sensor se marca en fallo (sensorFrenteOk / sensorAtrasOk = false), se bloquea el movimiento en esa dirección y se publica 'fallo_sensor_frente' o 'fallo_sensor_atras'. Se rearma con 3 ecos válidos. El tópico ultrasonido suma frente_ok y atras_ok.",
+      porque: "Un HC-SR04P desconectado devuelve 0 cm, igual que 'nada en rango': el robot habría avanzado a ciegas. El pulso de timeout (~38 ms, nada en 4 m) sí cuenta como sensor vivo, para no frenar en pasillos largos. Falta confirmarlo con los módulos reales.",
+      evidencia: "firmware/robot_integrado.ino · docs/arquitectura/topicos-mqtt.md" },
+    { fecha: "2026-11-18", titulo: "Alertas en cola, fuera del lazo de control", estado: "tomada",
+      decision: "El firmware frena primero y encola la alerta; loop() la publica con QoS 2. Sin broker, la alerta espera y sale al reconectar.",
+      porque: "Un publish QoS 2 puede bloquear hasta 1 s esperando al broker: hacerlo dentro de controlar() retrasaba el frenado por obstáculo.",
+      evidencia: "firmware/robot_integrado.ino (procesarAlertas)" },
     { fecha: "2026-11-18", titulo: "Umbrales de obstáculo: parada a 20 cm y aviso a 50 cm", estado: "tomada",
       decision: "Si el eco frontal del HC-SR04P mide menos de 20 cm, el firmware detiene el robot (detener()) y publica la alerta 'obstaculo'; entre 20 y 50 cm es zona de aviso; más de 50 cm es despejado.",
       porque: "Cumple RF-05 ('se detiene a ≥ 20 cm') y RNF-07, y coincide con las zonas verde/ámbar/rojo del radar P13.",

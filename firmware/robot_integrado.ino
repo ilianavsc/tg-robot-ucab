@@ -16,12 +16,17 @@
     3. loop() nunca se bloquea: siempre llama a mqtt.loop() y revisa temporizadores.
     4. El control (PD o manual) corre cada 10 ms = 100 Hz.
     5. Los encoders se leen por interrupción (cuadratura, 4 flancos).
-    6. Las alertas salen con QoS 2.
+    6. Las alertas salen con QoS 2 y se publican desde loop() (cola), nunca
+       desde el lazo de control: así un publish lento no retrasa un frenado.
 
   CÓMO SE USA
     - Arranca en MODO_AUTONOMO después de 1,5 s de espera (para ubicar el robot).
-    - En MANUAL, si no llega ninguna orden (MQTT o teclas) en 5 s,
-      vuelve solo a MODO_AUTONOMO (medida de seguridad).
+    - En MANUAL, si no llega ninguna orden (MQTT o teclas) en 5 s, el robot
+      FRENA y se queda detenido en MANUAL (fail-safe). NUNCA pasa solo a
+      autónomo: hace falta una orden explícita ("auto" o la tecla o).
+    - Ultrasonidos: si un HC-SR04P no devuelve eco 5 disparos seguidos
+      (500 ms), se marca en fallo y se bloquea el movimiento en esa dirección
+      (frente: avanzar, girar y autónomo; atrás: retroceder) con una alerta.
     - Teclas del Monitor Serie (115200):
         w adelante   s atrás   a izquierda   d derecha
         espacio o x  frenar    + / -  suben/bajan la velocidad 5 %
@@ -41,6 +46,8 @@
     ucab-tg-sf/robot/ordenes/ack  robot -> app   QoS 1
     ucab-tg-sf/robot/alertas      robot -> app   QoS 2
     ucab-tg-sf/robot/conexion     robot/broker  QoS 1   retenido (LWT)
+    ucab-tg-sf/robot/ultrasonido  robot -> app   QoS 0   cada 0,5 s
+  (contratos JSON completos en docs/arquitectura/topicos-mqtt.md)
 
   LIBRERÍAS
     - WiFi: viene incluida en el core del ESP32.
@@ -327,7 +334,8 @@ float pidPaso(Pid &p, float objetivo, float medida, float dt) {
 // =====================================================================
 const float DIVISOR      = (100.0f + 22.0f) / 22.0f;
 const float BAT_LLENA_V  = 12.6f;   // batería 3S llena
-const float BAT_BAJA_V   = 9.9f;    // alarma de batería baja (la de P08)
+const float BAT_BAJA_V   = 9.9f;    // corte seguro: alarma de batería baja (la de P08)
+const float BAT_CRITICA_V = 10.3f;  // aviso preventivo (mismo umbral que la app, P11)
 
 float leerBateriaV() {
   // analogReadMilliVolts usa la calibración de fábrica del ESP32
@@ -350,8 +358,10 @@ int bateriaPorcentaje(float v) {
   Reglas de cambio:
     - Cualquier orden con "cmd" (o una tecla de manejo) pasa a MANUAL.
     - "cmd":"auto" (o la tecla o) vuelve a AUTONOMO.
-    - SEGURIDAD: si en MANUAL pasan 5 s sin órdenes, vuelve a AUTONOMO.
-      Así el robot no se queda corriendo solo si se cae el Wi-Fi o la app.
+    - SEGURIDAD (fail-safe): si en MANUAL pasan 5 s sin órdenes, el robot
+      FRENA y se queda en MANUAL detenido (paroPorTimeout). Nunca vuelve solo a
+      AUTONOMO: un robot que arranca por su cuenta tras perder la app es justo
+      el riesgo que se quiere evitar. Lo libera cualquier orden nueva.
 */
 enum Modo {
   MODO_AUTONOMO,
@@ -359,7 +369,7 @@ enum Modo {
 };
 Modo modo = MODO_AUTONOMO;
 
-const uint32_t TIMEOUT_MANUAL_MS  = 5000;   // 5 s sin órdenes -> autónomo
+const uint32_t TIMEOUT_MANUAL_MS  = 5000;   // 5 s sin órdenes -> frena (fail-safe)
 const uint32_t ESPERA_ARRANQUE_MS = 1500;   // tiempo para ubicar el robot al encender
 uint32_t ultimaOrdenMs = 0;
 uint32_t inicioMs = 0;
@@ -373,6 +383,10 @@ int dirIzq = 0, dirDer = 0;       // +1 adelante, -1 atrás, 0 frena
 // frena y NO vuelve a arrancar hasta que llegue una orden nueva.
 bool paroPorRed = false;
 
+// Paro por inactividad (fail-safe): en MANUAL, 5 s sin órdenes = frenar y
+// quedarse quieto. Lo libera una orden nueva; NUNCA pasa a AUTONOMO solo.
+bool paroPorTimeout = false;
+
 // Paro por obstáculo (RF-05): si el eco frontal baja de UMBRAL_PARADA_CM, el
 // robot frena. Se rearma solo cuando el camino vuelve a estar despejado.
 // Declarado aquí (antes de controlar()) porque controlar() lo consulta.
@@ -381,6 +395,22 @@ bool obstaculoActivo = false;
 // Distancias calculadas (cm), refrescadas cada 100 ms por la sección de
 // ultrasonidos. 0 = sin obstáculo en rango. controlar() las lee para el paro.
 volatile float frenteCm = 0.0f, atrasCm = 0.0f;
+
+// Diagnóstico de los ultrasonidos (fallo / desconexión del módulo).
+// Un módulo vivo SIEMPRE devuelve un pulso en ECHO tras el disparo: corto si
+// hay objeto, de ~38 ms (timeout del HC-SR04P) si no hay nada en 4 m. Si no
+// llega NINGÚN pulso (cable suelto, módulo muerto, ECHO pegado), la lectura es
+// 0.0f "sin eco" y NO puede tomarse como camino despejado.
+//   FALLO_ECO_MAX disparos seguidos sin eco (5 x 100 ms = 500 ms) -> fallo.
+//   ECO_RECUPERA_MIN ecos válidos seguidos -> el sensor vuelve a estar OK.
+// Arrancan en false: hasta ver ecos válidos el sensor no se considera fiable.
+const uint8_t FALLO_ECO_MAX    = 5;
+const uint8_t ECO_RECUPERA_MIN = 3;
+uint8_t sinEcoFrente = 0, sinEcoAtras = 0;   // disparos seguidos sin eco
+uint8_t ecoOkFrente  = 0, ecoOkAtras  = 0;   // ecos válidos seguidos
+bool sensorFrenteOk = false, sensorAtrasOk = false;
+bool alertaFalloFrenteEnviada = false, alertaFalloAtrasEnviada = false;
+bool alertaObstaculoAtrasEnviada = false;
 
 // Umbrales de seguridad RF-05 (obstáculos):
 //   < UMBRAL_PARADA_CM       -> detener el robot
@@ -403,11 +433,22 @@ const char* nombreModo() {
   return (modo == MODO_AUTONOMO) ? "autonomo" : "manual";
 }
 
+// Motivo de la parada activa, para la telemetría (campo "parada" del estado).
+// Lo calcula controlar() en cada vuelta; "ninguna" si el robot puede moverse.
+const char* motivoParada = "ninguna";
+
+// Prototipos explícitos: estas funciones se usan antes de su definición.
+// (El IDE de Arduino los genera solo, pero declararlos evita depender de eso.)
+void verificarObstaculo();
+void encolarAlerta(const char *tipo, bool prueba, float valor);
+void frenarControl(const char *motivo);
+
 // Cambia a AUTONOMO reiniciando el PD para que el cambio no dé un tirón
 void pasarAAutonomo() {
   if (modo == MODO_AUTONOMO) return;
   modo = MODO_AUTONOMO;
   paroPorRed = false;                // una orden explícita libera el paro por red
+  paroPorTimeout = false;
   estadoLinea.hayError = false;      // sin historial: el término D arranca en 0
   estadoLinea.errorAnterior = 0.0f;
   estadoLinea.ultimaPos = 0.0f;
@@ -420,6 +461,7 @@ void pasarAAutonomo() {
 void aplicarCmd(const String &cmd, float vel) {
   ultimaOrdenMs = millis();
   paroPorRed = false;                // cualquier orden nueva libera el paro
+  paroPorTimeout = false;            // ...y también el paro por inactividad
 
   if (cmd == "auto") { pasarAAutonomo(); return; }
 
@@ -447,6 +489,7 @@ uint32_t ultimoControl = 0;
 uint32_t ultimoBoton = 0;
 bool botonAntes = true;                 // BOOT está en alto cuando no se aprieta
 bool alertaBateriaEnviada = false;      // para no repetir la alerta de batería baja
+bool alertaCriticaEnviada = false;      // aviso preventivo de batería crítica (10,3 V)
 
 // Cola de pedidos que falta confirmar (se confirma en loop, no en el callback).
 // Se guarda también cuántas órdenes llevaba el robot AL RECIBIR cada una, para
@@ -635,15 +678,47 @@ void procesarAcks() {
   cantidadPendientes--;
 }
 
-// Alerta con QoS 2 (antirrobo, batería baja, etc.)
-void enviarAlerta(const char *tipo, bool prueba) {
+// ---------------------------------------------------------------------
+// Alertas con QoS 2 (antirrobo, obstáculo, fallo de sensor, batería...)
+// ---------------------------------------------------------------------
+// Contrato: {"n":7,"tipo":"obstaculo","prueba":false,"valor":14.2,"t":118340}
+//   "valor" es opcional: cm del obstáculo o V de la batería.
+// Se ENCOLAN y se publican desde loop() con procesarAlertas(): un publish con
+// QoS 2 espera el PUBREC/PUBCOMP del broker (hasta 1 s), y eso no puede pasar
+// dentro de controlar() con los motores en marcha.
+const int MAX_ALERTAS = 8;
+String colaAlertas[MAX_ALERTAS];
+int cantidadAlertas = 0;
+
+void encolarAlerta(const char *tipo, bool prueba, float valor) {
   numeroAlarma++;
   String a = "{\"n\":" + String(numeroAlarma) +
              ",\"tipo\":\"" + tipo + "\"" +
-             ",\"prueba\":" + (prueba ? "true" : "false") +
-             ",\"t\":" + String(millis()) + "}";
-  if (mqtt.connected()) mqtt.publish(T_ALERTAS, a, false, 2);
-  Serial.println("Alerta #" + String(numeroAlarma) + " (" + tipo + ") enviada");
+             ",\"prueba\":" + (prueba ? "true" : "false");
+  if (!isnan(valor)) a += ",\"valor\":" + String(valor, 2);
+  a += ",\"t\":" + String(millis()) + "}";
+  if (cantidadAlertas < MAX_ALERTAS) {
+    colaAlertas[cantidadAlertas++] = a;
+  } else {
+    Serial.println("Cola de alertas llena: se descarta la mas vieja");
+    for (int i = 1; i < MAX_ALERTAS; i++) colaAlertas[i - 1] = colaAlertas[i];
+    colaAlertas[MAX_ALERTAS - 1] = a;
+  }
+  Serial.println("Alerta #" + String(numeroAlarma) + " (" + tipo + ") en cola");
+}
+
+// Compatibilidad con las llamadas de P01 (botón BOOT, tecla t).
+void enviarAlerta(const char *tipo, bool prueba) {
+  encolarAlerta(tipo, prueba, NAN);
+}
+
+// Publica UNA alerta por vuelta de loop. Si no hay conexión, espera en cola
+// (igual que los acks): una alerta de seguridad no se pierde por un corte.
+void procesarAlertas() {
+  if (cantidadAlertas == 0 || !mqtt.connected()) return;
+  if (!mqtt.publish(T_ALERTAS, colaAlertas[0], false, 2)) return;  // reintenta
+  for (int i = 1; i < cantidadAlertas; i++) colaAlertas[i - 1] = colaAlertas[i];
+  cantidadAlertas--;
 }
 
 // Estado periódico cada 2 s (QoS 0) + revisión de batería baja
@@ -656,11 +731,21 @@ void publicarEstado() {
   float vbat = leerBateriaV();
   int pct = bateriaPorcentaje(vbat);
 
-  // Alerta de batería baja con histéresis (se rearma al recuperar 0,3 V)
-  bool baja = vbat < BAT_BAJA_V;
+  // Alertas de batería con histéresis (se rearman al recuperar 0,3 V).
+  // Por debajo de 1 V se asume que no hay batería medida (robot por USB en la
+  // mesa o divisor sin conectar): no se alerta por un "0,00 V" en reposo.
+  bool hayBateria = vbat > 1.0f;
+  bool critica = hayBateria && vbat <= BAT_CRITICA_V;
+  if (critica && !alertaCriticaEnviada) {
+    alertaCriticaEnviada = true;
+    encolarAlerta("bateria_critica", false, vbat);
+  } else if (!critica && vbat > BAT_CRITICA_V + 0.3f) {
+    alertaCriticaEnviada = false;
+  }
+  bool baja = hayBateria && vbat < BAT_BAJA_V;
   if (baja && !alertaBateriaEnviada) {
     alertaBateriaEnviada = true;
-    enviarAlerta("bateria_baja", false);
+    encolarAlerta("bateria_baja", false, vbat);
   } else if (!baja && vbat > BAT_BAJA_V + 0.3f) {
     alertaBateriaEnviada = false;
   }
@@ -674,6 +759,7 @@ void publicarEstado() {
                   ",\"linea_mm\":" + String(ultimaSalida.pos_mm, 1) +
                   ",\"v_izq\":" + String(vIzq, 2) +
                   ",\"v_der\":" + String(vDer, 2) +
+                  ",\"parada\":\"" + motivoParada + "\"" +
                   ",\"t\":" + String(millis()) + "}";
   mqtt.publish(T_ESTADO, estado, false, 0);
 }
@@ -773,36 +859,72 @@ void controlar() {
 
   // --- 2) Espera de arranque (reemplaza el delay(2000) de P08) ---
   if (ahora - inicioMs < ESPERA_ARRANQUE_MS) {
-    detener();
+    frenarControl("arranque");
     return;
   }
 
   // --- 3a) Paro por red: no se reaplica PWM mientras dure el latch ---
   if (paroPorRed) {
-    detener();
+    frenarControl("red");
     return;
   }
 
-  // --- 3b) Paro por obstáculo (RF-05): eco frontal < UMBRAL_PARADA_CM ---
-  verificarObstaculo();
-  if (obstaculoActivo) {
-    // Solo se permite retroceder ("atras") si detrás está despejado y el
-    // operador lo pidió en manual. Adelante/izquierda/derecha y el modo
-    // autónomo quedan bloqueados hasta que el frente se despeje.
-    bool atrasDespejado = (atrasCm == 0.0f) || (atrasCm >= UMBRAL_PARADA_CM);
-    bool pidiendoAtras  = (modo == MODO_MANUAL && dirIzq == -1 && dirDer == -1);
-    if (!(atrasDespejado && pidiendoAtras)) {
-      detener();
-      return;
-    }
-    // Si está permitido, no retorna: el bloque 4b aplica el PWM de retroceso.
+  // --- 3b) Fail-safe por inactividad del modo MANUAL ---
+  // 5 s sin órdenes: frena y se QUEDA en MANUAL detenido. Nunca pasa solo a
+  // AUTONOMO (antes lo hacía: un robot que arranca por su cuenta al perder la
+  // app es un riesgo). Lo libera la próxima orden (aplicarCmd).
+  if (modo == MODO_MANUAL && !paroPorTimeout &&
+      (ahora - ultimaOrdenMs) > TIMEOUT_MANUAL_MS) {
+    paroPorTimeout = true;
+    dirIzq = 0;
+    dirDer = 0;
+    detener();                      // primero frenar, después avisar
+    encolarAlerta("timeout_manual", false, TIMEOUT_MANUAL_MS / 1000.0f);
+    Serial.println("Manual sin ordenes por 5 s: FRENO y quedo en MANUAL (fail-safe)");
+  }
+  if (paroPorTimeout) {
+    frenarControl("timeout");
+    return;
   }
 
-  // --- 3c) Máquina de estados: timeout de seguridad del modo MANUAL ---
-  if (modo == MODO_MANUAL && (ahora - ultimaOrdenMs) > TIMEOUT_MANUAL_MS) {
-    Serial.println("Manual sin ordenes por 5 s: vuelvo a AUTONOMO (seguridad)");
-    pasarAAutonomo();
+  // --- 3c) Seguridad RF-05: obstáculos y diagnóstico de ultrasonidos ---
+  // Qué sensor "cubre" el movimiento pedido:
+  //   frente -> autónomo, adelante y giros sobre el eje (el morro barre el frente)
+  //   atrás  -> solo el retroceso manual
+  verificarObstaculo();
+  bool pideAtras      = (modo == MODO_MANUAL && dirIzq == -1 && dirDer == -1);
+  bool pideMovimiento = (modo == MODO_AUTONOMO) || dirIzq != 0 || dirDer != 0;
+  bool usaFrente      = pideMovimiento && !pideAtras;
+
+  if (usaFrente && !sensorFrenteOk) {
+    // Sin eco fiable no se asume camino despejado: se bloquea el frente.
+    frenarControl("fallo_sensor_frente");
+    return;
   }
+  if (usaFrente && obstaculoActivo) {
+    // Adelante/giros y el modo autónomo quedan bloqueados; el operador puede
+    // retroceder (bloque de abajo) si atrás está despejado y el sensor es fiable.
+    frenarControl("obstaculo_frente");
+    return;
+  }
+  if (pideAtras) {
+    bool obstaculoAtras = (atrasCm > 0.0f && atrasCm < UMBRAL_PARADA_CM);
+    if (!sensorAtrasOk) {
+      frenarControl("fallo_sensor_atras");
+      return;
+    }
+    if (obstaculoAtras) {
+      if (!alertaObstaculoAtrasEnviada) {
+        alertaObstaculoAtrasEnviada = true;
+        detener();
+        encolarAlerta("obstaculo_atras", false, atrasCm);
+      }
+      frenarControl("obstaculo_atras");
+      return;
+    }
+    alertaObstaculoAtrasEnviada = false;   // se rearma al despejarse
+  }
+  motivoParada = "ninguna";
 
   // --- 4) Actuar según el modo ---
   if (modo == MODO_AUTONOMO) {
@@ -829,6 +951,15 @@ void controlar() {
   moverMotor(PIN_ENB, PIN_IN3, PIN_IN4, pwmDerAplicado);
 }
 
+// Frena desde controlar(): motores en 0, PWM "aplicado" en 0 para que la
+// telemetría no muestre un PWM que ya no se aplica, y guarda el motivo.
+void frenarControl(const char *motivo) {
+  detener();
+  pwmIzqAplicado = 0.0f;
+  pwmDerAplicado = 0.0f;
+  motivoParada = motivo;
+}
+
 // Telemetría por serie, 1 vez por segundo (para calibrar y depurar)
 void imprimirTelemetria() {
   uint32_t ahora = millis();
@@ -836,12 +967,14 @@ void imprimirTelemetria() {
   ultimoImpreso = ahora;
 
   Serial.printf("[%s] linea %6.1f mm | P %5.2f D %5.2f%s | PWM izq %5.2f der %5.2f | "
-                "izq %5.2f m/s der %5.2f m/s | bat %4.1f V\n",
+                "izq %5.2f m/s der %5.2f m/s | bat %4.1f V | US %s/%s | parada %s\n",
                 nombreModo(),
                 ultimaSalida.pos_mm, ultimaSalida.P, ultimaSalida.D,
                 ultimaSalida.perdida ? " PERDIDA" : "",
                 pwmIzqAplicado, pwmDerAplicado,
-                vIzq, vDer, leerBateriaV());
+                vIzq, vDer, leerBateriaV(),
+                sensorFrenteOk ? "ok" : "FALLO", sensorAtrasOk ? "ok" : "FALLO",
+                motivoParada);
 }
 
 // =====================================================================
@@ -886,20 +1019,68 @@ uint32_t ultimoPubUltra     = 0;
 const uint32_t PERIODO_DISPARO_ULTRA_MS = 100;  // dispara 10 veces/s
 const uint32_t PERIODO_PUB_ULTRA_MS     = 500;  // publica cada 0,5 s
 
+// Lleva la cuenta de ecos de UN sensor y decide si está sano.
+//   pulso == 0 -> no llegó ningún pulso por ECHO en 100 ms: "sin eco".
+//   pulso > 0  -> el módulo respondió (con objeto o con el pulso de timeout
+//                 de ~38 ms cuando no hay nada en 4 m, que da 0 cm "despejado").
+// Devuelve true en el instante en que el sensor PASA a fallo.
+bool diagnosticarEco(unsigned long pulso, uint8_t &sinEco, uint8_t &ecoOk, bool &sensorOk) {
+  if (pulso == 0) {
+    ecoOk = 0;
+    if (sinEco < 255) sinEco++;
+    if (sensorOk && sinEco >= FALLO_ECO_MAX) {
+      sensorOk = false;
+      return true;
+    }
+  } else {
+    sinEco = 0;
+    if (ecoOk < 255) ecoOk++;
+    if (!sensorOk && ecoOk >= ECO_RECUPERA_MIN) sensorOk = true;
+  }
+  return false;
+}
+
 // Convierte los pulsos del último disparo en cm y los guarda en frenteCm/atrasCm.
 // Se llama ANTES de volver a disparar, cuando el eco ya está completo.
+// Además actualiza el diagnóstico de cada sensor y encola la alerta de fallo
+// (una sola vez por episodio; se rearma cuando el sensor se recupera).
 void actualizarDistancias() {
-  frenteCm = cmUltrasonido(usPulsoFrente);
-  atrasCm  = cmUltrasonido(usPulsoAtras);
+  unsigned long pF = usPulsoFrente;
+  unsigned long pA = usPulsoAtras;
+  frenteCm = cmUltrasonido(pF);
+  atrasCm  = cmUltrasonido(pA);
+
+  diagnosticarEco(pF, sinEcoFrente, ecoOkFrente, sensorFrenteOk);
+  diagnosticarEco(pA, sinEcoAtras,  ecoOkAtras,  sensorAtrasOk);
+
+  // Alerta de diagnóstico: también cubre un módulo desconectado desde el
+  // arranque (sensorOk nunca llegó a true).
+  if (!sensorFrenteOk && sinEcoFrente >= FALLO_ECO_MAX && !alertaFalloFrenteEnviada) {
+    alertaFalloFrenteEnviada = true;
+    detener();
+    encolarAlerta("fallo_sensor_frente", false, NAN);
+    Serial.println("FALLO ultrasonido FRENTE: sin eco 500 ms, bloqueo el avance");
+  } else if (sensorFrenteOk) {
+    alertaFalloFrenteEnviada = false;
+  }
+  if (!sensorAtrasOk && sinEcoAtras >= FALLO_ECO_MAX && !alertaFalloAtrasEnviada) {
+    alertaFalloAtrasEnviada = true;
+    encolarAlerta("fallo_sensor_atras", false, NAN);
+    Serial.println("FALLO ultrasonido ATRAS: sin eco 500 ms, bloqueo el retroceso");
+  } else if (sensorAtrasOk) {
+    alertaFalloAtrasEnviada = false;
+  }
 }
 
 // Seguridad RF-05: si el eco frontal marca menos de UMBRAL_PARADA_CM, activa el
-// latch de paro. La llama controlar() a 100 Hz; solo dispara la alerta una vez.
+// latch de paro. La llama controlar() a 100 Hz; solo encola la alerta una vez.
+// Frena ANTES de encolar la alerta (la publicación sale después, desde loop).
 void verificarObstaculo() {
-  if (frenteCm > 0.0f && frenteCm < UMBRAL_PARADA_CM) {
+  if (sensorFrenteOk && frenteCm > 0.0f && frenteCm < UMBRAL_PARADA_CM) {
     if (!obstaculoActivo) {
       obstaculoActivo = true;
-      enviarAlerta("obstaculo", false);
+      detener();
+      encolarAlerta("obstaculo", false, frenteCm);
       Serial.print("OBSTACULO a ");
       Serial.print(frenteCm);
       Serial.println(" cm: deteniendo");
@@ -911,9 +1092,14 @@ void verificarObstaculo() {
 
 void publicarUltrasonido() {
   if (!mqtt.connected()) return;
-  // Contrato BOM: 2 sensores. Claves frente_cm / atras_cm + t. QoS 0 (no bloquea).
+  // Contrato BOM: 2 sensores. QoS 0 (no bloquea).
+  //   frente_cm / atras_cm: distancia; 0.0 = nada en rango o sin eco.
+  //   frente_ok / atras_ok: false = sensor en FALLO (sin eco 500 ms).
+  //   Con *_ok = false, un 0.0 NO significa despejado.
   String j = "{\"frente_cm\":" + String(frenteCm, 1) +
              ",\"atras_cm\":" + String(atrasCm, 1) +
+             ",\"frente_ok\":" + (sensorFrenteOk ? "true" : "false") +
+             ",\"atras_ok\":" + (sensorAtrasOk ? "true" : "false") +
              ",\"t\":" + String(millis()) + "}";
   mqtt.publish(T_ULTRASONIDO, j, false, 0);
 }
@@ -1011,6 +1197,7 @@ void loop() {
   mqtt.loop();               // siempre: atiende mensajes y reconexión de la librería
   gestionarRed();            // Wi-Fi/MQTT por fases, con millis()
   procesarAcks();            // confirma pedidos pendientes (QoS 1)
+  procesarAlertas();         // publica alertas en cola (QoS 2), fuera del control
   atenderBotonYSerie();      // botón BOOT, teclas y alarma
   atenderIMU();              // gancho de la MPU6050 (por ahora no hace nada)
   controlar();               // PD o manual cada 10 ms (100 Hz)

@@ -32,16 +32,16 @@ gantt
 
     section Fase IV: Navegación Progresiva
     Mapeo, odometría y filtro Kalman          :f4, 2027-02-08, 2027-03-12
-    P09 (Fusión sensorial y re-localización) :p09, 2027-02-15, 2027-03-12
+    P04 (Re-localización BLE o QR)            :p04, 2027-02-15, 2027-03-12
 
     section Fase V: App Móvil & Backend
     Ventana de Oro (Dedicación intensiva)     :crit, v_oro, 2027-03-15, 2027-04-09
     App en Flutter y enlace Firebase          :f5, 2027-03-15, 2027-04-16
-    P10 (App móvil completa)                  :p10, 2027-03-22, 2027-04-16
+    P05/P06 (Firebase y app con pedidos)      :p06, 2027-03-22, 2027-04-16
 
     section Fase VI: Integración Total
     Alertas antirrobo y calibración física    :f6, 2027-04-19, 2027-05-07
-    P11 (Alarma y notificaciones push)        :p11, 2027-04-19, 2027-05-07
+    P11 en hardware (alertas al teléfono)     :p11, 2027-04-19, 2027-05-07
 
     section Fase VII: Pruebas & Tomo
     20+ ensayos en maqueta real               :f7, 2027-05-10, 2027-05-28
@@ -64,12 +64,40 @@ gantt
 
 ---
 
-## 🤖 Catálogo de Prototipos de Ingeniería
+## 🤖 Catálogo de Prototipos de Ingeniería (P01 a P13)
 
-- **[P01] Así se hablan el robot y la app (MQTT):** Telemetría periódica cada 2 s, confirmación obligatoria con QoS 1/2 y detección de desconexión por LWT en menos de 22 s.
-- **[P03] Motores que van parejo (Tracción & Encoders):** Cinemática diferencial con motorreductores JGA25-371, PWM a 20 kHz y lectura de encoders por interrupción de hardware a 100 Hz.
-- **[P08] Seguidor de línea óptico (4x TCRT5000):** Detección infrarroja con umbral adaptativo sobre piso de granito, corrección angular proporcional-derivativa (PD) a 100 Hz y estimación de batería 3S.
-- **Firmware Integrado:** Fusión de P01 + P03 + P08 en un solo ejecutable para ESP32 DevKit (consumo: 71 % de Flash, 15 % de RAM).
+La lista oficial está en `datos/proyecto.js`. Estado al 18 nov 2026:
+
+| Código | Prototipo | Estado |
+| :--- | :--- | :--- |
+| P01 | Así se hablan el robot y la app (MQTT, QoS, LWT < 22 s) | Hecho |
+| P02 | Los sentidos del robot (4× TCRT5000 + 2× HC-SR04P) | En pruebas (simulación) |
+| P03 | Motores que van parejo (JGA25-371, PWM 20 kHz, encoders) | En pruebas (simulación) |
+| P04 | ¿BLE o QR? (re-localización) | Pendiente |
+| P05 | Robot virtual y puente Firebase | Pendiente |
+| P06 | Primera versión de la app con pedidos | Pendiente |
+| P07 | El cerebro completo (`firmware/robot_integrado.ino`) | En pruebas (35 escenarios en PC; falta el ESP32 real) |
+| P08 | Seguir la línea (PD a 100 Hz, simulador 3D) | En pruebas (simulación) |
+| **P09** | **App Flutter Web con Modo Demo** (`app/`) | Hecho |
+| **P10** | **Simulador ESP32 Virtual** (robot falso en el navegador) | Hecho |
+| P11 | Centro de Alertas en la app (obstáculo, sensor sin eco, proximidad, batería) | En pruebas (simulación) |
+| P12 | Analítica de sesión y reporte CSV | En pruebas (simulación) |
+| P13 | Radar ultrasónico Frente/Atrás | En pruebas (simulación) |
+
+**P09 ≠ P10:** P09 es la app que usa el operador; P10 es el ESP32 de mentira que le
+habla por MQTT. Juntos son el **Gemelo Digital** para llegar a diciembre con el software
+validado.
+
+### Seguridad que ya está en el firmware y en el Gemelo Digital
+- Obstáculo frontal < 20 cm: parada, alerta QoS 2, solo se permite retroceder con atrás ≥ 20 cm y sensor válido.
+- Ultrasonido sin eco 500 ms: el sensor se marca en fallo y se bloquea esa dirección.
+- Modo manual 5 s sin órdenes: el robot frena y se queda en manual (nunca pasa solo a autónomo).
+- Batería ≤ 10,3 V: aviso preventivo; < 9,9 V: corte seguro.
+
+### Cómo levantar el Gemelo Digital
+1. `prototipos/P10-simulador-esp32/index.html` → **Encender ESP32 Virtual**.
+2. App `https://ilianavsc.github.io/tg-robot-ucab/app/` → mismo broker → **Conectar**.
+3. Panel **Inyección de Eventos / Pruebas HIL** del P10 → mirar el banner P11 y la tarjeta P12 en la app.
 
 ---
 

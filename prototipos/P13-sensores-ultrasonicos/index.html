@@ -116,7 +116,7 @@
     Volver al catálogo de prototipos
   </a>
 
-  <p class="ceja">Prototipo P13 · Obstáculos · MQTT WebSockets · Rama fase-5-ultrasonido</p>
+  <p class="ceja">Prototipo P13 · Obstáculos · 2× HC-SR04P (Frente y Atrás) · MQTT WebSockets</p>
   <h1>P13: Los <em>ojos de distancia</em> del robot</h1>
 
   <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px">
@@ -181,8 +181,9 @@
   <div class="us-nota">
     <strong>Antes de pasar a la prueba física:</strong>
     <ul>
-      <li>El pedido de Amazon trae <strong>2</strong> sensores HC-SR04P: uno mira adelante y otro atrás. Este simulador usa esa disposición.</li>
-      <li>Mensaje: <code>{"frente_cm","atras_cm","t"}</code> en <code>ucab-tg-sf/robot/ultrasonido</code>. El firmware de la rama todavía publica <code>izq_cm / centro_cm / der_cm</code> con 3 sensores: hay que alinearlo antes de la prueba física.</li>
+      <li>El robot lleva <strong>2× HC-SR04P</strong> (uno mira adelante y otro atrás, TRIG común en GPIO 23, ECHO en GPIO 33 y 5) y, para seguir la línea, <strong>4× TCRT5000</strong> en <code>[27, 9, -9, -27] mm</code>. Este simulador usa esa disposición.</li>
+      <li>Mensaje: <code>{"frente_cm","atras_cm","frente_ok","atras_ok","t"}</code> en <code>ucab-tg-sf/robot/ultrasonido</code>, el mismo contrato de <code>firmware/robot_integrado.ino</code> y del P10 (ver <a href="../../docs/arquitectura/topicos-mqtt.md">tópicos MQTT</a>). <code>frente_ok:false</code> = sensor sin eco 500 ms (fallo): el firmware bloquea el avance.</li>
+      <li>Regla de seguridad del firmware: con <strong>frente &lt; 20 cm</strong> el robot se detiene y publica la alerta <code>obstaculo</code>; solo deja retroceder si atrás hay ≥ 20 cm con el sensor válido. Entre 20 y 50 cm es zona de aviso.</li>
       <li>Las distancias son manuales: no hay lectura real hasta que lleguen los sensores.</li>
     </ul>
   </div>
@@ -311,7 +312,7 @@
 
   /* ---------------- lectura y mensaje ---------------- */
   function mensaje() {
-    return { frente_cm: dist.frente, atras_cm: dist.atras, t: encendido ? Date.now() - inicioMs : 0 };
+    return { frente_cm: dist.frente, atras_cm: dist.atras, frente_ok: true, atras_ok: true, t: encendido ? Date.now() - inicioMs : 0 };
   }
 
   function refrescar() {

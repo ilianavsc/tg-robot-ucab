@@ -55,7 +55,8 @@ Unificación en C++ (Arduino IDE, ESP32 core 3.x) de P01, P03 y P08 en un solo e
 - **Uso de Memoria:** 71 % Flash, 15 % RAM. Cero llamadas a `delay()`; control estricto por `millis()` y temporizadores `micros()`.
 - **Modos de Operación:**
   1. `MODO_AUTONOMO`: Sigue la línea con control PD a 100 Hz.
-  2. `MODO_MANUAL`: Responde a comandos MQTT o teclas serie. Timeout de seguridad de 5 s sin órdenes retorna automáticamente a autónomo.
+  2. `MODO_MANUAL`: Responde a comandos MQTT o teclas serie. Fail-safe de 5 s sin órdenes: frena y se queda en MANUAL (nunca pasa solo a autónomo; alerta `timeout_manual`).
+- **Seguridad de ultrasonidos (18 nov):** frente < 20 cm detiene avance/giros/autónomo (solo retroceso con atrás ≥ 20 cm y sensor válido); 5 disparos sin eco (500 ms) marcan `frente_ok`/`atras_ok = false` y bloquean esa dirección. Alertas en cola, publicadas desde `loop()`. 35 escenarios en `firmware/pruebas_pc/`.
 
 ### Mapa de Pines (ESP32 DevKit 30 pines)
 | Función | Pines GPIO | Notas |
