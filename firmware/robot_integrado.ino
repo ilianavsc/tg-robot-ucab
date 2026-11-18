@@ -378,6 +378,17 @@ bool paroPorRed = false;
 // Declarado aquí (antes de controlar()) porque controlar() lo consulta.
 bool obstaculoActivo = false;
 
+// Distancias calculadas (cm), refrescadas cada 100 ms por la sección de
+// ultrasonidos. 0 = sin obstáculo en rango. controlar() las lee para el paro.
+volatile float frenteCm = 0.0f, atrasCm = 0.0f;
+
+// Umbrales de seguridad RF-05 (obstáculos):
+//   < UMBRAL_PARADA_CM       -> detener el robot
+//   UMBRAL_PARADA_CM..AVISO  -> zona de aviso (ámbar en el radar P13)
+//   > UMBRAL_AVISO_CM        -> despejado
+const float UMBRAL_PARADA_CM = 20.0f;
+const float UMBRAL_AVISO_CM  = 50.0f;
+
 // Frena y latchea el paro. Sin esto, controlar() reaplicaría el PWM manual
 // a los 10 ms y el robot seguiría avanzando a ciegas.
 void paradaSegura() {
@@ -775,8 +786,16 @@ void controlar() {
   // --- 3b) Paro por obstáculo (RF-05): eco frontal < UMBRAL_PARADA_CM ---
   verificarObstaculo();
   if (obstaculoActivo) {
-    detener();
-    return;
+    // Solo se permite retroceder ("atras") si detrás está despejado y el
+    // operador lo pidió en manual. Adelante/izquierda/derecha y el modo
+    // autónomo quedan bloqueados hasta que el frente se despeje.
+    bool atrasDespejado = (atrasCm == 0.0f) || (atrasCm >= UMBRAL_PARADA_CM);
+    bool pidiendoAtras  = (modo == MODO_MANUAL && dirIzq == -1 && dirDer == -1);
+    if (!(atrasDespejado && pidiendoAtras)) {
+      detener();
+      return;
+    }
+    // Si está permitido, no retorna: el bloque 4b aplica el PWM de retroceso.
   }
 
   // --- 3c) Máquina de estados: timeout de seguridad del modo MANUAL ---
@@ -861,16 +880,6 @@ float cmUltrasonido(unsigned long pulso) {
   if (cm > 400.0f) return 0.0f;
   return cm;
 }
-
-// Distancias calculadas (cm), refrescadas cada 100 ms. 0 = sin obstáculo en rango.
-volatile float frenteCm = 0.0f, atrasCm = 0.0f;
-
-// Umbrales de seguridad RF-05 (obstáculos):
-//   < UMBRAL_PARADA_CM       -> detener el robot
-//   UMBRAL_PARADA_CM..AVISO  -> zona de aviso (ámbar en el radar P13)
-//   > UMBRAL_AVISO_CM        -> despejado
-const float UMBRAL_PARADA_CM = 20.0f;
-const float UMBRAL_AVISO_CM  = 50.0f;
 
 uint32_t ultimoDisparoUltra = 0;
 uint32_t ultimoPubUltra     = 0;
