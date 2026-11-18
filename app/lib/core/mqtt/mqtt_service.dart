@@ -301,13 +301,28 @@ class MqttService extends ChangeNotifier {
     _temporizadorDemo = Timer.periodic(_periodoDemo, (_) => _emitirPasoDemo());
   }
 
-  /// Detiene el Modo Demo. No reconecta: para volver a MQTT, pulsar Conectar.
+  /// Detiene el Modo Demo y limpia por completo los datos simulados de estado,
+  /// ultrasonidos y marcas de tiempo para que la pantalla vuelva de inmediato
+  /// a "Esperando telemetría del robot…".
   void detenerSimulacion() {
     _temporizadorDemo?.cancel();
     _temporizadorDemo = null;
-    if (!_simulando) return;
+    final bool estabaSimulando = _simulando;
     _simulando = false;
-    if (!_descartado) notifyListeners();
+    _pasoDemo = 0;
+    _tDemo = 0;
+    if (estabaSimulando) {
+      _ultimoEstado = null;
+      _ultimoUltrasonido = null;
+      _ultimoMensaje = null;
+      if (_ultimoAck?.simulada ?? false) {
+        _ultimoAck = null;
+        _ultimaOrdenId = null;
+        _ultimoComando = null;
+        _ordenes.clear();
+      }
+      if (!_descartado) notifyListeners();
+    }
   }
 
   @override

@@ -419,7 +419,9 @@ class _TarjetaConexionYControles extends StatelessWidget {
                   label: const Text('Desconectar'),
                 ),
                 FilledButton.icon(
-                  onPressed: servicio.iniciarSimulacion,
+                  onPressed: servicio.simulando
+                      ? servicio.detenerSimulacion
+                      : servicio.iniciarSimulacion,
                   style: FilledButton.styleFrom(
                     backgroundColor: TelemetriaScreen._violetaDemo,
                     foregroundColor: Colors.white,
@@ -428,8 +430,15 @@ class _TarjetaConexionYControles extends StatelessWidget {
                       vertical: 12,
                     ),
                   ),
-                  icon: const Icon(Icons.play_circle_fill, size: 18),
-                  label: const Text('Modo Demo'),
+                  icon: Icon(
+                    servicio.simulando
+                        ? Icons.toggle_off_outlined
+                        : Icons.play_circle_fill,
+                    size: 18,
+                  ),
+                  label: Text(
+                    servicio.simulando ? 'Modo Demo (Activo)' : 'Modo Demo',
+                  ),
                 ),
                 if (servicio.simulando)
                   OutlinedButton.icon(
