@@ -98,7 +98,7 @@ class TelemetriaScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             children: <Widget>[
               if (servicio.simulando) ...<Widget>[
-                _BannerModoDemo(onDetener: servicio.detenerSimulacion),
+                const _BannerModoDemo(),
                 const SizedBox(height: 12),
               ],
               _Aparece(
@@ -423,37 +423,38 @@ class _TarjetaConexionYControles extends StatelessWidget {
                       ? servicio.detenerSimulacion
                       : servicio.iniciarSimulacion,
                   style: FilledButton.styleFrom(
-                    backgroundColor: TelemetriaScreen._violetaDemo,
-                    foregroundColor: Colors.white,
+                    backgroundColor: servicio.simulando
+                        ? TelemetriaScreen._violetaDemo
+                        : const Color(0xFFF1F5F9),
+                    foregroundColor: servicio.simulando
+                        ? Colors.white
+                        : const Color(0xFF334155),
+                    side: BorderSide(
+                      color: servicio.simulando
+                          ? TelemetriaScreen._violetaDemo
+                          : const Color(0xFFCBD5E1),
+                      width: 1.5,
+                    ),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 12,
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    minimumSize: const Size(0, 38),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                    textStyle: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   icon: Icon(
-                    servicio.simulando
-                        ? Icons.toggle_off_outlined
-                        : Icons.play_circle_fill,
-                    size: 18,
+                    servicio.simulando ? Icons.stop : Icons.play_arrow,
+                    size: 16,
                   ),
                   label: Text(
-                    servicio.simulando ? 'Modo Demo (Activo)' : 'Modo Demo',
+                    servicio.simulando ? 'Detener Demo' : 'Modo Demo',
                   ),
                 ),
-                if (servicio.simulando)
-                  OutlinedButton.icon(
-                    onPressed: servicio.detenerSimulacion,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: TelemetriaScreen._rojoError,
-                      side: const BorderSide(color: TelemetriaScreen._rojoError),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                    icon: const Icon(Icons.stop_circle_outlined, size: 18),
-                    label: const Text('Detener Demo'),
-                  ),
               ],
             ),
           ],
@@ -494,30 +495,9 @@ class _TarjetaEsperandoDatos extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Enciende el ESP32 físico, abre el Simulador Web P10 o pulsa "Modo Demo" para visualizar los sensores en vivo.',
+              'Enciende el ESP32 físico, abre el Simulador Web P10 o pulsa "Modo Demo" arriba para visualizar los sensores en vivo.',
               textAlign: TextAlign.center,
               style: TextStyle(color: Color(0xFF64748B), fontSize: 14),
-            ),
-            const SizedBox(height: 14),
-            FilledButton.icon(
-              onPressed: servicio.iniciarSimulacion,
-              style: FilledButton.styleFrom(
-                backgroundColor: TelemetriaScreen._violetaDemo,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                minimumSize: const Size(0, 34),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: VisualDensity.compact,
-                textStyle: const TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              icon: const Icon(Icons.play_arrow, size: 16),
-              label: const Text('Activar Modo Demo ahora'),
             ),
           ],
         ),
@@ -810,9 +790,7 @@ class _CajaUltimoAck extends StatelessWidget {
 /// Banner superior visible cuando el Modo Demo está activo para distinguir
 /// claramente los datos simulados de la telemetría MQTT real.
 class _BannerModoDemo extends StatelessWidget {
-  const _BannerModoDemo({required this.onDetener});
-
-  final VoidCallback onDetener;
+  const _BannerModoDemo();
 
   @override
   Widget build(BuildContext context) {
@@ -824,15 +802,15 @@ class _BannerModoDemo extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: TelemetriaScreen._violetaDemo, width: 1.5),
       ),
-      child: Row(
+      child: const Row(
         children: <Widget>[
-          const Icon(
+          Icon(
             Icons.science,
             color: TelemetriaScreen._violetaDemo,
             size: 20,
           ),
-          const SizedBox(width: 10),
-          const Expanded(
+          SizedBox(width: 10),
+          Expanded(
             child: Text(
               'MODO DEMO · Datos simulados localmente',
               style: TextStyle(
@@ -840,21 +818,6 @@ class _BannerModoDemo extends StatelessWidget {
                 fontWeight: FontWeight.w800,
                 fontSize: 13.5,
               ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          TextButton(
-            onPressed: onDetener,
-            style: TextButton.styleFrom(
-              foregroundColor: TelemetriaScreen._violetaDemo,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              minimumSize: const Size(0, 30),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              visualDensity: VisualDensity.compact,
-            ),
-            child: const Text(
-              'Salir',
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
             ),
           ),
         ],
@@ -898,14 +861,18 @@ class _TarjetaBateria extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool baja = estado.bateriaBaja;
-    final Color colorBarra = baja
-        ? TelemetriaScreen._rojoError
-        : (estado.bateria <= 40
-              ? TelemetriaScreen._ambarAviso
-              : (simulando
-                    ? TelemetriaScreen._violetaDemo
-                    : TelemetriaScreen._verdePrimario));
+    final bool enCero =
+        estado.numero == 0 && estado.bateria == 0 && estado.bateriaV == 0.0;
+    final bool baja = !enCero && estado.bateriaBaja;
+    final Color colorBarra = enCero
+        ? const Color(0xFF64748B)
+        : (baja
+              ? TelemetriaScreen._rojoError
+              : (estado.bateria <= 40
+                    ? TelemetriaScreen._ambarAviso
+                    : (simulando
+                          ? TelemetriaScreen._violetaDemo
+                          : TelemetriaScreen._verdePrimario)));
 
     return Card(
       elevation: 0,
@@ -1016,32 +983,41 @@ class _TarjetaModoYLinea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool enCero =
+        estado.numero == 0 && estado.bateria == 0 && estado.bateriaV == 0.0;
     final bool veLinea = estado.veLaLinea;
-    final Color colorLinea = veLinea
-        ? (simulando
-              ? TelemetriaScreen._violetaDemo
-              : TelemetriaScreen._verdePrimario)
-        : TelemetriaScreen._rojoError;
+    final Color colorLinea = enCero
+        ? const Color(0xFF64748B)
+        : (veLinea
+              ? (simulando
+                    ? TelemetriaScreen._violetaDemo
+                    : TelemetriaScreen._verdePrimario)
+              : TelemetriaScreen._rojoError);
 
     final Widget itemModo = _ItemMetricaIcono(
       icono: estado.esAutonomo ? Icons.smart_toy : Icons.sports_esports,
-      colorIcono: simulando
-          ? TelemetriaScreen._violetaDemo
-          : (estado.esAutonomo
-                ? TelemetriaScreen._verdePrimario
-                : const Color(0xFF7C3AED)),
+      colorIcono: enCero
+          ? const Color(0xFF64748B)
+          : (simulando
+                ? TelemetriaScreen._violetaDemo
+                : (estado.esAutonomo
+                      ? TelemetriaScreen._verdePrimario
+                      : const Color(0xFF7C3AED))),
       titulo: simulando ? 'Modo de Operación · DEMO' : 'Modo de Operación',
-      valor: estado.esAutonomo
-          ? 'Autónomo (PD 100 Hz)'
-          : 'Manual (Control Remoto)',
+      valor: enCero
+          ? 'Sin señal'
+          : (estado.esAutonomo
+                ? 'Autónomo (PD 100 Hz)'
+                : 'Manual (Control Remoto)'),
     );
 
     final Widget itemLinea = _ItemMetricaIcono(
       icono: veLinea ? Icons.timeline : Icons.warning_amber,
       colorIcono: colorLinea,
       titulo: 'Posición de Línea (4× TCRT5000)',
-      valor:
-          '${estado.lineaMm.toStringAsFixed(1)} mm (${veLinea ? "En pista" : "Perdida"})',
+      valor: enCero
+          ? '${estado.lineaMm.toStringAsFixed(1)} mm (Sin señal)'
+          : '${estado.lineaMm.toStringAsFixed(1)} mm (${veLinea ? "En pista" : "Perdida"})',
     );
 
     return Card(

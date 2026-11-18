@@ -301,9 +301,9 @@ class MqttService extends ChangeNotifier {
     _temporizadorDemo = Timer.periodic(_periodoDemo, (_) => _emitirPasoDemo());
   }
 
-  /// Detiene el Modo Demo y limpia por completo los datos simulados de estado,
-  /// ultrasonidos y marcas de tiempo para que la pantalla vuelva de inmediato
-  /// a "Esperando telemetría del robot…".
+  /// Detiene el Modo Demo y reinicia explícitamente los valores de telemetría y
+  /// ultrasonidos a un estado base en cero (0 %, 0.00 V, 0.0 mm, 0.00 m/s,
+  /// #0, 00:00 y 0 cm 'Sin señal'), sin dejar datos residuales de la simulación.
   void detenerSimulacion() {
     _temporizadorDemo?.cancel();
     _temporizadorDemo = null;
@@ -312,8 +312,23 @@ class MqttService extends ChangeNotifier {
     _pasoDemo = 0;
     _tDemo = 0;
     if (estabaSimulando) {
-      _ultimoEstado = null;
-      _ultimoUltrasonido = null;
+      _ultimoEstado = const Estado(
+        numero: 0,
+        modo: 'manual',
+        bateria: 0,
+        bateriaV: 0.0,
+        ordenes: 0,
+        lineaMm: 0.0,
+        vIzq: 0.0,
+        vDer: 0.0,
+        t: 0,
+      );
+      _ultimoUltrasonido = Ultrasonido(
+        frenteCm: 0,
+        atrasCm: 0,
+        llegada: DateTime.fromMillisecondsSinceEpoch(0),
+        t: 0,
+      );
       _ultimoMensaje = null;
       if (_ultimoAck?.simulada ?? false) {
         _ultimoAck = null;
