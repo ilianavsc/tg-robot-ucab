@@ -220,6 +220,41 @@
 .motor-fill { position: absolute; top: 0; bottom: 0; width: 0; left: 50%; background: #22c55e; transition: width 0.3s cubic-bezier(0.23, 1, 0.32, 1), left 0.3s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.2s ease-out; }
 .motor-fill.atras { background: #f59e0b; }
 
+/* ---- Tarjeta de Ultrasónicos (Frente y Atrás) ---- */
+.ultra-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 6px; }
+.ultra-item { background: #0f172a; border: 1.5px solid #334155; border-radius: 10px; padding: 10px 12px; }
+.ultra-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-family: var(--font-mono); font-size: 12px; color: #cbd5e1; margin-bottom: 6px; }
+.ultra-cab output { font-family: var(--font-display); font-weight: 800; font-size: 18px; color: #22c55e; }
+.ultra-cab output.precaucion { color: #f59e0b; }
+.ultra-cab output.peligro { color: #f43f5e; }
+.ultra-cab output.pausado { color: #64748b; }
+.ultra-barra { height: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; overflow: hidden; margin-bottom: 8px; }
+.ultra-fill { height: 100%; width: 0; border-radius: 5px; background: #22c55e; transition: width 0.28s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.2s ease-out; }
+.ultra-fill.precaucion { background: #f59e0b; }
+.ultra-fill.peligro { background: #f43f5e; }
+.ultra-fill.pausado { background: #64748b; }
+.ultra-slider { width: 100%; accent-color: #38bdf8; cursor: pointer; margin: 0; height: 20px; }
+.ultra-acciones { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
+.btn-ultra {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #475569;
+  background: #0f172a;
+  color: #e2e8f0;
+  cursor: pointer;
+  transition: transform 0.16s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.15s ease-out, border-color 0.15s ease-out;
+}
+.btn-ultra:hover:not(:disabled) { border-color: #38bdf8; color: #fff; }
+.btn-ultra:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-ultra.pausado { border-color: #f59e0b; background: rgba(245, 158, 11, 0.16); color: #fde68a; }
+.ultra-badge { font-family: var(--font-mono); font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(34, 197, 94, 0.16); color: #86efac; border: 1px solid #22c55e; }
+.ultra-badge.pausado { background: rgba(148, 163, 184, 0.16); color: #cbd5e1; border-color: #64748b; }
+.ultra-badge.manual { background: rgba(56, 189, 248, 0.16); color: #7dd3fc; border-color: #38bdf8; }
+
 /* ---- Perfiles ---- */
 .perfiles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 0 0 20px; }
 .perfil-item {
@@ -273,6 +308,7 @@
   .broker-pill { flex: 1 1 100%; min-height: 48px; font-size: 14px; }
   .esp-grid { grid-template-columns: 1fr; }
   .tele-grid { grid-template-columns: 1fr; }
+  .ultra-grid { grid-template-columns: 1fr; }
   .perfiles-grid { grid-template-columns: 1fr; margin-bottom: 26px; }
   .log-mqtt { height: 200px; font-size: 12px; }
 }
@@ -318,7 +354,7 @@ button:not(:disabled):active, .perfil-item:active, .broker-pill:active { transfo
           <span class="led-estado" id="led-mqtt"></span>
           <span id="estado-mqtt">DESCONECTADO · En espera de arranque</span>
         </div>
-        <div>Tópico: <strong>ucab-tg-sf/robot/estado</strong> (QoS 0 · 2 s)</div>
+        <div>Tópicos: <strong>ucab-tg-sf/robot/estado</strong> + <strong>ultrasonido</strong> (QoS 0 · 2 s)</div>
       </div>
 
       <div class="consola-cuerpo">
@@ -394,13 +430,41 @@ button:not(:disabled):active, .perfil-item:active, .broker-pill:active { transfo
               <div class="motor-fila"><span>Izq.</span><div class="motor-pista"><div class="motor-fill" id="m-izq"></div></div><output id="m-izq-v">—</output></div>
               <div class="motor-fila"><span>Der.</span><div class="motor-pista"><div class="motor-fill" id="m-der"></div></div><output id="m-der-v">—</output></div>
             </div>
+            <div class="tarjeta ancha" id="tarjeta-ultra">
+              <p class="tarjeta-titulo">
+                <span>Ultrasónicos · 2 × HC-SR04P</span>
+                <span class="ultra-badge" id="ultra-badge">PERFIL AUTO</span>
+              </p>
+              <div class="ultra-grid">
+                <div class="ultra-item">
+                  <div class="ultra-cab">
+                    <label for="slider-frente">↑ Frente</label>
+                    <output id="u-frente-v" for="slider-frente">— cm</output>
+                  </div>
+                  <div class="ultra-barra"><div class="ultra-fill" id="u-frente-fill"></div></div>
+                  <input type="range" id="slider-frente" class="ultra-slider" min="2" max="200" step="1" value="150" aria-label="Distancia ultrasónico frente en cm">
+                </div>
+                <div class="ultra-item">
+                  <div class="ultra-cab">
+                    <label for="slider-atras">↓ Atrás</label>
+                    <output id="u-atras-v" for="slider-atras">— cm</output>
+                  </div>
+                  <div class="ultra-barra"><div class="ultra-fill" id="u-atras-fill"></div></div>
+                  <input type="range" id="slider-atras" class="ultra-slider" min="2" max="200" step="1" value="160" aria-label="Distancia ultrasónico atrás en cm">
+                </div>
+              </div>
+              <div class="ultra-acciones">
+                <button type="button" id="btn-ultra-pausa" class="btn-ultra">⏸ Pausar envío (Probar 'Sin señal' &gt; 3 s)</button>
+                <button type="button" id="btn-ultra-perfil" class="btn-ultra" disabled>🔄 Seguir perfil</button>
+              </div>
+            </div>
           </div>
         </div>
 
         <div class="perfiles-grid" id="grid-perfiles"></div>
 
         <div class="log-cab">
-          <span class="t">Monitor Serie / Payloads Publicados en ucab-tg-sf/robot/estado</span>
+          <span class="t">Monitor Serie / Payloads en ucab-tg-sf/robot/estado y ucab-tg-sf/robot/ultrasonido</span>
           <span class="c" id="contador-enviados">0 paquetes enviados</span>
         </div>
         <div class="log-mqtt" id="log-mqtt">
@@ -430,6 +494,7 @@ button:not(:disabled):active, .perfil-item:active, .broker-pill:active { transfo
 <script>
 (function () {
   var TOPICO = "ucab-tg-sf/robot/estado";
+  var T_ULTRASONIDO = "ucab-tg-sf/robot/ultrasonido"; /* 2 × HC-SR04P: {"frente_cm","atras_cm","t"} (QoS 0) */
   var T_ORDENES = "ucab-tg-sf/robot/ordenes";      /* lo escucha con QoS 1, igual que el robot real */
   var T_ACK = "ucab-tg-sf/robot/ordenes/ack";      /* responde con QoS 1: {"id","recibidas","t"} */
   var INTENTOS_POR_BROKER = 2;
@@ -462,12 +527,12 @@ button:not(:disabled):active, .perfil-item:active, .broker-pill:active { transfo
   }
 
   var PERFILES = [
-    { titulo: "Batería llena · Autónomo centrado", estado: "autonomo", bateria: 100, bateria_v: 12.60, sensores: [0, 1, 1, 0], v_izq: 0.41, v_der: 0.41 },
-    { titulo: "Batería baja · Manual · Desvío izq.", estado: "manual", bateria: 15, bateria_v: 10.35, sensores: [1, 0, 0, 0], v_izq: 0.30, v_der: 0.55 },
-    { titulo: "Línea perdida · Robot frenando", estado: "autonomo", bateria: 45, bateria_v: 11.20, sensores: [0, 0, 0, 0], ladoPerdida: -1, v_izq: 0.05, v_der: 0.05 },
-    { titulo: "Batería crítica (5%) · Curva derecha", estado: "autonomo", bateria: 5, bateria_v: 9.95, sensores: [0, 0, 0, 1], v_izq: 0.55, v_der: 0.30 },
-    { titulo: "Giro sobre su eje (Ruedas opuestas)", estado: "manual", bateria: 60, bateria_v: 11.50, sensores: [0, 1, 0, 0], v_izq: -0.40, v_der: 0.40 },
-    { titulo: "Autónomo rápido en recta", estado: "autonomo", bateria: 90, bateria_v: 12.10, sensores: [0, 1, 1, 0], v_izq: 0.52, v_der: 0.52 }
+    { titulo: "Batería llena · Autónomo centrado", estado: "autonomo", bateria: 100, bateria_v: 12.60, sensores: [0, 1, 1, 0], frente_cm: 150, atras_cm: 160, v_izq: 0.41, v_der: 0.41 },
+    { titulo: "Batería baja · Manual · Desvío izq.", estado: "manual", bateria: 15, bateria_v: 10.35, sensores: [1, 0, 0, 0], frente_cm: 90, atras_cm: 160, v_izq: 0.30, v_der: 0.55 },
+    { titulo: "Línea perdida · Robot frenando", estado: "autonomo", bateria: 45, bateria_v: 11.20, sensores: [0, 0, 0, 0], ladoPerdida: -1, frente_cm: 45, atras_cm: 110, v_izq: 0.05, v_der: 0.05 },
+    { titulo: "Batería crítica (5%) · Curva derecha", estado: "autonomo", bateria: 5, bateria_v: 9.95, sensores: [0, 0, 0, 1], frente_cm: 18, atras_cm: 60, v_izq: 0.55, v_der: 0.30 },
+    { titulo: "Giro sobre su eje (Ruedas opuestas)", estado: "manual", bateria: 60, bateria_v: 11.50, sensores: [0, 1, 0, 0], frente_cm: 70, atras_cm: 25, v_izq: -0.40, v_der: 0.40 },
+    { titulo: "Autónomo rápido en recta", estado: "autonomo", bateria: 90, bateria_v: 12.10, sensores: [0, 1, 1, 0], frente_cm: 120, atras_cm: 90, v_izq: 0.52, v_der: 0.52 }
   ].map(function (p) {
     p.linea_mm = calcularLineaMm(p.sensores, p.ladoPerdida || -1);
     return p;
@@ -504,6 +569,20 @@ button:not(:disabled):active, .perfil-item:active, .broker-pill:active { transfo
   var mDerEl = document.getElementById("m-der");
   var mIzqVEl = document.getElementById("m-izq-v");
   var mDerVEl = document.getElementById("m-der-v");
+  var ultraBadgeEl = document.getElementById("ultra-badge");
+  var uFrenteVEl = document.getElementById("u-frente-v");
+  var uFrenteFillEl = document.getElementById("u-frente-fill");
+  var sliderFrenteEl = document.getElementById("slider-frente");
+  var uAtrasVEl = document.getElementById("u-atras-v");
+  var uAtrasFillEl = document.getElementById("u-atras-fill");
+  var sliderAtrasEl = document.getElementById("slider-atras");
+  var btnUltraPausaEl = document.getElementById("btn-ultra-pausa");
+  var btnUltraPerfilEl = document.getElementById("btn-ultra-perfil");
+
+  var ultraPausado = false;
+  var ultraManual = false;
+  var ultraFrente = PERFILES[0].frente_cm;
+  var ultraAtras = PERFILES[0].atras_cm;
 
   var indiceBroker = 0;
   var intentosEnBroker = 0;
@@ -577,7 +656,7 @@ button:not(:disabled):active, .perfil-item:active, .broker-pill:active { transfo
       return '<button type="button" class="perfil-item' + (i === activoIdx ? ' activo' : '') + '" data-idx="' + i + '">' +
         '<span class="num">PERFIL 0' + (i + 1) + ' · ' + p.estado.toUpperCase() + '</span>' +
         '<strong>' + p.titulo + '</strong>' +
-        '<span>Bat: ' + p.bateria + '% (' + p.bateria_v.toFixed(2) + 'V) · Línea: ' + p.linea_mm.toFixed(1) + 'mm</span>' +
+        '<span>Bat: ' + p.bateria + '% (' + p.bateria_v.toFixed(2) + 'V) · Línea: ' + p.linea_mm.toFixed(1) + 'mm · Ultra: ' + p.frente_cm + '/' + p.atras_cm + 'cm</span>' +
       '</button>';
     }).join("");
 
@@ -637,6 +716,69 @@ button:not(:disabled):active, .perfil-item:active, .broker-pill:active { transfo
     barEl.style.left = (v >= 0 ? 50 : 50 - pct) + "%";
     barEl.className = "motor-fill" + (v < 0 ? " atras" : "");
     txtEl.textContent = (v > 0 ? "+" : "") + v.toFixed(2) + (v > 0 ? " ▲" : v < 0 ? " ▼" : " ■");
+  }
+
+  function claseUltrasonido(cm) {
+    if (ultraPausado) return "pausado";
+    if (cm < 20) return "peligro";
+    if (cm < 50) return "precaucion";
+    return "";
+  }
+
+  function pintarUltrasonido(frenteCm, atrasCm) {
+    var f = Math.max(2, Math.min(200, Math.round(Number(frenteCm) || 0)));
+    var a = Math.max(2, Math.min(200, Math.round(Number(atrasCm) || 0)));
+    var clsF = claseUltrasonido(f);
+    var clsA = claseUltrasonido(a);
+
+    uFrenteVEl.textContent = f + " cm";
+    uFrenteVEl.className = clsF;
+    uFrenteFillEl.style.width = (f / 200 * 100) + "%";
+    uFrenteFillEl.className = "ultra-fill" + (clsF ? " " + clsF : "");
+    sliderFrenteEl.value = String(f);
+
+    uAtrasVEl.textContent = a + " cm";
+    uAtrasVEl.className = clsA;
+    uAtrasFillEl.style.width = (a / 200 * 100) + "%";
+    uAtrasFillEl.className = "ultra-fill" + (clsA ? " " + clsA : "");
+    sliderAtrasEl.value = String(a);
+
+    if (ultraPausado) {
+      ultraBadgeEl.textContent = "ENVÍO PAUSADO";
+      ultraBadgeEl.className = "ultra-badge pausado";
+    } else if (ultraManual) {
+      ultraBadgeEl.textContent = "SLIDER MANUAL";
+      ultraBadgeEl.className = "ultra-badge manual";
+    } else {
+      ultraBadgeEl.textContent = "PERFIL AUTO";
+      ultraBadgeEl.className = "ultra-badge";
+    }
+  }
+
+  function publicarUltrasonido() {
+    var b = brokerActual();
+    var payloadUltra = {
+      frente_cm: Number(ultraFrente),
+      atras_cm: Number(ultraAtras),
+      t: Date.now() - inicioMs
+    };
+    var jsonUltra = JSON.stringify(payloadUltra);
+    pintarUltrasonido(ultraFrente, ultraAtras);
+
+    if (ultraPausado) {
+      escribirLog("⏸ [Ultrasónicos en pausa] No se publica en <b>" + T_ULTRASONIDO + "</b> (la App mostrará 'Sin señal' tras 3 s).");
+      return;
+    }
+
+    enviados++;
+    contEl.textContent = enviados + " paquetes enviados";
+
+    if (cliente && conectado) {
+      cliente.publish(T_ULTRASONIDO, jsonUltra, { qos: 0 });
+      escribirLog("[" + b.nombre + "] PUB <b>" + T_ULTRASONIDO + "</b> ← <code>" + jsonUltra + "</code>");
+    } else {
+      escribirLog("(En cola ultrasonido...) <code>" + jsonUltra + "</code>");
+    }
   }
 
   function pintarTelemetria(p) {
@@ -711,6 +853,11 @@ button:not(:disabled):active, .perfil-item:active, .broker-pill:active { transfo
     secuencia++;
     enviados++;
 
+    if (!ultraManual) {
+      ultraFrente = p.frente_cm;
+      ultraAtras = p.atras_cm;
+    }
+
     var sensoresActivos = p.sensores.slice(0, 4);
     var lineaMm = calcularLineaMm(sensoresActivos, p.ladoPerdida || -1);
 
@@ -740,6 +887,8 @@ button:not(:disabled):active, .perfil-item:active, .broker-pill:active { transfo
       pulsoTx(false);
       escribirLog("(En cola mientras conecta a " + b.nombre + "...) <code>" + jsonStr + "</code>");
     }
+
+    publicarUltrasonido();
   }
 
   function limpiarCliente() {
@@ -898,10 +1047,52 @@ button:not(:disabled):active, .perfil-item:active, .broker-pill:active { transfo
     escribirLog("⏹ Emisión del ESP32 Virtual detenida.");
   }
 
+  function manejarSliderUltra() {
+    ultraManual = true;
+    ultraFrente = Number(sliderFrenteEl.value);
+    ultraAtras = Number(sliderAtrasEl.value);
+    btnUltraPerfilEl.disabled = false;
+    pintarUltrasonido(ultraFrente, ultraAtras);
+    if (encendido && !ultraPausado) {
+      publicarUltrasonido();
+    }
+  }
+
+  sliderFrenteEl.addEventListener("input", manejarSliderUltra);
+  sliderAtrasEl.addEventListener("input", manejarSliderUltra);
+
+  btnUltraPerfilEl.addEventListener("click", function () {
+    ultraManual = false;
+    btnUltraPerfilEl.disabled = true;
+    ultraFrente = ultimoPerfil.frente_cm;
+    ultraAtras = ultimoPerfil.atras_cm;
+    pintarUltrasonido(ultraFrente, ultraAtras);
+    escribirLog("🔄 Ultrasónicos sincronizados de nuevo con el ciclo de perfiles.");
+    if (encendido && !ultraPausado) {
+      publicarUltrasonido();
+    }
+  });
+
+  btnUltraPausaEl.addEventListener("click", function () {
+    ultraPausado = !ultraPausado;
+    btnUltraPausaEl.classList.toggle("pausado", ultraPausado);
+    btnUltraPausaEl.textContent = ultraPausado
+      ? "▶ Reanudar envío ultrasónico"
+      : "⏸ Pausar envío (Probar 'Sin señal' > 3 s)";
+    pintarUltrasonido(ultraFrente, ultraAtras);
+    if (ultraPausado) {
+      escribirLog("⏸ Envío en <b>" + T_ULTRASONIDO + "</b> pausado manualmente. Verifica el estado 'Sin señal' en la App tras 3 s.");
+    } else {
+      escribirLog("▶ Envío en <b>" + T_ULTRASONIDO + "</b> reanudado.");
+      if (encendido) publicarUltrasonido();
+    }
+  });
+
   btnOn.addEventListener("click", encender);
   btnOff.addEventListener("click", apagar);
   renderBrokers();
   renderPerfiles(-1);
+  pintarUltrasonido(ultraFrente, ultraAtras);
   actualizarPlaca("");
 })();
 </script>
