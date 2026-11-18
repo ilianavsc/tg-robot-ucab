@@ -202,7 +202,7 @@
 }
 .modo-pill.autonomo { border-color: #22c55e; background: rgba(34, 197, 94, 0.15); color: #86efac; }
 .modo-pill.manual { border-color: #38bdf8; background: rgba(56, 189, 248, 0.15); color: #7dd3fc; }
-.sensores { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 6px 0 10px; }
+.sensores { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 6px 0 10px; }
 .sensor {
   display: flex; flex-direction: column; align-items: center; gap: 6px;
   font-family: var(--font-mono); font-size: 11px; color: #64748b;
@@ -380,13 +380,12 @@ button:not(:disabled):active, .perfil-item:active, .broker-pill:active { transfo
               <span class="modo-pill" id="modo-pill">—</span>
             </div>
             <div class="tarjeta">
-              <p class="tarjeta-titulo"><span>Sensores de línea</span></p>
+              <p class="tarjeta-titulo"><span>Sensores de línea</span><b>4 × TCRT5000</b></p>
               <div class="sensores" id="sensores">
                 <div class="sensor"><i></i>S1</div>
                 <div class="sensor"><i></i>S2</div>
                 <div class="sensor"><i></i>S3</div>
                 <div class="sensor"><i></i>S4</div>
-                <div class="sensor"><i></i>S5</div>
               </div>
               <div class="linea-txt" id="linea-txt">Sin datos</div>
             </div>
@@ -442,14 +441,37 @@ button:not(:disabled):active, .perfil-item:active, .broker-pill:active { transfo
     { nombre: "Mosquitto", host: "test.mosquitto.org", puerto: 8081, url: "wss://test.mosquitto.org:8081/mqtt" }
   ];
 
+  /* 4 sensores TCRT5000 separados 18 mm (igual que firmware/robot_integrado.ino):
+     S1 = +27 mm (izq), S2 = +9 mm, S3 = -9 mm, S4 = -27 mm (der) */
+  var SEP_MM = 18;
+  var POS_SENSORES = [1.5 * SEP_MM, 0.5 * SEP_MM, -0.5 * SEP_MM, -1.5 * SEP_MM];
+
+  function calcularLineaMm(sensores, ladoPerdida) {
+    var suma = 0;
+    var acum = 0;
+    for (var i = 0; i < POS_SENSORES.length; i++) {
+      var lectura = Number(sensores[i]) || 0;
+      suma += lectura;
+      acum += lectura * POS_SENSORES[i];
+    }
+    if (suma > 0.3) {
+      return Math.round((acum / suma) * 10) / 10;
+    }
+    var lado = (ladoPerdida < 0) ? -1 : 1;
+    return Math.round(lado * POS_SENSORES[0] * 1.2 * 10) / 10;
+  }
+
   var PERFILES = [
-    { titulo: "Batería llena · Autónomo centrado", estado: "autonomo", bateria: 100, bateria_v: 12.60, linea_mm: 0.0, v_izq: 0.41, v_der: 0.41 },
-    { titulo: "Batería baja · Manual · Desvío izq.", estado: "manual", bateria: 15, bateria_v: 10.35, linea_mm: 27.0, v_izq: 0.30, v_der: 0.55 },
-    { titulo: "Línea perdida · Robot frenando", estado: "autonomo", bateria: 45, bateria_v: 11.20, linea_mm: -32.4, v_izq: 0.05, v_der: 0.05 },
-    { titulo: "Batería crítica (5%) · Curva derecha", estado: "autonomo", bateria: 5, bateria_v: 9.95, linea_mm: -27.0, v_izq: 0.55, v_der: 0.30 },
-    { titulo: "Giro sobre su eje (Ruedas opuestas)", estado: "manual", bateria: 60, bateria_v: 11.50, linea_mm: 9.0, v_izq: -0.40, v_der: 0.40 },
-    { titulo: "Autónomo rápido en recta", estado: "autonomo", bateria: 90, bateria_v: 12.10, linea_mm: 0.5, v_izq: 0.52, v_der: 0.52 }
-  ];
+    { titulo: "Batería llena · Autónomo centrado", estado: "autonomo", bateria: 100, bateria_v: 12.60, sensores: [0, 1, 1, 0], v_izq: 0.41, v_der: 0.41 },
+    { titulo: "Batería baja · Manual · Desvío izq.", estado: "manual", bateria: 15, bateria_v: 10.35, sensores: [1, 0, 0, 0], v_izq: 0.30, v_der: 0.55 },
+    { titulo: "Línea perdida · Robot frenando", estado: "autonomo", bateria: 45, bateria_v: 11.20, sensores: [0, 0, 0, 0], ladoPerdida: -1, v_izq: 0.05, v_der: 0.05 },
+    { titulo: "Batería crítica (5%) · Curva derecha", estado: "autonomo", bateria: 5, bateria_v: 9.95, sensores: [0, 0, 0, 1], v_izq: 0.55, v_der: 0.30 },
+    { titulo: "Giro sobre su eje (Ruedas opuestas)", estado: "manual", bateria: 60, bateria_v: 11.50, sensores: [0, 1, 0, 0], v_izq: -0.40, v_der: 0.40 },
+    { titulo: "Autónomo rápido en recta", estado: "autonomo", bateria: 90, bateria_v: 12.10, sensores: [0, 1, 1, 0], v_izq: 0.52, v_der: 0.52 }
+  ].map(function (p) {
+    p.linea_mm = calcularLineaMm(p.sensores, p.ladoPerdida || -1);
+    return p;
+  });
 
   var grid = document.getElementById("grid-perfiles");
   var logEl = document.getElementById("log-mqtt");
@@ -482,7 +504,6 @@ button:not(:disabled):active, .perfil-item:active, .broker-pill:active { transfo
   var mDerEl = document.getElementById("m-der");
   var mIzqVEl = document.getElementById("m-izq-v");
   var mDerVEl = document.getElementById("m-der-v");
-  var POS_SENSORES = [-24, -12, 0, 12, 24];
 
   var indiceBroker = 0;
   var intentosEnBroker = 0;
@@ -629,9 +650,14 @@ button:not(:disabled):active, .perfil-item:active, .broker-pill:active { transfo
     modoPillEl.textContent = p.estado === "autonomo" ? "AUTÓNOMO" : "MANUAL";
     modoPillEl.className = "modo-pill " + p.estado;
 
+    var arrSensores = Array.isArray(p.sensores) && p.sensores.length === 4
+      ? p.sensores
+      : POS_SENSORES.map(function (pos) {
+          return Math.abs(p.linea_mm) < 32 && Math.abs(p.linea_mm - pos) <= (SEP_MM / 2 + 0.5) ? 1 : 0;
+        });
     var activos = 0;
     sensoresEls.forEach(function (s, i) {
-      var on = Math.abs(p.linea_mm - POS_SENSORES[i]) <= 8;
+      var on = Boolean(arrSensores[i]);
       s.classList.toggle("on", on);
       if (on) activos++;
     });
@@ -685,13 +711,17 @@ button:not(:disabled):active, .perfil-item:active, .broker-pill:active { transfo
     secuencia++;
     enviados++;
 
+    var sensoresActivos = p.sensores.slice(0, 4);
+    var lineaMm = calcularLineaMm(sensoresActivos, p.ladoPerdida || -1);
+
     var payload = {
       n: secuencia,
       estado: modoP10 === "auto" ? "autonomo" : "manual",
       bateria: p.bateria,
       bateria_v: p.bateria_v,
       ordenes: ordenesRecibidas,
-      linea_mm: p.linea_mm,
+      sensores: sensoresActivos,
+      linea_mm: lineaMm,
       v_izq: modoP10 === "auto" ? p.v_izq : velManual.izq,
       v_der: modoP10 === "auto" ? p.v_der : velManual.der,
       t: Date.now() - inicioMs
