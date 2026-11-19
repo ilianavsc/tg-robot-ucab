@@ -76,6 +76,18 @@
 .us-botones .btn:active:not(:disabled) { transform: scale(0.97); }
 .us-botones .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* Botón único Encender/Detener (toggle) */
+#btn-toggle { min-height: 46px; font-weight: 700; }
+#btn-toggle.apagado { background: var(--accent-primary); border-color: var(--accent-primary-hover); color: #fff; }
+#btn-toggle.encendido { background: #dc2626; border-color: #991b1b; color: #fff; }
+
+/* Aviso de frenado por obstáculo */
+.us-alerta {
+  margin-top: 8px; padding: 8px 10px; border-radius: 8px;
+  background: #7f1d1d; color: #fff; font-family: var(--font-mono);
+  font-size: 13px; font-weight: 700; text-align: center; letter-spacing: 0.04em;
+}
+
 .us-radar-caja { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 #radar {
   width: 100%; height: auto; aspect-ratio: 1 / 1; max-width: 520px; margin: 0 auto; display: block;
@@ -151,14 +163,18 @@
             <div class="us-fila"><span class="us-nombre">Atrás</span><span class="us-valor"><span id="v-atras">150</span><small>cm</small></span></div>
             <input type="range" id="r-atras" min="2" max="200" step="1" value="150" aria-label="Distancia atrás en centímetros">
           </div>
+          <div class="us-sensor" id="s-obstaculo">
+            <div class="us-fila"><span class="us-nombre">Simular Obstáculo (cm)</span><span class="us-valor"><span id="v-obstaculo">—</span><small>cm</small></span></div>
+            <input type="range" id="r-obstaculo" min="0" max="50" step="1" value="0" aria-label="Simular obstáculo frontal en centímetros">
+            <div class="us-alerta" id="alerta-obstaculo" hidden>FRENADO POR OBSTÁCULO</div>
+          </div>
 
           <div class="us-opciones">
             <label class="us-chk"><input type="checkbox" id="chk-mover"> Mover solo (simula un pasillo)</label>
           </div>
 
           <div class="us-botones">
-            <button type="button" id="btn-on" class="btn btn-principal">⚡ Encender</button>
-            <button type="button" id="btn-off" class="btn btn-secundario" disabled>⏹ Detener</button>
+            <button type="button" id="btn-toggle" class="btn apagado">⚡ Encender</button>
           </div>
         </div>
 
@@ -216,7 +232,7 @@
   var rango = {}, valor = {}, caja = {};
   ids.forEach(function (k) { rango[k] = $("r-" + k); valor[k] = $("v-" + k); caja[k] = $("s-" + k); });
   var ledEl = $("led"), estadoEl = $("estado"), brokerEl = $("broker"), jsonEl = $("json"), logEl = $("log");
-  var btnOn = $("btn-on"), btnOff = $("btn-off"), chkMover = $("chk-mover");
+  var btnToggle = $("btn-toggle"), chkMover = $("chk-mover"), obstaculoSlider = $("r-obstaculo"), alertaObs = $("alerta-obstaculo"), valObstaculo = $("v-obstaculo");
   var canvas = $("radar"), ctx = canvas.getContext("2d");
 
   var dist = { frente: 120, atras: 150 };
@@ -240,6 +256,12 @@
   function estado(txt, led) {
     estadoEl.textContent = txt;
     ledEl.className = "led-us" + (led ? " " + led : "");
+  }
+
+  /* Botón único Encender/Detener: texto y color según el estado */
+  function actualizarBoton() {
+    btnToggle.textContent = encendido ? "⏹ Detener" : "⚡ Encender";
+    btnToggle.className = "btn " + (encendido ? "encendido" : "apagado");
   }
 
   /* ---------------- radar ---------------- */
@@ -320,6 +342,9 @@
       valor[k].textContent = dist[k];
       caja[k].className = "us-sensor zona-" + zona(dist[k]);
     });
+    // Alerta de frenado por obstáculo (frente < 20 cm)
+    alertaObs.hidden = !(dist.frente < LIMITE_PELIGRO);
+    valObstaculo.textContent = obstaculoSlider.value === "0" ? "—" : obstaculoSlider.value;
     jsonEl.textContent = JSON.stringify(mensaje(), null, 2);
     dibujar();
   }
@@ -329,6 +354,23 @@
       dist[k] = parseInt(rango[k].value, 10);
       refrescar();
     });
+  });
+
+  /* Slider "Simular Obstáculo": inyecta su valor en el sensor frontal.
+     0 = sin obstáculo (devuelve el control al slider frontal normal). */
+  obstaculoSlider.addEventListener("input", function () {
+    var v = parseInt(obstaculoSlider.value, 10);
+    if (v !== 0 && chkMover.checked) {
+      // Evita que "mover solo" sobreescriba el obstáculo inyectado
+      chkMover.checked = false;
+      ids.forEach(function (k) { rango[k].disabled = false; });
+    }
+    if (v === 0) {
+      dist.frente = parseInt(rango.frente.value, 10);
+    } else {
+      dist.frente = v;
+    }
+    refrescar();
   });
   window.addEventListener("resize", ajustarCanvas);
 
@@ -424,7 +466,7 @@
 
   function encender() {
     encendido = true; enviados = 0; indice = 0; inicioMs = Date.now();
-    btnOn.disabled = true; btnOff.disabled = false;
+    actualizarBoton();
     conectar();
     timerPub = setInterval(publicar, PERIODO_MS);
   }
@@ -432,16 +474,16 @@
     encendido = false;
     if (timerPub) { clearInterval(timerPub); timerPub = null; }
     limpiarCliente();
-    btnOn.disabled = false; btnOff.disabled = true;
+    actualizarBoton();
     brokerEl.textContent = "sin conexión";
     estado("DETENIDO · pulsa Encender para publicar", "");
     log("Emisión detenida (" + enviados + " mensajes enviados).", "inf");
     refrescar();
   }
-  btnOn.addEventListener("click", encender);
-  btnOff.addEventListener("click", apagar);
+  btnToggle.addEventListener("click", function () { encendido ? apagar() : encender(); });
 
   ajustarCanvas();
+  actualizarBoton();
   refrescar();
 })();
 </script>
