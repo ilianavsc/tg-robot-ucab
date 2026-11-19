@@ -22,7 +22,7 @@
   - ACK: `{"id":"...","recibidas":N,"t":millis}`; el firmware real y el P10 usan el mismo formato.
 - **Firmware C++ · 58/58 pruebas SIL:** `firmware/pruebas_pc/` compila `firmware/robot_integrado.ino` con g++ (`-Wall -Wextra -Werror`) e imitaciones del core ESP32, y prueba órdenes/ACK, duplicados QoS 1, obstáculos, fallo de eco, timeout manual, corte por batería y lectura alternada. Corre en GitHub Actions antes de cada despliegue. **No** está compilado con el core ESP32 del Arduino IDE ni probado en un ESP32 real.
 - **Web:** insignia "Firmware C++ · 58/58 pruebas SIL" en `index.html`; interfaz pulida (ease-out, hover solo con puntero, paneles colapsables, animaciones en la app Flutter). `prototipos/centro-pruebas.html` guía al jurado en 3 pasos.
-- **Documentos para las pruebas:** `docs/guia_pruebas_lab.md` (bloques A, B, C y D), `docs/centro_de_pruebas.md` (flujo físico con ESP32 y app) y `docs/guion_defensa.md` (demostración en 4 pasos).
+- **Documentos para las pruebas:** `docs/guia_pruebas_lab.md` (bloques A, B, C y D), `docs/centro_de_pruebas.md` (flujo físico con ESP32 y app) y `docs/guion_defensa.md` (demostración en 5 pasos, con el radar P13 interactivo).
 - **Hardware:** pedido de Amazon hecho el 16 nov (motores, 3 ESP32, BMS, ultrasónicos), llega a Miami entre el 15 y el 28 dic. Pendiente: cargador 12,6 V (buscar el de casa) y compras en Mercado Libre.
 - **Pendientes:** compilar el `.ino` en el Arduino IDE, prueba H0 de Wi-Fi en el laboratorio, pista real del P08 con medidas del laboratorio, mover la prueba física de P03 a enero si el pedido tarda, WPA2-Enterprise de la red UCAB (el firmware usa Wi-Fi simple), broker de producción sin decidir, la app no tiene tests unitarios.
 
