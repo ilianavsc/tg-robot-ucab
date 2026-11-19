@@ -196,21 +196,6 @@
     hashSem = parseInt(location.hash.replace("#sem-", ""), 10);
   }
 
-  // Títulos limpios de las chips de fase (sin prefijo P0X).
-  var titulosFases = {
-    P01: "Arquitectura App ↔ Robot (MQTT)",
-    P02: "Sensores y Radar Ultrasónico",
-    P03: "Inspector 3D de Hardware",
-    P04: "Balizas BLE (Extremos)",
-    P06: "App versión 1",
-    P07: "Firmware Completo (ESP32)",
-    P08: "Aprendizaje Progresivo · Sim 1 (2 Pistas)",
-    P09: "App Flutter (Modo Demo)",
-    P10: "Aprendizaje Progresivo · Sim 2 (Teach-and-Repeat)",
-    P11: "Centro de Alertas",
-    P12: "Analítica y Exportación CSV"
-  };
-
   document.getElementById("etapas-4").innerHTML = etapas.map(function (et) {
     var wIni = et.semanas[0], wFin = et.semanas[1];
     var totalEt = wFin - wIni + 1;
@@ -255,8 +240,7 @@
 
     var protosHtml = protosEt.map(function (p) {
       var info = (D.protoResumen && D.protoResumen[p.codigo]) || { corto: p.tema };
-      var tituloChip = titulosFases[p.codigo] || info.corto;
-      var c = '<span class="chip ' + p.estado + '" title="' + p.nombre + '">' + tituloChip + "</span>";
+      var c = '<span class="chip ' + p.estado + '" title="' + p.nombre + '">' + info.corto + "</span>";
       return p.url ? '<a href="' + p.url + '">' + c + "</a>" : c;
     }).join("");
 

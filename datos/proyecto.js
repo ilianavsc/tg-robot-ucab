@@ -87,18 +87,18 @@ window.TG = {
 
   /* Texto corto de cada prototipo para las tarjetas: nombre corto + qué hace en 1 línea */
   protoResumen: {
-    P01: { corto: "App ↔ robot (MQTT)", linea: "Mensajes que no se pierden entre la app y el robot." },
-    P02: { corto: "Sensores (línea + ultrasonido)", linea: "4× TCRT5000 + 2× HC-SR04P (GPIO 15) y MPU-6050: los ojos y oídos del robot." },
-    P03: { corto: "Motores parejos", linea: "Las dos ruedas avanzan igual, en línea recta." },
-    P04: { corto: "Balizas BLE", linea: "2 balizas BLE en los extremos para validar inicio y fin del recorrido." },
+    P01: { corto: "Arquitectura App ↔ Robot (MQTT)", linea: "Mensajes que no se pierden entre la app y el robot." },
+    P02: { corto: "Sensores y Radar Ultrasónico", linea: "4× TCRT5000 + 2× HC-SR04P (GPIO 15) y MPU-6050: los ojos y oídos del robot." },
+    P03: { corto: "Inspector 3D de Hardware", linea: "Vitrina 3D interactiva de los componentes del robot: ESP32, puente H, encoders y sensores." },
+    P04: { corto: "Balizas BLE (Extremos)", linea: "2 balizas BLE en los extremos para validar inicio y fin del recorrido." },
     P05: { corto: "Robot virtual", linea: "Un robot de prueba conectado a Firebase." },
     P06: { corto: "App versión 1", linea: "Primera app para pedir piezas y ver el estado." },
-    P07: { corto: "Firmware completo", linea: "Todo el código del ESP32 trabajando junto." },
-    P08: { corto: "Seguir la línea", linea: "El robot sigue la cinta negra sin salirse." },
-    P09: { corto: "App web (Modo Demo)", linea: "Pide y mira el robot desde el celular, sin robot." },
-    P10: { corto: "Simulador 2 V2", linea: "Gemelo digital de movimiento con teach-and-repeat." },
+    P07: { corto: "Firmware Completo (ESP32)", linea: "Todo el código del ESP32 trabajando junto." },
+    P08: { corto: "Aprendizaje Progresivo · Sim 1 (2 Pistas)", linea: "El robot sigue la cinta negra sin salirse." },
+    P09: { corto: "App Flutter (Modo Demo)", linea: "Pide y mira el robot desde el celular, sin robot." },
+    P10: { corto: "Aprendizaje Progresivo · Sim 2 (Teach-and-Repeat)", linea: "Gemelo digital de movimiento con teach-and-repeat." },
     P11: { corto: "Centro de Alertas", linea: "Obstáculo, sensor sin eco, proximidad o batería crítica: la alerta llega a la app." },
-    P12: { corto: "Analítica y CSV", linea: "Métricas de cada sesión y reporte CSV para las 20+ repeticiones." },
+    P12: { corto: "Analítica y Exportación CSV", linea: "Métricas de cada sesión y reporte CSV para las 20+ repeticiones." },
     P13: { corto: "Radar Ultrasónico (Frente/Atrás)", linea: "El robot mide qué tan lejos está lo que tiene delante y detrás." }
   },
 
