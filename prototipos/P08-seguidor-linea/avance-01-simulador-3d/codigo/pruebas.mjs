@@ -1,11 +1,12 @@
 // Prueba sin pantalla: corre el mismo modelo y el mismo control PD de la página y dice cuánto tarda cada vuelta.
-// Uso: G=1 node pruebas.mjs KP KD BASE SEPARACION_MM ADELANTE_MM VOLTIOS SEGUNDOS
-// Ejemplo (valores iniciales): G=1 node pruebas.mjs 0.03 0.0015 0.8 18 60 11.1 70
-// G=1 agrega el granito; sin G el piso es liso.
+// Uso: [G=1] [PISTA=A|B] node pruebas.mjs KP KD BASE SEPARACION_MM ADELANTE_MM VOLTIOS SEGUNDOS
+// Ejemplo (valores iniciales, pista A): G=1 node pruebas.mjs 0.03 0.0015 0.8 18 60 11.1 70
+// G=1 agrega el granito; sin G el piso es liso. PISTA=B corre el recorrido canónico de 9,0 m.
 import {crearPista, cercano} from './pista.js';
 import {crearGranito} from './granito.js';
-import {R, leerSensores, control, mover, rumbo} from './model.js';
-const P = crearPista(); const GR = process.env.G ? crearGranito(P).gran : null;
+import {R, mover, rumbo} from './model.js';
+import {leerSensores, control} from './linea.js';
+const P = crearPista(process.env.PISTA || 'A'); const GR = process.env.G ? crearGranito(P).gran : null;
 const [kp, kd, base, sep, ad, vb, T] = process.argv.slice(2).map(Number);
 let seed = 1; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
 const eje = {x: P.X[0], z: P.Z[0], th: rumbo(P.TX[0], P.TZ[0])};
@@ -27,4 +28,4 @@ for (let t = 0; t < T; t += dt) {
   if (prog >= P.N) { prog -= P.N; laps.push((t - tl).toFixed(2)); tl = t; }
   if (Math.abs(c.d) > 0.25) { console.log('SE SALIO', t.toFixed(2)); break; }
 }
-const pf=(perd/(T*R.hz)*100).toFixed(1); console.log(`perd% ${pf} | largo ${P.largo.toFixed(2)} m rmin ${(P.rmin*100).toFixed(1)} cm | vueltas ${laps} | vel ${(P.largo/laps[1]||0).toFixed(3)} | eje max ${(maxd*1000).toFixed(1)} mm rms ${(Math.sqrt(sq/n)*1000).toFixed(1)} | perdida ${perd}`);
+const pf=(perd/(T*R.hz)*100).toFixed(1); console.log(`pista ${P.id} | perd% ${pf} | largo ${P.largo.toFixed(2)} m rmin ${(P.rmin*100).toFixed(1)} cm | vueltas ${laps} | vel ${(P.largo/laps[1]||0).toFixed(3)} | eje max ${(maxd*1000).toFixed(1)} mm rms ${(Math.sqrt(sq/n)*1000).toFixed(1)} | perdida ${perd}`);

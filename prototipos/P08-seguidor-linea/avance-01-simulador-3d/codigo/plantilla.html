@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>P08 · Simulador 1 de aprendizaje progresivo</title>
+<style>
+/*CSS*/
+</style>
+</head>
+<body data-modo="auto">
+<div class="app" id="app">
+  <canvas id="lienzo" tabindex="0" aria-label="Vista 3D del robot seguidor de línea sobre la pista seleccionada" role="img"></canvas>
+
+  <header class="barra" role="toolbar" aria-label="Controles del simulador">
+    <div class="grupo" role="group" aria-label="Pista">
+      <button class="btn" type="button" data-pista="A" aria-pressed="true"><span><span class="largo">Pista </span>A · 8,05 m</span></button>
+      <button class="btn" type="button" data-pista="B" aria-pressed="false"><span><span class="largo">Pista </span>B · 9,0 m</span></button>
+    </div>
+    <div class="grupo" role="group" aria-label="Modo de control">
+      <button class="btn" type="button" data-modo="manual" aria-pressed="false">Manual</button>
+      <button class="btn" type="button" data-modo="auto" aria-pressed="true"><span>Auto<span class="largo">mático</span></span></button>
+    </div>
+    <button class="btn suave" type="button" id="b-reiniciar" aria-label="Reiniciar en la salida"><span class="ic" aria-hidden="true">↺</span><span class="largo">Reiniciar</span></button>
+    <button class="btn suave" type="button" id="b-vista">Vista: Seguir</button>
+    <button class="btn suave solo-ancho" type="button" id="b-dpad" aria-pressed="false">D-Pad</button>
+  </header>
+  <p class="modo-txt" id="modo-txt" role="status"></p>
+  <p class="aviso-teclado" id="aviso-teclado" hidden>Haz clic en la pista para activar el teclado</p>
+
+  <div class="dock">
+    <div class="dpad" id="dpad" role="group" aria-label="Botones de control táctiles">
+      <button type="button" class="dp" data-dp="arriba" aria-label="Avanzar" style="grid-area:u">▲</button>
+      <button type="button" class="dp" data-dp="izq" aria-label="Girar a la izquierda" style="grid-area:l">◄</button>
+      <button type="button" class="dp stop" data-dp="stop" aria-label="Freno inmediato" style="grid-area:s">STOP</button>
+      <button type="button" class="dp" data-dp="der" aria-label="Girar a la derecha" style="grid-area:r">►</button>
+      <button type="button" class="dp" data-dp="abajo" aria-label="Retroceder" style="grid-area:d">▼</button>
+    </div>
+
+    <aside class="datos" id="datos" aria-label="Datos en vivo">
+      <section class="resumen">
+        <h2>Datos en vivo</h2>
+        <div class="fila tcrt"><span class="k nowrap">4× TCRT<span class="largo">5000</span></span><span class="sqs" aria-hidden="true"><i class="sq"></i><i class="sq"></i><i class="sq"></i><i class="sq"></i></span><b class="v mono" id="v-bin">[0, 0, 0, 0]</b></div>
+        <div class="fila"><span class="k">Error medido</span><b class="v mono" id="v-emed">+0,0 mm</b></div>
+        <div class="fila extra"><span class="k">Desvío real</span><b class="v mono" id="v-ereal">+0,0 mm</b></div>
+        <div class="fila extra"><span class="k">Estado</span><b class="v" id="v-estado" data-ok="1">En la línea</b></div>
+        <div class="fila"><span class="k">Velocidad</span><b class="v mono" id="v-vel">0,00 m/s</b></div>
+        <div class="fila"><span class="k">Distancia</span><b class="v mono" id="v-dist">0,0 m</b></div>
+        <div class="fila"><span class="k">Rumbo</span><b class="v mono" id="v-rumbo">0°</b></div>
+        <div class="fila"><span class="k">Vuelta · tiempo</span><b class="v mono" id="v-vuelta">1 · 0,0 s</b></div>
+        <div class="fila"><span class="k">Salidas de línea</span><b class="v mono" id="v-salidas">0</b></div>
+      </section>
+      <button class="btn chico mas" type="button" id="b-mas" aria-expanded="false" aria-controls="detalle">Más datos ▴</button>
+      <div class="detalle" id="detalle">
+        <section>
+          <h3>Lectura y control</h3>
+          <div class="fila"><span class="k">ADC (0–4095)</span><b class="v mono" id="v-raw">—</b></div>
+          <div class="fila"><span class="k">PWM izq / der</span><b class="v mono" id="v-pwm">0 / 0 %</b></div>
+          <div class="fila"><span class="k">Última vuelta</span><b class="v mono" id="v-ultima">—</b></div>
+        </section>
+        <section>
+          <h3>Tramo</h3>
+          <div class="fila"><span class="k">Tramo · tiempo</span><b class="v mono" id="v-tramo">—</b></div>
+          <p class="nota-mini" id="tramo-nombre"></p>
+          <div class="fila"><span class="k">Tramo anterior</span><b class="v mono" id="v-tramo-prev">—</b></div>
+          <div class="fila"><span class="k">Avance</span><b class="v mono" id="v-prog">—</b></div>
+          <div class="progreso" id="progreso" aria-hidden="true"></div>
+        </section>
+        <section>
+          <h3>Pista seleccionada</h3>
+          <p class="nota-mini" id="pista-desc"></p>
+        </section>
+        <section>
+          <h3>Comparación (esta sesión)</h3>
+          <div class="tabla-scroll">
+            <table id="comparacion">
+              <thead><tr><th scope="col">Pista·modo</th><th scope="col">Vueltas</th><th scope="col">Mejor (s)</th><th scope="col">v (m/s)</th><th scope="col">e máx</th><th scope="col">e rms</th><th scope="col">Salidas</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="nota-mini">Cada fila acumula lo recorrido en esa pista y modo (una vuelta cuenta si se siguió la línea sin salidas); así se ve la diferencia entre manual y automático. El error (e, en mm) cuenta solo mientras el robot está a menos de 15 cm de la línea.</p>
+        </section>
+        <section>
+          <details>
+            <summary>Ajustes del PD y la batería</summary>
+            <div id="ajustes-cuerpo" class="ajustes"></div>
+          </details>
+        </section>
+      </div>
+    </aside>
+  </div>
+</div>
+<script type="module">
+/*JS*/
+</script>
+</body>
+</html>

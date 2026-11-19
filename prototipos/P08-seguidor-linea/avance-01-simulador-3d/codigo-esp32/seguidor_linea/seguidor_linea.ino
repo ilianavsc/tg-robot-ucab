@@ -2,7 +2,7 @@
   P08 · Seguidor de línea · ESP32 + L298N + 4 × TCRT5000
   Tesis: Robot móvil para búsqueda y transporte de componentes (UCAB Telecom)
 
-  Este código hace lo mismo que el simulador 3D (codigo/model.js, función control()):
+  Este código hace lo mismo que el simulador 3D (codigo/linea.js, función control()):
     - Lee los 4 sensores TCRT5000 (salida analógica A0) en ADC1.
     - Calcula dónde está la línea (promedio de las lecturas, ponderado por la posición de cada sensor).
     - Controla con un PD y manda un PWM distinto a cada motor.

@@ -24,7 +24,7 @@ P = prototipo simulado. H = prueba con hardware real.
 - Lo técnico va al final, en "Para los curiosos".
 - Sin contraseñas y sin capturas con datos personales (recortar el escritorio).
 
-## Cómo recompilar los simuladores 3D (P01, P08)
+## Cómo recompilar los simuladores 3D (P01)
 Cada `codigo/` tiene todo el fuente: `main.js` (entrada), los módulos, `style.css` y `paneles.js` (paneles plegables, solo interfaz).
 1. Descarga el kit [teardown](https://github.com/elvarofficial/teardown) (licencia MIT).
 2. Copia la carpeta `codigo/` del prototipo a una carpeta nueva, por ejemplo `mi-sim/`.
@@ -42,6 +42,9 @@ node construir.mjs                            # genera ../simulador.html (un sol
 node vitrina.test.js                          # pruebas del núcleo, sin navegador
 ```
 El movimiento es automático (sin teclado) y **no** reimplementa teach-and-repeat: esa máquina de estados es solo del Simulador 2 V2.
+
+### P08 · Simulador 1 de aprendizaje progresivo (esbuild)
+Igual que P03: `P08-seguidor-linea/avance-01-simulador-3d/codigo/` se empaqueta con esbuild (`npm install --no-save three@0.187.0 esbuild && node construir.mjs`). Pruebas: `node codigo/simulador1.test.js` (16). Dos pistas (A 8,05 m histórica y B 9,0 m canónica), modo manual (teclado y D-Pad táctil) o seguidor automático; `pista.js`, `linea.js` y `model.js` están separados para que los simuladores futuros retiren cinta con `ocultarTramo()`.
 
 ## Simulador 2 V2 · teach-and-repeat
 `simulador-2-v2-teach-and-repeat/` no es un prototipo P0X: es un gemelo digital de **movimiento** (SIL). Carga tal cual `specs/pista_canonica.json` (9,0 m) y `specs/navegacion/teach_and_repeat.js`; la planta física (cinta, sensores, cinemática, giroscopio, RSSI de las 2 balizas BLE en los extremos) está en `simulador_movimiento.js`. Pruebas: `node prototipos/simulador-2-v2-teach-and-repeat/simulador_movimiento.test.js` (22). Se abre por http (no por `file://`).

@@ -1,0 +1,6 @@
+{
+  "name": "p08-simulador-1-aprendizaje-progresivo",
+  "private": true,
+  "type": "module",
+  "description": "Fuentes del Simulador 1 de aprendizaje progresivo (P08). Para regenerar ../simulador.html: npm install --no-save three@0.187.0 esbuild && node construir.mjs"
+}

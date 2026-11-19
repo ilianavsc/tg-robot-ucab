@@ -61,6 +61,7 @@ El proyecto descompone el desarrollo del robot en prototipos medibles y modulare
   - **Función:** Navegación en pasillo siguiendo cinta negra de 19 mm sobre piso de granito con regleta de 4 sensores infrarrojos TCRT5000 en ADC1.
   - **Lazo de Control:** Algoritmo Proporcional-Derivativo (PD) a 100 Hz con cálculo de error ponderado y velocidad nominal de 0,41 m/s.
   - **Simulación:** Simulador 3D con pista cerrada de 8,05 m (histórico; pista canónica 9,0 m en `specs/pista_canonica.json`) y superficie granular procedural.
+  - **Simulador 1 de aprendizaje progresivo (19 nov):** el simulador de P08 pasó a ser la base modular de los próximos simuladores de retiro de cinta: control por teclado (`W A S D`/flechas, `Espacio` frena) y D-Pad táctil, modo manual o seguidor automático, **Pista A** (8,05 m histórica, se conserva) y **Pista B** (9,0 m canónica, tramos T1–T4 de `specs/pista_canonica.json`), panel en vivo (4× TCRT5000 `[0/1,…]`, error lateral, velocidad, distancia, rumbo, tiempo de vuelta/tramo, salidas de línea) y tabla de comparación. `pista.js` (definición + máscara de cinta, `ocultarTramo()`), `linea.js` (lectura de la línea + PD) y `model.js` (física) están separados. Auto: A ≈ 19,7 s (0,41 m/s), B ≈ 22,4 s (0,40 m/s), sin salidas [PENDIENTE DE MEDICIÓN FÍSICA]. 16 pruebas en Node (`codigo/simulador1.test.js`, también en CI); no incluye teach-and-repeat (Simulador 2 V2).
 
 ---
 

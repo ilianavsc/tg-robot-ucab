@@ -5,7 +5,6 @@ import {CINTA, ZONA} from './pista.js';
 
 export const PX = 4096;
 export const PY = 2048;
-const K = PX / ZONA.ancho; // píxeles por metro (1024)
 
 const BASE = [220, 217, 210]; // fondo claro del granito
 const GRANOS = [
@@ -17,6 +16,8 @@ const GRANOS = [
 ];
 
 export function crearGranito(P) {
+  const Z0 = P.zona || ZONA;
+  const K = PX / Z0.ancho; // píxeles por metro (1024 en la pista A)
   let seed = 20261114;
   const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const G = new Uint8Array(PX * PY); // oscuridad 0..255
@@ -63,11 +64,12 @@ export function crearGranito(P) {
       }
   }
   const canvas = typeof document === 'undefined' ? null : document.createElement('canvas');
-  if (canvas) pintar(canvas, img, P);
+  const repintar = (Q = P) => canvas && pintar(canvas, img, Q);
+  repintar();
   // lo que ve el sensor del granito: promedio de su zona (centro y 4 puntos a 3 mm)
   const muestra = (x, z) => {
-    const px = (x - ZONA.x0) * K - 0.5;
-    const py = (z - ZONA.z0) * K - 0.5;
+    const px = (x - Z0.x0) * K - 0.5;
+    const py = (z - Z0.z0) * K - 0.5;
     const ix = Math.floor(px);
     const iy = Math.floor(py);
     if (ix < 0 || iy < 0 || ix >= PX - 1 || iy >= PY - 1) return 0;
@@ -78,28 +80,46 @@ export function crearGranito(P) {
   };
   const r = 0.003;
   const gran = (x, z) => (muestra(x, z) * 2 + muestra(x + r, z) + muestra(x - r, z) + muestra(x, z + r) + muestra(x, z - r)) / 6;
-  return {canvas, gran};
+  return {canvas, gran, repintar};
 }
 
 function pintar(canvas, img, P) {
+  const Z0 = P.zona || ZONA;
+  const K = PX / Z0.ancho;
   canvas.width = PX;
   canvas.height = PY;
   const ctx = canvas.getContext('2d');
   ctx.putImageData(new ImageData(img, PX, PY), 0, 0);
   // la cinta: 19 mm de ancho sobre la línea central
-  const toPx = (x, z) => [(x - ZONA.x0) * K, (z - ZONA.z0) * K];
+  const toPx = (x, z) => [(x - Z0.x0) * K, (z - Z0.z0) * K];
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
-  ctx.beginPath();
+  // la cinta se pinta por trozos: donde la máscara (P.cinta) dice que no hay cinta, queda el granito limpio
+  const trozos = [];
+  let ini = -1;
+  const hay = (i) => (P.cinta ? P.cinta[i % P.N] : 1);
   for (let i = 0; i <= P.N; i++) {
-    const [x, y] = toPx(P.X[i % P.N], P.Z[i % P.N]);
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
+    if (hay(i) && ini < 0) ini = i;
+    if ((!hay(i) || i === P.N) && ini >= 0) {
+      trozos.push([ini, hay(i) && i === P.N ? P.N : i - 1]);
+      ini = -1;
+    }
   }
-  ctx.closePath();
+  const trazar = () => {
+    ctx.beginPath();
+    for (const [a0, b0] of trozos) {
+      for (let i = a0; i <= b0; i++) {
+        const [x, y] = toPx(P.X[i % P.N], P.Z[i % P.N]);
+        if (i === a0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+    }
+  };
+  trazar();
   ctx.strokeStyle = '#141518';
   ctx.lineWidth = CINTA * K;
   ctx.stroke();
+  trazar();
   ctx.strokeStyle = 'rgba(255,255,255,0.06)';
   ctx.lineWidth = CINTA * K * 0.35;
   ctx.stroke();

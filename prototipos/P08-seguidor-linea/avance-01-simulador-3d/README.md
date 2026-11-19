@@ -1,4 +1,4 @@
-# P08 Seguir la línea · Avance 1: simulador 3D
+# P08 Seguir la línea · Avance 1: simulador 3D → Simulador 1 de aprendizaje progresivo
 
 **Fase:** I (adelanto de P08, planificado para la semana 13)
 **Fecha:** 14 nov 2026
@@ -11,6 +11,17 @@ Cuatro sensores miran el piso; el ESP32 calcula dónde quedó la cinta negra y a
 ## La comparación
 Como manejar mirando las líneas del canal: si el carro se va a un lado, giras el volante hacia el otro, y lo enderezas antes de pasarte.
 
+## Simulador 1 de aprendizaje progresivo (19 nov)
+El simulador es ahora la **base modular** de los próximos simuladores, donde la cinta se retirará de forma progresiva:
+- **Control:** teclado (`W A S D` o flechas, `Espacio` frena, `M` cambia de modo, `R` reinicia) y mini D-Pad táctil (▲ ▼ ◄ ► + STOP, clic sostenido o `pointerdown`/`touchstart`/`touchend`). Modo **Manual** o **Seguidor automático**.
+- **Dos pistas:** **A** (circuito histórico de 8,05 m, se conserva) y **B** (recorrido canónico de 9,0 m, Pasillo UCAB, de `specs/pista_canonica.json`, con tramos T1 a T4, rectas largas y curvas técnicas).
+- **Panel en vivo:** 4× TCRT5000 `[0/1,…]`, error lateral medido y real, velocidad, distancia, rumbo, tiempo de vuelta y de tramo, salidas de línea y una tabla de comparación por pista y modo.
+- **Preparación modular:** `pista.js` (definición de pistas, tramos y máscara de cinta, `ocultarTramo()`), `linea.js` (lectura de la línea y control PD), `model.js` (física) y `sim.js` (sesión). Este simulador no oculta cinta; no incluye teach-and-repeat (eso es del Simulador 2 V2).
+- **Pruebas:** `node codigo/simulador1.test.js` (16) y `G=1 PISTA=B node codigo/pruebas.mjs 0.03 0.0015 0.8 18 60 11.1 70`. Con los valores del firmware: pista A 19,7 s (0,41 m/s), pista B 22,4 s (0,40 m/s), sin salidas. **[PENDIENTE DE MEDICIÓN FÍSICA]**
+- **Recompilar:** `cd codigo && npm install --no-save three@0.187.0 esbuild && node construir.mjs`.
+
+El resto de este documento es el registro del Avance 1 y se conserva tal cual.
+
 ## 1. Objetivo
 Probar en simulación el control PD del seguidor de línea con el motor que se compró (JGA25-371 Speed 200), el driver L298N y 4 sensores TCRT5000, antes de tener el hardware.
 
@@ -19,12 +30,12 @@ Probar en simulación el control PD del seguidor de línea con el motor que se c
 - RNF-03: velocidad entre 0,35 y 0,6 m/s.
 
 ## 3. Simulador y enlace
-- Simulador 3D en el navegador (three.js y el kit [teardown](https://github.com/elvarofficial/teardown), MIT). Copia del [simulador de la tracción de P03](../../P03-motores/avance-02-simulador-3d/), que no se modificó.
+- Simulador 3D en el navegador (three.js). En el Avance 1 era una copia del simulador de la tracción de P03 (kit [teardown](https://github.com/elvarofficial/teardown), MIT); el Simulador 1 usa fuentes propias empaquetadas con esbuild.
 - El plan original decía Webots. Se usó el simulador web para reutilizar el robot y el modelo del motor de P03.
 
 ## 4. Cómo se prueba
 - En la página: ARRANCAR, cambiar base, Kp, Kd, separación de sensores, distancia al eje y batería, y mirar la gráfica y los resultados.
-- Sin pantalla: `G=1 node codigo/pruebas.mjs KP KD BASE SEP_MM ADELANTE_MM VOLTIOS SEGUNDOS`.
+- Sin pantalla: `G=1 node codigo/pruebas.mjs KP KD BASE SEP_MM ADELANTE_MM VOLTIOS SEGUNDOS` (con `PISTA=B` corre la pista canónica de 9,0 m).
 
 ## 5. Criterio de éxito
 Completar vueltas sin salirse de la pista, con velocidad promedio dentro de 0,35 a 0,6 m/s, con la batería llena, nominal y baja.
@@ -69,4 +80,4 @@ Evidencias en [evidencias/](evidencias/).
 3. Pasar el control PD al firmware del ESP32 (P07) con los mismos Kp y Kd como punto de partida.
 
 ## Código para el ESP32
-`codigo-esp32/seguidor_linea/seguidor_linea.ino` (Arduino IDE, core ESP32 3.x). Misma lógica y mismos valores que `codigo/model.js`: BASE 0,8, Kp 0,03, Kd 0,0015, sensores a 18 mm, lazo a 100 Hz. Verificado contra `control()` en 6 casos de lecturas. Pendiente: calibrar `ADC_PISO`, `ADC_CINTA`, `SEP_MM`, `KP` y `KD` con el robot real.
+`codigo-esp32/seguidor_linea/seguidor_linea.ino` (Arduino IDE, core ESP32 3.x). Misma lógica y mismos valores que `codigo/linea.js` (`control()`): BASE 0,8, Kp 0,03, Kd 0,0015, sensores a 18 mm, lazo a 100 Hz. Verificado contra `control()` en 6 casos de lecturas. Pendiente: calibrar `ADC_PISO`, `ADC_CINTA`, `SEP_MM`, `KP` y `KD` con el robot real.

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>P08 · Simulador 3D del Seguidor de Línea · TG Robot UCAB</title>
+<title>P08 · Simulador 1 de aprendizaje progresivo · TG Robot UCAB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
@@ -12,6 +12,10 @@
 dialog{border:none;border-radius:16px;padding:12px;max-width:min(1400px,96vw);background:#ffffff;box-shadow:var(--shadow-hard)}
 dialog::backdrop{background:rgba(15,23,42,.75);backdrop-filter:blur(3px)}
 dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
+.simulador-embed-frame{height:720px}
+@media (max-width:768px){.simulador-embed-frame{height:760px}}
+.nota-nav{background:#fff;border:2px dashed var(--border-dark);border-radius:var(--radius-md);padding:14px 18px;margin-top:18px;font-size:15px}
+h3.sub{margin:26px 0 6px}
 .tabla.res td:last-child{font-family:var(--font-body);font-size:15px}
 .res tr.mal td:last-child{font-weight:700;color:var(--accent-coral)}
 </style>
@@ -26,19 +30,20 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
     Volver al catálogo de prototipos
   </a>
 
-  <p class="ceja">Prototipo P08 · Navegación Óptica · Avance 1</p>
-  <h1>P08: Cómo sigue <em>la línea</em> el robot</h1>
+  <p class="ceja">Prototipo P08 · Navegación Óptica · Avance 1 + Simulador 1 de aprendizaje progresivo</p>
+  <h1>P08: Simulador 1 de <em>aprendizaje progresivo</em>: cómo sigue <strong>la línea</strong> el robot</h1>
   
   <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px">
-    <span class="chip hecho">Simulador 3D Funcional</span>
-    <span class="chip">Three.js + Física</span>
+    <span class="chip hecho">Simulador 1 · 3D funcional</span>
+    <span class="chip">Manual (teclado / táctil) + Seguidor automático</span>
+    <span class="chip">2 pistas: A 8,05 m · B 9,0 m</span>
     <span class="chip">ESP32 + L298N + 4x TCRT5000</span>
-    <span class="chip aviso">Pista Provisional (Lab UCAB)</span>
+    <span class="chip aviso">Simulado, falta medir</span>
   </div>
 
   <!-- Explicación simple del prototipo -->
   <div class="frase-explicativa">
-    <strong>En pocas palabras:</strong> El robot usa <strong>4 ojos infrarrojos (TCRT5000)</strong> para seguir una línea negra sobre el piso de granito. El microcontrolador ESP32 calcula el desvío exacto y corrige el rumbo 100 veces por segundo mediante un algoritmo proporcional-derivativo (PD): si se desvía a la izquierda, acelera el motor derecho y frena el izquierdo.
+    <strong>En pocas palabras:</strong> este es el <strong>Simulador 1 del aprendizaje progresivo</strong>: el robot sigue una línea negra con <strong>4 ojos infrarrojos (TCRT5000)</strong> y un control PD a 100 Hz, o lo manejas tú con el teclado o los botones táctiles para comparar los datos. Tiene <strong>dos pistas</strong>: la A histórica de 8,05 m y la B canónica de 9,0 m. Los próximos simuladores heredan esta base y retirarán la cinta tramo a tramo.
   </div>
 
   <!-- ====================================================================
@@ -46,7 +51,7 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
        ==================================================================== -->
   <section aria-labelledby="t-simulador">
     <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px">
-      <h2 id="t-simulador" style="margin:0">Simulador 3D en Vivo</h2>
+      <h2 id="t-simulador" style="margin:0">Simulador 1 en Vivo</h2>
       <div style="display:flex;gap:10px;align-items:center">
         <a href="simulador.html" target="_blank" rel="noopener" class="btn btn-secundario" style="padding:7px 14px;font-size:14px">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
@@ -58,12 +63,12 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
     <!-- Contenedor del visor 3D embebido -->
     <div class="simulador-embed-container">
       <div class="simulador-embed-bar">
-        <span><i class="dot-live" aria-hidden="true"></i>MOTOR 3D ACTIVO · CONTROL PD (100 Hz)</span>
+        <span><i class="dot-live" aria-hidden="true"></i>SIMULADOR 1 · CONTROL PD (100 Hz) · MANUAL / AUTOMÁTICO</span>
         <span>Three.js / WebGL</span>
       </div>
-      <iframe src="simulador.html" class="simulador-embed-frame" title="Simulador 3D interactivo del seguidor de línea P08" loading="lazy"></iframe>
+      <iframe src="simulador.html" class="simulador-embed-frame" title="Simulador 1 de aprendizaje progresivo: seguidor de línea P08 con dos pistas" loading="lazy"></iframe>
       <div class="simulador-embed-footer">
-        <span style="color:#94a3b8;font-size:13.5px">Controles: Usa <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">Espacio</kbd> para arrancar/pausar y <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">R</kbd> para reiniciar el recorrido.</span>
+        <span style="color:#94a3b8;font-size:13.5px">Teclado: <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">W A S D</kbd> o flechas, <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">Espacio</kbd> frena, <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">M</kbd> cambia de modo, <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">R</kbd> reinicia. Haz clic en la pista para activar el teclado. En el móvil usa el D-Pad.</span>
         <a href="simulador.html" target="_blank" rel="noopener" class="btn-link-dark">
           Ver simulador sin marcos ↗
         </a>
@@ -74,7 +79,7 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
     <div style="background:#ffffff;border:2px solid var(--border-dark);border-radius:var(--radius-md);padding:18px 24px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;box-shadow:var(--shadow-hard);margin-top:20px">
       <div>
         <h3 style="margin:0 0 4px">Código Fuente para ESP32 (.ino)</h3>
-        <p style="margin:0;font-size:15px;color:var(--text-muted)">Implementa el lazo de control PD idéntico al de este simulador, listo para compilar en Arduino IDE.</p>
+        <p style="margin:0;font-size:15px;color:var(--text-muted)">Implementa el lazo de control PD idéntico al del modo automático de este simulador (<code>codigo/linea.js</code>), listo para compilar en Arduino IDE.</p>
       </div>
       <a href="codigo-esp32/seguidor_linea/seguidor_linea.ino" download class="btn btn-principal">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -131,13 +136,30 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
        ==================================================================== -->
   <section aria-labelledby="t-usar">
     <h2 id="t-usar">Cómo interactuar con el simulador</h2>
-    <p class="bajada">Por defecto realiza una vuelta autónoma. Puedes modificar las variables en caliente en el panel lateral.</p>
+    <p class="bajada">Elige una pista y un modo, y compara los datos en vivo del panel.</p>
     <ol class="pasos">
-      <li><b>Arranca</b><span>Botones ARRANCAR, PARAR y REINICIAR. Atajos de teclado: <kbd>espacio</kbd> y <kbd>R</kbd>.</span></li>
-      <li><b>Ajusta el PD</b><span>Modifica velocidad base, Kp y Kd. Si aumentas mucho Kp, el robot oscilará violentamente; Kd amortigua esa corrección.</span></li>
-      <li><b>Geometría de sensores</b><span>Altera la separación entre módulos y la distancia de avance respecto al eje motriz.</span></li>
-      <li><b>Voltaje de batería</b><span>Fijada en 11,1 V nominales. A 9,9 V el robot reduce velocidad pero mantiene la trayectoria.</span></li>
+      <li><b>Elige la pista</b><span><b>A</b>: circuito histórico de 8,05 m. <b>B</b>: recorrido canónico de 9,0 m (Pasillo UCAB) con tramos T1 a T4. Cambiar de pista reinicia el robot en la salida y conserva la tabla de comparación.</span></li>
+      <li><b>Elige el modo</b><span><b>Automático</b>: el seguidor PD lleva el robot por la línea. <b>Manual</b>: lo conduces tú. Si tocas una tecla o un botón en automático, pasas a manual.</span></li>
+      <li><b>Conduce con el teclado</b><span><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> o las flechas <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd>; <kbd>Espacio</kbd> frena de inmediato.</span></li>
+      <li><b>O con el D-Pad táctil</b><span>Mini D-Pad (▲ ▼ ◄ ► y STOP) en la esquina inferior izquierda: funciona con clic sostenido o con el dedo (<code>pointerdown</code>, <code>touchstart</code> y <code>touchend</code>) y no tapa la pista en 390×844. En escritorio se activa con el botón «D-Pad».</span></li>
+      <li><b>Lee el panel</b><span>Los 4 TCRT5000 como <code>[0/1,0/1,0/1,0/1]</code>, error lateral (medido por los sensores y real), velocidad, distancia, rumbo, tiempo de vuelta y de tramo, y salidas de línea. «Más datos» abre ADC, PWM, tramos, la tabla de comparación y los ajustes del PD.</span></li>
     </ol>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN: LAS DOS PISTAS Y LA BASE DE APRENDIZAJE PROGRESIVO
+       ==================================================================== -->
+  <section aria-labelledby="t-pistas">
+    <h2 id="t-pistas">Las dos pistas y la base de aprendizaje progresivo</h2>
+    <table class="tabla">
+      <thead><tr><th>Pista</th><th>Largo</th><th>Geometría</th><th>Origen</th></tr></thead>
+      <tbody>
+        <tr><td><b>A</b> · Circuito histórico</td><td>8,05 m</td><td>Rectas, curvas suaves, una S y una curva cerrada de 22 cm de radio</td><td>Avance 1 (provisional, registro histórico)</td></tr>
+        <tr><td><b>B</b> · Pasillo UCAB (canónica)</td><td>9,0 m</td><td>Rectas largas de 3,6 m, dos curvas cerradas (R = 27 cm) y una chicane; tramos T1 (0–3,0 m), T2 (3,0–4,5 m), T3 (4,5–7,5 m) y T4 (7,5–9,0 m)</td><td><code>specs/pista_canonica.json</code></td></tr>
+      </tbody>
+    </table>
+    <p class="suave" style="font-size:14.5px;margin-top:10px">Con los valores del firmware (base 80 %, Kp 0,030, Kd 0,0015, 11,1 V) y el granito simulado, el modo automático da la vuelta a la pista A en ≈ 19,7 s (0,41 m/s) y a la pista B en ≈ 22,4 s (0,40 m/s), sin salirse en ninguna; ambas dentro de la meta de 0,35 a 0,6 m/s. Son resultados de simulación <strong>[PENDIENTE DE MEDICIÓN FÍSICA]</strong>.</p>
+    <div class="nota-nav"><b>Preparado para el aprendizaje progresivo:</b> el código separa la <b>definición de la pista</b> (<code>pista.js</code>, con sus tramos y una máscara de cinta), la <b>lectura de la línea</b> (<code>linea.js</code>) y la <b>física del robot</b> (<code>model.js</code>). Los simuladores siguientes llaman a <code>ocultarTramo()</code> para retirar la cinta de un tramo (por ejemplo T2) sin reescribir el motor. Este Simulador 1 mantiene toda la cinta; la navegación <b>teach-and-repeat</b> está en el <a href="../../simulador-2-v2-teach-and-repeat/index.html">Simulador 2 V2</a>.</div>
   </section>
 
   <!-- ====================================================================
@@ -173,7 +195,7 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
        SECCIÓN: RESULTADOS DE SIMULACIÓN PREVIA
        ==================================================================== -->
   <section aria-labelledby="t-res">
-    <h2 id="t-res">Resultados en Pista de Simulación</h2>
+    <h2 id="t-res">Resultados en Pista de Simulación (Pista A · Avance 1)</h2>
     <p class="bajada">Pista de prueba con perímetro de 8,05 m y curva crítica de radio 22 cm. Valores nominales: base 80%, Kp 0,030, Kd 0,0015, separación 18 mm. <em>(Registro histórico: superado por la pista canónica de 9,0 m — <code>specs/pista_canonica.json</code>.)</em></p>
     
     <table class="tabla res">
@@ -199,7 +221,15 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
        ==================================================================== -->
   <section aria-labelledby="t-evid">
     <h2 id="t-evid">Evidencias Fotográficas de la Simulación</h2>
-    <p class="bajada">Capturas del comportamiento del modelo 3D. Haz clic sobre cualquier imagen para ampliarla.</p>
+    <p class="bajada">Capturas del Simulador 1 y, más abajo, las del Avance 1 (histórico). Haz clic sobre cualquier imagen para ampliarla.</p>
+    <h3 class="sub">Simulador 1 (aprendizaje progresivo)</h3>
+    <div class="galeria">
+      <figure><img src="evidencias/06-sim1-pista-a-automatico.jpg" alt="Pista A en modo automático con el panel de datos"><figcaption><b>Pista A · automático:</b> el seguidor PD sigue la cinta; el panel muestra <code>[0,1,1,0]</code>, error, velocidad y tiempo de vuelta.</figcaption></figure>
+      <figure><img src="evidencias/07-sim1-pista-b-panoramica.jpg" alt="Pista B de 9 metros en vista panorámica con los tramos T1 a T4"><figcaption><b>Pista B · panorámica:</b> recorrido canónico de 9,0 m con rectas largas, curvas cerradas y chicane; barra de tramos T1 a T4.</figcaption></figure>
+      <figure><img src="evidencias/08-sim1-comparacion-de-datos.jpg" alt="Tabla de comparación entre pistas y modos"><figcaption><b>Comparación de datos:</b> filas separadas por pista y modo (A auto, A manual, B auto) con vueltas, mejor tiempo, velocidad, error y salidas.</figcaption></figure>
+      <figure><img src="evidencias/09-sim1-movil-dpad-manual-390x844.jpg" alt="Vista móvil con el D-Pad táctil en modo manual"><figcaption><b>Móvil (390×844):</b> D-Pad compacto (▲ ▼ ◄ ► y STOP) en modo manual; el panel resumido no tapa la pista.</figcaption></figure>
+    </div>
+    <h3 class="sub">Avance 1 (histórico)</h3>
     <div class="galeria">
       <figure><img src="evidencias/01-sigue-la-linea.jpg" alt="El robot siguiendo la cinta en el simulador 3D"><figcaption><b>Trayectoria nominal:</b> Vuelta en 19,9 s a 0,41 m/s con seguimiento centrado.</figcaption></figure>
       <figure><img src="evidencias/02-sensores-de-cerca.jpg" alt="Los 4 módulos TCRT5000 sobre la cinta"><figcaption><b>Arreglo de sensores:</b> Verde indica detección de cinta; coral indica piso de granito.</figcaption></figure>
@@ -254,15 +284,16 @@ const uint32_t PERIODO_US = 10000; // 100 Hz
 
   <!-- Módulos del simulador -->
   <section aria-labelledby="t-archivos">
-    <h2 id="t-archivos">Arquitectura del Simulador 3D</h2>
-    <p class="bajada">Módulos JavaScript desacoplados que componen la simulación:</p>
+    <h2 id="t-archivos">Arquitectura del Simulador 1</h2>
+    <p class="bajada">Módulos JavaScript desacoplados: la pista, la lectura de la línea y la física se pueden heredar por separado.</p>
     <ul>
-      <li><a href="codigo/model.js">model.js</a>: Modelo cinemático de tracción, lectura de sensores y algoritmo PD.</li>
-      <li><a href="codigo/pista.js">pista.js</a>: Trayectoria spline, curvaturas y cálculo de distancia euclidiana a la línea.</li>
-      <li><a href="codigo/granito.js">granito.js</a>: Generación procedural del piso de granito y banda aislante.</li>
-      <li><a href="codigo/sensores3d.js">sensores3d.js</a>: Geometría 3D de los emisores y fototransistores infrarrojos.</li>
-      <li><a href="codigo/robot.js">robot.js</a> y <a href="codigo/stage.js">stage.js</a>: Rigging del chasis 3D, iluminación y cámaras.</li>
-      <li><a href="codigo/pruebas.mjs">pruebas.mjs</a>: Suite de tests sin renderizado visual para validación estadística.</li>
+      <li><a href="codigo/pista.js">pista.js</a>: <b>definición de las pistas</b> A y B, tramos, máscara de cinta y <code>ocultarTramo()</code>.</li>
+      <li><a href="codigo/linea.js">linea.js</a>: <b>lectura de la línea</b>: los 4 TCRT5000, el estado binario, el error lateral y el control PD del firmware.</li>
+      <li><a href="codigo/model.js">model.js</a>: física del robot (motor, rueda, cinemática diferencial).</li>
+      <li><a href="codigo/sim.js">sim.js</a>: motor del simulador: modo manual o automático, vueltas, tramos, salidas de línea y comparación.</li>
+      <li><a href="codigo/granito.js">granito.js</a>: piso de granito y cinta pintada (respeta la máscara).</li>
+      <li><a href="codigo/robot.js">robot.js</a>, <a href="codigo/mundo.js">mundo.js</a> y <a href="codigo/main.js">main.js</a>: modelo 3D, escena, teclado, D-Pad y panel.</li>
+      <li><a href="codigo/simulador1.test.js">simulador1.test.js</a> (16 pruebas) y <a href="codigo/pruebas.mjs">pruebas.mjs</a> (sin pantalla, <code>PISTA=A|B</code>). <a href="codigo/construir.mjs">construir.mjs</a> genera <code>simulador.html</code>.</li>
     </ul>
   </section>
 </main>
