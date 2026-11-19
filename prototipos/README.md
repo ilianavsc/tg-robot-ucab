@@ -32,3 +32,6 @@ Cada `codigo/` tiene todo el fuente: `main.js` (entrada), los módulos, `style.c
 4. El resultado sale en `teardown-out/dist/mi-sim.html`: cópialo como `simulador.html`.
 
 No edites `simulador.html` a mano: se pierde al recompilar. Cambia el fuente en `codigo/`.
+
+## Simulador 2 V2 · teach-and-repeat
+`simulador-2-v2-teach-and-repeat/` no es un prototipo P0X: es un gemelo digital de **movimiento** (SIL). Carga tal cual `specs/pista_canonica.json` (9,0 m) y `specs/navegacion/teach_and_repeat.js`; la planta física (cinta, sensores, cinemática, giroscopio, RSSI de las 2 balizas BLE en los extremos) está en `simulador_movimiento.js`. Pruebas: `node prototipos/simulador-2-v2-teach-and-repeat/simulador_movimiento.test.js` (20). Se abre por http (no por `file://`).

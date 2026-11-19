@@ -32,6 +32,12 @@ jobs:
       - name: Pruebas del escenario híbrido de P10 (SIL, Node)
         run: node prototipos/P10-simulador-esp32/p10_hibrido_modelo.test.js
 
+      - name: Pruebas del núcleo teach-and-repeat (specs/navegacion)
+        run: node specs/navegacion/teach_and_repeat.test.js
+
+      - name: Pruebas del Simulador 2 V2 (planta física + núcleo compartido)
+        run: node prototipos/simulador-2-v2-teach-and-repeat/simulador_movimiento.test.js
+
       - name: Instalar Flutter (misma versión que en las pruebas)
         uses: subosito/flutter-action@v2
         with:
@@ -63,7 +69,7 @@ jobs:
           # 1) El portafolio ocupa la RAÍZ del sitio
           cp "$GITHUB_WORKSPACE"/*.html "$PUB"/
           cp "$GITHUB_WORKSPACE"/*.md "$PUB"/
-          cp -r assets datos prototipos docs hardware tesis "$PUB"/
+          cp -r assets datos prototipos docs hardware tesis specs "$PUB"/
           # 2) La app Flutter queda en /app
           mkdir -p "$PUB/app"
           cp -r app/build/web/. "$PUB/app"/
