@@ -10,7 +10,7 @@
 |---|---|---|
 | **1 ESP32 móvil + 2 ESP32 fijos (balizas BLE)** | Diseño en `docs/arquitectura/balizas-ble.md`; el pedido incluye 3 ESP32. Solo existe en simulación (P10 y vista previa del Admin) | Documentado; balizas y escaneo BLE **[PENDIENTE DE INTEGRACIÓN EN FIRMWARE]** |
 | 4× TCRT5000 en ADC1 | GPIO 36, 39, 34, 35; separación 18 mm; 3,3 V | Coincide |
-| 2× HC-SR04P | ECO frente GPIO 33, ECO atrás GPIO 5; **TRIG frente GPIO 23 y TRIG atrás GPIO 15 (separado desde el 19/11)**; 58/58 pruebas SIL | Coincide; Cap. III y docs actualizados |
+| 2× HC-SR04P | ECO frente GPIO 33, ECO atrás GPIO 5; **TRIG frente GPIO 23 y TRIG atrás GPIO 15 (separado desde el 19/11)** | Coincide; Cap. III y docs actualizados |
 | MPU-6050 | En la lista de compra y en el mapa de pines (GPIO 21/22); el firmware **no la lee** (solo un gancho). Roles previstos: antirrobo con el acelerómetro y *heading hold* con el giroscopio | **[PENDIENTE DE INTEGRACIÓN EN FIRMWARE]**, marcado en Cap. II y III |
 | ESP32-WROOM-32, batería Li-Ion 3S, un solo robot | Coincide | Coincide |
 | Sin LiDAR, sin magnetómetro ni rumbo | La app no muestra rumbo; el heading hold es *relativo* | Coincide |
@@ -41,7 +41,7 @@
 
 | Qué | Entorno real | Estado |
 |---|---|---|
-| 58 pruebas del firmware en PC, P10, Modo Demo, 116 pruebas de la app, escenario híbrido de P10 (10 pruebas en Node) | **SIL** | Hecho; rotulado como SIL |
+| 10 escenarios del firmware en PC (SIL), P10, Modo Demo, 116 pruebas de la app, escenario híbrido de P10 (10 pruebas en Node) | **SIL** | Hecho; rotulado como SIL |
 | Firmware en el ESP32 real con sensores y motores, balizas BLE, MPU-6050 | **HIL** | **No se ha hecho** (hardware llega en diciembre) |
 
 | Valor del tomo | Origen real | Estado |
@@ -51,7 +51,7 @@
 | Velocidad ≈ 0,57 m/s; 0,36–0,47 m/s siguiendo la línea | Cálculo y simulador | **[PENDIENTE DE MEDICIÓN FÍSICA]** |
 | **Autonomía ≈ 3 h** | Estimación por cálculo; el Cap. II decía «se midió» | **Corregido** a «estimó» en Cap. II; **[PENDIENTE DE MEDICIÓN FÍSICA]** |
 | Error de línea, distancia de parada, falsas alarmas, RSSI y deriva | Sin datos | **[PENDIENTE DE MEDICIÓN FÍSICA]** |
-| Modo Demo: 0,40 m/s, batería lineal, circuito de 10 m; P10 híbrido: 8 m, RSSI −80 → −52 dBm | Supuestos de simulación | Declarados como supuestos |
+| Modo Demo: 0,40 m/s, batería lineal, circuito de 9,0 m; P10 híbrido: 9,0 m, RSSI −80 → −52 dBm | Supuestos de simulación | Declarados como supuestos |
 
 ## 5. Referencias y formato
 

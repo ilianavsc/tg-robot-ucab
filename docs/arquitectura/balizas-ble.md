@@ -25,7 +25,7 @@ El pedido de hardware incluye 3 ESP32: uno para el robot y dos para las balizas.
 |---|---|
 | RSSI lejos → cerca | −80 dBm → −52 dBm |
 | Umbral de confirmación | ≥ −55 dBm en 3 lecturas seguidas (5 lecturas/s) |
-| Distancia entre balizas | 8 m (la cinta se acaba tras 1 m) |
+| Distancia entre balizas | 9,0 m (la cinta se acaba tras 1 m; pista canónica `specs/pista_canonica.json`) |
 | Velocidad sin cinta | 0,35 m/s |
 | Sesgo del giroscopio / ganancia del hold | 0,30 °/s / 1,2 s⁻¹ |
 

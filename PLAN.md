@@ -76,7 +76,7 @@ La lista oficial está en `datos/proyecto.js`. Estado al 19 nov 2026 (todo lo ma
 | P04 | ¿BLE o QR? (re-localización con 2 ESP32 fijos como balizas BLE; ver `docs/arquitectura/balizas-ble.md`) | Pendiente (diseño y simulación; BLE y MPU-6050 **[PENDIENTE DE INTEGRACIÓN EN FIRMWARE]**) |
 | P05 | Robot virtual y puente Firebase | Pendiente |
 | P06 | Primera versión de la app con pedidos | Pendiente |
-| P07 | El cerebro completo (`firmware/robot_integrado.ino`) | En pruebas (58 comprobaciones SIL en PC y CI; falta HIL con el ESP32 real) |
+| P07 | El cerebro completo (`firmware/robot_integrado.ino`) | En pruebas (10 escenarios SIL T1-T10 en PC y CI; falta HIL con el ESP32 real) |
 | P08 | Seguir la línea (PD a 100 Hz, simulador 3D) | En pruebas (simulación) |
 | **P09** | **App Flutter Web** (`app/`): Mapa de Pista, Freno Remoto, login/RBAC local (maqueta en memoria), perfiles y Aprendizaje de Ruta (Admin) | Hecho (SIL; sin backend de producción) |
 | **P10** | **Simulador ESP32 Virtual** (robot falso en el navegador), con escenario híbrido de tramo sin cinta y RSSI BLE | Hecho (SIL) |

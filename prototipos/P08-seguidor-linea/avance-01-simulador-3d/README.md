@@ -30,7 +30,7 @@ Probar en simulación el control PD del seguidor de línea con el motor que se c
 Completar vueltas sin salirse de la pista, con velocidad promedio dentro de 0,35 a 0,6 m/s, con la batería llena, nominal y baja.
 
 ## 6. Resultado
-Pista provisional de 8,05 m, curva más cerrada de 22 cm de radio. Valores iniciales: base 80 %, Kp 0,030 por mm, Kd 0,0015 s por mm, sensores a 18 mm entre sí y a 60 mm del eje.
+Pista provisional de 8,05 m, curva más cerrada de 22 cm de radio. Valores iniciales: base 80 %, Kp 0,030 por mm, Kd 0,0015 s por mm, sensores a 18 mm entre sí y a 60 mm del eje. *(Registro histórico: superado por la pista canónica de 9,0 m — `specs/pista_canonica.json`.)*
 
 | Prueba | Vuelta | Velocidad | Más lejos de la línea | Resultado |
 |---|---|---|---|---|

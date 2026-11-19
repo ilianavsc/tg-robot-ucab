@@ -27,12 +27,12 @@
 
 **Hacer:**
 1. Mostrar la barra de avance: **10/13 prototipos listos**.
-2. Bajar a la tarjeta de firmware y señalar la insignia **Firmware C++ · 58/58 pruebas SIL**.
+2. Bajar a la tarjeta de firmware y señalar la insignia **Firmware C++ · pruebas SIL**.
 3. Abrir **Ver detalle técnico** (se despliega solo).
 
 **Decir:**
 - "Cada módulo se valida primero en simulador y luego en el robot físico. De los 13 prototipos, 3 están hechos y 7 están validados en simulación."
-- "Las 58 pruebas corren el código C++ del robot en el PC: órdenes y confirmaciones, obstáculos, fallo de sensor, 5 segundos sin órdenes y corte por batería. Falta la prueba con el ESP32 real: llega el pedido en diciembre."
+- "Las 10 pruebas (escenarios T1-T10) corren el código C++ del robot en el PC: órdenes y confirmaciones, obstáculos, fallo de sensor, 5 segundos sin órdenes y corte por batería. Falta la prueba con el ESP32 real: llega el pedido en diciembre."
 
 **Debe verse:** barra 10/13, insignia verde, detalle desplegado con animación suave.
 
@@ -139,7 +139,7 @@
 |---|---|
 | ¿Por qué MQTT? | Es liviano, tiene niveles de entrega (QoS) y avisa cuando algo se cae (LWT). |
 | ¿Qué es QoS 1? | Llega al menos una vez y el receptor confirma. Por eso existe el ACK. |
-| ¿Esto corre en el robot real? | El mismo protocolo sí; el firmware está validado en PC (58/58 pruebas SIL). Falta la prueba con el ESP32 físico. |
+| ¿Esto corre en el robot real? | El mismo protocolo sí; el firmware está validado en PC (pruebas SIL). Falta la prueba con el ESP32 físico. |
 | ¿El robot real reduce la velocidad al acercarse a un obstáculo? | Hoy el firmware solo se detiene a menos de 20 cm y avisa entre 20 y 50 cm. La reducción gradual de velocidad está en el simulador P13 y no en el firmware: sería una mejora a considerar. |
 | ¿Qué falta? | Motores, sensores y batería: el pedido llega a Miami entre el 15 y el 28 de diciembre. |
 | ¿Y la red del laboratorio? | La red UCAB pide usuario y clave; el firmware usa Wi-Fi simple. Se prueba con la red interna del laboratorio (prueba H0). |

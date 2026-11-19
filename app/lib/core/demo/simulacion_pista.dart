@@ -69,15 +69,15 @@ class SimulacionPista {
 
   // --------------------------------------------------------- constantes
 
-  /// Longitud del circuito simulado (m). No es una medida del laboratorio.
-  static const double longitudM = 10.0;
+  /// Longitud del circuito simulado (m). Canónica: 9,0 m (specs/pista_canonica.json).
+  static const double longitudM = 9.0;
 
   /// Posición de cada nodo sobre el circuito (m desde la base, en el sentido
   /// de marcha).
   static const Map<DestinoPista, double> posiciones = <DestinoPista, double>{
     DestinoPista.cuartoComponentes: 0.0,
-    DestinoPista.puntoControl: 4.2,
-    DestinoPista.laboratorio1: 7.0,
+    DestinoPista.puntoControl: 3.78,
+    DestinoPista.laboratorio1: 6.3,
   };
 
   static const double velocidadCrucero = 0.40;

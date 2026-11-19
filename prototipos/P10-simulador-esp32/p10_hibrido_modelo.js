@@ -19,7 +19,7 @@
   else raiz.P10Hibrido = fabrica();
 })(typeof self !== "undefined" ? self : this, function () {
   var C = {
-    LONGITUD_M: 8,            /* distancia entre las 2 balizas (supuesto de simulación) */
+    LONGITUD_M: 9,            /* distancia entre las 2 balizas (pista canónica specs/pista_canonica.json) */
     INICIO_SIN_CINTA_M: 1.0,  /* la cinta se acaba 1 m después del cuarto */
     V_MS: 0.35,               /* velocidad de marcha sin cinta (supuesto) */
     RSSI_CERCA: -52,          /* dBm junto a la baliza */

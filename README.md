@@ -82,9 +82,11 @@ hardware (`firmware/pruebas_pc/`). Las pruebas **HIL** (*Hardware In the Loop*) 
 cuando llegue el hardware: ESP32 real, sensores reales y la app; sus mediciones se anotan
 en [`prototipos/P02-sensores/README.md`](prototipos/P02-sensores/README.md).
 
-**Verificación automática (CI):** cada push a `main` corre las pruebas del firmware
-(`sh firmware/pruebas_pc/correr.sh`), `flutter analyze` y `flutter test` antes de publicar;
-si algo falla, no se despliega.
+**Verificación automática (CI):** cada push a `main` corre, antes de publicar, las 4 suites
+verdes: `flutter analyze` (0 issues), `flutter test` (116/116), `node specs/navegacion/teach_and_repeat.test.js`
+(9/9) y `node prototipos/P10-simulador-esp32/p10_hibrido_modelo.test.js` (10/10). El firmware
+además se compila en el PC (`sh firmware/pruebas_pc/correr.sh`, 10 escenarios SIL) en GitHub
+Actions; si algo falla, no se despliega.
 Contratos JSON de todos los tópicos: [`docs/arquitectura/topicos-mqtt.md`](docs/arquitectura/topicos-mqtt.md).
 
 ## Carpetas
@@ -93,10 +95,11 @@ Contratos JSON de todos los tópicos: [`docs/arquitectura/topicos-mqtt.md`](docs
 - `assets/` estilo y menú compartidos por todas las páginas
 - `prototipos/` una carpeta por prototipo con su página visual (`index.html`), `codigo/` y `evidencias/`
 - `app/` la App Flutter Web (P09, con P11 y P12 dentro); se publica sola en `/app/` con cada push a `main`
-- `firmware/` firmware integrado del robot (`robot_integrado.ino`, P01 + P03 + P08 + ultrasonidos), su README y `pruebas_pc/` (58 comprobaciones SIL de seguridad que corren en el PC y en GitHub Actions)
+- `firmware/` firmware integrado del robot (`robot_integrado.ino`, P01 + P03 + P08 + ultrasonidos), su README y `pruebas_pc/` (10 escenarios SIL T1-T10 de seguridad que corren en el PC y en GitHub Actions)
 - `docs/` requerimientos, arquitectura (tópicos MQTT), guías de pruebas y del jurado
 - `tesis/` capítulos del Trabajo de Grado en Markdown (`capitulo_1.md`, `capitulo_2.md` y `marco_teorico.md` vienen de los Word y usan citas IEEE; `capitulo_3.md` es el borrador del Marco Metodológico; imágenes en `tesis/media/`); `tesis.html` los lista y los abre en el visor modal (la lista sale de `TG.tesis` en `datos/proyecto.js`)
 - `hardware/materiales/` lista de materiales y registro de cambios
+- `specs/` fuente única de verdad de la pista (`pista_canonica.json`, 9,0 m) y núcleo de navegación teach-and-repeat (`navegacion/teach_and_repeat.js`, 5 estados) con su test harness
 
 El puente MQTT a Firebase (P05), el CAD y los esquemáticos se agregan cuando tengan contenido.
 
