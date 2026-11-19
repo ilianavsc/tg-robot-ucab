@@ -2,6 +2,22 @@
 
 App móvil (Flutter) del robot de laboratorio UCAB: telemetría, pedidos y alertas por MQTT.
 
+## Diseño: Autonomous Laboratory Cockpit
+
+La interfaz sigue el sistema de diseño de [`DESIGN.md`](DESIGN.md) (generado en
+Google Stitch): modo oscuro, **Inter** para texto y **JetBrains Mono** para toda la
+telemetría. Las fuentes van incrustadas en `assets/fonts/` (subconjunto Latin,
+licencias OFL incluidas), así que el Modo Demo se ve igual sin internet.
+
+- 4 secciones con barra de navegación inferior: **Dashboard**, **Controles**,
+  **Radar** y **Alertas**, más un botón **E-STOP** siempre visible.
+- Es solo la capa visual: MQTT, Modo Demo, órdenes, alertas (P11) y analítica
+  (P12) siguen en `lib/core/` sin cambios.
+- Lo que el robot no mide no se inventa: las RPM y la tensión de cada celda se
+  muestran como **estimadas** (`≈`), y no hay cámara ni sensores laterales.
+- **E-STOP** envía `frenar` por MQTT (un toque, sin confirmar, para no retrasar
+  la parada). No es un corte eléctrico: no sustituye el interruptor físico.
+
 ## Estructura
 
 ```
@@ -15,11 +31,18 @@ lib/
     exportar/descarga_csv*.dart    # descarga del CSV en Web (portapapeles en nativo)
     mqtt/mqtt_service.dart     # cliente MQTT + reconexión + Modo Demo + P11/P12
     mqtt/mqtt_client_platform_*.dart  # fábrica por plataforma (TCP vs WebSocket)
-    theme/
+    theme/cockpit_theme.dart   # tokens de color, tipografía y ThemeData del Cockpit
   features/
-    telemetria/                # pantalla de telemetría en vivo
-      alertas_p11.dart         # Banner de Alerta Activa + Centro de Alertas (P11)
+    telemetria/
+      telemetria_screen.dart   # armazón: app bar, 4 secciones, E-STOP
+      pantalla_dashboard.dart  # estado, enlace MQTT, energía 3S, IR, motores, P12
+      pantalla_controles.dart  # matriz táctil, Auto, ACK, núcleo de seguridad
+      pantalla_radar.dart      # radar polar (radar_hud.dart) y evitación
+      pantalla_alertas.dart    # watchdog, activas y registro de eventos (P11)
+      alertas_p11.dart         # Banner de Alerta Activa (P11)
       analitica_p12.dart       # Analítica de Sesión + "Exportar Reporte CSV" (P12)
+      cockpit_ui.dart          # tarjeta, celda, pastilla, E-STOP y demás primitivas
+      cockpit_datos.dart       # cálculos derivados (Dart puro, con tests)
     pedidos/                   # (Fase V) crear pedidos y ver ACK
     alertas/                   # (Fase V) notificaciones push de alertas QoS 2
     conexion/                  # (Fase V) estado del broker
@@ -40,7 +63,7 @@ En nativo (Android/Windows) se conecta por TCP a `broker.hivemq.com:1883`.
 
 ```bash
 flutter analyze
-flutter test        # P11 (alertas), P12 (analítica/CSV), modelos y Modo Demo
+flutter test        # P11, P12, modelos, Modo Demo y la interfaz Cockpit (4 pantallas, móvil y escritorio)
 ```
 
 ## P11 · Centro de Alertas y P12 · Analítica

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'core/mqtt/mqtt_service.dart';
+import 'core/theme/cockpit_theme.dart';
 import 'features/telemetria/telemetria_screen.dart';
 
 /// Punto de entrada de la app.
@@ -23,9 +24,13 @@ class AppRobotUcab extends StatelessWidget {
     return ChangeNotifierProvider<MqttService>(
       create: (_) => MqttService()..conectar(),
       child: MaterialApp(
-        title: 'Robot UCAB',
+        title: 'TG Robot UCAB',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(colorSchemeSeed: const Color(0xFF0F9D84)),
+        // Sistema de diseño "Autonomous Laboratory Cockpit" (DESIGN.md):
+        // es un cockpit oscuro, así que se fuerza el modo oscuro.
+        theme: buildCockpitTheme(),
+        darkTheme: buildCockpitTheme(),
+        themeMode: ThemeMode.dark,
         home: const TelemetriaScreen(),
       ),
     );

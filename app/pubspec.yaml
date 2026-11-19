@@ -24,3 +24,25 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  # Fuentes del sistema de diseño "Autonomous Laboratory Cockpit" (DESIGN.md).
+  # Van incrustadas (subconjunto Latin, ~320 KB en total) y no se descargan en
+  # tiempo de ejecución: el Modo Demo debe verse igual sin internet.
+  # Licencias OFL 1.1 en assets/fonts/LICENSE-*.txt.
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.otf
+        - asset: assets/fonts/Inter-SemiBold.otf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.otf
+          weight: 700
+    - family: JetBrainsMono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-Regular.ttf
+        - asset: assets/fonts/JetBrainsMono-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/JetBrainsMono-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/JetBrainsMono-Bold.ttf
+          weight: 700
