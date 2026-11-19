@@ -979,7 +979,9 @@ dialog.modal-md::backdrop {
   font-size: 13px;
   font-weight: 700;
   color: var(--accent-primary);
-  word-break: break-all;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  min-width: 0;
 }
 
 .modal-md-cerrar {
@@ -1041,6 +1043,7 @@ dialog.modal-md::backdrop {
   border: 1px solid #cbd5e1;
   padding: 1px 6px;
   border-radius: 4px;
+  overflow-wrap: anywhere;
 }
 
 .modal-md-cuerpo pre {
@@ -1049,6 +1052,8 @@ dialog.modal-md::backdrop {
   padding: 16px 18px;
   border-radius: var(--radius-md);
   border: 2px solid var(--border-dark);
+  max-width: 100%;
+  box-sizing: border-box;
   overflow-x: auto;
   margin: 14px 0 18px;
 }
@@ -1131,12 +1136,19 @@ dialog.modal-md::backdrop {
   .modal-md-cuerpo table {
     display: block;
     width: 100%;
+    max-width: 100%;
+    font-size: 13px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
+  .modal-md-cuerpo th,
+  .modal-md-cuerpo td {
+    padding: 7px 9px;
+    overflow-wrap: break-word;
+  }
   .modal-md-cuerpo pre {
     padding: 12px 14px;
-    font-size: 12.5px;
+    font-size: 12px;
   }
 }
 
