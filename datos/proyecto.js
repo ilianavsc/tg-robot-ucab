@@ -46,19 +46,19 @@ window.TG = {
   /* estado: "hecho" | "pruebas" | "pendiente"
      categoria: "software" | "hardware" | "app"  (agrupación visual del portafolio) */
   prototipos: [
-    { codigo: "P01", nombre: "Así se hablan el robot y la app", tema: "MQTT", semana: 3, estado: "hecho", categoria: "software", url: "prototipos/P01-mqtt-base/simulador-3d/", principal: true, simulador: "prototipos/P01-mqtt-base/simulador-3d/simulador.html", simuladorTexto: "Simulador 3D de los mensajes", ino: "prototipos/P01-mqtt-base/codigo-esp32/robot_mqtt/robot_mqtt.ino", historico: "prototipos/P01-mqtt-base/README.md", historicoTexto: "Registro de la Fase I: pruebas T1 a T7 y Wokwi" },
-    { codigo: "P02", nombre: "Los sentidos del robot", tema: "Sensores", semana: 5, estado: "pruebas", categoria: "hardware" },
-    { codigo: "P03", nombre: "Motores que van parejo", tema: "PID", semana: 6, estado: "pruebas", categoria: "software", url: "prototipos/P03-motores/avance-02-simulador-3d/", principal: true, simulador: "prototipos/P03-motores/avance-02-simulador-3d/simulador.html", simuladorTexto: "Simulador 3D de la tracción", ino: "prototipos/P03-motores/avance-02-simulador-3d/codigo-esp32/traccion_encoders/traccion_encoders.ino" },
-    { codigo: "P04", nombre: "¿BLE o QR?", tema: "Ubicación", semana: 7, estado: "pendiente", categoria: "hardware" },
-    { codigo: "P05", nombre: "Robot virtual y puente", tema: "Firebase", semana: 9, estado: "pendiente", categoria: "app" },
-    { codigo: "P06", nombre: "Primera versión de la app", tema: "Flutter", semana: 10, estado: "pendiente", categoria: "app" },
-    { codigo: "P07", nombre: "El cerebro completo", tema: "Firmware", semana: 12, estado: "pruebas", categoria: "hardware" },
-    { codigo: "P08", nombre: "Seguir la línea", tema: "Simulador 3D", semana: 13, estado: "pruebas", categoria: "software", url: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/", principal: true, simulador: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/simulador.html", simuladorTexto: "Simulador 3D del seguidor de línea", ino: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/codigo-esp32/seguidor_linea/seguidor_linea.ino" },
-    { codigo: "P09", nombre: "Interfaz Web / Modo Demo", tema: "Flutter", semana: 15, estado: "hecho", categoria: "app", url: "app/", principal: true, simulador: "app/", simuladorTexto: "Abrir App Web (Modo Demo)" },
-    { codigo: "P10", nombre: "Simulador ESP32 Virtual", tema: "MQTT Web", semana: 21, estado: "hecho", categoria: "app", url: "prototipos/P10-simulador-esp32/index.html", principal: true, simulador: "prototipos/P10-simulador-esp32/index.html", simuladorTexto: "Abrir Simulador ESP32" },
-    { codigo: "P11", nombre: "La alarma llega al teléfono", tema: "Alertas", semana: 23, estado: "pruebas", categoria: "app", url: "app/", simulador: "app/", simuladorTexto: "Abrir Centro de Alertas (App, Modo Demo o P10)", nota: "Validado en simulación (P10 + Modo Demo): obstáculo < 20 cm, sensor sin eco, proximidad 20–50 cm y batería ≤ 10,3 V. Pendiente de hardware físico (diciembre)." },
-    { codigo: "P12", nombre: "Pruebas y estadística", tema: "Análisis", semana: 27, estado: "pruebas", categoria: "app", url: "app/", simulador: "app/", simuladorTexto: "Abrir Analítica de Sesión y CSV (App)", nota: "Validado en simulación: velocidad media/máxima, distancia frontal mínima, error medio de línea, paquetes y paradas de emergencia con exportación CSV. Pendiente de los 20+ ensayos con el robot físico." },
-    { codigo: "P13", nombre: "Radar Ultrasónico (Frente/Atrás)", tema: "Ultrasonido", semana: 5, estado: "pruebas", categoria: "hardware", url: "prototipos/P13-sensores-ultrasonicos/index.html", principal: true, simulador: "prototipos/P13-sensores-ultrasonicos/index.html", simuladorTexto: "Abrir simulador de ultrasonido" },
+    { codigo: "P01", nombre: "Así se hablan el robot y la app", tema: "MQTT", semana: 3, estado: "hecho", categoria: "software", etapa: 1, url: "prototipos/P01-mqtt-base/simulador-3d/", principal: true, simulador: "prototipos/P01-mqtt-base/simulador-3d/simulador.html", simuladorTexto: "Simulador 3D de los mensajes", ino: "prototipos/P01-mqtt-base/codigo-esp32/robot_mqtt/robot_mqtt.ino", historico: "prototipos/P01-mqtt-base/README.md", historicoTexto: "Registro de la Fase I: pruebas T1 a T7 y Wokwi" },
+    { codigo: "P02", nombre: "Los sentidos del robot", tema: "Sensores (TCRT5000 + HC-SR04P + MPU-6050)", semana: 5, estado: "pruebas", categoria: "hardware", etapa: 1, nota: "Consolida la línea (4× TCRT5000) y el radar ultrasónico (2× HC-SR04P, TRIG atrás GPIO 15); MPU-6050 reservada para heading hold." },
+    { codigo: "P03", nombre: "Motores que van parejo", tema: "PID", semana: 6, estado: "hecho", categoria: "software", etapa: 1, url: "prototipos/P03-motores/avance-02-simulador-3d/", principal: true, simulador: "prototipos/P03-motores/avance-02-simulador-3d/simulador.html", simuladorTexto: "Simulador 3D de la tracción", ino: "prototipos/P03-motores/avance-02-simulador-3d/codigo-esp32/traccion_encoders/traccion_encoders.ino" },
+    { codigo: "P04", nombre: "Balizas BLE (Extremos)", tema: "BLE", semana: 7, estado: "pendiente", categoria: "hardware", etapa: 2 },
+    { codigo: "P05", nombre: "Robot virtual y puente", tema: "Firebase", semana: 9, estado: "pendiente", categoria: "app", etapa: 2 },
+    { codigo: "P06", nombre: "Primera versión de la app", tema: "Flutter", semana: 10, estado: "pendiente", categoria: "app", etapa: 3 },
+    { codigo: "P07", nombre: "El cerebro completo", tema: "Firmware", semana: 12, estado: "pruebas", categoria: "hardware", etapa: 2 },
+    { codigo: "P08", nombre: "Seguir la línea", tema: "Simulador 3D", semana: 13, estado: "pruebas", categoria: "software", etapa: 2, url: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/", principal: true, simulador: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/simulador.html", simuladorTexto: "Simulador 3D del seguidor de línea", ino: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/codigo-esp32/seguidor_linea/seguidor_linea.ino" },
+    { codigo: "P09", nombre: "Interfaz Web / Modo Demo", tema: "Flutter", semana: 15, estado: "hecho", categoria: "app", etapa: 3, url: "app/", principal: true, simulador: "app/", simuladorTexto: "Abrir App Web (Modo Demo)" },
+    { codigo: "P10", nombre: "Simulador ESP32 Virtual", tema: "MQTT Web", semana: 21, estado: "hecho", categoria: "app", etapa: 2, url: "prototipos/P10-simulador-esp32/index.html", principal: true, simulador: "prototipos/P10-simulador-esp32/index.html", simuladorTexto: "Abrir Simulador ESP32" },
+    { codigo: "P11", nombre: "La alarma llega al teléfono", tema: "Alertas", semana: 23, estado: "pruebas", categoria: "app", etapa: 3, url: "app/", simulador: "app/", simuladorTexto: "Abrir Centro de Alertas (App, Modo Demo o P10)", nota: "Validado en simulación (P10 + Modo Demo): obstáculo < 20 cm, sensor sin eco, proximidad 20–50 cm y batería ≤ 10,3 V. Pendiente de hardware físico (diciembre)." },
+    { codigo: "P12", nombre: "Pruebas y estadística", tema: "Análisis", semana: 27, estado: "pruebas", categoria: "app", etapa: 3, url: "app/", simulador: "app/", simuladorTexto: "Abrir Analítica de Sesión y CSV (App)", nota: "Validado en simulación: velocidad media/máxima, distancia frontal mínima, error medio de línea, paquetes y paradas de emergencia con exportación CSV. Pendiente de los 20+ ensayos con el robot físico." },
+    { codigo: "P13", nombre: "Radar Ultrasónico (Frente/Atrás)", tema: "Ultrasonido", semana: 5, estado: "pruebas", categoria: "hardware", etapa: 1, consolidadoEn: "P02", url: "prototipos/P13-sensores-ultrasonicos/index.html", principal: true, simulador: "prototipos/P13-sensores-ultrasonicos/index.html", simuladorTexto: "Abrir simulador de ultrasonido" },
   ],
 
   /* ---------- PORTADA Y CRONOGRAMA RESUMIDOS ---------- */
@@ -88,15 +88,15 @@ window.TG = {
   /* Texto corto de cada prototipo para las tarjetas: nombre corto + qué hace en 1 línea */
   protoResumen: {
     P01: { corto: "App ↔ robot (MQTT)", linea: "Mensajes que no se pierden entre la app y el robot." },
-    P02: { corto: "Sensores", linea: "Los ojos del robot: línea, obstáculos y movimiento." },
+    P02: { corto: "Sensores (línea + ultrasonido)", linea: "4× TCRT5000 + 2× HC-SR04P (GPIO 15) y MPU-6050: los ojos y oídos del robot." },
     P03: { corto: "Motores parejos", linea: "Las dos ruedas avanzan igual, en línea recta." },
-    P04: { corto: "Ubicación BLE o QR", linea: "Elegir cómo sabe el robot dónde está." },
+    P04: { corto: "Balizas BLE", linea: "2 balizas BLE en los extremos para validar inicio y fin del recorrido." },
     P05: { corto: "Robot virtual", linea: "Un robot de prueba conectado a Firebase." },
     P06: { corto: "App versión 1", linea: "Primera app para pedir piezas y ver el estado." },
     P07: { corto: "Firmware completo", linea: "Todo el código del ESP32 trabajando junto." },
     P08: { corto: "Seguir la línea", linea: "El robot sigue la cinta negra sin salirse." },
     P09: { corto: "App web (Modo Demo)", linea: "Pide y mira el robot desde el celular, sin robot." },
-    P10: { corto: "Simulador ESP32", linea: "Un ESP32 virtual que envía datos a la app." },
+    P10: { corto: "Simulador 2 V2", linea: "Gemelo digital de movimiento con teach-and-repeat." },
     P11: { corto: "Centro de Alertas", linea: "Obstáculo, sensor sin eco, proximidad o batería crítica: la alerta llega a la app." },
     P12: { corto: "Analítica y CSV", linea: "Métricas de cada sesión y reporte CSV para las 20+ repeticiones." },
     P13: { corto: "Radar Ultrasónico (Frente/Atrás)", linea: "El robot mide qué tan lejos está lo que tiene delante y detrás." }

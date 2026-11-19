@@ -199,12 +199,30 @@
   document.getElementById("etapas-4").innerHTML = etapas.map(function (et) {
     var wIni = et.semanas[0], wFin = et.semanas[1];
     var totalEt = wFin - wIni + 1;
-    var hechasEt = 0;
-    for (var k = wIni; k <= wFin; k++) {
-      if (k < semActual) hechasEt++;
-      else if (k === semActual) hechasEt += 0.5;
+
+    // Prototipos de esta fase: asignación explícita (etapa) o, si falta, por semana.
+    var protosEt = D.prototipos.filter(function (p) {
+      if (p.consolidadoEn) return false;
+      if (p.etapa) return p.etapa === et.n;
+      return p.semana >= wIni && p.semana <= wFin;
+    });
+
+    // Progreso de la fase según el estado de sus chips (hecho = 1, pruebas = 0.5).
+    var pctEt;
+    if (protosEt.length > 0) {
+      var peso = 0;
+      protosEt.forEach(function (p) {
+        peso += p.estado === "hecho" ? 1 : (p.estado === "pruebas" ? 0.5 : 0);
+      });
+      pctEt = Math.min(100, Math.max(0, Math.round((peso / protosEt.length) * 100)));
+    } else {
+      var hechasEt = 0;
+      for (var k = wIni; k <= wFin; k++) {
+        if (k < semActual) hechasEt++;
+        else if (k === semActual) hechasEt += 0.5;
+      }
+      pctEt = Math.min(100, Math.max(0, Math.round((hechasEt / totalEt) * 100)));
     }
-    var pctEt = Math.min(100, Math.max(0, Math.round((hechasEt / totalEt) * 100)));
 
     var estadoCard = "futura", chipHtml = '<span class="chip pendiente">Por venir</span>';
     if (semActual > wFin) {
@@ -214,10 +232,6 @@
       estadoCard = "activa";
       chipHtml = '<span class="chip en-curso">En curso</span>';
     }
-
-    var protosEt = D.prototipos.filter(function (p) {
-      return p.semana >= wIni && p.semana <= wFin;
-    });
 
     var protosHtml = protosEt.map(function (p) {
       var info = (D.protoResumen && D.protoResumen[p.codigo]) || { corto: p.tema };
