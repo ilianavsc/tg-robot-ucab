@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>P03 · Vitrina autónoma de componentes</title>
+<style>
+/*CSS*/
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <canvas id="lienzo" aria-label="Vista 3D del robot recorriendo una ruta cerrada de demostración" role="img"></canvas>
+  <svg id="guias" aria-hidden="true"></svg>
+  <div id="etiquetas"></div>
+
+  <div class="barra" role="toolbar" aria-label="Controles de la demostración">
+    <button class="btn pri" id="b-pausa" type="button" aria-pressed="false"><span class="ic" aria-hidden="true"></span><span class="tx">Pausar</span></button>
+    <button class="btn" id="b-xray" type="button" aria-pressed="false">Vista Rayos X</button>
+    <button class="btn" id="b-etiq" type="button" aria-pressed="true">Etiquetas</button>
+    <div class="grupo" role="group" aria-label="Vista de cámara">
+      <button class="btn" type="button" data-vista="seguir" aria-pressed="true">Seguir</button>
+      <button class="btn" type="button" data-vista="inspeccion" aria-pressed="false">Inspección</button>
+      <button class="btn" type="button" data-vista="general" aria-pressed="false">Panorámica</button>
+    </div>
+  </div>
+  <div class="estado" id="estado" role="status"></div>
+
+  <aside class="ficha" id="ficha" role="dialog" aria-labelledby="f-titulo" hidden>
+    <header><h2 id="f-titulo"></h2><button class="cerrar" id="f-cerrar" type="button" aria-label="Cerrar la ficha">×</button></header>
+    <div class="cuerpo" id="f-cuerpo"></div>
+  </aside>
+
+  <nav class="tira" id="tira" aria-label="Componentes del robot (toca uno para ver su ficha)"></nav>
+</div>
+<script type="module">
+/*JS*/
+</script>
+</body>
+</html>

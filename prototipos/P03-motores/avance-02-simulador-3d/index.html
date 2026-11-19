@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>P03 · Simulador 3D de la Tracción · TG Robot UCAB</title>
+<title>P03 · Vitrina autónoma de componentes · TG Robot UCAB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
@@ -12,6 +12,9 @@
 dialog{border:none;border-radius:16px;padding:12px;max-width:min(1400px,96vw);background:#ffffff;box-shadow:var(--shadow-hard)}
 dialog::backdrop{background:rgba(15,23,42,.75);backdrop-filter:blur(3px)}
 dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
+.simulador-embed-frame{height:680px}
+@media (max-width:768px){.simulador-embed-frame{height:700px}}
+.nota-nav{background:#fff;border:2px dashed var(--border-dark);border-radius:var(--radius-md);padding:14px 18px;margin-top:18px;font-size:15px}
 </style>
 </head>
 <body data-pagina="prototipos" data-base="../../../">
@@ -25,18 +28,19 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
   </a>
 
   <p class="ceja">Prototipo P03 · Cinemática Diferencial · Avance 2</p>
-  <h1>P03: Cómo se mueve <em>el robot</em>, <strong>pieza por pieza</strong></h1>
+  <h1>P03: El robot <em>recorre solo</em> su ruta, <strong>componente por componente</strong></h1>
   
   <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px">
-    <span class="chip hecho">Simulador 3D Funcional</span>
+    <span class="chip hecho">Vitrina 3D autónoma</span>
     <span class="chip">Three.js + Rayos X</span>
-    <span class="chip">2x Motores JGA25-371 + Encoders</span>
+    <span class="chip">4× TCRT5000 · 2× HC-SR04P · MPU-6050</span>
+    <span class="chip">Tracción JGA25-371 + encoders</span>
     <span class="chip aviso">Simulado, falta medir</span>
   </div>
 
   <!-- Explicación muy simple -->
   <div class="frase-explicativa">
-    <strong>En pocas palabras:</strong> El robot sincroniza <strong>dos micromotores DC con encoders magnéticos</strong> y puente H. El ESP32 envía señales PWM a 20 kHz para regular la velocidad de las ruedas y lee los pulsos del encoder por interrupción de hardware, garantizando un desplazamiento recto y giros precisos sobre su eje.
+    <strong>En pocas palabras:</strong> aquí no se maneja nada. El robot recorre <strong>solo</strong> un circuito cerrado de cinta negra mientras ves, en vivo, lo que sienten sus componentes reales: la regleta de <strong>4 sensores TCRT5000</strong>, los <strong>2 ultrasonidos HC-SR04P</strong> con sus zonas de alerta, el <strong>ESP32</strong>, la <strong>MPU-6050</strong>, la tracción diferencial y la <strong>batería 3S</strong>. Toca cualquiera para abrir su ficha.
   </div>
 
   <!-- ====================================================================
@@ -44,7 +48,7 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
        ==================================================================== -->
   <section aria-labelledby="t-simulador">
     <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px">
-      <h2 id="t-simulador" style="margin:0">Simulador 3D en Vivo (Tracción y Encoders)</h2>
+      <h2 id="t-simulador" style="margin:0">Vitrina 3D en Vivo (ruta autónoma y componentes)</h2>
       <a href="simulador.html" target="_blank" rel="noopener" class="btn btn-secundario" style="padding:7px 14px;font-size:14px">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
         Abrir en Pantalla Completa
@@ -54,12 +58,12 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
     <!-- Contenedor del visor 3D embebido -->
     <div class="simulador-embed-container">
       <div class="simulador-embed-bar">
-        <span><i class="dot-live" aria-hidden="true"></i>CINEMÁTICA Y CAD DINÁMICO ACTIVO</span>
+        <span><i class="dot-live" aria-hidden="true"></i>RUTA AUTÓNOMA DE DEMOSTRACIÓN ACTIVA</span>
         <span>Three.js / WebGL</span>
       </div>
-      <iframe src="simulador.html" class="simulador-embed-frame" title="Simulador 3D interactivo de la tracción y encoders P03" loading="lazy"></iframe>
+      <iframe src="simulador.html" class="simulador-embed-frame" title="Vitrina 3D autónoma de los componentes del robot P03" loading="lazy"></iframe>
       <div class="simulador-embed-footer">
-        <span style="color:#94a3b8;font-size:13.5px">Controles: Usa las flechas <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">↑</kbd> <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">↓</kbd> <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">←</kbd> <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">→</kbd> para maniobrar en tiempo real.</span>
+        <span style="color:#94a3b8;font-size:13.5px">Sin teclado: el robot recorre la ruta solo. Usa <b style="color:#fff">Pausar / Reanudar</b>, <b style="color:#fff">Vista Rayos X</b> y <b style="color:#fff">Etiquetas</b>, y toca un componente para ver su ficha.</span>
         <a href="simulador.html" target="_blank" rel="noopener" class="btn-link-dark">
           Ver simulador sin marcos ↗
         </a>
@@ -126,15 +130,16 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
        SECCIÓN: CÓMO USAR EL SIMULADOR
        ==================================================================== -->
   <section aria-labelledby="t-usar">
-    <h2 id="t-usar">Cómo interactuar con el simulador</h2>
-    <p class="bajada">Maneja el robot virtualmente con el teclado o interactúa con el panel de control lateral.</p>
+    <h2 id="t-usar">Cómo interactuar con la vitrina</h2>
+    <p class="bajada">El recorrido es automático; tú solo decides qué mirar. No hay control por teclado.</p>
     <ol class="pasos">
-      <li><b>Elige una maniobra</b><span>Avanzar, girar, retroceder o frenar. También con las flechas del teclado <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd>.</span></li>
-      <li><b>Modula la fuerza</b><span>Ajusta el control deslizante de PWM (0 a 100%). Observa la respuesta inmediata en voltaje, rpm y m/s.</span></li>
-      <li><b>Alterna componentes</b><span>Compara el driver L298N frente al TB6612FNG, y la caja reductora Speed 130 vs Speed 200.</span></li>
-      <li><b>Simula la batería 3S</b><span>Prueba con 12,6 V (llena), 11,1 V (nominal) y 9,9 V (descargada) para evaluar la pérdida de torque.</span></li>
-      <li><b>Modo Rayos X</b><span>Activa la vista de motor transparente para inspeccionar el imán del encoder de 22 polos y la caja de engranes.</span></li>
+      <li><b>Observa la ruta</b><span>El robot sigue una cinta negra de 19 mm en un circuito cerrado de unos 6,6 m. <b>Pausar / Reanudar</b> congela o retoma el recorrido; en pausa puedes seguir girando la cámara.</span></li>
+      <li><b>Lee la regleta de línea</b><span>Los 4 TCRT5000 muestran <code>[0/1, 0/1, 0/1, 0/1]</code> en vivo: 1 es «veo la cinta». Centrado marca <code>[0,1,1,0]</code>.</span></li>
+      <li><b>Mira los dos ultrasonidos</b><span>Los conos son el haz del HC-SR04P: <b>rojo</b> menos de 20 cm (crítico) y <b>ámbar</b> de 20 a 50 cm (precaución). La etiqueta del trasero destaca su <code>TRIG</code> separado en <code>GPIO 15</code>.</span></li>
+      <li><b>Abre una ficha</b><span>Toca un componente en el 3D, en su etiqueta o en la tira inferior: pines, función, datos del proyecto y lectura en vivo.</span></li>
+      <li><b>Vista Rayos X y Etiquetas</b><span>Funcionan en marcha o en pausa: Rayos X vuelve translúcido el chasis, las ruedas y los motores; Etiquetas muestra u oculta los rótulos 3D. Las vistas <b>Seguir</b>, <b>Inspección</b> y <b>Panorámica</b> cambian la cámara.</span></li>
     </ol>
+    <div class="nota-nav"><b>Sobre la navegación:</b> esta vitrina solo recorre un circuito conocido para mostrar los componentes. La lógica de navegación <b>teach-and-repeat</b> (5 estados, tramos sin cinta, balizas BLE) vive en el <a href="../../simulador-2-v2-teach-and-repeat/index.html">Simulador 2 V2</a>; aquí no se repite.</div>
   </section>
 
   <!-- ====================================================================
@@ -163,6 +168,16 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
         <h3>Encoder de Efecto Hall</h3>
         <p style="font-size:15px;color:var(--text-muted);margin:0">Genera 11 pulsos por revolución del motor en canales desfasados 90° (cuadratura), permitiendo registrar 937 transiciones por vuelta de rueda.</p>
       </div>
+      <div class="tarjeta" style="border-top:6px solid var(--accent-primary)">
+        <span class="ceja" style="color:var(--accent-primary)">05 · Línea</span>
+        <h3>Regleta de 4 TCRT5000</h3>
+        <p style="font-size:15px;color:var(--text-muted);margin:0">Cuatro sensores infrarrojos separados 18 mm, en ADC1 (GPIO 36, 39, 34 y 35), leen el contraste de la cinta negra de 19 mm. El lazo PD del firmware usa su error ponderado.</p>
+      </div>
+      <div class="tarjeta" style="border-top:6px solid var(--accent-amber)">
+        <span class="ceja" style="color:var(--accent-amber)">06 · Seguridad</span>
+        <h3>2× HC-SR04P con TRIG propio</h3>
+        <p style="font-size:15px;color:var(--text-muted);margin:0">Frente (TRIG GPIO 23, ECHO 33) y atrás (TRIG GPIO 15, ECHO 5), leídos de forma alternada. Con menos de 20 cm al frente el firmware detiene el avance; entre 20 y 50 cm solo avisa.</p>
+      </div>
     </div>
   </section>
 
@@ -171,18 +186,21 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
        ==================================================================== -->
   <section aria-labelledby="t-numeros">
     <h2 id="t-numeros">Parámetros del Modelo Físico</h2>
-    <p class="bajada">Ecuaciones cinemáticas y dinámicas implementadas en <code>model.js</code> y verificadas en Colab.</p>
+    <p class="bajada">Ecuaciones cinemáticas y dinámicas de <code>model.js</code> (un solo modelo: kit Speed 200 con driver L298N) y geometría de los sensores de <code>ruta.js</code>. Los valores de la demo son supuestos de simulación.</p>
     <table class="tabla">
       <thead><tr><th>Parámetro</th><th>Valor de Diseño</th></tr></thead>
       <tbody>
         <tr><td>Batería Li-Ion 3S nominal</td><td>11,1 V (rango: 9,9 V a 12,6 V)</td></tr>
-        <tr><td>Caída interna del driver</td><td>L298N: 2,1 V · TB6612FNG: 0,5 V</td></tr>
+        <tr><td>Caída interna del driver</td><td>L298N: 2,1 V (el driver seleccionado)</td></tr>
         <tr><td>Motor DC 370 sin reductora (12 V)</td><td>6.000 rpm nominales</td></tr>
         <tr><td>Kit Emoshayoga JGA25-371 (Speed 200)</td><td>280 rpm en vacío, reducción 1:21,3</td></tr>
         <tr><td>Factor de carga / inercia del robot</td><td>80 % de la velocidad en vacío</td></tr>
         <tr><td>Resolución de encoder</td><td>11 pulsos/rev rotor × 2 canales en cuadratura</td></tr>
         <tr><td>Diámetro de rueda / Vía entre ruedas</td><td>Ø 65 mm · Vía: 180 mm</td></tr>
         <tr><td>Velocidad calculada a 100% PWM (L298N)</td><td>9,0 V efectivos · 168 rpm · 0,57 m/s (656 Hz)</td></tr>
+        <tr><td>Regleta de línea</td><td>4× TCRT5000, 18 mm entre sensores; cinta de 19 mm; huella simulada ⌀ 8 mm</td></tr>
+        <tr><td>Ultrasonido</td><td>2× HC-SR04P, haz de ±15°; zonas: &lt; 20 cm crítica · 20–50 cm precaución</td></tr>
+        <tr><td>Ruta de demostración</td><td>Circuito cerrado de ≈ 6,6 m; ≈ 0,40 m/s (supuesto, pendiente de medición física)</td></tr>
       </tbody>
     </table>
   </section>
@@ -192,12 +210,13 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
        ==================================================================== -->
   <section aria-labelledby="t-evid">
     <h2 id="t-evid">Evidencias Visuales de la Simulación</h2>
-    <p class="bajada">Capturas del simulador y visualización en modo Rayos X. Toca una para agrandarla.</p>
+    <p class="bajada">Capturas de la vitrina autónoma. Toca una para agrandarla.</p>
     <div class="galeria">
-      <figure><img src="evidencias/01-avanza-heroe.jpg" alt="Robot avanzando a 0,57 m/s"><figcaption><b>Avance nominal:</b> Desplazamiento a 0,57 m/s con 100% PWM y driver L298N.</figcaption></figure>
-      <figure><img src="evidencias/02-motor-rayos-x.jpg" alt="Vista Rayos X del motor y engranes"><figcaption><b>Modo Rayos X:</b> Imán de neodimio, sensores Hall y tren de engranes cilíndricos.</figcaption></figure>
-      <figure><img src="evidencias/03-gira-derecha.jpg" alt="Giro sobre el centro de rotación"><figcaption><b>Rotación diferencial:</b> Ruedas en sentido opuesto girando sobre el eje del chasis.</figcaption></figure>
-      <figure><img src="evidencias/04-despiece.jpg" alt="Despiece de componentes mecánicos"><figcaption><b>Despiece:</b> Vista explosionada de llanta, buje, reductora y motor.</figcaption></figure>
+      <figure><img src="evidencias/01-ruta-autonoma-inspeccion.jpg" alt="Robot recorriendo la ruta con etiquetas de componentes"><figcaption><b>Ruta autónoma:</b> el robot sigue la cinta negra con las etiquetas de sus componentes y la lectura en vivo de la regleta.</figcaption></figure>
+      <figure><img src="evidencias/02-vista-rayos-x-traccion.jpg" alt="Vista Rayos X de la tracción con la ficha abierta"><figcaption><b>Vista Rayos X:</b> ruedas y chasis translúcidos dejan ver motores, engranes, encoders y cableado; ficha de la tracción abierta.</figcaption></figure>
+      <figure><img src="evidencias/03-sensores-zona-critica.jpg" alt="HC-SR04P frontal en zona crítica a 19 cm"><figcaption><b>Zona crítica:</b> el HC-SR04P frontal mide 19 cm (menos de 20 cm) y su cono se pinta de rojo.</figcaption></figure>
+      <figure><img src="evidencias/04-panoramica-ruta-cerrada.jpg" alt="Vista panorámica del circuito cerrado con tres bidones"><figcaption><b>Panorámica:</b> circuito cerrado de cinta negra con tres bidones y el robot señalado con un aro.</figcaption></figure>
+      <figure><img src="evidencias/05-movil-390x844-tcrt5000.jpg" alt="Vista móvil con la ficha de la regleta TCRT5000"><figcaption><b>Móvil (390×844):</b> la ficha sube desde abajo y la regleta marca <code>[0,1,1,0]</code> centrada en la línea.</figcaption></figure>
     </div>
   </section>
 
@@ -238,10 +257,12 @@ const uint8_t PIN_ENC_DER_A = 19;
   <section aria-labelledby="t-archivos">
     <h2 id="t-archivos">Arquitectura del Simulador</h2>
     <ul>
-      <li><a href="codigo/model.js">model.js</a>: Ecuaciones de par, voltaje, velocidad angular y pulsos de encoder.</li>
-      <li><a href="codigo/robot.js">robot.js</a>: Modelo tridimensional a escala real del chasis y motores.</li>
-      <li><a href="codigo/console.js">console.js</a> y <a href="codigo/live.js">live.js</a>: Paneles interactivos de telemetría y maniobras.</li>
-      <li><a href="codigo/stage.js">stage.js</a>: Entorno de renderizado con iluminación y piso.</li>
+      <li><a href="codigo/model.js">model.js</a>: ecuaciones de par, voltaje, velocidad y pulsos de encoder del modelo único (Speed 200 + L298N).</li>
+      <li><a href="codigo/ruta.js">ruta.js</a>: circuito cerrado, geometría de los 4 TCRT5000 y de los 2 HC-SR04P, bidones y zonas.</li>
+      <li><a href="codigo/demo.js">demo.js</a>: recorrido autónomo por seguimiento de trayectoria (sin máquina de estados de teach-and-repeat).</li>
+      <li><a href="codigo/robot.js">robot.js</a>: modelo 3D a escala real del chasis PLA, motores, sensores, ESP32, MPU-6050 y batería 3S.</li>
+      <li><a href="codigo/mundo.js">mundo.js</a>, <a href="codigo/fichas.js">fichas.js</a> y <a href="codigo/main.js">main.js</a>: escena, fichas de componentes e interfaz.</li>
+      <li><a href="codigo/vitrina.test.js">vitrina.test.js</a>: pruebas en Node del núcleo (ruta, sensores, zonas y modelo). <a href="codigo/construir.mjs">construir.mjs</a> genera <code>simulador.html</code>.</li>
     </ul>
   </section>
 </main>

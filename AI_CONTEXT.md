@@ -51,7 +51,7 @@ El proyecto descompone el desarrollo del robot en prototipos medibles y modulare
 - **P03 (Tracción & Encoders):**
   - **Función:** Cinemática diferencial con 2 micromotores JGA25-371 (Speed 200, reducción 1:21,3) comandados por puente H L298N.
   - **Medición:** Encoders óptico/magnéticos de 11 pulsos/rev (cuadratura, 937 cuentas por vuelta de rueda) leídos por interrupciones de hardware.
-  - **Simulación:** Simulador 3D interactivo con modo Rayos X para visualizar imanes Hall y tren de engranes.
+  - **Simulación (19 nov):** vitrina autónoma 3D (`prototipos/P03-motores/avance-02-simulador-3d/`): sin control por teclado, el robot recorre solo un circuito cerrado de cinta negra (≈ 6,6 m, ≈ 0,40 m/s supuesto) con Pausar/Reanudar, Vista Rayos X y Etiquetas. Muestra los componentes reales con ficha al hacer clic y lectura en vivo: regleta 4× TCRT5000 `[0/1,…]`, 2× HC-SR04P con conos (< 20 cm rojo, 20–50 cm ámbar; TRIG trasero separado en GPIO 15), ESP32 móvil, MPU-6050 (rumbo/*heading hold* **[PENDIENTE DE INTEGRACIÓN EN FIRMWARE]**), tracción diferencial + chasis PLA (modelo único Speed 200 + L298N, sin comparativas) y batería 3S. No reimplementa teach-and-repeat (eso es del Simulador 2 V2). Fuente en `codigo/` (esbuild, `construir.mjs`) y 10 pruebas en Node (`codigo/vitrina.test.js`, también en CI).
 
 - **P09 (App Flutter Web) y P10 (ESP32 Virtual):** ver sección 0. Cierran el ciclo app, broker y robot sin hardware (Gemelo Digital, validación SIL).
 - **P11 (Centro de Alertas) y P12 (Analítica + CSV):** dentro de la App P09 (`app/lib/features/telemetria/`). En pruebas: validados en simulación, pendientes de hardware.

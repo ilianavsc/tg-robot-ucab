@@ -38,6 +38,9 @@ jobs:
       - name: Pruebas del Simulador 2 V2 (planta física + núcleo compartido)
         run: node prototipos/simulador-2-v2-teach-and-repeat/simulador_movimiento.test.js
 
+      - name: Pruebas de la vitrina autónoma de P03 (ruta, sensores y modelo)
+        run: node prototipos/P03-motores/avance-02-simulador-3d/codigo/vitrina.test.js
+
       - name: Instalar Flutter (misma versión que en las pruebas)
         uses: subosito/flutter-action@v2
         with:
