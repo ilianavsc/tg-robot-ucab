@@ -33,6 +33,12 @@ lib/
     mqtt/mqtt_client_platform_*.dart  # fábrica por plataforma (TCP vs WebSocket)
     theme/cockpit_theme.dart   # tokens de color, tipografía y ThemeData del Cockpit
   features/
+    auth/
+      sesion_local.dart        # sesión local (mock, sin backend): rol Operador/Admin
+      pantalla_login.dart      # Login (Stitch v2): rol, correo, Modo Demo (Offline)
+    perfil/
+      pantalla_perfil.dart     # Perfil (Operador/Admin): sesión, enlace MQTT, cerrar sesión
+      perfil_admin.dart        # solo Admin: Fail-Safe (solo lectura), usuarios (demo), CSV de P12
     telemetria/
       telemetria_screen.dart   # armazón: app bar, 4 secciones, E-STOP
       pantalla_dashboard.dart  # estado, enlace MQTT, energía 3S, IR, motores, P12
@@ -63,7 +69,7 @@ En nativo (Android/Windows) se conecta por TCP a `broker.hivemq.com:1883`.
 
 ```bash
 flutter analyze
-flutter test        # P11, P12, modelos, Modo Demo y la interfaz Cockpit (4 pantallas, móvil y escritorio)
+flutter test        # P11, P12, modelos, Modo Demo, interfaz Cockpit (4 pantallas) y Login/Perfiles
 ```
 
 ## P11 · Centro de Alertas y P12 · Analítica

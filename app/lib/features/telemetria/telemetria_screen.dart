@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../core/models/estado.dart';
 import '../../core/mqtt/mqtt_service.dart';
 import '../../core/theme/cockpit_theme.dart';
+import '../perfil/pantalla_perfil.dart';
 import 'alertas_p11.dart';
 import 'cockpit_datos.dart';
 import 'cockpit_ui.dart';
@@ -120,6 +121,12 @@ class _TelemetriaScreenState extends State<TelemetriaScreen> {
     );
   }
 
+  /// Abre el Perfil (Operador o Administrador, según la sesión local).
+  void _abrirPerfil() {
+    Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (_) => const PantallaPerfil()));
+  }
+
   @override
   Widget build(BuildContext context) {
     final MqttService servicio = context.watch<MqttService>();
@@ -130,6 +137,7 @@ class _TelemetriaScreenState extends State<TelemetriaScreen> {
         servicio: servicio,
         seccion: _secciones[_indice].nombre,
         alAjustes: _abrirConexion,
+        alPerfil: _abrirPerfil,
       ),
       body: Center(
         child: ConstrainedBox(
@@ -215,11 +223,15 @@ class CockpitAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.servicio,
     required this.seccion,
     required this.alAjustes,
+    this.alPerfil,
   });
 
   final MqttService servicio;
   final String seccion;
   final VoidCallback alAjustes;
+
+  /// Abre el Perfil; si es `null` el botón no se muestra.
+  final VoidCallback? alPerfil;
 
   @override
   Size get preferredSize => const Size.fromHeight(64);
@@ -316,31 +328,62 @@ class CockpitAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                     const SizedBox(width: 8),
                     _PildoraBateria(estado: sinSenal ? null : e),
-                    const SizedBox(width: 8),
-                    Semantics(
-                      button: true,
-                      label: 'Conexión y broker MQTT',
-                      child: Material(
-                        color: CockpitColors.surfaceHigh,
-                        borderRadius: BorderRadius.circular(CockpitRadius.lg),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(CockpitRadius.lg),
-                          onTap: alAjustes,
-                          child: const SizedBox(
-                            width: 48,
-                            height: 48,
-                            child: Icon(
-                              Icons.tune,
-                              color: CockpitColors.onSurface,
-                            ),
-                          ),
-                        ),
-                      ),
+                    const SizedBox(width: 6),
+                    _BotonBarra(
+                      etiqueta: 'Conexión y broker MQTT',
+                      icono: Icons.tune,
+                      alPulsar: alAjustes,
                     ),
+                    if (alPerfil != null) ...<Widget>[
+                      const SizedBox(width: 6),
+                      _BotonBarra(
+                        etiqueta: 'Perfil',
+                        icono: Icons.person_outline,
+                        alPulsar: alPerfil!,
+                        clave: const Key('boton-perfil'),
+                      ),
+                    ],
                   ],
                 ),
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Botón cuadrado de 44 px de la barra superior (conexión y perfil).
+class _BotonBarra extends StatelessWidget {
+  const _BotonBarra({
+    required this.etiqueta,
+    required this.icono,
+    required this.alPulsar,
+    this.clave,
+  });
+
+  final String etiqueta;
+  final IconData icono;
+  final VoidCallback alPulsar;
+  final Key? clave;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: etiqueta,
+      child: Material(
+        color: CockpitColors.surfaceHigh,
+        borderRadius: BorderRadius.circular(CockpitRadius.lg),
+        child: InkWell(
+          key: clave,
+          borderRadius: BorderRadius.circular(CockpitRadius.lg),
+          onTap: alPulsar,
+          child: SizedBox(
+            width: 44,
+            height: 44,
+            child: Icon(icono, color: CockpitColors.onSurface),
           ),
         ),
       ),

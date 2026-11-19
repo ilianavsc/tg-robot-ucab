@@ -106,7 +106,7 @@ class TarjetaAnaliticaSesion extends StatelessWidget {
                   habilitado: hayDatos,
                   child: FilledButton.icon(
                     onPressed: hayDatos
-                        ? () => _exportar(context, servicio)
+                        ? () => exportarReporteCsv(context, servicio)
                         : null,
                     icon: const Icon(Icons.download, size: 18),
                     label: const FittedBox(
@@ -134,27 +134,33 @@ class TarjetaAnaliticaSesion extends StatelessWidget {
       ),
     );
   }
+}
 
-  Future<void> _exportar(BuildContext context, MqttService servicio) async {
-    final ScaffoldMessengerState mensajero = ScaffoldMessenger.of(context);
-    final String csv = servicio.reporteCsv();
-    final DateTime ahora = DateTime.now();
-    String dos(int n) => n.toString().padLeft(2, '0');
-    final String nombre =
-        'sesion_robot_${ahora.year}${dos(ahora.month)}${dos(ahora.day)}_'
-        '${dos(ahora.hour)}${dos(ahora.minute)}${dos(ahora.second)}.csv';
-    final bool descargado = await descargarCsv(nombre, csv);
-    if (!descargado) {
-      await Clipboard.setData(ClipboardData(text: csv));
-    }
-    mensajero.showSnackBar(
-      SnackBar(
-        content: Text(
-          descargado
-              ? 'Reporte descargado: $nombre'
-              : 'Sin descarga en esta plataforma: CSV copiado al portapapeles.',
-        ),
-      ),
-    );
+/// Genera el reporte CSV de la sesión (`MqttService.reporteCsv()`, P12) y lo
+/// descarga (Flutter Web) o lo copia al portapapeles. La usan la tarjeta de
+/// analítica del Dashboard y la vista de Administrador del Perfil.
+Future<void> exportarReporteCsv(
+  BuildContext context,
+  MqttService servicio,
+) async {
+  final ScaffoldMessengerState mensajero = ScaffoldMessenger.of(context);
+  final String csv = servicio.reporteCsv();
+  final DateTime ahora = DateTime.now();
+  String dos(int n) => n.toString().padLeft(2, '0');
+  final String nombre =
+      'sesion_robot_${ahora.year}${dos(ahora.month)}${dos(ahora.day)}_'
+      '${dos(ahora.hour)}${dos(ahora.minute)}${dos(ahora.second)}.csv';
+  final bool descargado = await descargarCsv(nombre, csv);
+  if (!descargado) {
+    await Clipboard.setData(ClipboardData(text: csv));
   }
+  mensajero.showSnackBar(
+    SnackBar(
+      content: Text(
+        descargado
+            ? 'Reporte descargado: $nombre'
+            : 'Sin descarga en esta plataforma: CSV copiado al portapapeles.',
+      ),
+    ),
+  );
 }
