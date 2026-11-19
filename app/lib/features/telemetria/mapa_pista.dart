@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui' show PathMetric, Tangent;
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -9,6 +10,7 @@ import '../../core/models/estado.dart';
 import '../../core/models/ultrasonido.dart';
 import '../../core/mqtt/mqtt_service.dart';
 import '../../core/theme/cockpit_theme.dart';
+import '../perfil/aprendizaje_ruta.dart';
 import 'cockpit_datos.dart';
 import 'cockpit_ui.dart';
 
@@ -177,6 +179,7 @@ class PintorPista extends CustomPainter {
     this.obstaculo,
     this.frenteCm,
     this.zona = ZonaSonar.sinDatos,
+    this.puntosRuta = const <double>[],
   });
 
   final DestinoPista destino;
@@ -187,6 +190,10 @@ class PintorPista extends CustomPainter {
   final double? obstaculo;
   final double? frenteCm;
   final ZonaSonar zona;
+
+  /// Puntos de control aprendidos por el Administrador (fracciones 0..1) que
+  /// no coinciden con una estación: se dibujan como rombos pequeños.
+  final List<double> puntosRuta;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -235,6 +242,11 @@ class PintorPista extends CustomPainter {
         Paint()..color = CockpitColors.hazard.withValues(alpha: 0.25),
       );
       canvas.drawCircle(p, 6, Paint()..color = CockpitColors.hazard);
+    }
+
+    // Puntos de control aprendidos (ruta guardada del Administrador)
+    for (int i = 0; i < puntosRuta.length; i++) {
+      _puntoControl(canvas, g.puntoEn(puntosRuta[i]), i + 1);
     }
 
     // Nodos
@@ -299,6 +311,36 @@ class PintorPista extends CustomPainter {
         canvas.drawPath(m.extractPath(d, math.min(d + 4, m.length)), pincel);
       }
     }
+  }
+
+  void _puntoControl(Canvas canvas, Offset p, int n) {
+    final Path rombo = Path()
+      ..moveTo(p.dx, p.dy - 7)
+      ..lineTo(p.dx + 7, p.dy)
+      ..lineTo(p.dx, p.dy + 7)
+      ..lineTo(p.dx - 7, p.dy)
+      ..close();
+    canvas.drawPath(rombo, Paint()..color = CockpitColors.surface);
+    canvas.drawPath(
+      rombo,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..color = CockpitColors.secondary,
+    );
+    final TextPainter tp = TextPainter(
+      text: TextSpan(
+        text: 'P$n',
+        style: mono(
+          size: 9,
+          peso: FontWeight.w700,
+          color: CockpitColors.secondary,
+          espaciado: 0.2,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(canvas, p + Offset(-tp.width / 2, 9));
   }
 
   void _nodo(Canvas canvas, PistaGeometria g, DestinoPista d) {
@@ -421,7 +463,8 @@ class PintorPista extends CustomPainter {
       v.fraccionInicioTramo != fraccionInicioTramo ||
       v.obstaculo != obstaculo ||
       v.frenteCm != frenteCm ||
-      v.zona != zona;
+      v.zona != zona ||
+      !listEquals(v.puntosRuta, puntosRuta);
 }
 
 /// Texto de la seguridad frontal para la tarjeta de misión.
@@ -464,6 +507,16 @@ class TarjetaMapaPista extends StatelessWidget {
     final ZonaSonar zona = zonaFrente(us);
     final bool demo = sim != null;
     final enlace = _enlace(servicio);
+    // Puntos de control de la ruta guardada (solo los que no son estación)
+    final List<double> extras = <double>[
+      for (final double f
+          in context.watch<AprendizajeRuta?>()?.fraccionesControl ??
+              const <double>[])
+        if (!DestinoPista.values.any(
+          (DestinoPista d) => (fraccionDeDestino(d) - f).abs() < 0.005,
+        ))
+          f,
+    ];
 
     return CockpitCard(
       key: const Key('mapa-pista'),
@@ -473,7 +526,13 @@ class TarjetaMapaPista extends StatelessWidget {
         children: <Widget>[
           _Cabecera(demo: demo, enlace: enlace),
           const SizedBox(height: 12),
-          _Mapa(sim: sim, us: us, zona: zona, hayDatos: e != null),
+          _Mapa(
+            sim: sim,
+            us: us,
+            zona: zona,
+            hayDatos: e != null,
+            puntosRuta: extras,
+          ),
           const SizedBox(height: 12),
           _TarjetaMision(sim: sim, estado: e, zona: zona),
           const SizedBox(height: 14),
@@ -560,8 +619,10 @@ class _Mapa extends StatelessWidget {
     required this.us,
     required this.zona,
     required this.hayDatos,
+    required this.puntosRuta,
   });
 
+  final List<double> puntosRuta;
   final SimulacionPista? sim;
   final Ultrasonido? us;
   final ZonaSonar zona;
@@ -613,6 +674,7 @@ class _Mapa extends StatelessWidget {
                       obstaculo: s?.obstaculoFraccion,
                       frenteCm: s != null ? s.frenteCm : us?.frenteValido,
                       zona: zona,
+                      puntosRuta: puntosRuta,
                     ),
                   ),
                 ),

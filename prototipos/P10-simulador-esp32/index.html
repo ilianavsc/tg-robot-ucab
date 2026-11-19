@@ -332,6 +332,16 @@
 .btn-sil.activo { background: rgba(245, 158, 11, 0.18); box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.35); }
 @media (hover: hover) and (pointer: fine) { .btn-sil:hover { background: #1e293b; } }
 
+/* ---- Escenario híbrido (SIL): tramo sin cinta + BLE ---- */
+.hib-panel { border-color: #38bdf8; }
+.hib-panel .sil-cab strong { color: #7dd3fc; }
+.hib-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 10px; }
+.hib-grid .seg-item strong { color: #7dd3fc; }
+.hib-grid .seg-item strong.aviso { color: #fde68a; }
+.hib-grid .seg-item strong.ok { color: #86efac; }
+.hib-nota { margin: 10px 0 0; font-family: var(--font-mono); font-size: 11.5px; color: #94a3b8; overflow-wrap: anywhere; }
+.btn-sil.activo-hib { background: rgba(56, 189, 248, 0.18); box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35); }
+
 /* ---- Perfiles ---- */
 .perfiles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 0 0 20px; }
 .perfil-item {
@@ -567,6 +577,29 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
           </div>
         </div>
 
+        <!-- Escenario híbrido (SIL): tramo sin cinta con heading hold simulado de la MPU-6050 y RSSI BLE de 2 balizas ESP32 fijas -->
+        <div class="sil-panel hib-panel" id="panel-hibrido" role="group" aria-labelledby="t-hibrido">
+          <div class="sil-cab">
+            <strong id="t-hibrido">Simulación Híbrida (SIL): tramo sin cinta + balizas BLE</strong>
+            <span>Escenario virtual: 1 ESP32 móvil + 2 ESP32 fijos (balizas BLE) en el Cuarto de Componentes y el Laboratorio 1.</span>
+          </div>
+          <div class="sil-botones">
+            <button type="button" class="btn-sil aviso" id="btn-hibrido" aria-pressed="false">🛤️ Activar tramo sin cinta (heading hold + BLE)</button>
+            <button type="button" class="btn-sil ok" id="btn-hibrido-reiniciar" disabled>♻️ Reiniciar escenario híbrido</button>
+          </div>
+          <div class="hib-grid" aria-live="polite">
+            <div class="seg-item"><small>Fase</small><strong id="hib-fase">Inactivo</strong></div>
+            <div class="seg-item"><small>TCRT5000 (S1…S4)</small><strong id="hib-tcrt">—</strong></div>
+            <div class="seg-item"><small>Heading hold (MPU-6050 virtual)</small><strong id="hib-heading">—</strong></div>
+            <div class="seg-item"><small>Deriva lateral con / sin hold</small><strong id="hib-deriva">—</strong></div>
+            <div class="seg-item"><small>RSSI baliza Cuarto de Componentes</small><strong id="hib-rssi-cuarto">— dBm</strong></div>
+            <div class="seg-item"><small>RSSI baliza Laboratorio 1</small><strong id="hib-rssi-lab">— dBm</strong></div>
+            <div class="seg-item"><small>Confirmación BLE</small><strong id="hib-confirma">—</strong></div>
+            <div class="seg-item"><small>Avance del recorrido</small><strong id="hib-avance">—</strong></div>
+          </div>
+          <p class="hib-nota">SIL, no HIL: la lectura de la MPU-6050 y el escaneo BLE <b>[PENDIENTE DE INTEGRACIÓN EN FIRMWARE]</b>. El heading hold mantiene el rumbo <i>relativo</i> con el giroscopio (sin magnetómetro ni brújula). Las distancias, la velocidad y el sesgo del giroscopio son supuestos de simulación.</p>
+        </div>
+
         <div class="perfiles-grid" id="grid-perfiles"></div>
 
         <div class="log-cab">
@@ -598,6 +631,7 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script src="../../datos/proyecto.js"></script>
 <script src="../../assets/sitio.js"></script>
+<script src="p10_hibrido_modelo.js"></script>
 <script>
 (function () {
   var TOPICO = "ucab-tg-sf/robot/estado";
@@ -1141,7 +1175,7 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
      (orden, slider, inyección SIL, timeout): el firmware reacciona a 100 Hz. */
   function publicarEstado() {
     var b = brokerActual();
-    var p = ultimoPerfil;
+    var p = hib.activo ? perfilHibrido(ultimoPerfil) : ultimoPerfil;
     var bateriaV = silBateriaV !== null ? silBateriaV : p.bateria_v;
     var bateria = silBateriaV !== null ? bateriaPorcentaje(silBateriaV) : p.bateria;
     revisarBateria(bateriaV);
@@ -1412,7 +1446,7 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
   });
 
   /* ---- Inyección de eventos / Pruebas SIL ---- */
-  var silBotones = document.querySelectorAll(".btn-sil");
+  var silBotones = document.querySelectorAll(".btn-sil[data-sil]");
   function marcarSil(nombre) {
     silBotones.forEach(function (bt) {
       bt.classList.toggle("activo", bt.getAttribute("data-sil") === nombre && nombre !== "normal");
@@ -1489,6 +1523,172 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
     if (encendido) apagar();
     else encender();
   });
+  /* ---- Escenario híbrido (SIL): tramo sin cinta + RSSI BLE ----
+     El modelo vive en p10_hibrido_modelo.js (puro, con pruebas en Node). */
+  var T_BLE = "ucab-tg-sf/robot/ble_sim"; /* SOLO simulación: {"baliza","rssi_dbm","simulado":true,"t"} (QoS 0); no existe en el firmware */
+  var hib = P10Hibrido.crear();
+  var timerHib = null;
+  var ultimaLecturaLog = 0;
+  var faseHibPrevia = "inactivo";
+  var btnHibEl = document.getElementById("btn-hibrido");
+  var btnHibRstEl = document.getElementById("btn-hibrido-reiniciar");
+  var HE = {
+    fase: document.getElementById("hib-fase"),
+    tcrt: document.getElementById("hib-tcrt"),
+    heading: document.getElementById("hib-heading"),
+    deriva: document.getElementById("hib-deriva"),
+    rc: document.getElementById("hib-rssi-cuarto"),
+    rl: document.getElementById("hib-rssi-lab"),
+    confirma: document.getElementById("hib-confirma"),
+    avance: document.getElementById("hib-avance")
+  };
+
+  /* Telemetría del robot virtual durante el escenario: sin cinta, el robot sigue
+     recto por heading hold (en el firmware real la línea perdida lo detendría). */
+  function perfilHibrido(base) {
+    var v = 0;
+    if (hib.fase === "con-cinta" || hib.fase === "sin-cinta") v = P10Hibrido.C.V_MS;
+    else if (hib.fase === "confirmado") v = P10Hibrido.C.V_MS / 2;
+    var copia = {};
+    for (var k in base) copia[k] = base[k];
+    copia.estado = "autonomo";
+    copia.sensores = P10Hibrido.tcrt(hib);
+    copia.ladoPerdida = -1;
+    copia.v_izq = v;
+    copia.v_der = v;
+    copia.linea_mm = calcularLineaMm(copia.sensores, -1);
+    return copia;
+  }
+
+  function pintarHibrido() {
+    var C = P10Hibrido.C;
+    var sin = P10Hibrido.sinCinta(hib);
+    HE.fase.textContent = P10Hibrido.ETIQUETAS[hib.fase];
+    HE.fase.className = hib.fase === "sin-cinta" ? "aviso" : (hib.fase === "inactivo" ? "" : "ok");
+    if (!hib.activo) {
+      HE.tcrt.textContent = "—"; HE.heading.textContent = "—"; HE.deriva.textContent = "—";
+      HE.rc.textContent = "— dBm"; HE.rl.textContent = "— dBm"; HE.confirma.textContent = "—"; HE.avance.textContent = "—";
+      return;
+    }
+    var s = P10Hibrido.tcrt(hib);
+    HE.tcrt.textContent = "[" + s.join(", ") + "]" + (sin ? " · sin cinta" : " · con cinta");
+    HE.tcrt.className = sin ? "aviso" : "ok";
+    HE.heading.textContent = sin
+      ? "hold " + (hib.headingErrDeg >= 0 ? "+" : "") + hib.headingErrDeg.toFixed(2) + "° (relativo)"
+      : "inactivo (hay cinta)";
+    HE.deriva.textContent = hib.derivaHoldCm.toFixed(1) + " cm / " + hib.derivaSinHoldCm.toFixed(1) + " cm";
+    HE.rc.textContent = hib.rssiCuarto.toFixed(1) + " dBm";
+    HE.rl.textContent = hib.rssiLab.toFixed(1) + " dBm";
+    HE.confirma.textContent = hib.confirmada
+      ? "CONFIRMADA (≥ " + C.CONFIRMA_DBM + " dBm × " + C.LECTURAS_CONFIRMACION + ")"
+      : hib.confirmaciones + " / " + C.LECTURAS_CONFIRMACION + " lecturas ≥ " + C.CONFIRMA_DBM + " dBm";
+    HE.avance.textContent = hib.s.toFixed(1) + " / " + C.LONGITUD_M + " m";
+    /* Con el ESP32 apagado la telemetría no sale por MQTT: se refleja en las tarjetas locales */
+    var p = perfilHibrido(ultimoPerfil);
+    var bv = silBateriaV !== null ? silBateriaV : p.bateria_v;
+    pintarTelemetria({
+      bateria: silBateriaV !== null ? bateriaPorcentaje(silBateriaV) : p.bateria,
+      bateria_v: bv, estado: "autonomo", sensores: p.sensores, linea_mm: p.linea_mm,
+      v_izq: p.v_izq, v_der: p.v_der
+    });
+  }
+
+  function emitirBle() {
+    if (hib.lecturas === ultimaLecturaLog || hib.lecturas % 5 !== 0) return; /* 1 aviso por segundo */
+    ultimaLecturaLog = hib.lecturas;
+    var t = Date.now() - inicioMs;
+    var lecturas = [["cuarto", hib.rssiCuarto, "Cuarto de Componentes"], ["lab1", hib.rssiLab, "Laboratorio 1"]];
+    lecturas.forEach(function (l) {
+      var j = JSON.stringify({ baliza: l[0], rssi_dbm: l[1], simulado: true, t: t });
+      if (cliente && conectado) {
+        cliente.publish(T_BLE, j, { qos: 0 });
+        escribirLog("📶 BLE (simulado) <b>" + l[2] + "</b>: <code>" + l[1].toFixed(1) + " dBm</code> → <b>" + T_BLE + "</b>");
+      } else {
+        escribirLog("📶 BLE (simulado) <b>" + l[2] + "</b>: <code>" + l[1].toFixed(1) + " dBm</code>");
+      }
+    });
+  }
+
+  function tickHibrido() {
+    P10Hibrido.avanzar(hib, 0.2);
+    pintarHibrido();
+    emitirBle();
+    if (hib.fase !== faseHibPrevia) {
+      var nueva = hib.fase;
+      faseHibPrevia = nueva;
+      escribirLog("🛤️ Escenario híbrido: <b>" + P10Hibrido.ETIQUETAS[nueva] + "</b> (" + hib.s.toFixed(1) + " m).");
+      reaccionar();
+    }
+    if (hib.fase === "completo" && timerHib) {
+      clearInterval(timerHib);
+      timerHib = null;
+    }
+  }
+
+  function detenerHibrido(texto) {
+    if (timerHib) { clearInterval(timerHib); timerHib = null; }
+    hib = P10Hibrido.crear();
+    faseHibPrevia = "inactivo";
+    ultimaLecturaLog = 0;
+    ESCENARIOS_SIL.normal();
+    marcarSil("normal");
+    btnHibEl.classList.remove("activo-hib");
+    btnHibEl.setAttribute("aria-pressed", "false");
+    btnHibEl.textContent = "🛤️ Activar tramo sin cinta (heading hold + BLE)";
+    btnHibRstEl.disabled = true;
+    pintarHibrido();
+    if (texto) escribirLog(texto);
+    reaccionar();
+  }
+
+  function arrancarHibrido() {
+    ESCENARIOS_SIL.normal();
+    marcarSil("normal");
+    /* ultrasonidos despejados: el escenario aísla el efecto de la cinta */
+    ultraManual = true; ultraFrente = 150; ultraAtras = 160;
+    btnUltraPerfilEl.disabled = false;
+    modoP10 = "auto";
+    hib = P10Hibrido.iniciar(P10Hibrido.crear());
+    faseHibPrevia = hib.fase;
+    ultimaLecturaLog = 0;
+    btnHibEl.classList.add("activo-hib");
+    btnHibEl.setAttribute("aria-pressed", "true");
+    btnHibEl.textContent = "⏹ Detener escenario híbrido";
+    btnHibRstEl.disabled = false;
+    if (timerHib) clearInterval(timerHib);
+    timerHib = setInterval(tickHibrido, 200);
+    escribirLog("🛤️ SIL híbrido: salida del <b>Cuarto de Componentes</b> hacia el <b>Laboratorio 1</b>. Tras " +
+      P10Hibrido.C.INICIO_SIN_CINTA_M.toFixed(0) + " m se acaba la cinta (<code>TCRT5000 = [0,0,0,0]</code>): el robot sigue con heading hold simulado de la MPU-6050 hasta que la baliza BLE del Laboratorio 1 confirme proximidad (RSSI " +
+      P10Hibrido.C.RSSI_LEJOS + " → " + P10Hibrido.C.RSSI_CERCA + " dBm al acercarse)." +
+      (encendido ? "" : " <i>(Enciende el ESP32 virtual para publicar la telemetría.)</i>"));
+    pintarHibrido();
+    reaccionar();
+  }
+
+  btnHibEl.addEventListener("click", function () {
+    if (hib.activo) detenerHibrido("⏹ Escenario híbrido detenido: ciclo normal restaurado.");
+    else arrancarHibrido();
+  });
+  btnHibRstEl.addEventListener("click", function () {
+    detenerHibrido();
+    arrancarHibrido();
+  });
+  /* Un escenario SIL normal (botones de arriba) cancela el híbrido */
+  silBotones.forEach(function (bt) {
+    bt.addEventListener("click", function () {
+      if (hib.activo) {
+        if (timerHib) { clearInterval(timerHib); timerHib = null; }
+        hib = P10Hibrido.crear();
+        faseHibPrevia = "inactivo";
+        btnHibEl.classList.remove("activo-hib");
+        btnHibEl.setAttribute("aria-pressed", "false");
+        btnHibEl.textContent = "🛤️ Activar tramo sin cinta (heading hold + BLE)";
+        btnHibRstEl.disabled = true;
+        pintarHibrido();
+      }
+    });
+  });
+
   renderBrokers();
   renderBotonPrincipal();
   renderPerfiles(-1);

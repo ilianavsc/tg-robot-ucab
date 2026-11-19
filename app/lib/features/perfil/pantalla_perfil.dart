@@ -98,6 +98,8 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
               if (admin) ...<Widget>[
                 const TarjetaFailSafe(),
                 const SizedBox(height: 12),
+                const TarjetaAprendizajeRuta(),
+                const SizedBox(height: 12),
                 const TarjetaGestionUsuarios(),
                 const SizedBox(height: 12),
               ],

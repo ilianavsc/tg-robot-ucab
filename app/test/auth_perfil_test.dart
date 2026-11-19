@@ -8,6 +8,7 @@ import 'package:robot_ucab_app/core/mqtt/mqtt_service.dart';
 import 'package:robot_ucab_app/core/theme/cockpit_theme.dart';
 import 'package:robot_ucab_app/features/auth/registro_usuarios.dart';
 import 'package:robot_ucab_app/features/auth/sesion_local.dart';
+import 'package:robot_ucab_app/features/perfil/aprendizaje_ruta.dart';
 import 'package:robot_ucab_app/features/perfil/pantalla_perfil.dart';
 import 'package:robot_ucab_app/main.dart' show PuertaAcceso;
 import 'package:robot_ucab_app/shared/widgets/pastilla_mqtt.dart';
@@ -53,6 +54,9 @@ Future<_Entorno> _montar(
         ChangeNotifierProvider<MqttService>.value(value: servicio),
         ChangeNotifierProvider<SesionLocal>.value(value: sesion),
         ChangeNotifierProvider<RegistroUsuarios>.value(value: registro),
+        ChangeNotifierProvider<AprendizajeRuta>(
+          create: (_) => AprendizajeRuta(),
+        ),
       ],
       child: MaterialApp(
         theme: buildCockpitTheme(),

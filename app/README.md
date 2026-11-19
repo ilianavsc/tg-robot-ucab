@@ -42,6 +42,8 @@ lib/
       pantalla_perfil.dart     # Perfil (Operador/Admin): sesión, enlace MQTT, cerrar sesión
       perfil_admin.dart        # solo Admin: Fail-Safe (solo lectura), acceso a usuarios, CSV de P12
       gestion_usuarios.dart    # solo Admin: crear y eliminar Operadores (en memoria, sin backend)
+      aprendizaje_ruta.dart    # solo Admin: modelo de la pasada de aprendizaje, puntos de control y reducción de cinta (SIL)
+      pantalla_aprendizaje_ruta.dart # solo Admin: pasada virtual, ruta guardada y vista previa de la reducción progresiva de cinta
     telemetria/
       telemetria_screen.dart   # armazón: app bar, 4 secciones, Freno Remoto
       mapa_pista.dart          # Mapa de Pista: circuito, cono del ultrasonido, misión, destinos y pausa

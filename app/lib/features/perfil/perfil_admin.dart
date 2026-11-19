@@ -5,7 +5,9 @@ import '../../core/alertas/centro_alertas.dart';
 import '../../core/mqtt/mqtt_service.dart';
 import '../../core/theme/cockpit_theme.dart';
 import '../auth/registro_usuarios.dart';
+import 'aprendizaje_ruta.dart';
 import 'gestion_usuarios.dart';
+import 'pantalla_aprendizaje_ruta.dart';
 import '../telemetria/analitica_p12.dart';
 import '../telemetria/cockpit_ui.dart';
 
@@ -161,6 +163,81 @@ class _FilaFailSafe extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// **Aprendizaje de Ruta (Admin)**: acceso a la pasada virtual, los puntos de
+/// control y la vista previa de la reducción progresiva de cinta (SIL).
+class TarjetaAprendizajeRuta extends StatelessWidget {
+  const TarjetaAprendizajeRuta({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final AprendizajeRuta a = context.watch<AprendizajeRuta>();
+    return Material(
+      color: CockpitColors.surfaceLow,
+      borderRadius: BorderRadius.circular(CockpitRadius.lg),
+      child: InkWell(
+        key: const Key('perfil-aprendizaje'),
+        borderRadius: BorderRadius.circular(CockpitRadius.lg),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const PantallaAprendizajeRuta(),
+          ),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(CockpitRadius.lg),
+            border: Border.all(
+              color: CockpitColors.outlineVariant.withValues(alpha: 0.55),
+            ),
+          ),
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: CockpitColors.surfaceContainer,
+                  borderRadius: BorderRadius.circular(CockpitRadius.lg),
+                ),
+                child: const Icon(
+                  Icons.alt_route,
+                  size: 22,
+                  color: CockpitColors.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Aprendizaje de Ruta (Admin)',
+                      style: CockpitText.titleMd.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      '${a.puntosDeControl.length} puntos de control · simulación (SIL)',
+                      style: CockpitText.telemetrySm.copyWith(
+                        color: CockpitColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                color: CockpitColors.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -29,6 +29,9 @@ jobs:
       - name: Pruebas del firmware en el PC (SIL)
         run: sh firmware/pruebas_pc/correr.sh
 
+      - name: Pruebas del escenario híbrido de P10 (SIL, Node)
+        run: node prototipos/P10-simulador-esp32/p10_hibrido_modelo.test.js
+
       - name: Instalar Flutter (misma versión que en las pruebas)
         uses: subosito/flutter-action@v2
         with:

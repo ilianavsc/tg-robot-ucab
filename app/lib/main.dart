@@ -7,6 +7,7 @@ import 'core/theme/cockpit_theme.dart';
 import 'features/auth/pantalla_login.dart';
 import 'features/auth/registro_usuarios.dart';
 import 'features/auth/sesion_local.dart';
+import 'features/perfil/aprendizaje_ruta.dart';
 import 'features/telemetria/telemetria_screen.dart';
 
 /// Punto de entrada de la app.
@@ -34,6 +35,10 @@ class AppRobotUcab extends StatelessWidget {
         ChangeNotifierProvider<SesionLocal>(create: (_) => SesionLocal()),
         ChangeNotifierProvider<RegistroUsuarios>(
           create: (_) => RegistroUsuarios(),
+        ),
+        // Aprendizaje de ruta (solo Admin, SIL en memoria): la usa el Operador.
+        ChangeNotifierProvider<AprendizajeRuta>(
+          create: (_) => AprendizajeRuta(),
         ),
       ],
       child: MaterialApp(
