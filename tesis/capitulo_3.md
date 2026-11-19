@@ -16,9 +16,9 @@ El capítulo responde al objetivo general y a los objetivos específicos plantea
 
 ### III.2.1 Definición y encuadre
 
-Este trabajo se enmarca en la modalidad de **Proyecto Especial de Ingeniería**: su resultado principal no es solo conocimiento descriptivo o explicativo, sino un **producto tecnológico original** (un sistema robot + aplicación + protocolo de comunicación) que se diseña, se construye y se valida frente a requerimientos medibles. **[VERIFICAR: definición textual de "Proyecto Especial" en la normativa de Trabajo de Grado de la Escuela de Telecomunicaciones de la UCAB.]**
+Este trabajo se enmarca en la modalidad de **Proyecto Especial de Ingeniería**: su resultado principal no es solo conocimiento descriptivo o explicativo, sino un **producto tecnológico original** (un sistema robot + aplicación + protocolo de comunicación) que se diseña, se construye y se valida frente a requerimientos medibles. **[VERIFICAR: definición textual de "Proyecto Especial" en la normativa de Trabajo de Grado de la UCAB; no se encontró publicada con ese nombre (ver los documentos a consultar en la sección III.7).]**
 
-En la clasificación metodológica habitual en la investigación venezolana, esta modalidad se corresponde con el nivel **proyectivo** (propone y desarrolla una solución a una necesidad práctica a partir de una indagación previa del problema) y con la investigación **aplicada** (Hurtado de Barrera, 2010; Arias, 2012). **[VERIFICAR: cita y página exactas.]**
+En la clasificación de tipos de investigación de Hurtado de Barrera (2010), esta modalidad corresponde a la **investigación proyectiva**: la que, a partir de una indagación previa de la situación, propone y desarrolla una solución a una necesidad práctica, y no se limita a describirla o explicarla. Como el resultado es un artefacto, el trabajo tiene además carácter **aplicado** y se complementa con una evaluación experimental del prototipo (sección III.3).
 
 ### III.2.2 Justificación del nivel
 
@@ -38,6 +38,8 @@ En la clasificación metodológica habitual en la investigación venezolana, est
 ## III.3 Diseño de la investigación: Prototipo
 
 ### III.3.1 Estrategia de diseño
+
+Arias (2012) define el diseño de la investigación como la estrategia general que adopta el investigador para responder al problema planteado y lo clasifica en documental, de campo y experimental. Este trabajo combina el diseño **experimental** (el prototipo se mide bajo condiciones controladas, en simulación y en banco) con el de **campo** (la validación final en el laboratorio de la UCAB), apoyados en revisión **documental** (hojas de datos y normas).
 
 El diseño es de **desarrollo de prototipos evolutivos con validación experimental**: el sistema se divide en prototipos pequeños, cada uno con un propósito medible; cada prototipo se simula, se construye, se mide y termina con una **ficha** y una **decisión documentada**. Se combinan tres entornos de validación:
 
@@ -99,11 +101,13 @@ Cada decisión técnica se registra con **fecha, decisión, razón y evidencia**
 
 ### III.4.1 Técnicas e instrumentos
 
+Siguiendo a Arias (2012), una **técnica** es el procedimiento o la forma particular de obtener datos o información, y un **instrumento** es el recurso, dispositivo o formato (en papel o digital) que se utiliza para obtener, registrar o almacenar esa información. La tabla separa ambos conceptos para cada fuente de datos del proyecto.
+
 | # | Técnica | Instrumento | Qué se registra | Dónde queda |
 |---|---|---|---|---|
 | 1 | **Entrevista semiestructurada** | Guía de 13 preguntas en 5 bloques: el pedido de hoy, dónde están las cosas, quién y cómo, el robot en el laboratorio y material | Demanda, tamaño y peso de los pedidos, horarios, reglas, red Wi-Fi, carga, preocupaciones de seguridad | `docs/requerimientos/borrador-requerimientos.md`; `TG.entrevista` (realizada el 14/11/2026) |
 | 2 | **Observación directa** | Hoja de observación de 10 aspectos (recorrido, pasillos, piso, luz, obstáculos, estantes, demanda, Wi-Fi, carga, fotos) | Medidas y condiciones del entorno de operación | `TG.observacion`; resultados **[POR COMPLETAR]** |
-| 3 | **Revisión documental** | Hojas de datos de los componentes (ESP32-WROOM-32, JGA25-371, L298N, HC-SR04P, TCRT5000, BMS 3S) y la especificación MQTT 3.1.1 (OASIS, 2014) | Parámetros eléctricos y límites de operación | Capítulo II; `docs/tomo/objetivo-2-seleccion-hardware.md`; `docs/sensores.md` |
+| 3 | **Revisión documental** | Hojas de datos de los componentes (ESP32-WROOM-32, JGA25-371, L298N, HC-SR04P, TCRT5000, BMS 3S) y la especificación MQTT 3.1.1 (Banks y Gupta, 2014) | Parámetros eléctricos y límites de operación | Capítulo II; `docs/tomo/objetivo-2-seleccion-hardware.md`; `docs/sensores.md` |
 | 4 | **Experimentación en simulación (SIL)** | Banco de pruebas P01, simuladores 3D (P01, P03, P08), ESP32 virtual P10, pruebas del firmware en el PC (58 comprobaciones), pruebas de la app (`flutter test`) | Resultados de pruebas, tiempos, conteos de mensajes | `prototipos/*/evidencias/`, `prototipos/P01-mqtt-base/datos/*.csv`, `firmware/pruebas_pc/` |
 | 5 | **Medición en banco y campo (HIL)** | Monitor Serie (115200), MQTTX, multímetro, cinta métrica, cronómetro y video; plantilla `prototipos/P02-sensores/README.md`; lista de cotejo eléctrica y de flasheo | Calibración ADC, exactitud de distancia, latencia de parada, tensión de corte, repeticiones | `docs/guia_pruebas_lab.md`, `docs/checklist_hardware.md`, `docs/checklist_flasheo.md`, `docs/sensores.md` |
 | 6 | **Registro automático de sesión** | Analítica de Sesión de la app (P12) con exportación CSV | Velocidad media y máxima, distancia frontal mínima válida, error medio absoluto de línea, paquetes y paradas de emergencia | Archivo `sesion_robot_AAAAMMDD_HHMMSS.csv` por sesión |
@@ -124,7 +128,7 @@ Cada decisión técnica se registra con **fecha, decisión, razón y evidencia**
 
 1. **Estadística descriptiva** por prueba: media, desviación estándar muestral, mínimo y máximo, con *n* ≥ 20 repeticiones (RNF-08).
 2. **Comparación con el criterio de aceptación** definido en la sección III.3.3; se reporta cuántas repeticiones lo cumplen.
-3. **Tasas de éxito con su incertidumbre.** Cero fallos en *n* repeticiones no prueba una tasa de fallo igual a cero: con *n* = 20 solo permite afirmar una tasa de fallo de **hasta ≈ 14 %** (límite superior unilateral al 95 %, Clopper-Pearson); con *n* = 50, hasta **≈ 6 %**. Por eso el resultado de P01 (50/50 en simulación) se presenta como evidencia de la lógica del protocolo, no como la fiabilidad del sistema real. **[VERIFICAR con el tutor el método estadístico y el nivel de confianza.]**
+3. **Tasas de éxito con su incertidumbre.** Cero fallos en *n* repeticiones no prueba una tasa de fallo igual a cero: con *n* = 20 solo permite afirmar una tasa de fallo de **hasta ≈ 14 %** (límite superior unilateral al 95 %, método exacto de Clopper y Pearson, 1934); con *n* = 50, hasta **≈ 6 %**. Por eso el resultado de P01 (50/50 en simulación) se presenta como evidencia de la lógica del protocolo, no como la fiabilidad del sistema real. **[VERIFICAR con el tutor el método estadístico y el nivel de confianza.]**
 4. **Presentación** en tablas y gráficos generados a partir de los CSV de cada sesión, que se conservan como anexo.
 5. **Condiciones registradas en cada sesión:** fecha, responsable, *commit* del firmware, tensión inicial de batería, tipo de piso y luz.
 
@@ -204,21 +208,22 @@ El trabajo se organiza en **7 fases** durante **32 semanas** (26/10/2026 al 11/0
 
 ## III.7 Referencias del capítulo y pendientes
 
-### Referencias (provisionales)
+### Referencias
 
-> El Capítulo II usa referencias numeradas (por ejemplo [26]); aquí aparecen en formato autor-año de forma provisional. **[VERIFICAR: unificar con el formato de citas que exija la Escuela; confirmar edición, año y páginas.]**
+> Citas en estilo autor-año (APA 7.ª ed.) en todo el capítulo. **[VERIFICAR: añadir la página a las citas de Arias (2012) y Hurtado de Barrera (2010) y confirmar la editorial en la portada del ejemplar.]** El Capítulo II usa referencias numeradas (por ejemplo [26]) y debe migrarse al mismo estilo.
 
-- Arias, F. G. (2012). *El proyecto de investigación: Introducción a la metodología científica* (6.ª ed.). Editorial Episteme.
+- Arias, F. G. (2012). *El proyecto de investigación: Introducción a la metodología científica* (6.ª ed.). Episteme.
+- Banks, A., y Gupta, R. (Eds.). (2014). *MQTT version 3.1.1* (OASIS Standard). OASIS. https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html
+- Clopper, C. J., y Pearson, E. S. (1934). The use of confidence or fiducial limits illustrated in the case of the binomial. *Biometrika, 26*(4), 404–413. https://doi.org/10.2307/2331986
 - Hurtado de Barrera, J. (2010). *Metodología de la investigación: Guía para una comprensión holística de la ciencia* (4.ª ed.). Quirón Ediciones.
-- OASIS. (2014). *MQTT Version 3.1.1* (OASIS Standard).
 
 ### Pendientes para cerrar el capítulo
 
 1. Copiar el objetivo general y los específicos del Capítulo I (sección III.1).
-2. Confirmar con el tutor la definición normativa de "Proyecto Especial" y la clasificación (nivel proyectivo, diseño de prototipo) según la guía de la Escuela.
+2. Confirmar con la Escuela el término y la definición oficial de "Proyecto Especial" y citarla en la sección III.2.1. Con una búsqueda pública no se encontró una definición publicada con ese nombre. Documentos a consultar: la [página de Trabajo de Grado de la Escuela](https://ingenieria.ucab.edu.ve/telecomunicaciones/la-escuela/caracas/procesos-academicos/trabajo-de-grado/), el [Reglamento del Trabajo de Grado de la Facultad de Ingeniería](https://ingenieria.ucab.edu.ve/telecomunicaciones/wp-content/uploads/sites/5/2022/06/1.-Reglamento-del-TG-de-la-Facultad-de-Ingenieria.pdf) y el [Instructivo para elaborar el documento del TG](https://ingenieria.ucab.edu.ve/telecomunicaciones/wp-content/uploads/sites/5/2022/06/5.-Instructivo-para-Elaborar-Documento-Libro-Articulo-y-CD-del-TG-de-la-Escuela-de-Ingenieria-en-Telecomunicaciones.pdf) (este último puede indicar el estilo de citas exigido).
 3. Completar los resultados de la visita de observación y de la prueba H0 de Wi-Fi (sección III.3.4).
 4. Definir los valores marcados con **?** en la tabla III.3.3: error de posición (RF-04), falsas alarmas y recorridos (RF-08), autonomía mínima (RNF-02).
 5. Anotar modelo y resolución del multímetro y del cronómetro (sección III.4.2).
 6. Redactar las consideraciones éticas (consentimiento y fotografías).
-7. Revisar la columna "Se valida con" de RF-06, RF-09 y RF-10 en `datos/proyecto.js`: todavía usa códigos de la numeración anterior (P06, P09 y P10) y debe alinearse con la lista oficial P01 a P13.
-8. Confirmar con el tutor el método estadístico (sección III.4.3).
+7. Confirmar con el tutor el método estadístico (sección III.4.3).
+8. Añadir la página a las citas de Arias (2012) y Hurtado de Barrera (2010), confirmar la editorial de esta última y migrar el Capítulo II al estilo autor-año.

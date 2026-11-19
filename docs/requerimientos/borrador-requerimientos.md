@@ -55,11 +55,11 @@ Lleven cinta métrica, un teléfono para fotos (con permiso) y, si pueden, el ES
 | RF-03 | Avisar si el robot se desconecta | Aviso en menos de 30 s | P01 (T6) | Validado en simulación (22 s) |
 | RF-04 | Ir por la línea del mostrador al estante y volver | Error de posición ≤ ? cm al llegar | P08, H4 | Pendiente |
 | RF-05 | Detectar un obstáculo y detenerse | Se detiene a ≥ 20 cm del obstáculo | P02 | Pendiente |
-| RF-06 | Re-localizarse en puntos de referencia | Corrige su posición en cada punto (BLE o QR) | P04, P09 | Pendiente |
+| RF-06 | Re-localizarse en puntos de referencia | Corrige su posición en cada punto (BLE o QR) | P04, Fase IV | Pendiente |
 | RF-07 | Transportar los componentes pedidos | Carga hasta ? g sin perder la línea | H5 | Pendiente |
 | RF-08 | Alarmar si alguien lo levanta o lo mueve sin una orden | La alarma llega a la app 1 sola vez; ≤ ? falsas alarmas en N recorridos | P11, H6 | Pendiente |
-| RF-09 | Permitir pedir, ver el estado y recibir avisos desde la app | Notificación en ≤ 5 s | P06, P10 | Pendiente |
-| RF-10 | Registrar quién pidió qué y cuándo | Historial consultable en la app | P10 | Pendiente (confirmar en entrevista) |
+| RF-09 | Permitir pedir, ver el estado y recibir avisos desde la app | Notificación en ≤ 5 s | P06, P09, P11 | Pendiente |
+| RF-10 | Registrar quién pidió qué y cuándo | Historial consultable en la app | P05, P06 | Pendiente (confirmar en entrevista) |
 | RF-11 | Pedir usuario para entrar a la app | Solo usuarios autorizados hacen pedidos | P06 | Pendiente (definir roles en entrevista) |
 
 ## 4. Requerimientos no funcionales
