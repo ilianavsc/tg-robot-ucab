@@ -56,7 +56,8 @@
       ["requerimientos", "Requerimientos", "requerimientos.html"],
       ["hardware", "Hardware", "hardware.html"],
       ["arquitectura", "Arquitectura", "arquitectura.html"],
-      ["decisiones", "Decisiones", "decisiones.html"]
+      ["decisiones", "Decisiones", "decisiones.html"],
+      ["tesis", "Tesis", "tesis.html"]
     ] },
     { tipo: "enlace", clave: "prototipos", texto: "Prototipos", url: "prototipos/index.html" },
     { tipo: "grupo", id: "avances", texto: "Avances", hijos: [

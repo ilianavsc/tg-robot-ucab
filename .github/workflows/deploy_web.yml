@@ -60,7 +60,7 @@ jobs:
           # 1) El portafolio ocupa la RAÍZ del sitio
           cp "$GITHUB_WORKSPACE"/*.html "$PUB"/
           cp "$GITHUB_WORKSPACE"/*.md "$PUB"/
-          cp -r assets datos prototipos docs hardware "$PUB"/
+          cp -r assets datos prototipos docs hardware tesis "$PUB"/
           # 2) La app Flutter queda en /app
           mkdir -p "$PUB/app"
           cp -r app/build/web/. "$PUB/app"/

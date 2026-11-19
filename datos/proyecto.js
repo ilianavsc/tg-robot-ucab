@@ -385,6 +385,36 @@ window.TG = {
     { fecha: "", titulo: "Bandeja o pinza", estado: "abierta", decision: "", porque: "Depende del pedido típico (entrevista en el laboratorio).", evidencia: "" }
   ],
 
+  /* ---------- TESIS (página tesis.html) ----------
+     estado: "borrador" | "enviado" | "por redactar" | "por integrar"
+     md: ruta del capítulo en Markdown (se abre en el visor modal) o null si aún no está en el repositorio
+     extra: enlaces secundarios [texto, ruta .md]
+     provisional: true = el título aún no está confirmado con la guía de la Escuela / el tutor */
+  tesis: [
+    { num: "I", titulo: "Planteamiento del problema", provisional: true, estado: "por integrar", md: null,
+      resumen: "Problema, objetivos, justificación y alcance. El texto está en el documento de Word; falta pasarlo al repositorio." },
+    { num: "II", titulo: "Marco teórico", provisional: true, estado: "enviado", md: null,
+      resumen: "MQTT y sus QoS, ESP32, motores y encoders, batería Li-Ion 3S, sensores y comunicación inalámbrica. Ajustado y enviado en noviembre de 2026; quedan cambios pendientes.",
+      extra: [["Cambios pendientes del Capítulo II", "docs/tomo/capitulo-ii-cambios.md"]] },
+    { num: "III", titulo: "Marco metodológico", provisional: false, estado: "borrador", md: "tesis/capitulo_3.md",
+      resumen: "Nivel de investigación (Proyecto Especial), diseño de prototipo, técnicas e instrumentos, plan de análisis y las 7 fases del trabajo." },
+    { num: "IV", titulo: "Desarrollo del prototipo", provisional: true, estado: "por redactar", md: null,
+      resumen: "Diseño y construcción del robot, el firmware, la aplicación y el protocolo, con la selección de hardware (Objetivo 2)." },
+    { num: "V", titulo: "Resultados y análisis", provisional: true, estado: "por redactar", md: null,
+      resumen: "Resultados de simulación (SIL) y de las pruebas con el robot físico (HIL), con al menos 20 repeticiones por prueba." },
+    { num: "VI", titulo: "Conclusiones y recomendaciones", provisional: true, estado: "por redactar", md: null,
+      resumen: "Cumplimiento de los objetivos, limitaciones y trabajo futuro." }
+  ],
+
+  /* Material de apoyo del tomo (se abre en el visor modal) */
+  tesisApoyo: [
+    { titulo: "Objetivo 2: selección de hardware", linea: "Tabla comparativa de componentes y cambios a la Figura 4.", md: "docs/tomo/objetivo-2-seleccion-hardware.md" },
+    { titulo: "Documento de requerimientos", linea: "Guía de entrevista, hoja de observación, requerimientos y matriz de hardware.", md: "docs/requerimientos/borrador-requerimientos.md" },
+    { titulo: "Ficha de sensores (P02)", linea: "Pines, umbrales y calibración de los TCRT5000 y HC-SR04P.", md: "docs/sensores.md" },
+    { titulo: "Registro de mediciones físicas (HIL)", linea: "Plantilla vacía para las pruebas con el hardware en diciembre.", md: "prototipos/P02-sensores/README.md" },
+    { titulo: "Tópicos MQTT", linea: "Contrato JSON de estado, ultrasonido, órdenes, ack y alertas.", md: "docs/arquitectura/topicos-mqtt.md" }
+  ],
+
   /* Una entrada por semana, la más nueva primero */
   bitacora: [
     { semana: 3, fechas: "9 al 13 nov 2026",
