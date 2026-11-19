@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import '../alertas/centro_alertas.dart';
 import '../analitica/analitica_sesion.dart';
 import '../config/brokers.dart';
+import '../demo/simulacion_pista.dart';
 import '../models/estado.dart';
 import '../models/orden_ack.dart';
 import '../models/ultrasonido.dart';
@@ -82,9 +83,15 @@ class MqttService extends ChangeNotifier {
   Duration _esperaActual = _esperaMinima;
 
   // Modo Demo (telemetría simulada, sin red)
-  static const Duration _periodoDemo = Duration(seconds: 2);
+  // La simulación física avanza cada 250 ms (mapa fluido); la analítica P12 y
+  // el CSV reciben una muestra cada 2 s, como antes.
+  static const Duration _periodoDemo = Duration(milliseconds: 250);
+  static const int _ticksPorMuestra = 8;
   Timer? _temporizadorDemo;
-  int _pasoDemo = 0;
+  SimulacionPista? _pista;
+  int _ticksDemo = 0;
+  int _publicadosDemo = 0;
+  int _ordenesDemo = 0;
   int _tDemo = 0;
   bool _simulando = false;
 
@@ -247,6 +254,10 @@ class MqttService extends ChangeNotifier {
 
     if (_simulando) {
       _guardarOrden(id, comando);
+      _ordenesDemo++;
+      // La orden actúa al instante sobre la simulación (frenar, auto, D-pad).
+      _pista?.aplicarOrden(comando);
+      _actualizarDemo(0);
       Timer(const Duration(milliseconds: 300), () => _confirmarDemo(id));
       return true;
     }
@@ -354,10 +365,14 @@ class MqttService extends ChangeNotifier {
     analitica.reiniciar();       // sesión nueva: las métricas empiezan en 0
     centroAlertas.reiniciar();
     _simulando = true;
-    _pasoDemo = 0;
+    _pista = SimulacionPista();
+    _ticksDemo = 0;
+    _publicadosDemo = 0;
+    _ordenesDemo = 0;
     _tDemo = 0;
-    _emitirPasoDemo();    // primer dato inmediato, sin esperar 2 s
-    _temporizadorDemo = Timer.periodic(_periodoDemo, (_) => _emitirPasoDemo());
+    _actualizarDemo(0);   // primer dato inmediato
+    _muestraDemo();
+    _temporizadorDemo = Timer.periodic(_periodoDemo, (_) => _tickDemo());
   }
 
   /// Detiene el Modo Demo y reinicia explícitamente los valores de telemetría y
@@ -368,7 +383,10 @@ class MqttService extends ChangeNotifier {
     _temporizadorDemo = null;
     final bool estabaSimulando = _simulando;
     _simulando = false;
-    _pasoDemo = 0;
+    _pista = null;
+    _ticksDemo = 0;
+    _publicadosDemo = 0;
+    _ordenesDemo = 0;
     _tDemo = 0;
     if (estabaSimulando) {
       _ultimoEstado = const Estado(
@@ -583,53 +601,70 @@ class MqttService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Genera un [Estado] falso del siguiente perfil y avisa a la UI.
-  ///
-  /// Aplica la MISMA regla de seguridad del firmware y del P10: con obstáculo
-  /// frontal < 20 cm o el sensor delantero en fallo, las ruedas quedan en 0 y
-  /// el estado lleva el motivo en `parada`.
-  void _emitirPasoDemo() {
-    if (_descartado || !_simulando) return;
-    final perfil = _perfilesDemo[_pasoDemo % _perfilesDemo.length];
-    _pasoDemo++;
-    _tDemo += _periodoDemo.inMilliseconds;
-    final ahora = DateTime.now();
+  /// Simulación física del Modo Demo (`null` fuera del demo): robot sobre un
+  /// circuito cerrado con destino, obstáculo, batería y órdenes. Solo lectura
+  /// para la UI; el destino se cambia con [elegirDestinoDemo].
+  SimulacionPista? get pista => _pista;
 
-    final bool frenteBloqueado = !perfil.frenteOk ||
-        (perfil.frenteCm > 0 && perfil.frenteCm < CentroAlertas.umbralParadaCm);
-    final String parada = !perfil.frenteOk
-        ? 'fallo_sensor_frente'
-        : (frenteBloqueado ? 'obstaculo_frente' : 'ninguna');
-    _ultimoEstado = Estado(
-      numero: 9000 + _pasoDemo,
-      modo: perfil.modo,
-      bateria: perfil.bateria,
-      bateriaV: perfil.bateriaV,
-      ordenes: _pasoDemo,
-      lineaMm: perfil.lineaMm,
-      vIzq: frenteBloqueado ? 0.0 : perfil.vIzq,
-      vDer: frenteBloqueado ? 0.0 : perfil.vDer,
-      t: _tDemo,
-      parada: parada,
+  /// Cambia el destino de la misión simulada (solo existe en el Modo Demo: el
+  /// firmware no recibe destinos).
+  void elegirDestinoDemo(DestinoPista destino) {
+    final p = _pista;
+    if (_descartado || !_simulando || p == null) return;
+    p.elegirDestino(destino);
+    notifyListeners();
+  }
+
+  /// Un paso del temporizador del demo (250 ms).
+  void _tickDemo() {
+    if (_descartado || !_simulando) return;
+    _actualizarDemo(_periodoDemo.inMilliseconds / 1000);
+    _ticksDemo++;
+    if (_ticksDemo % _ticksPorMuestra == 0) _muestraDemo();
+  }
+
+  /// Avanza la simulación [dt] s y refresca el estado y los ultrasonidos que
+  /// ve la UI. Aplica la MISMA regla de seguridad del firmware y del P10: con
+  /// obstáculo frontal < 20 cm las ruedas quedan en 0 y el estado lleva el
+  /// motivo en `parada`. Evalúa el Centro de Alertas (P11) en cada paso.
+  void _actualizarDemo(double dt) {
+    final p = _pista;
+    if (_descartado || !_simulando || p == null) return;
+    if (dt > 0) p.avanzar(dt);
+    _tDemo += (dt * 1000).round();
+    final ahora = DateTime.now();
+    _ultimoEstado = p.estado(
+      numero: 9000 + _publicadosDemo,
+      ordenes: _ordenesDemo,
+      tMs: _tDemo,
     );
-    _ultimoUltrasonido = Ultrasonido(
-      frenteCm: perfil.frenteOk ? perfil.frenteCm : 0,
-      atrasCm: perfil.atrasCm,
-      frenteOk: perfil.frenteOk,
-      llegada: ahora,
-      t: _tDemo,
-    );
-    analitica.registrarUltrasonido(_ultimoUltrasonido!, ahora: ahora);
-    analitica.registrarEstado(_ultimoEstado!, ahora: ahora);
+    _ultimoUltrasonido = p.ultrasonido(llegada: ahora, tMs: _tDemo);
     _evaluarAlertas();
     _ultimoMensaje = ahora;
     _ultimoError = null;
     notifyListeners();
   }
 
-  /// Solo para pruebas: emite el siguiente paso del Modo Demo sin esperar 2 s.
+  /// Registra una muestra de la sesión (P12) con el estado y ultrasonido
+  /// actuales: una cada 2 s, como los paquetes reales del robot.
+  void _muestraDemo() {
+    final e = _ultimoEstado;
+    final u = _ultimoUltrasonido;
+    if (e == null || u == null) return;
+    _publicadosDemo++;
+    final ahora = DateTime.now();
+    analitica.registrarUltrasonido(u, ahora: ahora);
+    analitica.registrarEstado(e, ahora: ahora);
+  }
+
+  /// Solo para pruebas: avanza el Modo Demo 2 s (8 pasos de 250 ms) y registra
+  /// una muestra, sin esperar al temporizador.
   @visibleForTesting
-  void debugEmitirPasoDemo() => _emitirPasoDemo();
+  void debugEmitirPasoDemo() {
+    for (int i = 0; i < _ticksPorMuestra; i++) {
+      _tickDemo();
+    }
+  }
 
   /// Lee una alerta del robot (`robot/alertas`, QoS 2) y la pasa al Centro de
   /// Alertas (P11). Si activa una parada de emergencia, la cuenta (P12).
@@ -701,41 +736,3 @@ class _OrdenEnviada {
   final DateTime envio;
   DateTime? confirmada;
 }
-
-/// Perfil de telemetría simulada para el Modo Demo.
-class _PerfilDemo {
-  const _PerfilDemo({
-    required this.modo,
-    required this.bateria,
-    required this.bateriaV,
-    required this.lineaMm,
-    required this.vIzq,
-    required this.vDer,
-    required this.frenteCm,
-    required this.atrasCm,
-    this.frenteOk = true,
-  });
-
-  final String modo;
-  final int bateria;
-  final double bateriaV;
-  final double lineaMm;
-  final double vIzq;
-  final double vDer;
-  final double frenteCm;
-  final double atrasCm;
-  final bool frenteOk;
-}
-
-/// Siete perfiles que rotan cada 2 s, alineados con los del P10. Cubren los
-/// cuatro casos del Centro de Alertas (P11): proximidad (45 cm), parada por
-/// obstáculo (18 cm) + batería crítica (9,95 V) y fallo de sensor sin eco.
-const List<_PerfilDemo> _perfilesDemo = <_PerfilDemo>[
-  _PerfilDemo(modo: 'autonomo', bateria: 100, bateriaV: 12.60, lineaMm: 0.0, vIzq: 0.41, vDer: 0.41, frenteCm: 150, atrasCm: 160),
-  _PerfilDemo(modo: 'manual', bateria: 17, bateriaV: 10.35, lineaMm: 27.0, vIzq: 0.30, vDer: 0.55, frenteCm: 90, atrasCm: 160),
-  _PerfilDemo(modo: 'autonomo', bateria: 48, bateriaV: 11.20, lineaMm: -32.4, vIzq: 0.05, vDer: 0.05, frenteCm: 45, atrasCm: 110),
-  _PerfilDemo(modo: 'autonomo', bateria: 2, bateriaV: 9.95, lineaMm: -27.0, vIzq: 0.55, vDer: 0.30, frenteCm: 18, atrasCm: 60),
-  _PerfilDemo(modo: 'manual', bateria: 59, bateriaV: 11.50, lineaMm: 9.0, vIzq: -0.40, vDer: 0.40, frenteCm: 70, atrasCm: 25),
-  _PerfilDemo(modo: 'autonomo', bateria: 81, bateriaV: 12.10, lineaMm: 0.5, vIzq: 0.52, vDer: 0.52, frenteCm: 120, atrasCm: 90),
-  _PerfilDemo(modo: 'autonomo', bateria: 78, bateriaV: 12.00, lineaMm: 1.2, vIzq: 0.45, vDer: 0.45, frenteCm: 0, atrasCm: 95, frenteOk: false),
-];

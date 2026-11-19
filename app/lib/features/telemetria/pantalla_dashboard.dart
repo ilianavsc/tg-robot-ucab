@@ -12,6 +12,7 @@ import 'analitica_p12.dart';
 import 'cockpit_datos.dart';
 import 'cockpit_ui.dart';
 import 'conexion_cockpit.dart';
+import 'mapa_pista.dart';
 import 'radar_hud.dart';
 
 /// **Dashboard**: estado del robot, enlace MQTT, energía 3S, línea (4×
@@ -38,6 +39,9 @@ class PantallaDashboard extends StatelessWidget {
           _TarjetaEspera(servicio: servicio),
           const SizedBox(height: 12),
         ],
+        // Vista principal: Mapa de Pista con misión, destinos y pausa.
+        const TarjetaMapaPista(),
+        const SizedBox(height: 12),
         CockpitColumnas(
           children: <Widget>[
             _TarjetaEstadoRobot(estado: e, sin: sin),

@@ -29,6 +29,7 @@ lib/
     alertas/centro_alertas.dart    # P11: motor de alertas (Dart puro, con tests)
     analitica/analitica_sesion.dart # P12: métricas de sesión + CSV (Dart puro)
     exportar/descarga_csv*.dart    # descarga del CSV en Web (portapapeles en nativo)
+    demo/simulacion_pista.dart # Modo Demo físico: robot sobre un circuito (PID, batería 3S, obstáculo, órdenes)
     mqtt/mqtt_service.dart     # cliente MQTT + reconexión + Modo Demo + P11/P12
     mqtt/mqtt_client_platform_*.dart  # fábrica por plataforma (TCP vs WebSocket)
     theme/cockpit_theme.dart   # tokens de color, tipografía y ThemeData del Cockpit
@@ -41,7 +42,8 @@ lib/
       perfil_admin.dart        # solo Admin: Fail-Safe (solo lectura), usuarios (demo), CSV de P12
     telemetria/
       telemetria_screen.dart   # armazón: app bar, 4 secciones, E-STOP
-      pantalla_dashboard.dart  # estado, enlace MQTT, energía 3S, IR, motores, P12
+      mapa_pista.dart          # Mapa de Pista: circuito, cono del ultrasonido, misión, destinos y pausa
+      pantalla_dashboard.dart  # Mapa de Pista + estado, enlace MQTT, energía 3S, IR, motores, P12
       pantalla_controles.dart  # matriz táctil, Auto, ACK, núcleo de seguridad
       pantalla_radar.dart      # radar polar (radar_hud.dart) y evitación
       pantalla_alertas.dart    # watchdog, activas y registro de eventos (P11)

@@ -190,9 +190,11 @@ void main() {
     (WidgetTester t) async {
       final MqttService s = await _montar(t);
       s.iniciarSimulacion();
-      for (int i = 0; i < 3; i++) {
-        s.debugEmitirPasoDemo(); // llega al perfil con obstáculo a 18 cm
+      // El demo físico hace aparecer un obstáculo a los ~12 s y frena a < 20 cm.
+      for (int i = 0; i < 20 && !(s.pista?.frenteBloqueado ?? false); i++) {
+        s.debugEmitirPasoDemo();
       }
+      expect(s.pista!.frenteBloqueado, isTrue);
       await t.pump(const Duration(milliseconds: 300));
 
       expect(find.text('PARADA POR OBSTÁCULO FRONTAL'), findsWidgets);
@@ -216,7 +218,12 @@ void main() {
     s.debugEmitirPasoDemo();
     await t.pump(const Duration(milliseconds: 200));
     final Finder exportar = find.text('EXPORTAR REPORTE CSV');
-    await t.ensureVisible(exportar);
+    // El Mapa de Pista ocupa el inicio del Dashboard: se baja hasta la tarjeta.
+    await t.scrollUntilVisible(
+      exportar,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(exportar, findsOneWidget);
     expect(s.analitica.totalPaquetes, greaterThan(0));
     await _tocar(t, 'REINICIAR');

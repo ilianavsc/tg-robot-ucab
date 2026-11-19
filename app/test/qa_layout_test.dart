@@ -123,26 +123,22 @@ void main() {
     },
   );
 
-  testWidgets(
-    'Controles: el E-STOP sigue a un toque y no se reserva en otras secciones',
-    (WidgetTester t) async {
-      final (MqttService s, SesionLocal ses) = await _montar(
-        t,
-        conSesion: true,
-      );
-      final Finder estop = find.byType(EstopButton);
-      expect(estop, findsOneWidget);
-      // Dashboard: la lista llega hasta la barra de navegación (sin franja).
-      final double bajoDashboard = t
-          .getRect(find.byType(ListView).first)
-          .bottom;
-      final double navTop = t.getRect(find.byType(NavigationBar)).top;
-      expect(bajoDashboard, closeTo(navTop, 1));
-      await _irA(t, 'CONTROLES');
-      expect(find.byType(EstopButton), findsOneWidget);
-      await _cerrar(t, s, ses);
-    },
-  );
+  testWidgets('Dashboard reserva la franja del E-STOP; Radar no', (
+    WidgetTester t,
+  ) async {
+    final (MqttService s, SesionLocal ses) = await _montar(t, conSesion: true);
+    final Rect estop = t.getRect(find.byType(EstopButton));
+    final double navTop = t.getRect(find.byType(NavigationBar)).top;
+    // Dashboard (misión, destinos y pausa): la lista acaba sobre el E-STOP.
+    final Rect lista = t.getRect(
+      find.byKey(const PageStorageKey<String>('dashboard')),
+    );
+    expect(lista.bottom, lessThanOrEqualTo(estop.top));
+    await _irA(t, 'RADAR');
+    expect(t.getRect(find.byType(ListView).first).bottom, closeTo(navTop, 1));
+    expect(find.byType(EstopButton), findsOneWidget);
+    await _cerrar(t, s, ses);
+  });
 
   testWidgets(
     'Radar: "Evitación de colisiones" cabe sin cortarse con puntos suspensivos',

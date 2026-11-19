@@ -49,8 +49,9 @@ const List<_Seccion> _secciones = <_Seccion>[
 ];
 
 class _TelemetriaScreenState extends State<TelemetriaScreen> {
-  /// Posición de la sección Controles en la barra de navegación.
-  static const int _indiceControles = 1;
+  /// Secciones con botones críticos en pantalla (Dashboard: misión y destinos;
+  /// Controles: matriz táctil): reservan la franja del E-STOP.
+  static const Set<int> _seccionesConFranjaEstop = <int>{0, 1};
 
   /// Alto reservado bajo el contenido de Controles: E-STOP (56) + su margen
   /// con la barra de navegación (16) + 8 de respiro.
@@ -169,10 +170,10 @@ class _TelemetriaScreenState extends State<TelemetriaScreen> {
                   child: _cuerpo(),
                 ),
               ),
-              // En Controles el E-STOP flotante tapaba la matriz táctil al
-              // desplazar: se reserva su franja para que la lista termine
-              // encima y los botones de la matriz nunca queden debajo.
-              if (_indice == _indiceControles)
+              // En Dashboard y Controles el E-STOP flotante tapaba botones
+              // críticos (misión, destinos, matriz táctil) al desplazar: se
+              // reserva su franja para que la lista termine encima.
+              if (_seccionesConFranjaEstop.contains(_indice))
                 const SizedBox(height: alturaFranjaEstop),
             ],
           ),

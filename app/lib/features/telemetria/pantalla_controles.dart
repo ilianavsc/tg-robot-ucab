@@ -24,9 +24,13 @@ class PantallaControles extends StatelessWidget {
     final Estado? e = servicio.ultimoEstado;
     final bool sin = estadoSinSenal(e);
 
+    // Con el banner de alerta visible (p. ej. obstáculo) la lista tiene menos
+    // altura útil: +48 px de colchón al final para que el E-STOP nunca tape
+    // "GIRAR DER" ni "RETROCESO" al desplazarse en 390×844.
+    final bool bannerVisible = servicio.centroAlertas.principal != null;
     return ListView(
       key: const PageStorageKey<String>('controles'),
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, 120 + (bannerVisible ? 48 : 0)),
       children: <Widget>[
         _PestanasModo(servicio: servicio, estado: sin ? null : e),
         const SizedBox(height: 12),

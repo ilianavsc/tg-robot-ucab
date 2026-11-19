@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:robot_ucab_app/core/alertas/centro_alertas.dart';
 import 'package:robot_ucab_app/core/analitica/analitica_sesion.dart';
@@ -175,34 +177,39 @@ void main() {
   });
 
   group('MqttService · Modo Demo con P11/P12', () {
-    test('el demo aplica la regla de seguridad, alerta y reinicia a 0 al detener', () {
+    test('el demo físico aplica la regla de seguridad, alerta y reinicia a 0 al detener', () {
       final s = MqttService();
       s.iniciarSimulacion();
-      // Recorre los 7 perfiles a mano (sin esperar el temporizador de 2 s)
+      expect(s.pista, isNotNull);
       final claves = <String>{};
-      var bloqueos = 0;
-      for (var i = 0; i < 7; i++) {
-        if (i > 0) s.debugEmitirPasoDemo();
+      var pasosBloqueados = 0;
+      var conAviso = 0;
+      var maxVel = 0.0;
+      // 35 pasos de 2 s (70 s de demo): un ciclo completo de obstáculo.
+      for (var i = 0; i < 35; i++) {
+        s.debugEmitirPasoDemo();
         final e = s.ultimoEstado!;
         final u = s.ultimoUltrasonido!;
-        if (!u.frenteOk || (u.frenteValido != null && u.frenteValido! < 20)) {
+        maxVel = math.max(maxVel, e.velocidadMedia.abs());
+        if (u.frenteValido != null && u.frenteValido! < 20) {
           expect(e.vIzq, 0.0);
           expect(e.vDer, 0.0);
-          expect(e.parada, isNot('ninguna'));
-          bloqueos++;
+          expect(e.parada, 'obstaculo_frente');
+          pasosBloqueados++;
+        } else if (u.frenteValido != null && u.frenteValido! < 50) {
+          conAviso++;
         }
         claves.addAll(s.centroAlertas.activas.map((AlertaActiva a) => a.clave));
       }
-      expect(bloqueos, 2);
-      expect(claves, containsAll(<String>[
-        'obstaculo_frente',
-        'proximidad_frente',
-        'bateria_critica',
-        'fallo_sensor_frente',
-      ]));
-      expect(s.analitica.paradasEmergencia, 2);
-      expect(s.analitica.totalPaquetes, 14);
+      expect(pasosBloqueados, greaterThanOrEqualTo(1));
+      expect(conAviso, greaterThanOrEqualTo(1));
+      expect(maxVel, lessThan(0.5));
+      expect(claves, containsAll(<String>['proximidad_frente', 'obstaculo_frente']));
+      expect(s.analitica.paradasEmergencia, greaterThanOrEqualTo(1));
+      // 1 muestra al arrancar + 35 de los pasos, de 2 paquetes cada una.
+      expect(s.analitica.totalPaquetes, 72);
       s.detenerSimulacion();
+      expect(s.pista, isNull);
       expect(s.analitica.totalPaquetes, 0);
       expect(s.analitica.paradasEmergencia, 0);
       expect(s.centroAlertas.activas, isEmpty);
