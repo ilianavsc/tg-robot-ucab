@@ -1,7 +1,7 @@
 # Capítulo III. Marco Metodológico
 
-> **Borrador v0.1 · 19/11/2026 · pendiente de revisión por el tutor.**
-> Las marcas **[POR COMPLETAR]** indican datos que aún no existen o que no están en el repositorio; las marcas **[VERIFICAR]** indican afirmaciones normativas o citas que hay que contrastar con la guía de Trabajo de Grado de la Escuela de Telecomunicaciones antes de entregar. Al final hay una lista de pendientes (sección III.7).
+> **Borrador v0.2 · 19/11/2026 · pendiente de revisión por el tutor.** Sincronizado con el sistema implementado al 19/11/2026 (sección III.3.6).
+> Las marcas **[POR COMPLETAR]** indican datos que aún no existen o que no están en el repositorio; las marcas **[VERIFICAR]** indican afirmaciones normativas o citas que hay que contrastar con la guía de Trabajo de Grado de la Escuela de Telecomunicaciones antes de entregar. Las marcas **[PENDIENTE DE MEDICIÓN FÍSICA]** señalan resultados que solo se pueden obtener con el robot real (HIL o campo): hoy existen únicamente estimaciones por cálculo o resultados de simulación (SIL), que no se extrapolan. Al final hay una lista de pendientes (sección III.7).
 
 ## III.1 Introducción
 
@@ -9,8 +9,19 @@ Este capítulo describe cómo se llevó a cabo el trabajo: el tipo de investigac
 
 El capítulo responde al objetivo general y a los objetivos específicos planteados en el Capítulo I:
 
-- **Objetivo general:** **[POR COMPLETAR: copiar del Capítulo I]**
-- **Objetivos específicos:** **[POR COMPLETAR: copiar y numerar; en el repositorio solo está citado el Objetivo 2, la selección del hardware (`docs/tomo/objetivo-2-seleccion-hardware.md`)]**
+- **Objetivo general** (Capítulo I, sección I.2.1): desarrollar un prototipo funcional de robot móvil autónomo de bajo costo, integrado con una aplicación de solicitudes y un sistema de comunicación IoT, para el transporte y la trazabilidad de componentes electrónicos en el laboratorio de la Escuela de Ingeniería en Telecomunicaciones de la UCAB, incorporando un mecanismo de alertas de seguridad ante manipulación no autorizada.
+- **Objetivos específicos** (Capítulo I, sección I.2.2):
+  1. Diseñar la arquitectura de comunicación inalámbrica del sistema (robot–aplicación–servidor) basada en MQTT y servicios en la nube (tópicos, QoS y flujos de mensajes).
+  2. Realizar un estudio comparativo y seleccionar los componentes de hardware (`docs/tomo/objetivo-2-seleccion-hardware.md`).
+  3. Diseñar y construir la plataforma mecánica del robot (chasis impreso en 3D y tracción diferencial).
+  4. Desarrollar el firmware de control (seguimiento de línea con PID, adquisición de sensores y comunicación MQTT).
+  5. Implementar un esquema de navegación progresivo (línea, odometría, fusión de sensores inerciales y re-localización).
+  6. Desarrollar la aplicación móvil/web de solicitudes y el backend de trazabilidad.
+  7. Implementar el módulo de alertas anti-manipulación basado en el acelerómetro.
+  8. Evaluar el desempeño integral del sistema mediante pruebas en una maqueta del laboratorio.
+  9. Documentar las limitaciones técnicas y proponer mejoras futuras.
+
+Estos nueve objetivos se copian de forma resumida; el texto completo y la relación con los productos y las fases están en el Capítulo I (Tabla 1).
 
 ## III.2 Nivel de la investigación: Proyecto Especial
 
@@ -25,13 +36,13 @@ En la clasificación de tipos de investigación de Hurtado de Barrera (2010), es
 | Criterio | Cómo se cumple en este trabajo |
 |---|---|
 | Hay una necesidad real y levantada en campo | En la entrevista del 14/11/2026 al encargado del taller se constató que el estudiante siempre debe ir a buscar el componente (el taller lo entrega, pero nunca lo lleva) y que **no existe ningún registro** de quién se llevó qué ni para qué. |
-| Se produce un artefacto, no solo un diagnóstico | Robot móvil (ESP32, tracción diferencial, seguidor de línea, ultrasonidos), firmware, aplicación Flutter y contrato de mensajes MQTT. |
+| Se produce un artefacto, no solo un diagnóstico | Robot móvil (ESP32, tracción diferencial, 4× TCRT5000 para seguir la línea y 2× HC-SR04P para obstáculos al frente y atrás, batería Li-Ion 3S), firmware, aplicación Flutter y contrato de mensajes MQTT. La MPU-6050 (IMU para el antirrobo) forma parte del hardware elegido, pero su lectura aún no está activa en el firmware (solo existe el gancho para conectarla). |
 | La solución se valida contra criterios previos | Cada requerimiento (RF/RNF) tiene un criterio de aceptación definido **antes** de medir (sección III.3.3). |
 | Hay iteración con evidencia | 13 prototipos (P01 a P13) con ficha, registro de decisiones y bitácora semanal. |
 
 ### III.2.3 Alcance y límites
 
-**Dentro del alcance:** un prototipo funcional que circula por el pasillo del laboratorio entre las 7:00 y las 18:00, sigue una línea, se detiene ante obstáculos, recibe pedidos y órdenes por MQTT, informa su estado, genera alertas (obstáculo, fallo de sensor, batería, inactividad y antirrobo) y se carga en el cuarto de componentes.
+**Dentro del alcance:** un prototipo funcional que circula por el pasillo del laboratorio entre las 7:00 y las 18:00, sigue una línea, se detiene ante obstáculos, recibe pedidos y órdenes por MQTT, informa su estado, genera alertas (obstáculo, fallo de sensor, batería e inactividad, ya implementadas en el firmware y en la aplicación; el antirrobo con la MPU-6050 está pendiente de integrar) y se carga en el cuarto de componentes.
 
 **Fuera del alcance:** versión comercial o de producción, flota de varios robots, navegación en espacios sin línea guía, cambios en la infraestructura de red de la universidad y el mecanismo de carga de las piezas (bandeja o pinza), que sigue **abierto** hasta cerrar el estudio del pedido típico (3 o 4 piezas muy livianas).
 
@@ -45,7 +56,7 @@ El diseño es de **desarrollo de prototipos evolutivos con validación experimen
 
 | Entorno | Qué es | Ejemplos en el proyecto | Qué permite afirmar |
 |---|---|---|---|
-| **SIL** (*Software In the Loop*) | La lógica se ejecuta sin hardware: el firmware compilado en el PC con imitaciones del ESP32, o emulado en el navegador | `firmware/pruebas_pc/` (58 comprobaciones), P10 (ESP32 virtual), Modo Demo de la app, simuladores 3D de P01, P03 y P08 | Que la **lógica** y el **contrato de mensajes** son correctos |
+| **SIL** (*Software In the Loop*) | La lógica se ejecuta sin hardware: el firmware compilado en el PC con imitaciones del ESP32, o emulado en el navegador | `firmware/pruebas_pc/` (58 comprobaciones), P10 (ESP32 virtual), Modo Demo de la app (simulación física, sección III.3.6), simuladores 3D de P01, P03 y P08, pruebas automáticas de la app (93 pruebas `flutter test` al 19/11/2026) | Que la **lógica** y el **contrato de mensajes** son correctos |
 | **HIL** (*Hardware In the Loop*) | El mismo firmware en el **ESP32 real** con los **sensores y motores reales** | Plantilla de mediciones `prototipos/P02-sensores/README.md` | Que el **sistema físico** cumple los criterios de aceptación |
 | **Campo** | El robot completo en el laboratorio de la UCAB | Fases VI y VII | Que el sistema funciona en el **entorno real** (Wi-Fi, piso, luz, personas) |
 
@@ -65,7 +76,7 @@ La numeración oficial es P01 a P13 (fuente: `datos/proyecto.js`). Estado al 19/
 | P06 | Primera versión de la app | Pedidos y estado (con Firebase) | Pendiente |
 | P07 | El cerebro completo | Firmware integrado (`robot_integrado.ino`) | En pruebas (lógica validada en PC) |
 | P08 | Seguir la línea | Control PD a 100 Hz sobre 4 sensores | En pruebas (simulación) |
-| P09 | Interfaz Web / Modo Demo | App Flutter Web: órdenes, telemetría, alertas y analítica | Hecho |
+| P09 | Interfaz Web / Modo Demo | App Flutter Web (*Autonomous Laboratory Cockpit*): Dashboard con Mapa de Pista, Controles, Radar y Alertas; acceso local con roles Operador y Administrador; analítica y CSV | Hecho (simulación); sin backend ni Firebase |
 | P10 | Simulador ESP32 Virtual | Robot virtual en el navegador (gemelo digital) | Hecho |
 | P11 | La alarma llega al teléfono | Centro de alertas en la app | En pruebas (simulación) |
 | P12 | Pruebas y estadística | Analítica de sesión y reporte CSV | En pruebas (simulación) |
@@ -82,11 +93,11 @@ Los criterios provienen de los requerimientos (`datos/proyecto.js`, `docs/requer
 | Fiabilidad del canal de pedidos (RF-01, RNF-04) | Pedidos confirmados / enviados; latencia de la confirmación (s) | Registro de mensajes MQTT en CSV; banco de pruebas P01; MQTTX | 0 pedidos perdidos en 50 | Simulación: 0 perdidos, latencia media 4,1 s. Falta con ESP32 real |
 | Periodicidad de la telemetría (RF-02) | Intervalo entre mensajes de estado | Campo `t` del mensaje y marca de tiempo de llegada | 1 mensaje cada 2 s | Validado en simulación |
 | Detección de desconexión (RF-03) | Tiempo desde la caída hasta el aviso (última voluntad, LWT) | Cronómetro y registro del broker | Menos de 30 s | Simulación: 22 s |
-| Seguimiento de línea (RF-04) | Error lateral al llegar (cm) y velocidad (m/s) | Campo `linea_mm`, cinta métrica, cronometraje | Error ≤ **? cm** | Simulación: da la vuelta a 0,41 m/s en una pista provisional |
-| Detección de obstáculos (RF-05, RNF-07) | Distancia de parada (cm); tiempo de parada (ms) | HC-SR04P, cinta métrica, video | Se detiene a ≥ 20 cm | Lógica validada en SIL; HIL pendiente |
-| Velocidad (RNF-03) | Velocidad en recta (m/s) | Encoders y cronometraje sobre distancia conocida | Entre 0,35 y 0,6 m/s | Estimada ~0,57 m/s (cálculo con L298N y carga) |
-| Alarma (RF-08) | Alertas recibidas por evento; falsas alarmas por recorrido | Centro de alertas (P11) y registro | Llega 1 sola vez; ≤ **? falsas alarmas** en **N** recorridos | Pendiente |
-| Energía (RNF-02) | Tensión de batería (V); autonomía (min) | Multímetro y campo `bateria_v` | Corte seguro a 9,90 V; cubrir la jornada, ≥ **? min** continuos | Autonomía estimada ~3 h (cálculo) |
+| Seguimiento de línea (RF-04) | Error lateral al llegar (cm) y velocidad (m/s) | Campo `linea_mm`, cinta métrica, cronometraje | Error ≤ **? cm** | Simulación: da la vuelta a 0,41 m/s en una pista provisional. **[PENDIENTE DE MEDICIÓN FÍSICA]** |
+| Detección de obstáculos (RF-05, RNF-07) | Distancia de parada (cm); tiempo de parada (ms) | HC-SR04P, cinta métrica, video | Criterio de RF-05: se detiene a ≥ 20 cm del obstáculo. Regla implementada: el firmware corta los motores con el eco frontal < 20 cm, así que la distancia final de parada será menor que 20 cm y depende del frenado y del refresco de 200 ms de cada sensor. **[VERIFICAR con el tutor cómo se define y se mide la distancia de parada.]** | Lógica validada en SIL; distancia real de parada **[PENDIENTE DE MEDICIÓN FÍSICA]** |
+| Velocidad (RNF-03) | Velocidad en recta (m/s) | Encoders y cronometraje sobre distancia conocida | Entre 0,35 y 0,6 m/s | Estimación por cálculo (~0,57 m/s con L298N y carga); simulado siguiendo la línea: 0,36 m/s con 9,9 V y 0,47 m/s con 12,6 V. **[PENDIENTE DE MEDICIÓN FÍSICA]** |
+| Alarma (RF-08) | Alertas recibidas por evento; falsas alarmas por recorrido | Centro de alertas (P11) y registro | Llega 1 sola vez; ≤ **? falsas alarmas** en **N** recorridos | Pendiente: la MPU-6050 aún no se lee en el firmware. **[PENDIENTE DE MEDICIÓN FÍSICA]** |
+| Energía (RNF-02) | Tensión de batería (V); autonomía (min) | Multímetro y campo `bateria_v` | Corte seguro a 9,90 V; cubrir la jornada, ≥ **? min** continuos | Autonomía estimada ~3 h (cálculo). **[PENDIENTE DE MEDICIÓN FÍSICA]** |
 | Repetibilidad (RNF-08) | Repeticiones por prueba | Plantillas HIL | Mínimo 20 | Fase VII |
 
 ### III.3.4 Unidad de estudio y entorno
@@ -96,6 +107,20 @@ La unidad de estudio es el **sistema completo** (robot, aplicación y canal MQTT
 ### III.3.5 Trazabilidad de las decisiones de diseño
 
 Cada decisión técnica se registra con **fecha, decisión, razón y evidencia** (`TG.decisiones` en `datos/proyecto.js`, página *Decisiones* del portafolio). Ejemplos: umbrales de obstáculo (parada a 20 cm, aviso a 50 cm), fail-safe del modo manual (5 s sin órdenes: frena y se queda en manual), corte por batería a 9,90 V con rearme por encima de 10,10 V, y elección del motor *Speed 200* frente al *Speed 130*. El código fuente se versiona en Git, de modo que cada sesión de prueba puede ligarse al *commit* exacto del firmware.
+
+### III.3.6 Estado de la aplicación y del Modo Demo al 19/11/2026
+
+Esta sección describe lo que el sistema hace hoy y fija qué es simulación, para que ningún resultado del Modo Demo se lea como medida del robot real.
+
+**Hardware de referencia (el único que existe en el diseño):** ESP32-WROOM-32, 4× TCRT5000 en ADC1 (GPIO 36, 39, 34 y 35, de izquierda a derecha, separados 18 mm), 2× HC-SR04P (eco frontal en GPIO 33, eco trasero en GPIO 5, TRIG común en GPIO 23 y GPIO 15 reservado para un TRIG trasero separado), MPU-6050 por I²C (GPIO 21 y 22; sin lectura activa en el firmware actual), motores con encoders, L298N y batería Li-Ion 3S (9,90 a 12,60 V). Es **un solo robot**. El diseño no incluye LiDAR ni magnetómetro: el robot no tiene brújula ni localización absoluta, por lo que ninguna pantalla muestra rumbo.
+
+**Reglas de seguridad (firmware y aplicación):** parada crítica con el eco frontal a menos de **20 cm**; zona de precaución de **20 a 50 cm** (solo aviso en el firmware real); corte por batería a 9,90 V con rearme por encima de 10,10 V; en modo manual, 5 s sin órdenes detienen el robot. En la aplicación estos umbrales se muestran en el Perfil del Administrador como **solo lectura**: no hay botón para editarlos ni para anularlos.
+
+**Aplicación Flutter (P09):** sistema de diseño *Autonomous Laboratory Cockpit* con cuatro secciones (Dashboard, Controles, Radar y Alertas) y un botón E-STOP que envía la orden `frenar`. El Dashboard abre con el **Mapa de Pista**: circuito cerrado con BASE, ESTACIÓN A y ESTACIÓN B, el cono del ultrasonido frontal (verde por encima de 50 cm, ámbar de 20 a 50 cm, rojo por debajo de 20 cm), la tarjeta de misión y los botones Pausar y Reanudar (órdenes `frenar` y `auto`). Con el robot real el mapa **no dibuja posición ni ofrece destinos**, porque el firmware no entiende destinos y el robot no se localiza; esas funciones solo existen en el Modo Demo.
+
+**Control de acceso (RBAC local):** modelo cerrado de laboratorio, sin registro público. Hay dos roles, Operador y Administrador. Las cuentas de demostración (`usuario` y `admin`) y las que el Administrador crea durante la sesión viven **en memoria**, sin backend ni Firebase: se pierden al cerrar la aplicación y las contraseñas no se almacenan de forma segura. Es una maqueta de la interfaz y del flujo de roles; la autenticación real con Firebase corresponde a la Fase V.
+
+**Modo Demo (SIL):** al activarlo, la aplicación **desconecta el MQTT real** y no lo reconecta al salir; el operador debe pulsar Conectar. La simulación física modela un robot que avanza a 0,40 m/s con un lazo PD de línea, una batería 3S que se descarga de forma lineal (de 12,60 a 9,90 V) y un ciclo de obstáculo en el que la distancia frontal baja de forma continua, el robot reduce la velocidad entre 20 y 50 cm (comportamiento propio del demo; el firmware solo avisa) y se detiene por debajo de 20 cm con una alerta. Las órdenes (E-STOP, `frenar`, `auto`, D-pad y destino) actúan al instante sobre la simulación. Todos estos valores son **supuestos de simulación**, no mediciones: la velocidad, la duración de la batería, el tiempo de frenado y la longitud del circuito deben reemplazarse por medidas del robot real. **[PENDIENTE DE MEDICIÓN FÍSICA]**
 
 ## III.4 Técnicas e instrumentos de recolección de datos
 
@@ -108,7 +133,7 @@ Siguiendo a Arias (2012), una **técnica** es el procedimiento o la forma partic
 | 1 | **Entrevista semiestructurada** | Guía de 13 preguntas en 5 bloques: el pedido de hoy, dónde están las cosas, quién y cómo, el robot en el laboratorio y material | Demanda, tamaño y peso de los pedidos, horarios, reglas, red Wi-Fi, carga, preocupaciones de seguridad | `docs/requerimientos/borrador-requerimientos.md`; `TG.entrevista` (realizada el 14/11/2026) |
 | 2 | **Observación directa** | Hoja de observación de 10 aspectos (recorrido, pasillos, piso, luz, obstáculos, estantes, demanda, Wi-Fi, carga, fotos) | Medidas y condiciones del entorno de operación | `TG.observacion`; resultados **[POR COMPLETAR]** |
 | 3 | **Revisión documental** | Hojas de datos de los componentes (ESP32-WROOM-32, JGA25-371, L298N, HC-SR04P, TCRT5000, BMS 3S) y la especificación MQTT 3.1.1 (Banks y Gupta, 2014) | Parámetros eléctricos y límites de operación | Capítulo II; `docs/tomo/objetivo-2-seleccion-hardware.md`; `docs/sensores.md` |
-| 4 | **Experimentación en simulación (SIL)** | Banco de pruebas P01, simuladores 3D (P01, P03, P08), ESP32 virtual P10, pruebas del firmware en el PC (58 comprobaciones), pruebas de la app (`flutter test`) | Resultados de pruebas, tiempos, conteos de mensajes | `prototipos/*/evidencias/`, `prototipos/P01-mqtt-base/datos/*.csv`, `firmware/pruebas_pc/` |
+| 4 | **Experimentación en simulación (SIL)** | Banco de pruebas P01, simuladores 3D (P01, P03, P08), ESP32 virtual P10, pruebas del firmware en el PC (58 comprobaciones), pruebas de la app (`flutter test`, 93 al 19/11/2026) | Resultados de pruebas, tiempos, conteos de mensajes | `prototipos/*/evidencias/`, `prototipos/P01-mqtt-base/datos/*.csv`, `firmware/pruebas_pc/` |
 | 5 | **Medición en banco y campo (HIL)** | Monitor Serie (115200), MQTTX, multímetro, cinta métrica, cronómetro y video; plantilla `prototipos/P02-sensores/README.md`; lista de cotejo eléctrica y de flasheo | Calibración ADC, exactitud de distancia, latencia de parada, tensión de corte, repeticiones | `docs/guia_pruebas_lab.md`, `docs/checklist_hardware.md`, `docs/checklist_flasheo.md`, `docs/sensores.md` |
 | 6 | **Registro automático de sesión** | Analítica de Sesión de la app (P12) con exportación CSV | Velocidad media y máxima, distancia frontal mínima válida, error medio absoluto de línea, paquetes y paradas de emergencia | Archivo `sesion_robot_AAAAMMDD_HHMMSS.csv` por sesión |
 | 7 | **Registro de proceso** | Bitácora semanal y registro de decisiones | Qué se hizo, qué se aprendió, qué sigue y por qué se decidió | Páginas *Bitácora* y *Decisiones*; historial de Git |
@@ -178,7 +203,7 @@ El trabajo se organiza en **7 fases** durante **32 semanas** (26/10/2026 al 11/0
 - *Criterio de cierre:* error de posición medido y dentro del criterio de RF-04 (**[POR COMPLETAR: valor en cm]**).
 
 **Fase V · App y backend**
-- *Actividades:* aplicación Flutter con usuarios y dos roles (solicitante y encargado), Firebase, notificaciones, historial de pedidos y entregas (RF-09 a RF-11).
+- *Actividades:* aplicación Flutter con usuarios y dos roles (solicitante y encargado), Firebase, notificaciones, historial de pedidos y entregas (RF-09 a RF-11). Al 19/11/2026 existe una maqueta local de los roles (Operador y Administrador, en memoria y sin backend, sección III.3.6); la autenticación real, el catálogo y la trazabilidad siguen pendientes.
 - *Criterio de cierre:* notificación en ≤ 5 s y registro consultable de cada pedido y entrega.
 
 **Fase VI · Integración y alertas**
@@ -203,6 +228,10 @@ El trabajo se organiza en **7 fases** durante **32 semanas** (26/10/2026 al 11/0
 - La pista del simulador es **provisional** hasta medir el laboratorio.
 - Con los ultrasonidos alternados, cada sensor se refresca cada 200 ms; el efecto sobre la distancia de parada debe medirse (prueba H2).
 - No se ha comprobado con los módulos reales que, sin objeto en rango, el HC-SR04P entregue el pulso de espera que el firmware interpreta como sensor sano.
+- El Mapa de Pista, la velocidad de 0,40 m/s, la descarga lineal de la batería y la reducción gradual de velocidad entre 20 y 50 cm son **simulaciones del Modo Demo**. El robot real no tiene localización absoluta y su firmware solo avisa en esa zona.
+- Los roles de la aplicación son una maqueta local en memoria: no hay autenticación real ni persistencia, y las contraseñas no se protegen.
+- La MPU-6050 aún no se lee en el firmware: el módulo antirrobo (RF-08) y la mejora de orientación con el giroscopio no tienen resultados.
+- Al entrar al Modo Demo la aplicación desconecta el MQTT real y no lo reconecta al salir.
 
 **Consideraciones éticas.** La entrevista se realizó a personal de la universidad con fines académicos. **[POR COMPLETAR: consentimiento informado, uso del nombre del entrevistado, permiso para fotografías en el laboratorio.]** El repositorio no contiene credenciales: las claves de Wi-Fi y del broker viven en un archivo local excluido del control de versiones.
 
@@ -210,7 +239,7 @@ El trabajo se organiza en **7 fases** durante **32 semanas** (26/10/2026 al 11/0
 
 ### Referencias
 
-> Citas en estilo autor-año (APA 7.ª ed.) en todo el capítulo. **[VERIFICAR: añadir la página a las citas de Arias (2012) y Hurtado de Barrera (2010) y confirmar la editorial en la portada del ejemplar.]** El Capítulo II usa referencias numeradas (por ejemplo [26]) y debe migrarse al mismo estilo.
+> Citas en estilo autor-año (APA 7.ª ed.) en todo el capítulo. **[VERIFICAR: añadir la página a las citas de Arias (2012) y Hurtado de Barrera (2010) y confirmar la editorial en la portada del ejemplar.]** **Conflicto de estilo:** los Capítulos I y II y el Marco teórico declaran en su portada la norma **IEEE** (referencias numeradas, por ejemplo [26]); este capítulo usa autor-año. Hay que decidir con el tutor un único estilo para el tomo y migrar el que corresponda (con IEEE, este capítulo tiene solo 4 referencias).
 
 - Arias, F. G. (2012). *El proyecto de investigación: Introducción a la metodología científica* (6.ª ed.). Episteme.
 - Banks, A., y Gupta, R. (Eds.). (2014). *MQTT version 3.1.1* (OASIS Standard). OASIS. https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html
@@ -219,11 +248,13 @@ El trabajo se organiza en **7 fases** durante **32 semanas** (26/10/2026 al 11/0
 
 ### Pendientes para cerrar el capítulo
 
-1. Copiar el objetivo general y los específicos del Capítulo I (sección III.1).
+1. ~~Copiar el objetivo general y los específicos del Capítulo I (sección III.1).~~ Hecho el 19/11/2026 (versión resumida; el texto completo está en el Capítulo I).
 2. Confirmar con la Escuela el término y la definición oficial de "Proyecto Especial" y citarla en la sección III.2.1. Con una búsqueda pública no se encontró una definición publicada con ese nombre. Documentos a consultar: la [página de Trabajo de Grado de la Escuela](https://ingenieria.ucab.edu.ve/telecomunicaciones/la-escuela/caracas/procesos-academicos/trabajo-de-grado/), el [Reglamento del Trabajo de Grado de la Facultad de Ingeniería](https://ingenieria.ucab.edu.ve/telecomunicaciones/wp-content/uploads/sites/5/2022/06/1.-Reglamento-del-TG-de-la-Facultad-de-Ingenieria.pdf) y el [Instructivo para elaborar el documento del TG](https://ingenieria.ucab.edu.ve/telecomunicaciones/wp-content/uploads/sites/5/2022/06/5.-Instructivo-para-Elaborar-Documento-Libro-Articulo-y-CD-del-TG-de-la-Escuela-de-Ingenieria-en-Telecomunicaciones.pdf) (este último puede indicar el estilo de citas exigido).
 3. Completar los resultados de la visita de observación y de la prueba H0 de Wi-Fi (sección III.3.4).
 4. Definir los valores marcados con **?** en la tabla III.3.3: error de posición (RF-04), falsas alarmas y recorridos (RF-08), autonomía mínima (RNF-02).
 5. Anotar modelo y resolución del multímetro y del cronómetro (sección III.4.2).
 6. Redactar las consideraciones éticas (consentimiento y fotografías).
 7. Confirmar con el tutor el método estadístico (sección III.4.3).
-8. Añadir la página a las citas de Arias (2012) y Hurtado de Barrera (2010), confirmar la editorial de esta última y migrar el Capítulo II al estilo autor-año.
+8. Añadir la página a las citas de Arias (2012) y Hurtado de Barrera (2010), confirmar la editorial de esta última y **unificar el estilo de citas del tomo** (IEEE en los Capítulos I y II y en el Marco teórico; autor-año aquí).
+9. Definir con el tutor cómo se mide la distancia de parada de RF-05 (el criterio dice «≥ 20 cm» y el firmware detiene el robot con el eco < 20 cm).
+10. Sustituir los supuestos del Modo Demo por mediciones del robot real y completar cada marca **[PENDIENTE DE MEDICIÓN FÍSICA]** con su registro HIL o de campo (fecha, condiciones y evidencia).

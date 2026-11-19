@@ -78,8 +78,6 @@ De esta pregunta general se derivaron las siguientes interrogantes específicas:
 
 - ¿Qué arquitectura de mensajería, y con qué niveles de QoS, permitiría intercambiar órdenes, estado y alertas entre el robot, la aplicación y el servidor con la fiabilidad y la latencia que exigía cada flujo?
 
-<!-- -->
-
 - ¿Qué componentes de hardware ofrecerían el mejor equilibrio entre costo, consumo energético, disponibilidad y compatibilidad?
 
 - ¿Qué combinación de seguimiento de línea, odometría, fusión de sensores inerciales y re-localización absoluta permitiría recorrer rutas conocidas acotando la deriva acumulada?
@@ -100,25 +98,23 @@ Desarrollar un prototipo funcional de robot móvil autónomo de bajo costo, inte
 
 ### I.2.2 Objetivos específicos
 
-1.  Diseñar la arquitectura de comunicación inalámbrica del sistema (robot–aplicación–servidor) basada en el protocolo MQTT y servicios en la nube, definiendo los tópicos, la calidad de servicio (QoS) y los flujos de mensajes para órdenes, estado y alertas.
+1. Diseñar la arquitectura de comunicación inalámbrica del sistema (robot–aplicación–servidor) basada en el protocolo MQTT y servicios en la nube, definiendo los tópicos, la calidad de servicio (QoS) y los flujos de mensajes para órdenes, estado y alertas.
 
-<!-- -->
+2. Realizar un estudio comparativo y seleccionar los componentes de hardware (microcontrolador, controlador de motores, sensores, batería) bajo criterios de costo, consumo energético, disponibilidad y compatibilidad.
 
-1.  Realizar un estudio comparativo y seleccionar los componentes de hardware (microcontrolador, controlador de motores, sensores, batería) bajo criterios de costo, consumo energético, disponibilidad y compatibilidad.
+3. Diseñar y construir la plataforma mecánica del robot, con chasis impreso en 3D y configuración de tracción diferencial, acorde con las dimensiones, cargas y rutas del entorno del laboratorio.
 
-2.  Diseñar y construir la plataforma mecánica del robot, con chasis impreso en 3D y configuración de tracción diferencial, acorde con las dimensiones, cargas y rutas del entorno del laboratorio.
+4. Desarrollar el firmware de control del robot, implementando el seguimiento de línea mediante control PID, la adquisición de sensores (línea, ultrasónicos e inercial) y la comunicación MQTT con el servidor.
 
-3.  Desarrollar el firmware de control del robot, implementando el seguimiento de línea mediante control PID, la adquisición de sensores (línea, ultrasónicos e inercial) y la comunicación MQTT con el servidor.
+5. Implementar un esquema de navegación progresivo que combine el seguimiento de línea con odometría y fusión de sensores inerciales, incorporando puntos de re-localización absoluta para acotar la deriva acumulada en rutas previamente mapeadas.
 
-4.  Implementar un esquema de navegación progresivo que combine el seguimiento de línea con odometría y fusión de sensores inerciales, incorporando puntos de re-localización absoluta para acotar la deriva acumulada en rutas previamente mapeadas.
+6. Desarrollar la aplicación móvil/web de solicitudes y el backend de trazabilidad, incluyendo catálogo de componentes, seguimiento del robot en tiempo real, historial de entregas y notificaciones.
 
-5.  Desarrollar la aplicación móvil/web de solicitudes y el backend de trazabilidad, incluyendo catálogo de componentes, seguimiento del robot en tiempo real, historial de entregas y notificaciones.
+7. Implementar el módulo de alertas de seguridad anti-manipulación basado en el acelerómetro, definiendo los umbrales de detección y evaluando la tasa de detección y la tasa de falsas alarmas.
 
-6.  Implementar el módulo de alertas de seguridad anti-manipulación basado en el acelerómetro, definiendo los umbrales de detección y evaluando la tasa de detección y la tasa de falsas alarmas.
+8. Evaluar el desempeño integral del sistema mediante pruebas en una maqueta del laboratorio, midiendo la precisión de navegación, la latencia y fiabilidad de la comunicación, la autonomía energética y la eficacia de las alertas.
 
-7.  Evaluar el desempeño integral del sistema mediante pruebas en una maqueta del laboratorio, midiendo la precisión de navegación, la latencia y fiabilidad de la comunicación, la autonomía energética y la eficacia de las alertas.
-
-8.  Documentar las limitaciones técnicas del sistema y proponer mejoras futuras orientadas a su escalabilidad y a su adaptación a otros entornos de aplicación.
+9. Documentar las limitaciones técnicas del sistema y proponer mejoras futuras orientadas a su escalabilidad y a su adaptación a otros entornos de aplicación.
 
 Los objetivos específicos siguieron la secuencia propia de un proyecto de investigación y desarrollo: primero se diseñó y se seleccionó (objetivos 1, 2 y 3), luego se desarrolló e implementó cada subsistema (objetivos 4, 5, 6 y 7), después se evaluó el sistema integrado (objetivo 8) y, por último, se documentaron sus limitaciones y posibles mejoras (objetivo 9). En la Tabla 1 se relacionó cada objetivo específico con el producto verificable que se esperaba obtener y con la fase de la metodología en la que se atendió.
 
@@ -158,8 +154,6 @@ El Trabajo de Grado no abarcó los siguientes aspectos:
 
 - La operación simultánea de una flota de múltiples robots ni los mecanismos de coordinación multi-robot.
 
-<!-- -->
-
 - La navegación totalmente autónoma en entornos desconocidos o dinámicos no mapeados (SLAM completo).
 
 - El despliegue ni las certificaciones para entornos hospitalarios o clínicos, que se mencionaron únicamente como aplicaciones futuras.
@@ -175,8 +169,6 @@ El Trabajo de Grado no abarcó los siguientes aspectos:
 El Trabajo de Grado comprendió los siguientes elementos:
 
 - Un (1) prototipo funcional de robot móvil de bajo costo, validado en una maqueta o entorno controlado del laboratorio de la UCAB.
-
-<!-- -->
 
 - El seguimiento de línea con control PID y un esquema de navegación progresiva en rutas previamente mapeadas, en el que la línea se mantuvo como recurso de recuperación.
 

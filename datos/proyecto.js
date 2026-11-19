@@ -123,7 +123,7 @@ window.TG = {
     { id: "RF-02", tipo: "RF", texto: "Informar su estado de forma periódica", criterio: "Un mensaje cada 2 s", valida: ["P01"], estado: "validado", nota: "Validado en simulación (T2)" },
     { id: "RF-03", tipo: "RF", texto: "Avisar si el robot se desconecta", criterio: "Aviso en menos de 30 s", valida: ["P01"], estado: "validado", nota: "Validado en simulación: 22 s (T6)" },
     { id: "RF-04", tipo: "RF", texto: "Ir por la línea del mostrador al estante y volver", criterio: "Error de posición ≤ ? cm al llegar", valida: ["P08", "H4"], estado: "pendiente", nota: "Simulado en una pista provisional: da la vuelta a 0,41 m/s (P08 avance 1). Falta la pista real" },
-    { id: "RF-05", tipo: "RF", texto: "Detectar un obstáculo y detenerse", criterio: "Se detiene a ≥ 20 cm del obstáculo", valida: ["P02", "P13"], estado: "pendiente", nota: "Parada por obstáculo (< 20 cm), fallo de sensor sin eco y fail-safe de 5 s implementados en firmware (58 comprobaciones SIL en PC, también corte por batería y duplicados QoS 1) y con la misma regla en P10 y en el Modo Demo; falta validar con el hardware físico (diciembre)" },
+    { id: "RF-05", tipo: "RF", texto: "Detectar un obstáculo y detenerse", criterio: "Se detiene a ≥ 20 cm del obstáculo", valida: ["P02", "P13"], estado: "pendiente", nota: "Parada por obstáculo (< 20 cm), fallo de sensor sin eco y fail-safe de 5 s implementados en firmware (58 comprobaciones SIL en PC, también corte por batería y duplicados QoS 1) y con la misma regla en P10 y en el Modo Demo; falta validar con el hardware físico (diciembre). Ojo con el criterio: el firmware corta los motores con el eco < 20 cm, así que la distancia final de parada será menor que 20 cm; acordar con el tutor cómo se define y se mide («≥ 20 cm» no es alcanzable tal como está escrito)" },
     { id: "RF-06", tipo: "RF", texto: "Re-localizarse en puntos de referencia", criterio: "Corrige su posición en cada punto (BLE o QR)", valida: ["P04", "Fase IV"], estado: "pendiente" },
         { id: "RF-07", tipo: "RF", texto: "Transportar los componentes pedidos", criterio: "Lleva 3 o 4 piezas pequeñas sin perder la línea", valida: ["H5"], estado: "pendiente", nota: "Entrevista: los pedidos son de 3 o 4 piezas muy livianas" },
         { id: "RF-08", tipo: "RF", texto: "Alarmar si alguien lo levanta o lo mueve sin una orden", criterio: "La alarma llega a la app 1 sola vez y genera un reporte para el encargado y la Escuela; ≤ ? falsas alarmas en N recorridos", valida: ["P11", "H6"], estado: "pendiente", nota: "Entrevista: preocupan igual robo, pérdida y daño" },
@@ -415,7 +415,8 @@ window.TG = {
     { titulo: "Documento de requerimientos", linea: "Guía de entrevista, hoja de observación, requerimientos y matriz de hardware.", md: "docs/requerimientos/borrador-requerimientos.md" },
     { titulo: "Ficha de sensores (P02)", linea: "Pines, umbrales y calibración de los TCRT5000 y HC-SR04P.", md: "docs/sensores.md" },
     { titulo: "Registro de mediciones físicas (HIL)", linea: "Plantilla vacía para las pruebas con el hardware en diciembre.", md: "prototipos/P02-sensores/README.md" },
-    { titulo: "Tópicos MQTT", linea: "Contrato JSON de estado, ultrasonido, órdenes, ack y alertas.", md: "docs/arquitectura/topicos-mqtt.md" }
+    { titulo: "Tópicos MQTT", linea: "Contrato JSON de estado, ultrasonido, órdenes, ack y alertas.", md: "docs/arquitectura/topicos-mqtt.md" },
+    { titulo: "Auditoría: tesis frente al sistema", linea: "Qué coincide con el hardware, la seguridad y la app, qué está marcado y qué falta medir.", md: "docs/tomo/auditoria-tesis-vs-sistema.md" }
   ],
 
   /* Una entrada por semana, la más nueva primero */

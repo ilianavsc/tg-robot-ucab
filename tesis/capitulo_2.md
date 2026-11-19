@@ -158,6 +158,8 @@ Una unidad de medición inercial (IMU) combina un acelerómetro, que mide la ace
 
 En este proyecto la IMU cumplió dos funciones. El giroscopio aportó la velocidad de giro del robot para mejorar la estimación de su orientación (sección II.2.4.2), y el acelerómetro permitió detectar movimientos anómalos del robot cuando no estaba en misión (sección II.2.10). Ambos sensores tienen limitaciones conocidas: el giroscopio presenta un sesgo que, al integrarse en el tiempo, produce una deriva creciente en el ángulo estimado, y el acelerómetro es sensible a las vibraciones \[11\], \[14\]. Por esa razón sus lecturas no se usaron de forma aislada, sino combinadas con otras fuentes.
 
+> **Nota de auditoría (19/11/2026, solo en esta versión web):** la MPU-6050 forma parte del hardware elegido, pero el firmware actual **no la lee todavía** (solo existe el gancho para conectarla) y no hay mediciones del giroscopio ni del acelerómetro. Las funciones descritas son el diseño previsto, no un resultado. **[PENDIENTE DE MEDICIÓN FÍSICA]**
+
 #### II.2.2.4 Encoders incrementales
 
 Un encoder incremental genera un número fijo de pulsos por cada vuelta del eje al que está acoplado. Contando los pulsos en un intervalo de tiempo se obtienen el ángulo girado y la velocidad de la rueda \[11\]. Los encoders de cuadratura tienen dos canales desfasados 90°, lo que permite conocer también el sentido de giro y multiplicar por cuatro la resolución al contar todos los flancos de ambas señales. Si N es el número de pulsos por vuelta y r el radio de la rueda, la distancia recorrida por cada pulso es:
@@ -342,8 +344,6 @@ En el paradigma de publicación/suscripción, los suscriptores declaran su inter
 
 - **Espacio:** publicadores y suscriptores no necesitan conocerse ni saber cuántos son.
 
-<!-- -->
-
 - **Tiempo:** no necesitan estar conectados al mismo tiempo.
 
 - **Sincronización:** el publicador no queda bloqueado esperando a que el mensaje se reciba, y el suscriptor lo recibe mientras realiza otras tareas.
@@ -362,8 +362,6 @@ Cada mensaje se publica con un nombre de tópico, una cadena de texto que el bro
 
 - **Comodín multinivel “#”:** coincide con el nivel padre y con cualquier número de niveles inferiores, y debe ser el último carácter del filtro. Por ejemplo, ucab/robot/# recibe todos los mensajes del robot.
 
-<!-- -->
-
 - **Comodín de un nivel “+”:** coincide con exactamente un nivel. Por ejemplo, ucab/+/alertas recibiría las alertas de cualquier robot si el sistema creciera a varias unidades.
 
 Los tópicos que comienzan con “\$” quedan reservados para que el broker publique información sobre su propio estado, y un filtro que empieza con un comodín no coincide con ellos \[29, sec. 4.7.2\]. Un ejemplo habitual es el prefijo \$SYS, que los brokers usan para publicar estadísticas de conexión o de uso de memoria.
@@ -373,8 +371,6 @@ Los tópicos que comienzan con “\$” quedan reservados para que el broker pub
 MQTT ofrece tres niveles de calidad de servicio para la entrega de mensajes, cada uno con un equilibrio distinto entre fiabilidad y costo \[29, sec. 4.3\]:
 
 - **QoS 0, “a lo sumo una vez”:** el mensaje se envía una sola vez, sin confirmación, y puede perderse \[29, sec. 4.3.1\]. Es apropiado para datos de sensores que se envían periódicamente, donde la siguiente lectura reemplaza a la perdida.
-
-<!-- -->
 
 - **QoS 1, “al menos una vez”:** se garantiza la llegada, pero el mensaje puede duplicarse. El PUBLISH lleva un identificador y el receptor responde con PUBACK; si la conexión se interrumpe antes de la confirmación, el emisor reenvía el mensaje con el indicador DUP activado \[29, secs. 4.3.2 y 4.4\]. Por ello, el receptor debe tolerar duplicados.
 
@@ -406,8 +402,6 @@ Elevar el QoS tiene un costo. Lee et al. \[9\] observaron que un nivel más alto
 
 - **Sesión:** es la interacción con estado entre un cliente y el servidor, que puede durar solo una conexión o abarcar varias consecutivas \[29, sec. 1.2\]. En MQTT 3.1.1, el cliente indica al conectarse, con el indicador Clean Session, si inicia una sesión nueva, que se descarta al desconectarse, o si continúa la anterior y pide al servidor conservarla \[31, sec. 3.1.2.4\]. MQTT 5.0 separa esa función en el indicador Clean Start y la propiedad Session Expiry Interval, que fija cuánto tiempo se conserva el estado tras la desconexión \[29, secs. 3.1.2.4 y 3.1.2.11.2\]. Ese estado incluye las suscripciones del cliente y los mensajes de QoS 1 y 2 pendientes \[29, sec. 4.1\], lo que permite a un cliente con conectividad intermitente, como un robot que sale del alcance del Wi-Fi, reconectarse sin perder sus mensajes \[29, sec. 3.1.2.11.2\].
 
-<!-- -->
-
 - **Mensajes retenidos:** si un PUBLISH llega con el indicador RETAIN activado, el servidor lo guarda como el último valor del tópico, reemplazando al anterior \[29, sec. 3.3.1.3\]. Así, un cliente que se suscribe recibe de inmediato el último valor conocido.
 
 - **Keep Alive:** es el intervalo máximo, en segundos, que puede transcurrir entre dos paquetes enviados por el cliente. Si no tiene datos que enviar, el cliente envía PINGREQ y el servidor responde PINGRESP; si el servidor no recibe nada en una vez y media ese intervalo, cierra la conexión como si la red hubiera fallado \[29, sec. 3.1.2.10\]. Este mecanismo permite detectar la desconexión del robot aunque la red no la notifique. En el prototipo P01, con un Keep Alive de 15 s, el aviso de desconexión llegó a los 22 s, en concordancia con 1,5 veces el intervalo.
@@ -419,8 +413,6 @@ Elevar el QoS tiene un costo. Lee et al. \[9\] observaron que un nivel más alto
 La especificación recomienda que clientes y servidores implementen autenticación, autorización y comunicación segura, y lo aconseja con énfasis cuando se maneja infraestructura crítica o información sensible \[29, sec. 1.6\]. Su capítulo de seguridad, de carácter orientativo, aborda la autenticación entre cliente y servidor, la autorización de acceso a los recursos y la integridad y privacidad de los mensajes \[29, sec. 5.4\]. Para este proyecto resultaron relevantes tres mecanismos:
 
 - **Autenticación:** el paquete CONNECT puede incluir un nombre de usuario y una contraseña \[29, secs. 3.1.3.5 y 3.1.3.6\], y la versión 5.0 añade la autenticación extendida mediante el paquete AUTH \[29, sec. 4.12\].
-
-<!-- -->
 
 - **Autorización:** una vez autenticado el cliente, el servidor puede restringir a qué tópicos puede publicar o suscribirse \[29, sec. 5.4.2\].
 
@@ -496,6 +488,8 @@ El desarrollo multiplataforma permite crear aplicaciones para varios sistemas op
 
 Para el proyecto, Flutter permitió cubrir con un mismo desarrollo los teléfonos de los estudiantes, independientemente de su sistema operativo, y una versión web para el puesto del técnico. Además, Firebase dispone de bibliotecas oficiales para Flutter y existen bibliotecas cliente de MQTT para Dart, de modo que la aplicación pudo actuar simultáneamente como cliente del broker y de los servicios de Firebase. Las funciones que se le asignaron fueron el catálogo de componentes, el registro de solicitudes, el seguimiento del robot en tiempo real, el historial de entregas y la recepción de alertas.
 
+> **Nota de auditoría (19/11/2026, solo en esta versión web):** al 19/11/2026 la aplicación implementada incluye telemetría, órdenes, radar, alertas y analítica con CSV, un Mapa de Pista (simulado) y una maqueta local de roles (Operador y Administrador, en memoria, sin Firebase). El catálogo de componentes, el registro de solicitudes, el historial de entregas y las notificaciones con backend siguen pendientes (Fase V).
+
 ### II.2.10 Detección de manipulación no autorizada con acelerómetro
 
 Cuando el robot transporta material sin acompañamiento humano, existe el riesgo de que alguien lo levante, lo empuje o abra su compartimiento durante el recorrido o mientras espera. El acelerómetro permite detectar estos eventos porque, con el robot detenido, la única aceleración que mide es la de la gravedad, de modo que la magnitud del vector de aceleración se mantiene cerca de 1 g:
@@ -550,6 +544,8 @@ Sobre una serie de ensayos se reportan el error medio, el error máximo y la ra�
 t<sub>aut</sub> ≈ (C·V<sub>nom</sub>·η) / P<sub>media</sub> (19)
 
 donde C es la capacidad de la batería en amperios hora, V<sub>nom</sub> su tensión nominal, η la fracción de energía aprovechable y P<sub>media</sub> la potencia media consumida. El prototipo empleó un paquete de tres celdas de ion de litio del formato 18650 conectadas en serie (3S), con un sistema de gestión de batería (BMS) que protege a las celdas frente a sobrecarga, descarga profunda y sobrecorriente, y que además equilibra la carga de las tres celdas (balanceo). Las celdas de ion de litio tienen una tensión nominal cercana a 3,6 V y se cargan hasta 4,2 V \[44\], de modo que el paquete ofrece alrededor de 10,8 V nominales y 12,6 V a plena carga. Como la potencia consumida varía con la carga transportada y con el uso de la radio, la autonomía real se midió en condiciones de operación.
+
+> **Nota de auditoría (19/11/2026, solo en esta versión web):** la autonomía **aún no se ha medido**: solo existe una estimación por cálculo (≈ 3 h). El firmware corta los motores a 9,90 V y los rearma por encima de 10,10 V; la escala de porcentaje de la aplicación va de 9,90 V (0 %) a 12,60 V (100 %). **[PENDIENTE DE MEDICIÓN FÍSICA]**
 
 **Eficacia de las alertas. Se evalúa con la tasa de detección y la tasa de falsas alarmas definidas en la sección II.2.10.2. La Tabla 9 reúne todas las métricas y el objetivo específico al que corresponden.**
 
