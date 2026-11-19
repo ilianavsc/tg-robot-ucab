@@ -1010,6 +1010,7 @@ dialog.modal-md::backdrop {
   overflow-y: auto;
   font-size: 16.5px;
   line-height: 1.65;
+  overflow-wrap: anywhere; /* URLs largas de las referencias IEEE */
 }
 
 .modal-md-cuerpo h1 {

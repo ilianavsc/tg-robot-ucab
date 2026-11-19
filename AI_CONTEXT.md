@@ -98,7 +98,7 @@ Diseñada como **Portafolio de Ingeniería** estático sin dependencias externas
   - `assets/sitio.js`: Utilidades de tiempo `TGU` (cálculo de semanas, días restantes e hitos), generación dinámica de la barra de navegación `#menu` y del pie de página `#pie` (con enlace a `archivo-fase-1.html`).
 - **Páginas Principales:**
   - `index.html`: Dashboard principal con bienvenida, estado actual (software vs hardware), reloj de avance temporal, showcase de prototipos y firmware integrado.
-  - `tesis.html` y `tesis/`: capítulos del tomo en Markdown (`tesis/capitulo_3.md`, borrador del Marco Metodológico), listados desde `TG.tesis` y abiertos en el visor modal; enlace "Tesis" en el grupo "El Proyecto" del menú.
+  - `tesis.html` y `tesis/`: capítulos del tomo en Markdown (`tesis/capitulo_1.md`, `capitulo_2.md` y `marco_teorico.md`, convertidos de Word con citas IEEE e imágenes en `tesis/media/`; `tesis/capitulo_3.md`, borrador del Marco Metodológico con citas autor-año), listados desde `TG.tesis` y abiertos en el visor modal; enlace "Tesis" en el grupo "El Proyecto" del menú.
   - `PLAN.md`: Documento con diagrama Gantt en Mermaid y desglose de 32 semanas.
   - `cronograma.html`: Renderizado interactivo SVG de la línea de tiempo.
   - `prototipos/`: Landing pages individuales con visor 3D en la parte superior, descarga de código `.ino` y sección prediseñada para resultados de laboratorio.

@@ -387,15 +387,18 @@ window.TG = {
 
   /* ---------- TESIS (página tesis.html) ----------
      estado: "borrador" | "enviado" | "por redactar" | "por integrar"
+     etiqueta/tituloModal: solo para documentos que no son un capítulo numerado (por defecto "Cap" y "Capítulo <num> · <titulo>")
      md: ruta del capítulo en Markdown (se abre en el visor modal) o null si aún no está en el repositorio
      extra: enlaces secundarios [texto, ruta .md]
      provisional: true = el título aún no está confirmado con la guía de la Escuela / el tutor */
   tesis: [
-    { num: "I", titulo: "Planteamiento del problema", provisional: true, estado: "por integrar", md: null,
-      resumen: "Problema, objetivos, justificación y alcance. El texto está en el documento de Word; falta pasarlo al repositorio." },
-    { num: "II", titulo: "Marco teórico", provisional: true, estado: "enviado", md: null,
-      resumen: "MQTT y sus QoS, ESP32, motores y encoders, batería Li-Ion 3S, sensores y comunicación inalámbrica. Ajustado y enviado en noviembre de 2026; quedan cambios pendientes.",
+    { num: "I", titulo: "Planteamiento del proyecto", provisional: false, estado: "borrador", md: "tesis/capitulo_1.md",
+      resumen: "Planteamiento del problema, objetivos, justificación, alcance y limitaciones. Versión web del Word (última modificación: 28/10/2026); citas en IEEE." },
+    { num: "II", titulo: "Marco teórico", provisional: false, estado: "enviado", md: "tesis/capitulo_2.md",
+      resumen: "Antecedentes, bases teóricas (robótica móvil, sensores, control, localización, ESP32, Wi-Fi y MQTT), bases normativas y términos básicos. Ajustado y enviado en noviembre de 2026; quedan cambios pendientes. Citas en IEEE.",
       extra: [["Cambios pendientes del Capítulo II", "docs/tomo/capitulo-ii-cambios.md"]] },
+    { num: "MT", etiqueta: "Doc", titulo: "Marco teórico: estructura y desarrollo de un tema", provisional: false, estado: "borrador", md: "tesis/marco_teorico.md", tituloModal: "Marco teórico: estructura y desarrollo de un tema",
+      resumen: "Entrega previa al Capítulo II: muestra cómo se organiza el marco teórico y desarrolla un tema completo, el protocolo MQTT (QoS, tópicos, sesión, LWT). Citas en IEEE." },
     { num: "III", titulo: "Marco metodológico", provisional: false, estado: "borrador", md: "tesis/capitulo_3.md",
       resumen: "Nivel de investigación (Proyecto Especial), diseño de prototipo, técnicas e instrumentos, plan de análisis y las 7 fases del trabajo." },
     { num: "IV", titulo: "Desarrollo del prototipo", provisional: true, estado: "por redactar", md: null,

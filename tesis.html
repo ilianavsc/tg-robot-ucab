@@ -29,10 +29,10 @@
 <main>
 <p class="ceja">Tesis</p>
 <h1>El documento del <em>Trabajo de Grado</em></h1>
-<p class="bajada">Los capítulos del tomo, uno por uno. Pulsa <strong>Leer borrador</strong> para abrir el capítulo sin salir de la página.</p>
+<p class="bajada">Los capítulos del tomo, uno por uno. Pulsa <strong>Leer borrador</strong> para abrir el capítulo (o el documento) sin salir de la página.</p>
 
 <div class="frase-explicativa">
-  <strong>Cómo se actualiza:</strong> cada capítulo se escribe en Markdown dentro de <code>tesis/</code> y esta lista sale de <code>TG.tesis</code> en <code>datos/proyecto.js</code>. Los títulos de los capítulos distintos del III son <strong>provisionales</strong> hasta confirmar la estructura con el tutor.
+  <strong>Cómo se actualiza:</strong> cada capítulo se escribe en Markdown dentro de <code>tesis/</code> y esta lista sale de <code>TG.tesis</code> en <code>datos/proyecto.js</code>. Los capítulos I y II y el Marco teórico vienen de los documentos de Word y usan citas <strong>IEEE</strong> (numéricas); los capítulos IV a VI tienen títulos <strong>provisionales</strong> hasta confirmar la estructura con el tutor.
 </div>
 
 <section aria-labelledby="t-capitulos">
@@ -62,7 +62,7 @@
 
   document.getElementById("capitulos").innerHTML = TG.tesis.map(function(c){
     var e = ESTADOS[c.estado] || { chip: "pendiente", texto: c.estado };
-    var tituloModal = "Capítulo " + c.num + " · " + c.titulo;
+    var tituloModal = c.tituloModal || ("Capítulo " + c.num + " · " + c.titulo);
     var acciones = "";
     if (c.md) {
       acciones += '<a class="btn btn-principal" href="' + esc(c.md) + '" data-md="' + esc(c.md) + '" data-titulo="' + esc(tituloModal) + '">Leer borrador</a>';
@@ -73,7 +73,7 @@
       acciones += '<a class="btn btn-secundario" href="' + esc(x[1]) + '" data-md="' + esc(x[1]) + '" data-titulo="' + esc(x[0]) + '">' + esc(x[0]) + '</a>';
     });
     return '<article class="cap' + (c.md ? "" : " vacio") + '">' +
-      '<div class="cab"><span class="num"><small>Cap</small>' + esc(c.num) + '</span><span class="chip ' + e.chip + '">' + esc(e.texto) + '</span></div>' +
+      '<div class="cab"><span class="num"><small>' + esc(c.etiqueta || "Cap") + '</small>' + esc(c.num) + '</span><span class="chip ' + e.chip + '">' + esc(e.texto) + '</span></div>' +
       '<h3>' + esc(c.titulo) + '</h3>' +
       (c.provisional ? '<p class="prov">título provisional</p>' : "") +
       '<p class="resumen">' + esc(c.resumen) + '</p>' +

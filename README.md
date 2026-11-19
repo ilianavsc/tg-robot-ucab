@@ -95,7 +95,7 @@ Contratos JSON de todos los tópicos: [`docs/arquitectura/topicos-mqtt.md`](docs
 - `app/` la App Flutter Web (P09, con P11 y P12 dentro); se publica sola en `/app/` con cada push a `main`
 - `firmware/` firmware integrado del robot (`robot_integrado.ino`, P01 + P03 + P08 + ultrasonidos), su README y `pruebas_pc/` (58 comprobaciones SIL de seguridad que corren en el PC y en GitHub Actions)
 - `docs/` requerimientos, arquitectura (tópicos MQTT), guías de pruebas y del jurado
-- `tesis/` capítulos del Trabajo de Grado en Markdown (hoy `capitulo_3.md`, Marco Metodológico); `tesis.html` los lista y los abre en el visor modal (la lista sale de `TG.tesis` en `datos/proyecto.js`)
+- `tesis/` capítulos del Trabajo de Grado en Markdown (`capitulo_1.md`, `capitulo_2.md` y `marco_teorico.md` vienen de los Word y usan citas IEEE; `capitulo_3.md` es el borrador del Marco Metodológico; imágenes en `tesis/media/`); `tesis.html` los lista y los abre en el visor modal (la lista sale de `TG.tesis` en `datos/proyecto.js`)
 - `hardware/materiales/` lista de materiales y registro de cambios
 
 El puente MQTT a Firebase (P05), el CAD y los esquemáticos se agregan cuando tengan contenido.
