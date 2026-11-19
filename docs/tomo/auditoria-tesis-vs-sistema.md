@@ -41,7 +41,7 @@
 
 | Qué | Entorno real | Estado |
 |---|---|---|
-| 10 escenarios del firmware en PC (SIL), P10, Modo Demo, 116 pruebas de la app, escenario híbrido de P10 (10 pruebas en Node) | **SIL** | Hecho; rotulado como SIL |
+| 10 escenarios del firmware en PC (SIL), P10, Modo Demo, 116 pruebas de la app, escenario híbrido de P10 (10 pruebas en Node), `specs/navegacion` (13) y Simulador 2 V2 (22) | **SIL** | Hecho; rotulado como SIL |
 | Firmware en el ESP32 real con sensores y motores, balizas BLE, MPU-6050 | **HIL** | **No se ha hecho** (hardware llega en diciembre) |
 
 | Valor del tomo | Origen real | Estado |

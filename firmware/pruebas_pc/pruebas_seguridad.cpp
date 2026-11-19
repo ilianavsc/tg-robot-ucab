@@ -229,6 +229,7 @@ int main() {
   CHECK(usInicioFrente == inicioFrente, "y al reves: el frente se ignora en el turno del trasero");
   g_pin[PIN_ULTRA_FRENTE] = 0;
 
-  printf("\nResultado: %d/%d pruebas OK\n", total - fallos, total);
+  if (fallos) printf("\nResultado: FALLARON %d comprobaciones\n", fallos);
+  else printf("\nResultado: escenarios T1-T10 en verde\n");
   return fallos ? 1 : 0;
 }

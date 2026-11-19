@@ -32,8 +32,7 @@ Es la fusión de los tres prototipos en un solo firmware:
   QoS 1), no se ejecuta ni se cuenta; solo se reconfirma.
 - Manda el estado cada 2 s (con el campo `parada`) y las alertas con **QoS 2**,
   desde una cola en `loop()`: primero frena, después avisa.
-- Pruebas de la lógica en el PC (SIL): [`pruebas_pc/`](pruebas_pc/) (58 comprobaciones
-  en 10 escenarios). También corren en GitHub Actions antes de cada despliegue.
+- Pruebas de la lógica en el PC (SIL): [`pruebas_pc/`](pruebas_pc/) (10 escenarios T1–T10). También corren en GitHub Actions antes de cada despliegue.
 - **No usa `delay()`**: todo el tiempo se maneja con `millis()`.
 
 ## Librerías que hay que instalar

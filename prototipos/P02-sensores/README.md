@@ -9,7 +9,7 @@
 
 | Nivel | Qué es | Dónde está | Estado |
 |---|---|---|---|
-| **SIL** (*Software In the Loop*) | La lógica del firmware se ejecuta sin hardware: compilada en el PC con imitaciones del core ESP32, o emulada en el navegador | `firmware/pruebas_pc/` (58/58), P10 "Inyección de Eventos Virtuales (SIL)", Modo Demo de la App | Hecho (corre en GitHub Actions) |
+| **SIL** (*Software In the Loop*) | La lógica del firmware se ejecuta sin hardware: compilada en el PC con imitaciones del core ESP32, o emulada en el navegador | `firmware/pruebas_pc/` (10 escenarios T1–T10), P10 "Inyección de Eventos Virtuales (SIL)", Modo Demo de la App | Hecho (corre en GitHub Actions) |
 | **HIL** (*Hardware In the Loop*) | El mismo firmware en el **ESP32 real** con los **sensores reales**, observado desde la App | **Este archivo** | Pendiente (diciembre) |
 
 Regla: un resultado solo pasa de "validado en simulación" a "validado" cuando tiene su

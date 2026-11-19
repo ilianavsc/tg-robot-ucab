@@ -155,7 +155,7 @@
             <button class="b info" id="btn-ensenar" type="button">🎓 Enseñar ruta con la cinta actual</button>
           </div>
           <p class="nota" id="ruta-ensenada">Ruta enseñada: —</p>
-          <p class="nota">También puedes hacer clic sobre la pista para quitar o poner 0,5 m de cinta. Si retiras cinta y NO enseñas el hueco, el robot lo trata como pérdida real y se detiene por seguridad (timeout de 4 s). Un hueco enseñado se cruza con HEADING_HOLD (límite de 4 s sin línea).</p>
+          <p class="nota">También puedes hacer clic sobre la pista para quitar o poner 0,5 m de cinta. Si retiras cinta y NO enseñas el hueco, el robot lo trata como pérdida real y se detiene por seguridad (timeout de 4 s). Un hueco enseñado se cruza con HEADING_HOLD. Si el hueco termina en un extremo, la baliza BLE (RSSI ≥ −80 dBm) pasa directo a WAIT_BEACON sin REACQUIRE_LINE. El límite de 4 s sin línea (deriva del MPU-6050) no se amplía: un hueco de más de ~4,5 m lejos de un extremo termina en timeout_sin_linea.</p>
         </div>
 
         <div class="panel">

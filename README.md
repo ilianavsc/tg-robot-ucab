@@ -82,10 +82,11 @@ hardware (`firmware/pruebas_pc/`). Las pruebas **HIL** (*Hardware In the Loop*) 
 cuando llegue el hardware: ESP32 real, sensores reales y la app; sus mediciones se anotan
 en [`prototipos/P02-sensores/README.md`](prototipos/P02-sensores/README.md).
 
-**Verificación automática (CI):** cada push a `main` corre, antes de publicar, las 4 suites
+**Verificación automática (CI):** cada push a `main` corre, antes de publicar, las 5 suites
 verdes: `flutter analyze` (0 issues), `flutter test` (116/116), `node specs/navegacion/teach_and_repeat.test.js`
-(9/9) y `node prototipos/P10-simulador-esp32/p10_hibrido_modelo.test.js` (10/10). El firmware
-además se compila en el PC (`sh firmware/pruebas_pc/correr.sh`, 10 escenarios SIL) en GitHub
+(13/13), `node prototipos/P10-simulador-esp32/p10_hibrido_modelo.test.js` (10/10) y
+`node prototipos/simulador-2-v2-teach-and-repeat/simulador_movimiento.test.js` (22/22). El firmware
+además se compila en el PC (`sh firmware/pruebas_pc/correr.sh`, escenarios T1–T10 en SIL) en GitHub
 Actions; si algo falla, no se despliega.
 Contratos JSON de todos los tópicos: [`docs/arquitectura/topicos-mqtt.md`](docs/arquitectura/topicos-mqtt.md).
 

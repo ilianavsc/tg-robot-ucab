@@ -117,6 +117,29 @@ prueba("retiro progresivo: hasta un hueco de 1,5 m el robot llega; con uno de 4,
   assert.ok(largo.eventos.some((e) => /timeout_sin_linea/.test(e.texto)));
 });
 
+prueba("hueco de cinta que termina en el extremo: HEADING_HOLD → WAIT_BEACON directo (sin REACQUIRE_LINE) y llegada validada", () => {
+  const sim = nueva();
+  S.setCinta(sim, 7.5, 9.0, false); /* T4 sin cinta: la baliza B2 es lo único que valida el final */
+  S.ensenar(sim);
+  const r = viajeCompleto(sim);
+  assert.ok(sim.llegadaCompleta && !sim.nav.paradaSeguridad, "llega por baliza");
+  const i = r.estados.lastIndexOf("HEADING_HOLD");
+  assert.strictEqual(r.estados[i + 1], "WAIT_BEACON", "tras el último HEADING_HOLD va WAIT_BEACON: " + r.estados.join(" → "));
+  assert.ok(sim.eventos.some((e) => /beacon_detectado/.test(e.texto)));
+  assert.ok(sim.s > 8.6, "se detiene junto a B2");
+});
+
+prueba("el hueco de cinta lejos de un extremo no se acorta: > ~4,5 m sigue terminando en timeout_sin_linea (límite de 4 s intacto)", () => {
+  assert.strictEqual(N.CFG.TIEMPO_MAX_SIN_LINEA_MS, 4000);
+  const sim = nueva();
+  S.setCinta(sim, 4.5, 7.5, false); /* junto a T2: hueco de 4,5 m sin baliza */
+  S.ensenar(sim);
+  viajeCompleto(sim);
+  assert.ok(sim.nav.paradaSeguridad && !sim.llegadaCompleta);
+  assert.ok(sim.eventos.some((e) => /timeout_sin_linea/.test(e.texto)));
+  assert.ok(sim.s < 7.5, "se detuvo antes de llegar al extremo (s=" + sim.s + ")");
+});
+
 prueba("obstáculo < 20 cm: parada crítica (velocidad 0, estado intacto) y se reanuda al despejar", () => {
   const sim = nueva();
   correr(sim, 1.5);

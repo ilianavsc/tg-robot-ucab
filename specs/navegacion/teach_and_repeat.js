@@ -40,7 +40,9 @@ var CFG = {
   KP_LINEA: 0.030,               // corrección por mm de error de línea
   K_HEADING: 0.02,               // corrección por grado de deriva de rumbo
   TIEMPO_LINEA_PERDIDA_MS: 500,  // buffer antes de declarar tramo sin cinta
-  TIEMPO_MAX_SIN_LINEA_MS: 4000, // timeout de seguridad sin línea
+  TIEMPO_MAX_SIN_LINEA_MS: 4000, // timeout de seguridad sin línea. NO se aumenta:
+                                 // es el límite ante deriva del MPU-6050 (huecos de
+                                 // cinta > ~4,5 m a la velocidad base no se cruzan)
   RSSI_DETECTA_DBM: -80,         // detecta baliza BLE
   RSSI_LLEGADA_DBM: -52,         // valida llegada al extremo
   DRIFT_MAX_GRADOS: 30,          // deriva excesiva del giroscopio
@@ -185,6 +187,13 @@ function paso(nav, entradas) {
           nav.paradaSeguridad = true;
           out.paradaSeguridad = true;
           out.evento = "deriva_excesiva";
+        } else if (entradas.rssi >= CFG.RSSI_DETECTA_DBM && nav.haSalidoDeInicio) {
+          /* Tramo sin cinta que termina en un EXTREMO: la baliza de ese extremo
+             (RSSI >= detecta) pasa directo a WAIT_BEACON, sin REACQUIRE_LINE.
+             Solo si ya se salió del inicio: junto a la baliza de salida no vale.
+             La deriva excesiva se evalúa antes: manda la seguridad. */
+          nav.estado = ESTADO.WAIT_BEACON;
+          out.evento = "beacon_detectado";
         } else if (ve) {
           nav.estado = ESTADO.REACQUIRE_LINE;
           out.evento = "linea_reaparece";

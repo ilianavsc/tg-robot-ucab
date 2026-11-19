@@ -46,5 +46,10 @@
     "tiempoMaxSinLineaMs": 4000
   },
 
-  "estados": ["FOLLOW_LINE", "LINE_LOST_CHECK", "HEADING_HOLD", "WAIT_BEACON", "REACQUIRE_LINE"]
+  "estados": ["FOLLOW_LINE", "LINE_LOST_CHECK", "HEADING_HOLD", "WAIT_BEACON", "REACQUIRE_LINE"],
+
+  "notas": {
+    "tiempoMaxSinLineaMs": "Límite de seguridad de 4000 ms sin línea, ante la deriva del MPU-6050. NO se amplía para cruzar huecos de cinta mayores (~4,5 m a la velocidad base): esos huecos terminan en timeout_sin_linea.",
+    "headingHoldABeacon": "Estando en HEADING_HOLD, un RSSI >= rssiDetecciondBm de la baliza del extremo final pasa directo a WAIT_BEACON sin REACQUIRE_LINE (solo tras salir del inicio; la deriva excesiva manda primero)."
+  }
 }

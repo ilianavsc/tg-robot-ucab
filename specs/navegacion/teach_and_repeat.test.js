@@ -228,6 +228,76 @@ caso('Consistencia con specs/pista_canonica.json', function () {
   assert.deepStrictEqual(spec.estados, NOMBRE_ESTADO, 'los 5 estados exactos');
 });
 
+/* 10 · HEADING_HOLD -> WAIT_BEACON directo cuando el hueco termina en un extremo */
+caso('HEADING_HOLD pasa directo a WAIT_BEACON con RSSI >= -80 dBm (sin REACQUIRE_LINE)', function () {
+  const nav1 = nuevoNav();
+  const visitados = [];
+  const registrar = function (o) { if (visitados[visitados.length - 1] !== o.estado) visitados.push(o.estado); return o; };
+  let o;
+  registrar(paso(nav1, entradas({ rssi: -100 })));                       // sale del inicio
+  registrar(paso(nav1, entradas({ n: [0, 0, 0, 0], rssi: -100, tramoSinCinta: true })));
+  o = registrar(paso(nav1, entradas({ n: [0, 0, 0, 0], rssi: -100, tramoSinCinta: true, dtMs: CFG.TIEMPO_LINEA_PERDIDA_MS })));
+  assert.strictEqual(o.estado, ESTADO.HEADING_HOLD);
+  // Sigue sin cinta, pero ya detecta la baliza del extremo final.
+  o = registrar(paso(nav1, entradas({ n: [0, 0, 0, 0], rssi: CFG.RSSI_DETECTA_DBM, tramoSinCinta: true })));
+  assert.strictEqual(o.estado, ESTADO.WAIT_BEACON);
+  assert.strictEqual(o.evento, 'beacon_detectado');
+  assert.ok(!visitados.includes(ESTADO.REACQUIRE_LINE), 'no pasa por REACQUIRE_LINE');
+  // Y la llegada se valida igual que siempre.
+  o = paso(nav1, entradas({ n: [0, 0, 0, 0], rssi: CFG.RSSI_LLEGADA_DBM }));
+  assert.strictEqual(o.llegada, true);
+  assert.strictEqual(o.evento, 'llegada_validada');
+});
+
+caso('HEADING_HOLD junto a la baliza de SALIDA no salta a WAIT_BEACON (balizas solo validan la llegada)', function () {
+  const nav1 = nuevoNav();
+  let o;
+  // Sin cinta desde el inicio, con RSSI alto de B1 y sin haber salido de su radio.
+  paso(nav1, entradas({ n: [0, 0, 0, 0], rssi: -52, tramoSinCinta: true }));
+  o = paso(nav1, entradas({ n: [0, 0, 0, 0], rssi: -52, tramoSinCinta: true, dtMs: CFG.TIEMPO_LINEA_PERDIDA_MS }));
+  assert.strictEqual(o.estado, ESTADO.HEADING_HOLD);
+  assert.strictEqual(nav1.haSalidoDeInicio, false);
+  o = paso(nav1, entradas({ n: [0, 0, 0, 0], rssi: -52, tramoSinCinta: true }));
+  assert.strictEqual(o.estado, ESTADO.HEADING_HOLD, 'sigue en HEADING_HOLD');
+  assert.strictEqual(o.llegada, false);
+});
+
+caso('HEADING_HOLD: la deriva excesiva (> 30°) manda sobre la baliza', function () {
+  const nav1 = nuevoNav();
+  paso(nav1, entradas({ rssi: -100 }));
+  paso(nav1, entradas({ n: [0, 0, 0, 0], rssi: -100, tramoSinCinta: true }));
+  paso(nav1, entradas({ n: [0, 0, 0, 0], rssi: -100, tramoSinCinta: true, dtMs: CFG.TIEMPO_LINEA_PERDIDA_MS }));
+  const o = paso(nav1, entradas({ n: [0, 0, 0, 0], rssi: -60, yaw: CFG.DRIFT_MAX_GRADOS + 5, tramoSinCinta: true }));
+  assert.strictEqual(o.paradaSeguridad, true);
+  assert.strictEqual(o.evento, 'deriva_excesiva');
+  assert.strictEqual(o.estado, ESTADO.HEADING_HOLD);
+});
+
+/* 11 · El timeout de 4 s NO se amplía: límite de seguridad ante deriva del MPU-6050 */
+caso('Timeout de 4 s intacto: un hueco largo sin baliza termina en timeout_sin_linea', function () {
+  const spec = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'pista_canonica.json'), 'utf8'));
+  assert.strictEqual(CFG.TIEMPO_MAX_SIN_LINEA_MS, 4000, 'el límite sigue siendo 4 s');
+  assert.strictEqual(spec.umbrales.tiempoMaxSinLineaMs, CFG.TIEMPO_MAX_SIN_LINEA_MS);
+  const nav1 = nuevoNav();
+  paso(nav1, entradas({ rssi: -100 }));
+  paso(nav1, entradas({ n: [0, 0, 0, 0], rssi: -100, tramoSinCinta: true }));
+  let o = paso(nav1, entradas({ n: [0, 0, 0, 0], rssi: -100, tramoSinCinta: true, dtMs: CFG.TIEMPO_LINEA_PERDIDA_MS }));
+  assert.strictEqual(o.estado, ESTADO.HEADING_HOLD);
+  let ms = nav1.perdidaMs;
+  while (ms < CFG.TIEMPO_MAX_SIN_LINEA_MS - 100) {
+    o = paso(nav1, entradas({ n: [0, 0, 0, 0], rssi: -100, tramoSinCinta: true, dtMs: 100 }));
+    ms = nav1.perdidaMs;
+    assert.strictEqual(o.paradaSeguridad, false, 'aún dentro del límite (' + ms + ' ms)');
+  }
+  o = paso(nav1, entradas({ n: [0, 0, 0, 0], rssi: -100, tramoSinCinta: true, dtMs: 100 }));
+  assert.strictEqual(o.paradaSeguridad, true);
+  assert.strictEqual(o.evento, 'timeout_sin_linea');
+  // latch: no se reanuda aunque aparezca la baliza
+  o = paso(nav1, entradas({ n: [0, 1, 1, 0], rssi: -52 }));
+  assert.strictEqual(o.paradaSeguridad, true);
+  assert.strictEqual(o.vIzq, 0);
+});
+
 console.log('\nResultado: ' + (total - fallos) + '/' + total + ' pruebas en verde (' +
   (fallos === 0 ? 100 : Math.round(((total - fallos) / total) * 100)) + '%)');
 process.exitCode = fallos === 0 ? 0 : 1;
