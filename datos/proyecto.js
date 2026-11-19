@@ -123,7 +123,7 @@ window.TG = {
     { id: "RF-02", tipo: "RF", texto: "Informar su estado de forma periódica", criterio: "Un mensaje cada 2 s", valida: ["P01"], estado: "validado", nota: "Validado en simulación (T2)" },
     { id: "RF-03", tipo: "RF", texto: "Avisar si el robot se desconecta", criterio: "Aviso en menos de 30 s", valida: ["P01"], estado: "validado", nota: "Validado en simulación: 22 s (T6)" },
     { id: "RF-04", tipo: "RF", texto: "Ir por la línea del mostrador al estante y volver", criterio: "Error de posición ≤ ? cm al llegar", valida: ["P08", "H4"], estado: "pendiente", nota: "Simulado en una pista provisional: da la vuelta a 0,41 m/s (P08 avance 1). Falta la pista real" },
-    { id: "RF-05", tipo: "RF", texto: "Detectar un obstáculo y detenerse", criterio: "Se detiene a ≥ 20 cm del obstáculo", valida: ["P02", "P13"], estado: "pendiente", nota: "Parada por obstáculo (< 20 cm), fallo de sensor sin eco y fail-safe de 5 s implementados en firmware (58 comprobaciones SIL en PC, también corte por batería y duplicados QoS 1) y con la misma regla en P10 y en el Modo Demo; falta validar con el hardware físico (diciembre). Ojo con el criterio: el firmware corta los motores con el eco < 20 cm, así que la distancia final de parada será menor que 20 cm; acordar con el tutor cómo se define y se mide («≥ 20 cm» no es alcanzable tal como está escrito)" },
+    { id: "RF-05", tipo: "RF", texto: "Detectar un obstáculo y detenerse", criterio: "Se detiene cuando el obstáculo frontal está a < 20 cm", valida: ["P02", "P13"], estado: "pendiente", nota: "Parada por obstáculo (< 20 cm), fallo de sensor sin eco y fail-safe de 5 s implementados en firmware (58 comprobaciones SIL en PC, también corte por batería y duplicados QoS 1) y con la misma regla en P10 y en el Modo Demo; falta validar con el hardware físico (diciembre) y medir la distancia final de parada [PENDIENTE DE MEDICIÓN FÍSICA]" },
     { id: "RF-06", tipo: "RF", texto: "Re-localizarse en puntos de referencia", criterio: "Corrige su posición en cada punto (BLE o QR)", valida: ["P04", "Fase IV"], estado: "pendiente" },
         { id: "RF-07", tipo: "RF", texto: "Transportar los componentes pedidos", criterio: "Lleva 3 o 4 piezas pequeñas sin perder la línea", valida: ["H5"], estado: "pendiente", nota: "Entrevista: los pedidos son de 3 o 4 piezas muy livianas" },
         { id: "RF-08", tipo: "RF", texto: "Alarmar si alguien lo levanta o lo mueve sin una orden", criterio: "La alarma llega a la app 1 sola vez y genera un reporte para el encargado y la Escuela; ≤ ? falsas alarmas en N recorridos", valida: ["P11", "H6"], estado: "pendiente", nota: "Entrevista: preocupan igual robo, pérdida y daño" },
@@ -133,7 +133,7 @@ window.TG = {
         { id: "RNF-01", tipo: "RNF", texto: "Bajo costo", criterio: "Total ≤ US$ ? (compras proyectadas: unos US$ 125 entre Amazon y Mercado Libre, sin impuesto ni courier)", valida: ["Lista v1"], estado: "pendiente" },
         { id: "RNF-02", tipo: "RNF", texto: "Autonomía", criterio: "Cubrir la jornada de 7:00 a 18:00 cargando entre recorridos; ≥ ? min de trabajo continuo", valida: ["Entrevista"], estado: "pendiente", nota: "Entrevista: carga en los enchufes del cuarto de componentes" },
     { id: "RNF-03", tipo: "RNF", texto: "Velocidad", criterio: "Entre 0,35 y 0,6 m/s", valida: ["P03"], estado: "pendiente", nota: "Motor elegido: Speed 200 (280 rpm sin carga). Estimado con L298N y peso: ~0,57 m/s. Siguiendo la línea (simulado): 0,36 m/s con 9,9 V y 0,47 m/s con 12,6 V. Ver P03 y P08" },
-    { id: "RNF-04", tipo: "RNF", texto: "Comunicación confiable", criterio: "0 pedidos perdidos; confirmación en ≤ ? s con el ESP32 real", valida: ["P01"], estado: "pendiente", nota: "En simulación: 0 perdidos, promedio 4,1 s" },
+    { id: "RNF-04", tipo: "RNF", texto: "Comunicación confiable", criterio: "0 pedidos perdidos; confirmación en ≤ ? s con el ESP32 real", valida: ["P01"], estado: "pendiente", nota: "SIL (banco P01, broker público de desarrollo): 0 perdidos de 50 y promedio de 4,1 s; no representa al sistema real. Criterio de latencia y medición con el ESP32 real: [PENDIENTE DE MEDICIÓN FÍSICA]" },
     { id: "RNF-05", tipo: "RNF", texto: "Seguridad de la comunicación", criterio: "Broker privado con usuario, contraseña y TLS para las pruebas finales", valida: ["Fase VI"], estado: "pendiente" },
         { id: "RNF-06", tipo: "RNF", texto: "Funcionar en la red del laboratorio", criterio: "El ESP32 llega al broker desde el Wi-Fi del laboratorio", valida: ["H0"], estado: "pendiente", nota: "Entrevista: la red UCAB pide usuario y clave; hay una red interna del laboratorio. Probar ambas en H0" },
         { id: "RNF-07", tipo: "RNF", texto: "Convivir con las personas", criterio: "Circula solo por el pasillo, de 7:00 a 18:00, y se detiene ante obstáculos", valida: ["P02", "Entrevista"], estado: "pendiente", nota: "Entrevista: no hay otras reglas de seguridad. La detección de obstáculos ya está en firmware (umbrales 20/50 cm); falta prueba física" },
@@ -289,6 +289,18 @@ window.TG = {
   /* ---------- DECISIONES (la más nueva primero) ----------
      estado: "tomada" | "abierta" */
   decisiones: [
+    { fecha: "2026-11-19", titulo: "Arquitectura: 1 ESP32 móvil + 2 ESP32 fijos (balizas BLE)", estado: "tomada",
+      decision: "El robot es un solo ESP32 móvil; dos ESP32 fijos (Cuarto de Componentes y Laboratorio 1) anuncian por BLE como balizas de proximidad. En los tramos sin cinta, el robot mantendría el rumbo relativo con el giroscopio de la MPU-6050 (heading hold) hasta que la baliza del siguiente punto de control confirme proximidad por RSSI. Sin LiDAR ni magnetómetro.",
+      porque: "Acota la deriva sin localización absoluta y reutiliza los 3 ESP32 del pedido. Hoy solo existe en simulación (P10 y vista previa del Admin); la lectura de la MPU-6050 y el escaneo BLE están [PENDIENTE DE INTEGRACIÓN EN FIRMWARE]; umbrales de RSSI y deriva: [PENDIENTE DE MEDICIÓN FÍSICA].",
+      evidencia: "docs/arquitectura/balizas-ble.md · prototipos/P10-simulador-esp32/p10_hibrido_modelo.js" },
+    { fecha: "2026-11-19", titulo: "El botón de la app se llama «Freno Remoto», no E-STOP", estado: "tomada",
+      decision: "El botón siempre visible de la app se llama Freno Remoto y envía la orden 'frenar' por MQTT (QoS 1).",
+      porque: "Un comando por MQTT depende del teléfono, la red y el broker: no es una parada de emergencia cableada y no sustituye el interruptor físico del robot. El jurado distingue ambas cosas.",
+      evidencia: "app/lib/features/telemetria/cockpit_ui.dart · docs/guion_defensa.md" },
+    { fecha: "2026-11-19", titulo: "TRIG del HC-SR04P trasero separado en GPIO 15", estado: "tomada",
+      decision: "Frente: TRIG en GPIO 23. Atrás: TRIG en GPIO 15 (PIN_ULTRA_TRIG_ATRAS = 15). GPIO 15 es pin de arranque: en LOW solo apaga el log de arranque.",
+      porque: "Con TRIG común los dos módulos emitían en cada disparo; con TRIG propio solo emite el sensor de turno. 58/58 pruebas SIL en PC; falta comprobarlo con los módulos reales.",
+      evidencia: "firmware/robot_integrado.ino · docs/sensores.md" },
     { fecha: "2026-11-18", titulo: "Corte de seguridad por batería a 9,90 V con histéresis a 10,10 V", estado: "tomada",
       decision: "Con ≤ 9,90 V (3 lecturas seguidas de 200 ms) el firmware ejecuta detener(), publica 'bateria_critica' y bloquea el movimiento hasta que la tensión supere 10,10 V y llegue una orden nueva. Con ≤ 10,30 V publica antes el aviso 'bateria_baja'. Con ≤ 1 V (alimentado por USB, sin batería) no corta.",
       porque: "El BMS corta recién entre 2,3 y 3,0 V por celda: el ESP32 debe frenar antes (3,30 V/celda) para cuidar las 18650. Las 3 lecturas ignoran el bajón al arrancar los motores; la orden nueva evita que el rebote de tensión sin carga lo haga arrancar y frenar en bucle.",
@@ -319,7 +331,7 @@ window.TG = {
       evidencia: "firmware/robot_integrado.ino (procesarAlertas)" },
     { fecha: "2026-11-18", titulo: "Umbrales de obstáculo: parada a 20 cm y aviso a 50 cm", estado: "tomada",
       decision: "Si el eco frontal del HC-SR04P mide menos de 20 cm, el firmware detiene el robot (detener()) y publica la alerta 'obstaculo'; entre 20 y 50 cm es zona de aviso; más de 50 cm es despejado.",
-      porque: "Cumple RF-05 ('se detiene a ≥ 20 cm') y RNF-07, y coincide con las zonas verde/ámbar/rojo del radar P13.",
+      porque: "Cumple RF-05 (se detiene cuando el obstáculo está a < 20 cm) y RNF-07, y coincide con las zonas verde/ámbar/rojo del radar P13.",
       evidencia: "firmware/robot_integrado.ino" },
     { fecha: "2026-11-14", titulo: "Seguidor de línea en el simulador 3D web", estado: "tomada",
       decision: "El seguidor de línea (P08) se simula en el navegador, copiando el simulador de la tracción de P03, en lugar de Webots.",
@@ -416,6 +428,7 @@ window.TG = {
     { titulo: "Ficha de sensores (P02)", linea: "Pines, umbrales y calibración de los TCRT5000 y HC-SR04P.", md: "docs/sensores.md" },
     { titulo: "Registro de mediciones físicas (HIL)", linea: "Plantilla vacía para las pruebas con el hardware en diciembre.", md: "prototipos/P02-sensores/README.md" },
     { titulo: "Tópicos MQTT", linea: "Contrato JSON de estado, ultrasonido, órdenes, ack y alertas.", md: "docs/arquitectura/topicos-mqtt.md" },
+    { titulo: "Arquitectura: 1 ESP32 móvil + 2 balizas BLE", linea: "Diseño de las balizas fijas, tramos sin cinta con heading hold y supuestos de P10 (SIL).", md: "docs/arquitectura/balizas-ble.md" },
     { titulo: "Auditoría: tesis frente al sistema", linea: "Qué coincide con el hardware, la seguridad y la app, qué está marcado y qué falta medir.", md: "docs/tomo/auditoria-tesis-vs-sistema.md" }
   ],
 

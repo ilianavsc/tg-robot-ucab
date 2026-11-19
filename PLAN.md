@@ -66,20 +66,20 @@ gantt
 
 ## 🤖 Catálogo de Prototipos de Ingeniería (P01 a P13)
 
-La lista oficial está en `datos/proyecto.js`. Estado al 18 nov 2026:
+La lista oficial está en `datos/proyecto.js`. Estado al 19 nov 2026 (todo lo marcado como hecho o en pruebas es **SIL**; el **HIL** con el ESP32 real empieza en diciembre):
 
 | Código | Prototipo | Estado |
 | :--- | :--- | :--- |
 | P01 | Así se hablan el robot y la app (MQTT, QoS, LWT < 22 s) | Hecho |
 | P02 | Los sentidos del robot (4× TCRT5000 + 2× HC-SR04P) | En pruebas (simulación) |
 | P03 | Motores que van parejo (JGA25-371, PWM 20 kHz, encoders) | En pruebas (simulación) |
-| P04 | ¿BLE o QR? (re-localización) | Pendiente |
+| P04 | ¿BLE o QR? (re-localización con 2 ESP32 fijos como balizas BLE; ver `docs/arquitectura/balizas-ble.md`) | Pendiente (diseño y simulación; BLE y MPU-6050 **[PENDIENTE DE INTEGRACIÓN EN FIRMWARE]**) |
 | P05 | Robot virtual y puente Firebase | Pendiente |
 | P06 | Primera versión de la app con pedidos | Pendiente |
 | P07 | El cerebro completo (`firmware/robot_integrado.ino`) | En pruebas (58 comprobaciones SIL en PC y CI; falta HIL con el ESP32 real) |
 | P08 | Seguir la línea (PD a 100 Hz, simulador 3D) | En pruebas (simulación) |
-| **P09** | **App Flutter Web con Modo Demo** (`app/`) | Hecho |
-| **P10** | **Simulador ESP32 Virtual** (robot falso en el navegador) | Hecho |
+| **P09** | **App Flutter Web** (`app/`): Mapa de Pista, Freno Remoto, login/RBAC local (maqueta en memoria), perfiles y Aprendizaje de Ruta (Admin) | Hecho (SIL; sin backend de producción) |
+| **P10** | **Simulador ESP32 Virtual** (robot falso en el navegador), con escenario híbrido de tramo sin cinta y RSSI BLE | Hecho (SIL) |
 | P11 | Centro de Alertas en la app (obstáculo, sensor sin eco, proximidad, batería) | En pruebas (simulación) |
 | P12 | Analítica de sesión y reporte CSV | En pruebas (simulación) |
 | P13 | Radar ultrasónico Frente/Atrás | En pruebas (simulación) |
@@ -90,11 +90,19 @@ validado.
 
 ### Seguridad que ya está en el firmware y en el Gemelo Digital
 - Obstáculo frontal < 20 cm: parada, alerta QoS 2, solo se permite retroceder con atrás ≥ 20 cm y sensor válido.
-- Ultrasonidos leídos alternados (frente/atrás cada 100 ms); sin eco 600 ms: el sensor se marca en fallo y se bloquea esa dirección.
+- Ultrasonidos leídos alternados (frente/atrás cada 100 ms) con **TRIG separado** (frente GPIO 23, atrás GPIO 15); sin eco 600 ms: el sensor se marca en fallo y se bloquea esa dirección.
 - Modo manual 5 s sin órdenes: el robot frena y se queda en manual (nunca pasa solo a autónomo).
 - Batería ≤ 10,30 V: aviso preventivo (`bateria_baja`); ≤ 9,90 V: **corte** (frena, `bateria_critica`) hasta > 10,10 V y una orden nueva.
 - Órdenes repetidas por QoS 1 (mismo `id`): no se ejecutan dos veces.
-- Todo esto es validación **SIL** (software); la validación **HIL** (hardware) empieza en diciembre.
+- Todo esto es validación **SIL** (software); la validación **HIL** (hardware) empieza en diciembre y no se ha hecho.
+- En la app, el botón **Freno Remoto** envía `frenar` por MQTT: **no es un E-STOP cableado** y no sustituye el interruptor físico.
+- Al salir del Modo Demo la app **no reconecta** el MQTT solo: hay que pulsar Conectar.
+
+### Arquitectura de nodos
+**1 ESP32 móvil** (4× TCRT5000, 2× HC-SR04P, MPU-6050, batería 3S Li-Ion) + **2 ESP32 fijos** como balizas BLE de proximidad en el Cuarto de Componentes y el Laboratorio 1. Sin LiDAR ni magnetómetro. En los tramos sin cinta, el robot mantendría el rumbo relativo con el giroscopio de la MPU-6050 hasta que la baliza del siguiente punto lo confirme. BLE y MPU-6050: **[PENDIENTE DE INTEGRACIÓN EN FIRMWARE]**; umbrales y distancias: **[PENDIENTE DE MEDICIÓN FÍSICA]**.
+
+### Estado de la tesis (19 nov)
+Citas unificadas en **IEEE**. RF-05: «se detiene con el frente a < 20 cm». Autonomía **estimada** (≈ 3 h), no medida. RNF-04: 4,1 s de latencia es del banco P01 con broker público (SIL), no del sistema real. Detalle en `docs/tomo/auditoria-tesis-vs-sistema.md`.
 
 ### Cómo levantar el Gemelo Digital
 1. `prototipos/P10-simulador-esp32/index.html` → **Encender ESP32 Virtual**.

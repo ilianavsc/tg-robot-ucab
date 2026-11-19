@@ -56,6 +56,8 @@ asume camino libre**.
 
 Umbrales (RF-05): `< 20 cm` parada, `20–50 cm` aviso, `> 50 cm` despejado.
 
+> **Solo simulación:** P10 puede publicar `ucab-tg-sf/robot/ble_sim` (QoS 0, `{"baliza","rssi_dbm","simulado":true,"t"}`) en su escenario híbrido. No forma parte del contrato real ni del firmware (ver `balizas-ble.md`).
+
 Lectura alternada: ciclo par = frente, ciclo impar = atrás (100 ms por ciclo). Cada módulo
 tiene su propio TRIG (frente GPIO 23, atrás GPIO 15): solo emite el sensor de turno y
 quedan aislados también acústicamente.

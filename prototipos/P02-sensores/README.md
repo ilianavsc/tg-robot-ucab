@@ -64,7 +64,7 @@ Mismo objeto plano (caja de cartón) perpendicular al sensor. 5 lecturas por dis
 
 | # | Prueba | Esperado (firmware) | Repeticiones OK / total | Medida | Evidencia |
 |---|---|---|---|---|---|
-| H1 | Obstáculo frontal acercándose a 0,4–0,5 m/s | Se detiene a **≥ 20 cm** (RF-05), alerta `obstaculo` en la App | / 20 | Distancia final (cm): | |
+| H1 | Obstáculo frontal acercándose a 0,4–0,5 m/s | Se detiene con el frente a **< 20 cm** (RF-05); anotar la distancia final. Alerta `obstaculo` en la App | / 20 | Distancia final (cm): | |
 | H2 | Latencia de parada | Desde que el objeto cruza 20 cm hasta ruedas en 0 | / 20 | ms (≈ ≤ 300 esperado): | |
 | H3 | Con obstáculo frontal, orden `atras` (atrás despejado) | Retrocede | / 20 | | |
 | H4 | Obstáculo delante y detrás (< 20 cm) | No se mueve en ninguna dirección, alerta `obstaculo_atras` al pedir `atras` | / 20 | | |

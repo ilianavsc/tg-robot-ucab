@@ -54,7 +54,7 @@ Lleven cinta métrica, un teléfono para fotos (con permiso) y, si pueden, el ES
 | RF-02 | Informar su estado de forma periódica | Un mensaje cada 2 s | P01 (T2) | Validado en simulación |
 | RF-03 | Avisar si el robot se desconecta | Aviso en menos de 30 s | P01 (T6) | Validado en simulación (22 s) |
 | RF-04 | Ir por la línea del mostrador al estante y volver | Error de posición ≤ ? cm al llegar | P08, H4 | Pendiente |
-| RF-05 | Detectar un obstáculo y detenerse | Se detiene a ≥ 20 cm del obstáculo | P02 | Pendiente |
+| RF-05 | Detectar un obstáculo y detenerse | Se detiene cuando el obstáculo frontal está a < 20 cm | P02 | Pendiente (distancia final de parada: [PENDIENTE DE MEDICIÓN FÍSICA]) |
 | RF-06 | Re-localizarse en puntos de referencia | Corrige su posición en cada punto (BLE o QR) | P04, Fase IV | Pendiente |
 | RF-07 | Transportar los componentes pedidos | Carga hasta ? g sin perder la línea | H5 | Pendiente |
 | RF-08 | Alarmar si alguien lo levanta o lo mueve sin una orden | La alarma llega a la app 1 sola vez; ≤ ? falsas alarmas en N recorridos | P11, H6 | Pendiente |
@@ -68,7 +68,7 @@ Lleven cinta métrica, un teléfono para fotos (con permiso) y, si pueden, el ES
 | RNF-01 | Bajo costo | Total ≤ US$ ? (compras proyectadas: unos US$ 90, más lo que preste el laboratorio) | Lista de materiales v1 |
 | RNF-02 | Autonomía | ≥ ? min de trabajo continuo | Horario de demanda (entrevista, pregunta 4) |
 | RNF-03 | Velocidad | Entre 0,35 y 0,6 m/s | Motores de 100 a 170 rpm con ruedas de 65 mm |
-| RNF-04 | Comunicación confiable | 0 pedidos perdidos; confirmación en ≤ ? s con el ESP32 real | P01 (en simulación: promedio 4,1 s) |
+| RNF-04 | Comunicación confiable | 0 pedidos perdidos; confirmación en ≤ ? s con el ESP32 real | P01 (SIL con broker público: promedio 4,1 s, no representa al sistema real; [PENDIENTE DE MEDICIÓN FÍSICA]) |
 | RNF-05 | Seguridad de la comunicación | Broker privado con usuario, contraseña y TLS para las pruebas finales | Riesgo del broker público |
 | RNF-06 | Funcionar en la red del laboratorio | El ESP32 llega al broker desde el Wi-Fi de la UCAB | H0 |
 | RNF-07 | Convivir con las personas | Se detiene ante obstáculos y respeta las reglas del laboratorio | Entrevista, pregunta 9 |
