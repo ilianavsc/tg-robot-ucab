@@ -81,19 +81,26 @@
 #btn-toggle.apagado { background: var(--accent-primary); border-color: var(--accent-primary-hover); color: #fff; }
 #btn-toggle.encendido { background: #dc2626; border-color: #991b1b; color: #fff; }
 
-/* Aviso de frenado por obstáculo */
+/* Aviso de frenado por obstáculo y tarjeta de velocidad */
 .us-alerta {
   margin-top: 8px; padding: 8px 10px; border-radius: 8px;
   background: #7f1d1d; color: #fff; font-family: var(--font-mono);
   font-size: 13px; font-weight: 700; text-align: center; letter-spacing: 0.04em;
 }
+.us-alerta[hidden] { display: block; visibility: hidden; }
+.us-vel-barra { height: 10px; border-radius: 999px; background: #0f172a; border: 1px solid #334155; overflow: hidden; margin-top: 4px; }
+.us-vel-fill { height: 100%; width: 100%; background: var(--verde); transition: width 0.12s ease-out, background-color 0.2s ease-out; }
 
 .us-radar-caja { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 #radar {
   width: 100%; height: auto; aspect-ratio: 1 / 1; max-width: 520px; margin: 0 auto; display: block;
   background: radial-gradient(ellipse at 50% 100%, #12263f 0%, #0b1424 70%);
   border: 1.5px solid #334155; border-radius: 14px;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
 }
+#radar.arrastrando { cursor: grabbing; }
 .us-leyenda { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: #94a3b8; }
 .us-leyenda i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
 
@@ -163,9 +170,9 @@
             <div class="us-fila"><span class="us-nombre">Atrás</span><span class="us-valor"><span id="v-atras">150</span><small>cm</small></span></div>
             <input type="range" id="r-atras" min="2" max="200" step="1" value="150" aria-label="Distancia atrás en centímetros">
           </div>
-          <div class="us-sensor" id="s-obstaculo">
-            <div class="us-fila"><span class="us-nombre">Simular Obstáculo (cm)</span><span class="us-valor"><span id="v-obstaculo">—</span><small>cm</small></span></div>
-            <input type="range" id="r-obstaculo" min="0" max="50" step="1" value="0" aria-label="Simular obstáculo frontal en centímetros">
+          <div class="us-sensor" id="s-velocidad">
+            <div class="us-fila"><span class="us-nombre">Velocidad</span><span class="us-valor"><span id="v-velocidad">0.60</span><small>m/s</small></span></div>
+            <div class="us-vel-barra" aria-hidden="true"><div class="us-vel-fill" id="vel-fill"></div></div>
             <div class="us-alerta" id="alerta-obstaculo" hidden>FRENADO POR OBSTÁCULO</div>
           </div>
 
@@ -232,15 +239,24 @@
   var rango = {}, valor = {}, caja = {};
   ids.forEach(function (k) { rango[k] = $("r-" + k); valor[k] = $("v-" + k); caja[k] = $("s-" + k); });
   var ledEl = $("led"), estadoEl = $("estado"), brokerEl = $("broker"), jsonEl = $("json"), logEl = $("log");
-  var btnToggle = $("btn-toggle"), chkMover = $("chk-mover"), obstaculoSlider = $("r-obstaculo"), alertaObs = $("alerta-obstaculo"), valObstaculo = $("v-obstaculo");
+  var btnToggle = $("btn-toggle"), chkMover = $("chk-mover");
+  var alertaObs = $("alerta-obstaculo"), valVelocidad = $("v-velocidad"), velFill = $("vel-fill"), cajaVelocidad = $("s-velocidad");
   var canvas = $("radar"), ctx = canvas.getContext("2d");
 
+  var VEL_NORMAL = 0.60;
   var dist = { frente: 120, atras: 150 };
+  var obstaculo = { xCm: 0, yCm: 120 };
+  var arrastrando = false;
   var encendido = false, conectado = false;
   var cliente = null, indice = 0, timerPub = null, timerFallo = null, timerReintento = null;
   var inicioMs = 0, enviados = 0;
 
-  function zona(cm) { return cm < LIMITE_PELIGRO ? "rojo" : (cm < LIMITE_CERCA ? "ambar" : "verde"); }
+  function zona(cm) { return cm <= LIMITE_PELIGRO ? "rojo" : (cm <= LIMITE_CERCA ? "ambar" : "verde"); }
+  function calcularVelocidad(cm) {
+    if (cm <= LIMITE_PELIGRO) return 0.0;
+    if (cm > LIMITE_CERCA) return VEL_NORMAL;
+    return VEL_NORMAL * (cm - LIMITE_PELIGRO) / (LIMITE_CERCA - LIMITE_PELIGRO);
+  }
   var COLOR = { verde: "#22c55e", ambar: "#f59e0b", rojo: "#ef4444" };
 
   /* ---------------- registro en pantalla ---------------- */
@@ -335,11 +351,29 @@
     ctx.fillStyle = "#38bdf8";
     ctx.beginPath();
     ctx.moveTo(ox, oy - 14); ctx.lineTo(ox + 11, oy + 8); ctx.lineTo(ox - 11, oy + 8); ctx.closePath(); ctx.fill();
+
+    /* círculo rojo arrastrable (obstáculo) */
+    var obsX = ox + (obstaculo.xCm / DIST_MAX) * R;
+    var obsY = oy - (obstaculo.yCm / DIST_MAX) * R;
+    ctx.strokeStyle = "rgba(239, 68, 68, 0.45)";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 4]);
+    ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(obsX, obsY); ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = "rgba(239, 68, 68, 0.25)";
+    ctx.beginPath(); ctx.arc(obsX, obsY, 17, 0, 2 * Math.PI); ctx.fill();
+    ctx.fillStyle = "#ef4444";
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(obsX, obsY, 10, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
+    ctx.lineWidth = 1;
   }
 
   /* ---------------- lectura y mensaje ---------------- */
   function mensaje() {
-    return { frente_cm: dist.frente, atras_cm: dist.atras, frente_ok: true, atras_ok: true, t: encendido ? Date.now() - inicioMs : 0 };
+    var vel = Number(calcularVelocidad(dist.frente).toFixed(2));
+    return { frente_cm: dist.frente, atras_cm: dist.atras, velocidad_ms: vel, frente_ok: true, atras_ok: true, t: encendido ? Date.now() - inicioMs : 0 };
   }
 
   function refrescar() {
@@ -347,9 +381,13 @@
       valor[k].textContent = dist[k];
       caja[k].className = "us-sensor zona-" + zona(dist[k]);
     });
-    // Alerta de frenado por obstáculo (frente < 20 cm)
-    alertaObs.hidden = !(dist.frente < LIMITE_PELIGRO);
-    valObstaculo.textContent = obstaculoSlider.value === "0" ? "—" : obstaculoSlider.value;
+    var vel = calcularVelocidad(dist.frente);
+    var zFrente = zona(dist.frente);
+    valVelocidad.textContent = vel.toFixed(2);
+    velFill.style.width = Math.round((vel / VEL_NORMAL) * 100) + "%";
+    velFill.style.background = COLOR[zFrente];
+    cajaVelocidad.className = "us-sensor zona-" + zFrente;
+    alertaObs.hidden = !(dist.frente <= LIMITE_PELIGRO);
     jsonEl.textContent = JSON.stringify(mensaje(), null, 2);
     dibujar();
   }
@@ -357,30 +395,66 @@
   ids.forEach(function (k) {
     rango[k].addEventListener("input", function () {
       dist[k] = parseInt(rango[k].value, 10);
-      if (k === "frente" && obstaculoSlider.value !== "0") {
-        obstaculoSlider.value = "0";
+      if (k === "frente") {
+        obstaculo.xCm = 0;
+        obstaculo.yCm = dist.frente;
       }
       refrescar();
     });
   });
 
-  /* Slider "Simular Obstáculo": inyecta su valor en el sensor frontal y sincroniza su slider.
-     0 = sin obstáculo (devuelve el control al slider frontal normal). */
-  obstaculoSlider.addEventListener("input", function () {
-    var v = parseInt(obstaculoSlider.value, 10);
-    if (v !== 0 && chkMover.checked) {
-      // Evita que "mover solo" sobreescriba el obstáculo inyectado
+  /* Arrastre (Drag & Drop) del círculo rojo sobre el radar */
+  function moverObstaculoDesdeEvento(ev) {
+    var rect = canvas.getBoundingClientRect();
+    var W = canvas.clientWidth || 520, H = canvas.clientHeight || W;
+    var ox = W / 2, oy = H / 2;
+    var R = Math.min(W, H) / 2 - 14;
+    var px = ev.clientX - rect.left;
+    var py = ev.clientY - rect.top;
+    var dx = px - ox;
+    var dy = oy - py; /* positivo = adelante */
+    var rPx = Math.hypot(dx, dy);
+    if (rPx > R) {
+      dx = dx * R / rPx;
+      dy = dy * R / rPx;
+      rPx = R;
+    }
+    var cm = Math.round(Math.max(DIST_MIN, Math.min(DIST_MAX, (rPx / R) * DIST_MAX)));
+    obstaculo.xCm = (dx / R) * DIST_MAX;
+    obstaculo.yCm = (dy / R) * DIST_MAX;
+
+    if (chkMover.checked) {
       chkMover.checked = false;
       ids.forEach(function (k) { rango[k].disabled = false; });
     }
-    if (v === 0) {
-      dist.frente = parseInt(rango.frente.value, 10);
+    if (dy >= 0) {
+      dist.frente = cm;
+      rango.frente.value = cm;
     } else {
-      dist.frente = v;
-      rango.frente.value = v;
+      dist.atras = cm;
+      rango.atras.value = cm;
     }
     refrescar();
+  }
+
+  canvas.addEventListener("pointerdown", function (ev) {
+    arrastrando = true;
+    canvas.classList.add("arrastrando");
+    try { canvas.setPointerCapture(ev.pointerId); } catch (_) {}
+    moverObstaculoDesdeEvento(ev);
   });
+  window.addEventListener("pointermove", function (ev) {
+    if (!arrastrando) return;
+    moverObstaculoDesdeEvento(ev);
+  });
+  function soltarObstaculo(ev) {
+    if (!arrastrando) return;
+    arrastrando = false;
+    canvas.classList.remove("arrastrando");
+    try { canvas.releasePointerCapture(ev.pointerId); } catch (_) {}
+  }
+  window.addEventListener("pointerup", soltarObstaculo);
+  window.addEventListener("pointercancel", soltarObstaculo);
   window.addEventListener("resize", ajustarCanvas);
 
   /* "Mover solo": distancias que suben y bajan, para ver el radar vivo */
