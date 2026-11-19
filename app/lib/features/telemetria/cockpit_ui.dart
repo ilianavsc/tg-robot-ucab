@@ -221,7 +221,9 @@ class SectionLabel extends StatelessWidget {
         Expanded(
           child: Text(
             etiqueta.toUpperCase(),
-            maxLines: 1,
+            // Hasta 2 líneas: "EVITACIÓN DE COLISIONES" no se corta a 390 px.
+            maxLines: 2,
+            softWrap: true,
             overflow: TextOverflow.ellipsis,
             style: CockpitText.labelMd.copyWith(
               color: CockpitColors.onSurfaceVariant,

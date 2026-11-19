@@ -321,13 +321,14 @@ class TarjetaEnlaceMqtt extends StatelessWidget {
           const SizedBox(height: 12),
           const Align(alignment: Alignment.centerLeft, child: PastillaMqtt()),
           const SizedBox(height: 10),
-          _Dato(
+          DatoPerfil(
+            apilado: true,
             etiqueta: 'Broker',
             valor: destino,
             clave: const Key('perfil-broker'),
           ),
           const SizedBox(height: 4),
-          _Dato(
+          DatoPerfil(
             etiqueta: 'Latencia del último ACK',
             valor: latencia == null ? '--' : '${latencia.inMilliseconds} ms',
             clave: const Key('perfil-latencia'),
@@ -338,36 +339,53 @@ class TarjetaEnlaceMqtt extends StatelessWidget {
   }
 }
 
-class _Dato extends StatelessWidget {
-  const _Dato({required this.etiqueta, required this.valor, this.clave});
+/// Fila etiqueta/valor del Perfil. Con [apilado] el valor va debajo de la
+/// etiqueta, a todo el ancho y con salto de línea (hosts largos como
+/// `broker.hivemq.com:1883`); si no, va a la derecha en una sola línea.
+class DatoPerfil extends StatelessWidget {
+  const DatoPerfil({
+    super.key,
+    required this.etiqueta,
+    required this.valor,
+    this.clave,
+    this.apilado = false,
+  });
 
   final String etiqueta;
   final String valor;
   final Key? clave;
+  final bool apilado;
 
   @override
   Widget build(BuildContext context) {
+    final TextStyle estiloEtiqueta = CockpitText.bodySm.copyWith(
+      color: CockpitColors.onSurfaceVariant,
+    );
+    final TextStyle estiloValor = CockpitText.telemetryMd.copyWith(
+      color: CockpitColors.onSurface,
+      fontFeatures: CockpitText.tabular,
+    );
+    if (apilado) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(etiqueta, style: estiloEtiqueta),
+          const SizedBox(height: 2),
+          Text(valor, key: clave, softWrap: true, style: estiloValor),
+        ],
+      );
+    }
     return Row(
       children: <Widget>[
-        Expanded(
-          child: Text(
-            etiqueta,
-            style: CockpitText.bodySm.copyWith(
-              color: CockpitColors.onSurfaceVariant,
-            ),
-          ),
-        ),
+        Expanded(child: Text(etiqueta, style: estiloEtiqueta)),
         const SizedBox(width: 8),
         Flexible(
           child: Text(
             valor,
             key: clave,
             textAlign: TextAlign.right,
-            overflow: TextOverflow.ellipsis,
-            style: CockpitText.telemetryMd.copyWith(
-              color: CockpitColors.onSurface,
-              fontFeatures: CockpitText.tabular,
-            ),
+            softWrap: true,
+            style: estiloValor,
           ),
         ),
       ],

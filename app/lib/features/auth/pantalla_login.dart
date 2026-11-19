@@ -249,11 +249,16 @@ class _PantallaLoginState extends State<PantallaLogin> {
                   const SizedBox(height: 32),
                   const Center(child: PastillaMqtt()),
                   const SizedBox(height: 10),
-                  Text(
-                    'Universidad Católica Andrés Bello · Ingeniería',
-                    textAlign: TextAlign.center,
-                    style: CockpitText.telemetrySm.copyWith(
-                      color: CockpitColors.outline,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      'Universidad Católica Andrés Bello · Ingeniería',
+                      key: const Key('login-pie'),
+                      textAlign: TextAlign.center,
+                      softWrap: true,
+                      style: CockpitText.telemetrySm.copyWith(
+                        color: CockpitColors.outline,
+                      ),
                     ),
                   ),
                 ],
