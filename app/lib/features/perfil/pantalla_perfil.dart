@@ -138,7 +138,7 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
   }
 }
 
-/// Avatar (icono, sin foto), rol y correo de la sesión local.
+/// Avatar (icono, sin foto), rol, nombre y usuario de la sesión local.
 class CabeceraIdentidad extends StatelessWidget {
   const CabeceraIdentidad({super.key, required this.sesion, required this.rol});
 
@@ -194,7 +194,9 @@ class CabeceraIdentidad extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Text(
-          rol.nombre,
+          sesion.nombre.isEmpty ? rol.nombre : sesion.nombre,
+          key: const Key('perfil-nombre'),
+          textAlign: TextAlign.center,
           style: CockpitText.headlineMd.copyWith(
             fontSize: 22,
             color: Colors.white,
@@ -203,8 +205,8 @@ class CabeceraIdentidad extends StatelessWidget {
         ),
         const SizedBox(height: 2),
         Text(
-          sesion.correo.isEmpty ? '--' : sesion.correo,
-          key: const Key('perfil-correo'),
+          sesion.usuario.isEmpty ? '--' : '@${sesion.usuario}',
+          key: const Key('perfil-usuario'),
           style: CockpitText.bodyMd.copyWith(
             color: CockpitColors.onSurfaceVariant,
           ),

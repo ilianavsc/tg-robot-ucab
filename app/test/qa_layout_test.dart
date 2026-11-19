@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:robot_ucab_app/core/mqtt/mqtt_service.dart';
 import 'package:robot_ucab_app/core/theme/cockpit_theme.dart';
+import 'package:robot_ucab_app/features/auth/registro_usuarios.dart';
 import 'package:robot_ucab_app/features/auth/sesion_local.dart';
 import 'package:robot_ucab_app/features/perfil/pantalla_perfil.dart';
 import 'package:robot_ucab_app/features/telemetria/cockpit_ui.dart';
@@ -43,13 +44,16 @@ Future<(MqttService, SesionLocal)> _montar(
   final MqttService servicio = MqttService();
   final SesionLocal sesion = SesionLocal();
   if (conSesion) {
-    sesion.iniciar(RolUsuario.operador, correo: 'operador@ucab.edu.ve');
+    sesion.iniciar(RolUsuario.operador, usuario: 'usuario');
   }
   await t.pumpWidget(
     MultiProvider(
       providers: <ChangeNotifierProvider<ChangeNotifier>>[
         ChangeNotifierProvider<MqttService>.value(value: servicio),
         ChangeNotifierProvider<SesionLocal>.value(value: sesion),
+        ChangeNotifierProvider<RegistroUsuarios>(
+          create: (_) => RegistroUsuarios(),
+        ),
       ],
       child: MaterialApp(
         theme: buildCockpitTheme(),

@@ -5,12 +5,13 @@ import '../../core/mqtt/mqtt_service.dart';
 import '../../core/theme/cockpit_theme.dart';
 import '../../shared/widgets/pastilla_mqtt.dart';
 import '../telemetria/cockpit_ui.dart';
+import 'registro_usuarios.dart';
 import 'sesion_local.dart';
 
-/// Pantalla de acceso (Stitch v2). Autenticación **local, sin backend**:
-/// elige el rol (Operador o Administrador) o entra directo al Modo Demo.
-///
-/// No verifica contraseñas ni guarda nada; el aviso de la pantalla lo dice.
+/// Pantalla de acceso (Stitch v2). Autenticación **local, sin backend**: el
+/// usuario y la contraseña se comprueban contra `RegistroUsuarios` (memoria) y
+/// el rol sale de la cuenta, no de un selector. También ofrece el Modo Demo
+/// (Offline). No hay registro público: solo un Administrador crea operadores.
 class PantallaLogin extends StatefulWidget {
   const PantallaLogin({super.key});
 
@@ -19,54 +20,51 @@ class PantallaLogin extends StatefulWidget {
 }
 
 class _PantallaLoginState extends State<PantallaLogin> {
-  late final TextEditingController _correo = TextEditingController(
-    text: correoDemoPorRol[RolUsuario.operador],
-  );
+  final TextEditingController _usuario = TextEditingController();
   final TextEditingController _clave = TextEditingController();
-  RolUsuario _rol = RolUsuario.operador;
   bool _verClave = false;
-  String? _errorCorreo;
+  String? _error;
 
   @override
   void dispose() {
-    _correo.dispose();
+    _usuario.dispose();
     _clave.dispose();
     super.dispose();
   }
 
-  void _elegirRol(RolUsuario rol) {
+  /// Acceso rápido: rellena las credenciales de una cuenta de demostración.
+  void _rellenar(String usuario, String clave) {
     setState(() {
-      // Si el correo es uno de los de demostración (o está vacío), sigue al rol.
-      final String actual = _correo.text.trim();
-      if (actual.isEmpty || correoDemoPorRol.values.contains(actual)) {
-        _correo.text = correoDemoPorRol[rol]!;
-      }
-      _rol = rol;
-      _errorCorreo = null;
+      _usuario.text = usuario;
+      _clave.text = clave;
+      _error = null;
     });
   }
 
   void _entrar() {
-    final String correo = _correo.text.trim();
-    if (!correo.contains('@') ||
-        correo.startsWith('@') ||
-        correo.endsWith('@')) {
-      setState(
-        () => _errorCorreo =
-            'Escribe un correo, por ejemplo operador@ucab.edu.ve',
-      );
+    final CuentaLocal? cuenta = context.read<RegistroUsuarios>().autenticar(
+      _usuario.text,
+      _clave.text,
+    );
+    if (cuenta == null) {
+      setState(() => _error = 'Usuario o contraseña incorrectos.');
       return;
     }
-    context.read<SesionLocal>().iniciar(_rol, correo: correo);
+    context.read<SesionLocal>().iniciar(
+      cuenta.rol,
+      usuario: cuenta.usuario,
+      nombre: cuenta.nombre,
+    );
   }
 
-  /// Modo Demo directo: entra como Operador y arranca la telemetría simulada
-  /// de `MqttService` (sin red ni robot).
+  /// Modo Demo directo: entra como el Operador de demostración y arranca la
+  /// telemetría simulada de `MqttService` (sin red ni robot).
   void _entrarDemo() {
     context.read<MqttService>().iniciarSimulacion();
     context.read<SesionLocal>().iniciar(
       RolUsuario.operador,
-      correo: correoDemoPorRol[RolUsuario.operador]!,
+      usuario: 'usuario',
+      nombre: 'Operador demo',
       demo: true,
     );
   }
@@ -121,49 +119,25 @@ class _PantallaLoginState extends State<PantallaLogin> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  _Marca(),
-                  const SizedBox(height: 32),
-                  _etiqueta('ACCEDER COMO'),
-                  SegmentedButton<RolUsuario>(
-                    key: const Key('login-rol'),
-                    showSelectedIcon: false,
-                    segments: <ButtonSegment<RolUsuario>>[
-                      for (final RolUsuario r in RolUsuario.values)
-                        ButtonSegment<RolUsuario>(
-                          value: r,
-                          label: Text(r.nombre.toUpperCase()),
-                          icon: Icon(
-                            r == RolUsuario.operador
-                                ? Icons.engineering_outlined
-                                : Icons.admin_panel_settings_outlined,
-                            size: 18,
-                          ),
-                        ),
-                    ],
-                    selected: <RolUsuario>{_rol},
-                    onSelectionChanged: (Set<RolUsuario> s) =>
-                        _elegirRol(s.first),
-                  ),
-                  const SizedBox(height: 20),
-                  _etiqueta('CORREO INSTITUCIONAL'),
+                  const _Marca(),
+                  const SizedBox(height: 28),
+                  _etiqueta('USUARIO'),
                   TextField(
-                    key: const Key('login-correo'),
-                    controller: _correo,
-                    keyboardType: TextInputType.emailAddress,
+                    key: const Key('login-usuario'),
+                    controller: _usuario,
+                    keyboardType: TextInputType.text,
                     autocorrect: false,
+                    enableSuggestions: false,
                     textInputAction: TextInputAction.next,
                     style: CockpitText.bodyMd.copyWith(
                       color: CockpitColors.onSurface,
                     ),
                     onChanged: (_) {
-                      if (_errorCorreo != null) {
-                        setState(() => _errorCorreo = null);
-                      }
+                      if (_error != null) setState(() => _error = null);
                     },
                     decoration: _decoracion(
-                      icono: Icons.mail_outline,
-                      hint: 'correo@ucab.edu.ve',
-                      error: _errorCorreo,
+                      icono: Icons.person_outline,
+                      hint: 'usuario',
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -176,12 +150,16 @@ class _PantallaLoginState extends State<PantallaLogin> {
                     enableSuggestions: false,
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) => _entrar(),
+                    onChanged: (_) {
+                      if (_error != null) setState(() => _error = null);
+                    },
                     style: CockpitText.bodyMd.copyWith(
                       color: CockpitColors.onSurface,
                     ),
                     decoration: _decoracion(
                       icono: Icons.lock_outline,
                       hint: '••••••••',
+                      error: _error,
                       sufijo: IconButton(
                         tooltip: _verClave
                             ? 'Ocultar contraseña'
@@ -197,6 +175,8 @@ class _PantallaLoginState extends State<PantallaLogin> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 14),
+                  _AccesoRapido(alElegir: _rellenar),
                   const SizedBox(height: 12),
                   const _AvisoLocal(),
                   const SizedBox(height: 20),
@@ -273,6 +253,8 @@ class _PantallaLoginState extends State<PantallaLogin> {
 
 /// Logotipo y nombre de la app.
 class _Marca extends StatelessWidget {
+  const _Marca();
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -328,7 +310,79 @@ class _Marca extends StatelessWidget {
   }
 }
 
-/// Deja claro que el acceso es local y no hay servidor.
+/// Acceso rápido: rellena las credenciales de las cuentas de demostración.
+class _AccesoRapido extends StatelessWidget {
+  const _AccesoRapido({required this.alElegir});
+
+  final void Function(String usuario, String clave) alElegir;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget ficha(Key k, IconData icono, String texto, String u, String c) {
+      return Expanded(
+        child: Material(
+          color: CockpitColors.surfaceContainer,
+          borderRadius: BorderRadius.circular(CockpitRadius.md),
+          child: InkWell(
+            key: k,
+            borderRadius: BorderRadius.circular(CockpitRadius.md),
+            onTap: () => alElegir(u, c),
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 48),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(CockpitRadius.md),
+                border: Border.all(
+                  color: CockpitColors.outlineVariant.withValues(alpha: 0.55),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Icon(icono, size: 16, color: CockpitColors.primary),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      texto,
+                      softWrap: true,
+                      textAlign: TextAlign.center,
+                      style: CockpitText.labelMd.copyWith(
+                        fontSize: 11,
+                        color: CockpitColors.onSurface,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Row(
+      children: <Widget>[
+        ficha(
+          const Key('acceso-operador'),
+          Icons.engineering_outlined,
+          'OPERADOR DEMO',
+          'usuario',
+          'usuario',
+        ),
+        const SizedBox(width: 8),
+        ficha(
+          const Key('acceso-admin'),
+          Icons.admin_panel_settings_outlined,
+          'ADMIN DEMO',
+          'admin',
+          'admin',
+        ),
+      ],
+    );
+  }
+}
+
+/// Deja claro que es una demostración local, sin servidor ni registro público.
 class _AvisoLocal extends StatelessWidget {
   const _AvisoLocal();
 
@@ -348,8 +402,10 @@ class _AvisoLocal extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: Text(
-            'Autenticación local de demostración: no hay servidor. La contraseña '
-            'no se verifica ni se guarda, y la sesión termina al cerrar la app.',
+            'Demo local sin backend. Cuentas de ejemplo: usuario / usuario '
+            '(Operador) y admin / admin (Administrador). No hay registro '
+            'público: solo un Administrador crea operadores, que viven en '
+            'memoria hasta cerrar la app.',
             key: const Key('login-aviso-local'),
             style: CockpitText.bodySm.copyWith(
               color: CockpitColors.onSurfaceVariant,

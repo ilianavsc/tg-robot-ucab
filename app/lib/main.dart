@@ -5,6 +5,7 @@ import 'package:provider/single_child_widget.dart';
 import 'core/mqtt/mqtt_service.dart';
 import 'core/theme/cockpit_theme.dart';
 import 'features/auth/pantalla_login.dart';
+import 'features/auth/registro_usuarios.dart';
 import 'features/auth/sesion_local.dart';
 import 'features/telemetria/telemetria_screen.dart';
 
@@ -31,6 +32,9 @@ class AppRobotUcab extends StatelessWidget {
         ),
         // Autenticación local (mock, sin backend): rol de la sesión.
         ChangeNotifierProvider<SesionLocal>(create: (_) => SesionLocal()),
+        ChangeNotifierProvider<RegistroUsuarios>(
+          create: (_) => RegistroUsuarios(),
+        ),
       ],
       child: MaterialApp(
         title: 'TG Robot UCAB',

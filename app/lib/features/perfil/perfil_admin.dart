@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/alertas/centro_alertas.dart';
 import '../../core/mqtt/mqtt_service.dart';
 import '../../core/theme/cockpit_theme.dart';
-import '../auth/sesion_local.dart';
+import '../auth/registro_usuarios.dart';
+import 'gestion_usuarios.dart';
 import '../telemetria/analitica_p12.dart';
 import '../telemetria/cockpit_ui.dart';
 
@@ -164,7 +166,8 @@ class _FilaFailSafe extends StatelessWidget {
   }
 }
 
-/// **Gestión de Usuarios** — solo vista previa de demostración (sin backend).
+/// **Gestión de Usuarios**: acceso a la pantalla de alta y baja de operadores
+/// (RBAC local en memoria, sin backend).
 class TarjetaGestionUsuarios extends StatelessWidget {
   const TarjetaGestionUsuarios({super.key});
 
@@ -176,7 +179,7 @@ class TarjetaGestionUsuarios extends StatelessWidget {
       child: InkWell(
         key: const Key('perfil-usuarios'),
         borderRadius: BorderRadius.circular(CockpitRadius.lg),
-        onTap: () => _abrirVistaPrevia(context),
+        onTap: () => _abrir(context),
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
@@ -213,7 +216,7 @@ class TarjetaGestionUsuarios extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Vista previa de demostración · sin backend',
+                      '${context.watch<RegistroUsuarios>().cuentas.length} cuentas · demo local sin backend',
                       style: CockpitText.telemetrySm.copyWith(
                         color: CockpitColors.onSurfaceVariant,
                       ),
@@ -232,91 +235,9 @@ class TarjetaGestionUsuarios extends StatelessWidget {
     );
   }
 
-  void _abrirVistaPrevia(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (BuildContext _) => const _VistaPreviaUsuarios(),
-    );
-  }
-}
-
-class _VistaPreviaUsuarios extends StatelessWidget {
-  const _VistaPreviaUsuarios();
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-        child: Column(
-          key: const Key('usuarios-vista-previa'),
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            const SectionLabel(
-              icono: Icons.manage_accounts_outlined,
-              etiqueta: 'Gestión de usuarios',
-              trailing: StatusPill(
-                texto: 'Demostración',
-                color: CockpitColors.secondary,
-                punto: false,
-                icono: Icons.science_outlined,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Solo se muestran las dos cuentas locales de demostración. No hay '
-              'servidor: no se crean, editan ni eliminan usuarios.',
-              style: CockpitText.bodySm.copyWith(
-                color: CockpitColors.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 12),
-            for (final RolUsuario r in RolUsuario.values) ...<Widget>[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: CockpitColors.surfaceContainer,
-                  borderRadius: BorderRadius.circular(CockpitRadius.md),
-                ),
-                child: Row(
-                  children: <Widget>[
-                    Icon(
-                      r == RolUsuario.operador
-                          ? Icons.engineering_outlined
-                          : Icons.admin_panel_settings_outlined,
-                      color: CockpitColors.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        correoDemoPorRol[r]!,
-                        overflow: TextOverflow.ellipsis,
-                        style: CockpitText.telemetryMd.copyWith(
-                          color: CockpitColors.onSurface,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    CockpitTag(
-                      texto: r.etiqueta,
-                      fondo: CockpitColors.surfaceHigh,
-                      color: CockpitColors.onSurfaceVariant,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-            const SizedBox(height: 4),
-            const OutlinedButton(
-              onPressed: null,
-              child: Text('Invitar usuario (requiere backend)'),
-            ),
-          ],
-        ),
-      ),
+  void _abrir(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const PantallaGestionUsuarios()),
     );
   }
 }

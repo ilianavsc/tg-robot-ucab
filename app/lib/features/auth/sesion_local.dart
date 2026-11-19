@@ -14,29 +14,28 @@ enum RolUsuario {
   final String nombre;
 }
 
-/// Cuentas de demostración que ofrece la pantalla de acceso. No existen en
-/// ningún servidor: son solo el correo que se rellena según el rol elegido.
-const Map<RolUsuario, String> correoDemoPorRol = <RolUsuario, String>{
-  RolUsuario.operador: 'operador@ucab.edu.ve',
-  RolUsuario.administrador: 'admin@ucab.edu.ve',
-};
-
 /// **Autenticación local (mock).** Guarda en memoria quién entró y con qué rol.
 ///
-/// No hay backend: no se verifica ninguna contraseña, no se guarda nada en el
-/// dispositivo y la sesión se pierde al cerrar la app. Sirve para mostrar el
+/// No hay backend: las cuentas viven en `RegistroUsuarios` (memoria), no se
+/// guarda nada en el dispositivo y la sesión se pierde al cerrar la app. Sirve para mostrar el
 /// flujo Login → Telemetría → Perfil → Cerrar sesión y para separar la vista de
 /// Operador de la de Administrador.
 class SesionLocal extends ChangeNotifier {
   RolUsuario? _rol;
-  String _correo = '';
+  String _usuario = '';
+  String _nombre = '';
   bool _demo = false;
   DateTime? _inicio;
 
   /// `null` mientras no haya iniciado sesión (se muestra el Login).
   RolUsuario? get rol => _rol;
   bool get activa => _rol != null;
-  String get correo => _correo;
+
+  /// Nombre de usuario con el que se entró (`admin`, `usuario`, ...).
+  String get usuario => _usuario;
+
+  /// Nombre para mostrar (`Administrador demo`, `Ana Pérez`, ...).
+  String get nombre => _nombre;
 
   /// `true` si se entró con el botón "Modo Demo (Offline)".
   bool get demo => _demo;
@@ -53,12 +52,14 @@ class SesionLocal extends ChangeNotifier {
 
   void iniciar(
     RolUsuario rol, {
-    required String correo,
+    required String usuario,
+    String? nombre,
     bool demo = false,
     DateTime? ahora,
   }) {
     _rol = rol;
-    _correo = correo.trim();
+    _usuario = usuario.trim();
+    _nombre = (nombre ?? '').trim().isEmpty ? rol.nombre : nombre!.trim();
     _demo = demo;
     _inicio = ahora ?? DateTime.now();
     notifyListeners();
@@ -67,7 +68,8 @@ class SesionLocal extends ChangeNotifier {
   void cerrar() {
     if (_rol == null) return;
     _rol = null;
-    _correo = '';
+    _usuario = '';
+    _nombre = '';
     _demo = false;
     _inicio = null;
     notifyListeners();

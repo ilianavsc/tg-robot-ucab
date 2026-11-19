@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:robot_ucab_app/core/mqtt/mqtt_service.dart';
 import 'package:robot_ucab_app/core/theme/cockpit_theme.dart';
+import 'package:robot_ucab_app/features/auth/registro_usuarios.dart';
 import 'package:robot_ucab_app/features/auth/sesion_local.dart';
 import 'package:robot_ucab_app/features/perfil/pantalla_perfil.dart';
 import 'package:robot_ucab_app/main.dart' show PuertaAcceso;
@@ -28,9 +29,10 @@ Future<void> _cargarFuentes() async {
 }
 
 class _Entorno {
-  _Entorno(this.servicio, this.sesion);
+  _Entorno(this.servicio, this.sesion, this.registro);
   final MqttService servicio;
   final SesionLocal sesion;
+  final RegistroUsuarios registro;
 }
 
 /// Monta la app desde la puerta de acceso (Login o Telemetría según la sesión).
@@ -44,11 +46,13 @@ Future<_Entorno> _montar(
   addTearDown(t.view.reset);
   final MqttService servicio = MqttService();
   final SesionLocal sesion = SesionLocal();
+  final RegistroUsuarios registro = RegistroUsuarios();
   await t.pumpWidget(
     MultiProvider(
       providers: <ChangeNotifierProvider<ChangeNotifier>>[
         ChangeNotifierProvider<MqttService>.value(value: servicio),
         ChangeNotifierProvider<SesionLocal>.value(value: sesion),
+        ChangeNotifierProvider<RegistroUsuarios>.value(value: registro),
       ],
       child: MaterialApp(
         theme: buildCockpitTheme(),
@@ -57,7 +61,7 @@ Future<_Entorno> _montar(
     ),
   );
   await t.pump(const Duration(milliseconds: 100));
-  return _Entorno(servicio, sesion);
+  return _Entorno(servicio, sesion, registro);
 }
 
 Future<void> _cerrar(WidgetTester t, _Entorno e) async {
@@ -65,6 +69,7 @@ Future<void> _cerrar(WidgetTester t, _Entorno e) async {
   await t.pumpWidget(const SizedBox());
   e.servicio.dispose();
   e.sesion.dispose();
+  e.registro.dispose();
 }
 
 /// Desplaza la lista del Perfil hasta que [f] esté construido y a la vista.
@@ -90,6 +95,13 @@ Future<void> _tocar(WidgetTester t, Finder f) async {
   await t.pump(const Duration(milliseconds: 400));
 }
 
+/// Escribe usuario y contraseña en el Login y pulsa "Iniciar Sesión".
+Future<void> _entrarCon(WidgetTester t, String usuario, String clave) async {
+  await t.enterText(find.byKey(const Key('login-usuario')), usuario);
+  await t.enterText(find.byKey(const Key('login-clave')), clave);
+  await _tocar(t, find.byKey(const Key('login-entrar')));
+}
+
 Future<void> _abrirPerfil(WidgetTester t) async {
   await _tocar(t, find.byKey(const Key('boton-perfil')));
 }
@@ -98,18 +110,20 @@ void main() {
   setUpAll(_cargarFuentes);
 
   group('SesionLocal (mock)', () {
-    test('empieza sin sesión y guarda rol, correo y modo demo', () {
+    test('empieza sin sesión y guarda rol, usuario, nombre y modo demo', () {
       final SesionLocal s = SesionLocal();
       expect(s.activa, isFalse);
       expect(s.rol, isNull);
       s.iniciar(
         RolUsuario.administrador,
-        correo: '  admin@ucab.edu.ve ',
+        usuario: '  admin ',
+        nombre: ' Administrador demo ',
         ahora: DateTime(2026, 11, 19, 10),
       );
       expect(s.activa, isTrue);
       expect(s.rol, RolUsuario.administrador);
-      expect(s.correo, 'admin@ucab.edu.ve');
+      expect(s.usuario, 'admin');
+      expect(s.nombre, 'Administrador demo');
       expect(s.demo, isFalse);
       expect(
         s.duracion(DateTime(2026, 11, 19, 10, 42, 5)),
@@ -117,7 +131,8 @@ void main() {
       );
       s.cerrar();
       expect(s.activa, isFalse);
-      expect(s.correo, '');
+      expect(s.usuario, '');
+      expect(s.nombre, '');
       expect(s.duracion(), Duration.zero);
     });
 
@@ -127,7 +142,7 @@ void main() {
       s.addListener(() => n++);
       s.cerrar(); // ya estaba cerrada
       expect(n, 0);
-      s.iniciar(RolUsuario.operador, correo: 'a@b.c');
+      s.iniciar(RolUsuario.operador, usuario: 'a');
       s.cerrar();
       expect(n, 2);
     });
@@ -154,77 +169,90 @@ void main() {
   });
 
   group('Login', () {
-    testWidgets('muestra marca, aviso de autenticación local y MQTT real', (
+    testWidgets('muestra marca, credenciales demo documentadas y MQTT real', (
       WidgetTester t,
     ) async {
       final _Entorno e = await _montar(t);
       expect(find.text('Autonomous Laboratory AGV'), findsOneWidget);
-      expect(find.text('CORREO INSTITUCIONAL'), findsOneWidget);
+      expect(find.text('USUARIO'), findsOneWidget);
       expect(find.text('CONTRASEÑA'), findsOneWidget);
       expect(find.text('Iniciar Sesión'), findsOneWidget);
       expect(find.text('Modo Demo (Offline)'), findsOneWidget);
-      expect(find.byKey(const Key('login-aviso-local')), findsOneWidget);
+      final String aviso = t
+          .widget<Text>(find.byKey(const Key('login-aviso-local')))
+          .data!;
+      expect(aviso, contains('Demo local sin backend'));
+      expect(aviso, contains('usuario / usuario'));
+      expect(aviso, contains('admin / admin'));
+      expect(aviso, contains('No hay registro público'));
+      // Sin registro público ni selector de rol
+      expect(find.textContaining('Registrarse'), findsNothing);
+      expect(find.textContaining('Crear cuenta'), findsNothing);
+      expect(find.text('ACCEDER COMO'), findsNothing);
       expect(find.text('MQTT: Desconectado (--)'), findsOneWidget);
       expect(find.byType(NavigationBar), findsNothing);
       expect(t.takeException(), isNull);
       await _cerrar(t, e);
     });
 
-    testWidgets('entra como Operador con el correo de demostración', (
+    testWidgets('usuario / usuario entra como Operador', (
       WidgetTester t,
     ) async {
       final _Entorno e = await _montar(t);
-      await _tocar(t, find.byKey(const Key('login-entrar')));
+      await _entrarCon(t, 'usuario', 'usuario');
       expect(e.sesion.rol, RolUsuario.operador);
-      expect(e.sesion.correo, 'operador@ucab.edu.ve');
+      expect(e.sesion.usuario, 'usuario');
       expect(e.sesion.demo, isFalse);
       expect(e.servicio.simulando, isFalse);
       expect(find.byType(NavigationBar), findsOneWidget);
       await _cerrar(t, e);
     });
 
-    testWidgets('el selector de rol cambia el correo y entra como Admin', (
+    testWidgets(
+      'admin / admin entra como Administrador (usuario sin distinguir mayúsculas)',
+      (WidgetTester t) async {
+        final _Entorno e = await _montar(t);
+        await _entrarCon(t, '  ADMIN ', 'admin');
+        expect(e.sesion.rol, RolUsuario.administrador);
+        expect(e.sesion.usuario, 'admin');
+        await _cerrar(t, e);
+      },
+    );
+
+    testWidgets('el acceso rápido rellena las credenciales demo', (
       WidgetTester t,
     ) async {
       final _Entorno e = await _montar(t);
-      await _tocar(t, find.text('ADMINISTRADOR'));
+      await _tocar(t, find.byKey(const Key('acceso-admin')));
+      TextField campo(String k) => t.widget<TextField>(find.byKey(Key(k)));
+      expect(campo('login-usuario').controller!.text, 'admin');
+      expect(campo('login-clave').controller!.text, 'admin');
+      await _tocar(t, find.byKey(const Key('acceso-operador')));
+      expect(campo('login-usuario').controller!.text, 'usuario');
+      expect(campo('login-clave').controller!.text, 'usuario');
       expect(
-        (t.widget(
-          find.byKey(const Key('login-correo')),
-        ) as TextField).controller!.text,
-        'admin@ucab.edu.ve',
+        e.sesion.activa,
+        isFalse,
+        reason: 'solo rellena: no inicia sesión',
       );
-      await _tocar(t, find.byKey(const Key('login-entrar')));
-      expect(e.sesion.rol, RolUsuario.administrador);
       await _cerrar(t, e);
     });
 
-    testWidgets('un correo propio no se pisa al cambiar de rol', (
+    testWidgets('credenciales incorrectas no inician sesión', (
       WidgetTester t,
     ) async {
       final _Entorno e = await _montar(t);
-      await t.enterText(
-        find.byKey(const Key('login-correo')),
-        'ana@ucab.edu.ve',
-      );
-      await _tocar(t, find.text('ADMINISTRADOR'));
-      expect(
-        (t.widget(
-          find.byKey(const Key('login-correo')),
-        ) as TextField).controller!.text,
-        'ana@ucab.edu.ve',
-      );
-      await _tocar(t, find.byKey(const Key('login-entrar')));
-      expect(e.sesion.correo, 'ana@ucab.edu.ve');
-      await _cerrar(t, e);
-    });
-
-    testWidgets('un correo inválido no inicia sesión', (WidgetTester t) async {
-      final _Entorno e = await _montar(t);
-      await t.enterText(find.byKey(const Key('login-correo')), 'sin-arroba');
-      await _tocar(t, find.byKey(const Key('login-entrar')));
-      expect(e.sesion.activa, isFalse);
-      expect(find.textContaining('Escribe un correo'), findsOneWidget);
+      for (final (String u, String c) in <(String, String)>[
+        ('admin', 'Admin'), // la contraseña distingue mayúsculas
+        ('admin', ''),
+        ('admin', 'usuario'),
+        ('', ''),
+        ('nadie', 'nadie'),
+      ]) {
+        await _entrarCon(t, u, c);
+        expect(e.sesion.activa, isFalse, reason: '$u / $c');
+        expect(find.text('Usuario o contraseña incorrectos.'), findsOneWidget);
+      }
       await _cerrar(t, e);
     });
 
@@ -270,12 +298,13 @@ void main() {
       WidgetTester t,
     ) async {
       final _Entorno e = await _montar(t);
-      await _tocar(t, find.byKey(const Key('login-entrar')));
+      await _entrarCon(t, 'usuario', 'usuario');
       // Las 4 pestañas siguen intactas
       expect(find.byType(NavigationDestination), findsNWidgets(4));
       await _abrirPerfil(t);
       expect(find.text('PERFIL · OPERADOR'), findsOneWidget);
-      expect(find.text('operador@ucab.edu.ve'), findsOneWidget);
+      expect(find.text('@usuario'), findsOneWidget);
+      expect(find.text('Operador demo'), findsOneWidget);
       expect(find.text('SESIÓN ACTUAL'), findsOneWidget);
       expect(find.text('ENLACE MQTT'), findsOneWidget);
       // Solo Admin: Fail-Safe, gestión de usuarios y CSV
@@ -295,7 +324,7 @@ void main() {
 
     testWidgets('Cerrar Sesión vuelve al Login', (WidgetTester t) async {
       final _Entorno e = await _montar(t);
-      await _tocar(t, find.byKey(const Key('login-entrar')));
+      await _entrarCon(t, 'usuario', 'usuario');
       await _abrirPerfil(t);
       await _tocar(t, find.byKey(const Key('perfil-cerrar')));
       await t.pump(const Duration(milliseconds: 400)); // termina el pop
@@ -324,8 +353,7 @@ void main() {
   group('Perfil · Administrador', () {
     Future<_Entorno> entrarAdmin(WidgetTester t, {double ancho = 390}) async {
       final _Entorno e = await _montar(t, ancho: ancho);
-      await _tocar(t, find.text('ADMINISTRADOR'));
-      await _tocar(t, find.byKey(const Key('login-entrar')));
+      await _entrarCon(t, 'admin', 'admin');
       await _abrirPerfil(t);
       return e;
     }
@@ -369,25 +397,6 @@ void main() {
       expect(t.takeException(), isNull);
       await _cerrar(t, e);
     });
-
-    testWidgets(
-      'Gestión de Usuarios es solo una vista previa de demostración',
-      (WidgetTester t) async {
-        final _Entorno e = await entrarAdmin(t);
-        await _tocar(t, find.byKey(const Key('perfil-usuarios')));
-        expect(find.byKey(const Key('usuarios-vista-previa')), findsOneWidget);
-        expect(find.text('DEMOSTRACIÓN'), findsOneWidget);
-        expect(find.text('operador@ucab.edu.ve'), findsOneWidget);
-        expect(find.text('admin@ucab.edu.ve'), findsWidgets);
-        final Finder invitar = find.widgetWithText(
-          OutlinedButton,
-          'Invitar usuario (requiere backend)',
-        );
-        expect(invitar, findsOneWidget);
-        expect(t.widget<OutlinedButton>(invitar).onPressed, isNull);
-        await _cerrar(t, e);
-      },
-    );
 
     testWidgets('Exportar Sesión (CSV) usa el reporte real de P12', (
       WidgetTester t,

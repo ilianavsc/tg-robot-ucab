@@ -35,11 +35,13 @@ lib/
     theme/cockpit_theme.dart   # tokens de color, tipografía y ThemeData del Cockpit
   features/
     auth/
-      sesion_local.dart        # sesión local (mock, sin backend): rol Operador/Admin
-      pantalla_login.dart      # Login (Stitch v2): rol, correo, Modo Demo (Offline)
+      sesion_local.dart        # sesión local (mock, sin backend): rol, usuario y nombre
+      registro_usuarios.dart   # RBAC local en memoria: usuario/usuario, admin/admin y operadores creados
+      pantalla_login.dart      # Login (Stitch v2): usuario/contraseña, acceso rápido, Modo Demo (Offline)
     perfil/
       pantalla_perfil.dart     # Perfil (Operador/Admin): sesión, enlace MQTT, cerrar sesión
-      perfil_admin.dart        # solo Admin: Fail-Safe (solo lectura), usuarios (demo), CSV de P12
+      perfil_admin.dart        # solo Admin: Fail-Safe (solo lectura), acceso a usuarios, CSV de P12
+      gestion_usuarios.dart    # solo Admin: crear y eliminar Operadores (en memoria, sin backend)
     telemetria/
       telemetria_screen.dart   # armazón: app bar, 4 secciones, E-STOP
       mapa_pista.dart          # Mapa de Pista: circuito, cono del ultrasonido, misión, destinos y pausa
