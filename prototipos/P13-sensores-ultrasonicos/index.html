@@ -286,17 +286,22 @@
     var R = Math.min(W, H) / 2 - 14;
     ctx.clearRect(0, 0, W, H);
 
-    /* anillos de distancia */
+    /* anillos de distancia (etiquetas a 45° para evitar solapes en móvil y con el robot) */
+    var esMovil = W < 400;
     ctx.lineWidth = 1;
-    ctx.font = "11px 'JetBrains Mono', monospace";
+    ctx.font = (esMovil ? "9.5px" : "11px") + " 'JetBrains Mono', monospace";
     ctx.fillStyle = "#64748b";
-    ctx.textAlign = "right";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+    var angEtiqueta = -Math.PI / 4;
     [50, 100, 150, 200].forEach(function (cm) {
       var r = R * cm / DIST_MAX;
       ctx.strokeStyle = "rgba(148,163,184,0.25)";
       ctx.beginPath(); ctx.arc(ox, oy, r, 0, 2 * Math.PI); ctx.stroke();
-      ctx.fillText(cm + " cm", ox + r - 4, oy - 4);
+      var etiqueta = (esMovil && cm < 200) ? String(cm) : (cm + " cm");
+      ctx.fillText(etiqueta, ox + r * Math.cos(angEtiqueta), oy + r * Math.sin(angEtiqueta) - 2);
     });
+    ctx.textBaseline = "alphabetic";
     /* líneas guía */
     ctx.strokeStyle = "rgba(148,163,184,0.18)";
     [0, 90].forEach(function (g) {
@@ -352,11 +357,14 @@
   ids.forEach(function (k) {
     rango[k].addEventListener("input", function () {
       dist[k] = parseInt(rango[k].value, 10);
+      if (k === "frente" && obstaculoSlider.value !== "0") {
+        obstaculoSlider.value = "0";
+      }
       refrescar();
     });
   });
 
-  /* Slider "Simular Obstáculo": inyecta su valor en el sensor frontal.
+  /* Slider "Simular Obstáculo": inyecta su valor en el sensor frontal y sincroniza su slider.
      0 = sin obstáculo (devuelve el control al slider frontal normal). */
   obstaculoSlider.addEventListener("input", function () {
     var v = parseInt(obstaculoSlider.value, 10);
@@ -369,6 +377,7 @@
       dist.frente = parseInt(rango.frente.value, 10);
     } else {
       dist.frente = v;
+      rango.frente.value = v;
     }
     refrescar();
   });
