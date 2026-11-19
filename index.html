@@ -298,7 +298,15 @@ a.ir:hover {
 <script>
 (function () {
   var U = TGU, D = TG, hoy = U.hoy(), s = U.semana(hoy), fase = U.faseDe(hoy);
-  var P = D.prototipos;
+  // P13 quedó consolidado dentro de P02: se retira su tarjeta del grid y su
+  // enlace se muestra dentro de la tarjeta de P02 (para no perder acceso).
+  var P = D.prototipos.filter(function (p) { return !p.consolidadoEn; });
+  var consolidados = {};
+  D.prototipos.forEach(function (p) {
+    if (p.consolidadoEn) {
+      (consolidados[p.consolidadoEn] = consolidados[p.consolidadoEn] || []).push(p);
+    }
+  });
   var listosArr = P.filter(function (p) { return p.estado !== "pendiente"; });
   var caminoArr = P.filter(function (p) { return p.estado === "pendiente"; });
 
@@ -361,6 +369,14 @@ a.ir:hover {
         extras += '</div></details>';
       }
 
+      // Sub-enlaces de prototipos consolidados dentro de este (p. ej. P13 en P02).
+      var subLinks = "";
+      if (consolidados[p.codigo]) {
+        subLinks = consolidados[p.codigo].map(function (c) {
+          return '<a href="' + c.url + '" class="btn btn-secundario" style="width:100%;padding:8px 12px;font-size:13px;margin-top:6px">' + c.codigo + ' · ' + c.nombre + '</a>';
+        }).join("");
+      }
+
       return '<article class="proto-card-compacta' + (esListo ? "" : " en-camino") + '">' +
         '<div>' +
           '<div class="proto-cabecera">' +
@@ -372,6 +388,7 @@ a.ir:hover {
         '</div>' +
         '<div>' +
           '<a href="' + hrefAccion + '" class="' + claseBtn + '" style="width:100%;padding:10px 16px;font-size:15px">' + textoBoton(p) + '</a>' +
+          subLinks +
           extras +
         '</div>' +
       '</article>';
