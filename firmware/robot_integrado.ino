@@ -104,17 +104,17 @@ const uint8_t PIN_BATERIA = 32;  // divisor 100 kΩ + 22 kΩ (12,6 V -> 2,27 V)
 const uint8_t PIN_PRUEBA  = 0;   // botón BOOT de la placa (activo en bajo)
 
 // Ultrasonidos HC-SR04 (según BOM = 2 HC-SR04P): Adelante y Atrás.
-// Cableado actual (docs/sensores.md): 1 TRIG común (GPIO 23) + 2 ECHO.
+// Cableado (docs/sensores.md): TRIG SEPARADO por módulo (frente GPIO 23, atrás GPIO 15) + 2 ECHO.
 // Si usas el HC-SR04 clásico de 5 V, pon un divisor 1k/2k en cada ECHO.
 // GPIO 5 es pin de arranque, pero como ECHO lee LOW en reposo: sin riesgo.
 //
 // LECTURA ALTERNADA: en ciclos pares se dispara y escucha el de adelante; en
-// impares, el de atrás. Con TRIG común los DOS módulos emiten en cada disparo,
-// así que alternar la captura solo evita leer el eco del otro sensor en el
-// mismo ciclo: para separarlos acústicamente de verdad, cablea el TRIG trasero
-// a GPIO 15 (libre) y cambia PIN_ULTRA_TRIG_ATRAS a 15. No hay que tocar nada más.
+// impares, el de atrás. Cada módulo tiene su propio TRIG, así que solo emite el
+// sensor de turno (aislamiento acústico real, sin eco cruzado por disparo común).
+// GPIO 15 es pin de arranque (MTDO): como salida en LOW solo silencia los mensajes
+// de arranque; el módulo trasero no dispara hasta que setup() termina.
 const uint8_t PIN_ULTRA_TRIG_FRENTE = 23;  // TRIG del módulo delantero
-const uint8_t PIN_ULTRA_TRIG_ATRAS  = 23;  // = 23 (común) hoy; 15 si se separa
+const uint8_t PIN_ULTRA_TRIG_ATRAS  = 15;  // TRIG del módulo trasero (separado)
 const uint8_t PIN_ULTRA_FRENTE = 33;   // ECHO delantero
 const uint8_t PIN_ULTRA_ATRAS  = 5;    // ECHO trasero
 
@@ -1263,9 +1263,9 @@ void setup() {
   }
   analogSetPinAttenuation(PIN_BATERIA, ADC_11db);
 
-  // Ultrasonidos (TRIG común o separado + 2 ECHO por interrupción, alternados)
+  // Ultrasonidos (TRIG separado por módulo + 2 ECHO por interrupción, alternados)
   pinMode(PIN_ULTRA_TRIG_FRENTE, OUTPUT);
-  pinMode(PIN_ULTRA_TRIG_ATRAS, OUTPUT);     // mismo pin si el TRIG es común
+  pinMode(PIN_ULTRA_TRIG_ATRAS, OUTPUT);     // GPIO 15, TRIG trasero propio
   digitalWrite(PIN_ULTRA_TRIG_FRENTE, LOW);
   digitalWrite(PIN_ULTRA_TRIG_ATRAS, LOW);
   pinMode(PIN_ULTRA_FRENTE, INPUT);

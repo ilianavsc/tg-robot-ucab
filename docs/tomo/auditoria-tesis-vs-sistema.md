@@ -9,7 +9,7 @@
 | Afirmación | Dónde | Sistema real | Estado |
 |---|---|---|---|
 | 4× TCRT5000 (línea) en ADC1 | Cap. III, `docs/sensores.md` | GPIO 36, 39, 34, 35; separación 18 mm; 3,3 V | Coincide |
-| 2× HC-SR04P (frente y atrás) | Cap. III | Eco frontal GPIO 33, eco trasero GPIO 5, TRIG común GPIO 23, GPIO 15 reservado | Coincide; Cap. III actualizado con los pines |
+| 2× HC-SR04P (frente y atrás) | Cap. III | Eco frontal GPIO 33, eco trasero GPIO 5, TRIG frontal GPIO 23 y TRIG trasero GPIO 15 (separado desde el 19/11/2026) | Coincide; Cap. III actualizado con los pines |
 | MPU-6050 como IMU (giroscopio + acelerómetro) | Cap. I (OE 5 y 7), Cap. II (II.2.2.3, II.2.10) | Está en la lista de compra y en el mapa de pines (GPIO 21/22), pero el firmware **no la lee**: solo hay un gancho comentado | **Marcado** en Cap. II y Cap. III. El antirrobo (RF-08) y la fusión con el giroscopio no tienen resultados |
 | ESP32-WROOM-32, batería Li-Ion 3S, un solo robot | Cap. I, II, III | Coincide | Coincide |
 | Sin LiDAR, sin magnetómetro ni rumbo | (regla del proyecto) | La app no muestra rumbo (se quitó «RUMBO 088° E» del diseño) y el mapa no dibuja posición con el robot real | Coincide; Cap. III lo declara |
@@ -28,7 +28,7 @@
 
 | Afirmación | Sistema real | Estado |
 |---|---|---|
-| App Flutter con 4 secciones y E-STOP (`frenar`) | Dashboard, Controles, Radar y Alertas; sistema *Autonomous Laboratory Cockpit* | Coincide |
+| App Flutter con 4 secciones y Freno Remoto (`frenar`) | Dashboard, Controles, Radar y Alertas; sistema *Autonomous Laboratory Cockpit* | Coincide |
 | Seguimiento del robot en tiempo real (Cap. II.2.9, OE 6) | Telemetría real por MQTT; Mapa de Pista con posición **solo en Modo Demo** (simulada) | Cap. II y Cap. III aclaran qué es simulación |
 | Usuarios con dos roles: solicitante y encargado (Fase V) | Hoy: maqueta local de roles Operador/Administrador, en memoria, sin backend ni Firebase; contraseñas sin protección | Cap. III.3.6 y III.5.3 actualizados |
 | Catálogo, solicitudes, historial de entregas, notificaciones con backend (OE 6) | No implementados | Pendiente (Fase V); nota en Cap. II.2.9 |

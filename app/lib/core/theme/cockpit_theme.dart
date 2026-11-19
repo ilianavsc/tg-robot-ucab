@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 ///
 /// Los valores salen del front-matter del DESIGN.md (tokens Material 3), que
 /// son los que usan las capturas de las 4 pantallas: fondo `#10141A`, tarjetas
-/// `#181C22`, celdas `#1C2026`, E-STOP y CRITICAL `#93000A`, acento `#00F2FE`.
+/// `#181C22`, celdas `#1C2026`, Freno Remoto y CRITICAL `#93000A`, acento `#00F2FE`.
 /// La amarilla de advertencia (`#F59E0B`) y el rojo de peligro (`#EF4444`)
 /// vienen de la sección "Colors" del mismo documento.
 abstract final class CockpitColors {
@@ -51,7 +51,7 @@ abstract final class CockpitColors {
   ); // texto/contorno sobre fondo oscuro
   static const Color errorContainer = Color(
     0xFF93000A,
-  ); // E-STOP, etiquetas CRITICAL
+  ); // Freno Remoto, etiquetas CRITICAL
   static const Color onErrorContainer = Color(0xFFFFDAD6);
   static const Color hazard = Color(
     0xFFEF4444,

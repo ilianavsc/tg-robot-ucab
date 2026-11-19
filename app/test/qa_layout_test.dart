@@ -87,19 +87,19 @@ void main() {
   setUpAll(_cargarFuentes);
 
   testWidgets(
-    'Controles: la lista termina encima del E-STOP (no tapa la matriz)',
+    'Controles: la lista termina encima del Freno Remoto (no tapa la matriz)',
     (WidgetTester t) async {
       final (MqttService s, SesionLocal ses) = await _montar(
         t,
         conSesion: true,
       );
       await _irA(t, 'CONTROLES');
-      final Rect estop = t.getRect(find.byType(EstopButton));
+      final Rect estop = t.getRect(find.byType(FrenoRemotoButton));
       final Finder lista = find.byKey(
         const PageStorageKey<String>('controles'),
       );
       expect(lista, findsOneWidget);
-      // Recorre toda la lista: ningún punto de ella llega a la franja del E-STOP.
+      // Recorre toda la lista: ningún punto de ella llega a la franja del Freno Remoto.
       for (final double desplazar in <double>[0, 200, 200, 200, 400, 800]) {
         if (desplazar > 0) {
           await t.drag(lista, Offset(0, -desplazar));
@@ -108,11 +108,11 @@ void main() {
         expect(
           t.getRect(lista).bottom,
           lessThanOrEqualTo(estop.top),
-          reason: 'el viewport de Controles debe acabar sobre el E-STOP',
+          reason: 'el viewport de Controles debe acabar sobre el Freno Remoto',
         );
       }
       // Los botones de la matriz táctil quedan siempre dentro del viewport
-      // (por encima del E-STOP), nunca debajo.
+      // (por encima del Freno Remoto), nunca debajo.
       for (final String texto in <String>[
         'AVANZAR',
         'GIRAR DER',
@@ -127,20 +127,20 @@ void main() {
     },
   );
 
-  testWidgets('Dashboard reserva la franja del E-STOP; Radar no', (
+  testWidgets('Dashboard reserva la franja del Freno Remoto; Radar no', (
     WidgetTester t,
   ) async {
     final (MqttService s, SesionLocal ses) = await _montar(t, conSesion: true);
-    final Rect estop = t.getRect(find.byType(EstopButton));
+    final Rect estop = t.getRect(find.byType(FrenoRemotoButton));
     final double navTop = t.getRect(find.byType(NavigationBar)).top;
-    // Dashboard (misión, destinos y pausa): la lista acaba sobre el E-STOP.
+    // Dashboard (misión, destinos y pausa): la lista acaba sobre el Freno Remoto.
     final Rect lista = t.getRect(
       find.byKey(const PageStorageKey<String>('dashboard')),
     );
     expect(lista.bottom, lessThanOrEqualTo(estop.top));
     await _irA(t, 'RADAR');
     expect(t.getRect(find.byType(ListView).first).bottom, closeTo(navTop, 1));
-    expect(find.byType(EstopButton), findsOneWidget);
+    expect(find.byType(FrenoRemotoButton), findsOneWidget);
     await _cerrar(t, s, ses);
   });
 

@@ -58,7 +58,7 @@ Mismo objeto plano (caja de cartón) perpendicular al sensor. 5 lecturas por dis
 | Sin objeto (> 4 m) | `frente_ok` = | `frente_cm` = | `atras_ok` = | `atras_cm` = |
 
 - [ ] Sin objeto en rango, ¿el módulo da `*_ok = true` con `0.0` (pulso de timeout)? Si da `false`, el clon no entrega pulso: ajustar `FALLO_ECO_MAX` (ver `firmware/pruebas_pc/README.md`).
-- [ ] ¿Hay eco cruzado con el TRIG común (lecturas cortas falsas en un sensor cuando el otro apunta a una pared)? Si sí: TRIG trasero a GPIO 15 y `PIN_ULTRA_TRIG_ATRAS = 15`. Resultado:
+- [ ] Con el TRIG separado (frente GPIO 23, atrás GPIO 15), ¿aparecen lecturas cortas falsas en un sensor cuando el otro apunta a una pared (eco cruzado ambiental)? Resultado:
 
 ## 3 · Reacciones de seguridad (repetir ≥ 20 veces cada una, RNF-08)
 

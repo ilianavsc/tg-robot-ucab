@@ -4,19 +4,28 @@ import '../alertas/centro_alertas.dart';
 import '../models/estado.dart';
 import '../models/ultrasonido.dart';
 
-/// Destinos de la pista de demostración.
+/// Estaciones del trayecto del proyecto: sale del Cuarto de Componentes
+/// (inicio), pasa por un Punto de Control (intermedio) y llega al
+/// Laboratorio 1 (destino).
 enum DestinoPista {
-  base('BASE / CARGA', 'BASE'),
-  estacionA('ESTACIÓN A', 'ESTACIÓN A'),
-  estacionB('ESTACIÓN B', 'ESTACIÓN B');
+  cuartoComponentes(
+    'CUARTO DE COMPONENTES',
+    'CUARTO',
+    'CUARTO DE\nCOMPONENTES',
+  ),
+  puntoControl('PUNTO DE CONTROL', 'CONTROL', 'PUNTO DE\nCONTROL'),
+  laboratorio1('LABORATORIO 1', 'LAB. 1', 'LABORATORIO 1');
 
-  const DestinoPista(this.nombre, this.corto);
+  const DestinoPista(this.nombre, this.corto, this.etiquetaMapa);
 
-  /// Nombre completo (etiqueta del nodo en el mapa).
+  /// Nombre completo (misión y eventos).
   final String nombre;
 
   /// Nombre breve (botones).
   final String corto;
+
+  /// Etiqueta del nodo en el mapa (en dos líneas si es larga).
+  final String etiquetaMapa;
 }
 
 /// Fase de la misión que muestra la tarjeta del Mapa de Pista.
@@ -66,9 +75,9 @@ class SimulacionPista {
   /// Posición de cada nodo sobre el circuito (m desde la base, en el sentido
   /// de marcha).
   static const Map<DestinoPista, double> posiciones = <DestinoPista, double>{
-    DestinoPista.base: 0.0,
-    DestinoPista.estacionA: 4.2,
-    DestinoPista.estacionB: 7.0,
+    DestinoPista.cuartoComponentes: 0.0,
+    DestinoPista.puntoControl: 4.2,
+    DestinoPista.laboratorio1: 7.0,
   };
 
   static const double velocidadCrucero = 0.40;
@@ -109,8 +118,9 @@ class SimulacionPista {
   double _bateriaV = bateriaInicialV;
 
   bool _autonomo = true;
-  DestinoPista _destino = DestinoPista.estacionA;
+  DestinoPista _destino = DestinoPista.puntoControl;
   double _tramoTotal = 0;
+  double _inicioTramoM = 0; // dónde empezó el tramo actual (m)
   double _esperaDestino = 0;
   bool _enDestino = false;
 
@@ -188,6 +198,10 @@ class SimulacionPista {
     return d > longitudM - 0.05 ? 0 : d;
   }
 
+  /// Inicio del tramo actual como fracción del circuito: lo que queda entre
+  /// este punto y el robot es el tramo ya recorrido (se atenúa en el mapa).
+  double get fraccionInicioTramo => _inicioTramoM / longitudM;
+
   /// Avance del tramo actual (0..1).
   double get progresoTramo => _enDestino || _tramoTotal <= 0.05
       ? 1.0
@@ -239,6 +253,7 @@ class SimulacionPista {
         _ordenDeMovimiento = false;
         _enDestino = false;
         _tramoTotal = distanciaAlDestino;
+        _inicioTramoM = posicionM;
         _registrar('Orden auto · marcha autónoma hacia ${_destino.nombre}');
         return true;
       case 'adelante':
@@ -270,6 +285,7 @@ class SimulacionPista {
     _enDestino = false;
     _esperaDestino = 0;
     _tramoTotal = distanciaAlDestino;
+    _inicioTramoM = posicionM;
     _registrar('Destino: ${d.nombre}');
   }
 
@@ -374,6 +390,7 @@ class SimulacionPista {
         _destino = siguiente;
         _enDestino = false;
         _tramoTotal = distanciaAlDestino;
+        _inicioTramoM = posicionM;
         _registrar('Rumbo a ${siguiente.nombre}');
       }
       return;

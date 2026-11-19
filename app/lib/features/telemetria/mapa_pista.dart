@@ -14,7 +14,7 @@ import 'cockpit_ui.dart';
 
 /// Geometría del circuito cerrado (rectángulo de esquinas redondeadas) para un
 /// tamaño dado. Sale del mismo recorrido que usa la simulación: la fracción 0
-/// es la BASE y el sentido de marcha es el de las agujas del reloj.
+/// es el Cuarto de Componentes y el sentido de marcha es el de las agujas del reloj.
 class PistaGeometria {
   PistaGeometria(this.tamano) {
     final double lado = math.min(tamano.width, tamano.height);
@@ -59,6 +59,9 @@ class PistaGeometria {
   late final Path camino;
   late final PathMetric _metrica;
 
+  /// Recorrido medible del circuito (para extraer tramos).
+  PathMetric get metrica => _metrica;
+
   /// Lado menor del lienzo (px): sirve para escalar trazos y textos.
   late final double escala;
 
@@ -69,7 +72,7 @@ class PistaGeometria {
     return _metrica.getTangentForOffset(f * _metrica.length)!;
   }
 
-  /// Punto del circuito en la fracción [fraccion] (0..1, 0 = BASE).
+  /// Punto del circuito en la fracción [fraccion] (0..1, 0 = Cuarto de Componentes).
   Offset puntoEn(double fraccion) => _en(fraccion).position;
 
   /// Ángulo (rad) de avance en esa fracción.
@@ -95,12 +98,82 @@ Color colorDeZona(ZonaSonar z) {
   }
 }
 
+/// Parte del circuito que va de [desde] a [hasta] (fracciones 0..1) siguiendo
+/// el sentido de marcha; si [hasta] < [desde] da la vuelta por la base.
+Path tramoDelCircuito(PathMetric m, double desde, double hasta) {
+  final double l = m.length;
+  double f(double x) => x - x.floorToDouble();
+  final double d = f(desde) * l;
+  final double h = f(hasta) * l;
+  if (h >= d) return m.extractPath(d, h);
+  return m.extractPath(d, l)..addPath(m.extractPath(0, h), Offset.zero);
+}
+
+/// Rectángulo de la etiqueta de un nodo (con su "píldora" de fondo).
+Rect rectEtiquetaNodo(PistaGeometria g, DestinoPista d) {
+  final Offset p = g.puntoEn(fraccionDeDestino(d));
+  final TextPainter tp = _textoEtiqueta(d, false)..layout();
+  const double rx = 5, ry = 3;
+  final double ancho = tp.width + 2 * rx;
+  final double alto = tp.height + 2 * ry;
+  double x;
+  double y;
+  switch (d) {
+    case DestinoPista.cuartoComponentes:
+      x = p.dx + 20; // a la derecha del nodo, dentro del lazo
+      y = p.dy - alto / 2;
+      break;
+    case DestinoPista.puntoControl:
+      x = p.dx - ancho + 8; // abajo-izquierda del nodo, dentro del lazo
+      y = p.dy + 22; // (a la derecha el recorrido baja por el borde del lazo)
+      break;
+    case DestinoPista.laboratorio1:
+      x = p.dx - ancho / 2; // debajo del nodo, fuera del lazo
+      y = p.dy + 20;
+      break;
+  }
+  x = x.clamp(4.0, g.tamano.width - ancho - 4);
+  return Rect.fromLTWH(x, y, ancho, alto);
+}
+
+TextPainter _textoEtiqueta(DestinoPista d, bool activo) => TextPainter(
+  text: TextSpan(
+    text: d.etiquetaMapa,
+    style: mono(
+      size: 10.5,
+      peso: FontWeight.w600,
+      color: activo ? CockpitColors.primary : CockpitColors.onSurface,
+      espaciado: 0.3,
+      altura: 1.25,
+    ),
+  ),
+  textAlign: TextAlign.center,
+  textDirection: TextDirection.ltr,
+);
+
+/// Triángulo del cono del ultrasonido frontal con el robot en [p] mirando a
+/// [ang]. El largo (28–58 px) crece con la lectura; la abertura es estrecha
+/// para que no invada las etiquetas de las estaciones.
+List<Offset> triangulosCono(Offset p, double ang, double frenteCm) {
+  final double largo = 28 + (frenteCm.clamp(0.0, 150.0) / 150.0) * 30;
+  const double abertura = 0.26;
+  return <Offset>[
+    p,
+    p + Offset.fromDirection(ang - abertura, largo),
+    p + Offset.fromDirection(ang + abertura, largo),
+  ];
+}
+
 /// Dibuja el circuito, los 3 nodos, el robot con su flecha y el cono del
-/// ultrasonido frontal. Sin robot (`fraccionRobot == null`) solo pinta la pista.
+/// ultrasonido frontal. Con robot (Modo Demo) aplica el **borrado progresivo**:
+/// el tramo ya recorrido se atenúa a una línea punteada muy tenue (*ghost
+/// line*) y solo queda iluminado en turquesa el tramo pendiente hacia el
+/// destino. Sin robot (`fraccionRobot == null`) pinta toda la pista iluminada.
 class PintorPista extends CustomPainter {
   const PintorPista({
     required this.destino,
     this.fraccionRobot,
+    this.fraccionInicioTramo,
     this.obstaculo,
     this.frenteCm,
     this.zona = ZonaSonar.sinDatos,
@@ -108,6 +181,9 @@ class PintorPista extends CustomPainter {
 
   final DestinoPista destino;
   final double? fraccionRobot;
+
+  /// Dónde empezó el tramo actual (fracción 0..1).
+  final double? fraccionInicioTramo;
   final double? obstaculo;
   final double? frenteCm;
   final ZonaSonar zona;
@@ -127,34 +203,26 @@ class PintorPista extends CustomPainter {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), rejilla);
     }
 
-    // Pista: resplandor, cuerpo y línea central
-    canvas.drawPath(
-      g.camino,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 16
-        ..color = CockpitColors.primary.withValues(alpha: 0.13)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
-    );
-    canvas.drawPath(
-      g.camino,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 7
-        ..color = CockpitColors.primary.withValues(alpha: 0.30),
-    );
-    canvas.drawPath(
-      g.camino,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3
-        ..strokeCap = StrokeCap.round
-        ..color = CockpitColors.primary,
-    );
-
-    // Nodos
-    for (final DestinoPista d in DestinoPista.values) {
-      _nodo(canvas, size, g, d);
+    final double? f = fraccionRobot;
+    if (f == null) {
+      _pistaIluminada(canvas, g.camino);
+    } else {
+      // Huella del circuito: línea apenas visible
+      canvas.drawPath(
+        g.camino,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2
+          ..color = CockpitColors.outlineVariant.withValues(alpha: 0.22),
+      );
+      final double ini = fraccionInicioTramo ?? f;
+      final double fin = fraccionDeDestino(destino);
+      // Ya recorrido: punteada muy tenue (borrado progresivo)
+      _fantasma(canvas, tramoDelCircuito(g.metrica, ini, f));
+      // Pendiente hacia el destino: iluminado en turquesa
+      if (_distanciaAdelante(f, fin) > 0.002) {
+        _pistaIluminada(canvas, tramoDelCircuito(g.metrica, f, fin));
+      }
     }
 
     // Obstáculo simulado
@@ -169,22 +237,76 @@ class PintorPista extends CustomPainter {
       canvas.drawCircle(p, 6, Paint()..color = CockpitColors.hazard);
     }
 
+    // Nodos
+    for (final DestinoPista d in DestinoPista.values) {
+      _nodo(canvas, g, d);
+    }
+
     // Cono del ultrasonido y robot
-    final double? f = fraccionRobot;
     if (f != null) {
       final Offset p = g.puntoEn(f);
       final double ang = g.anguloEn(f);
-      _cono(canvas, p, ang);
+      _cono(canvas, g, p, ang);
       _robot(canvas, p, ang);
+    }
+
+    // Etiquetas de las estaciones al final: siempre legibles sobre el cono
+    for (final DestinoPista d in DestinoPista.values) {
+      _etiqueta(canvas, g, d);
     }
   }
 
-  void _nodo(Canvas canvas, Size size, PistaGeometria g, DestinoPista d) {
+  static double _distanciaAdelante(double desde, double hasta) {
+    final double d = hasta - desde;
+    return d - d.floorToDouble();
+  }
+
+  void _pistaIluminada(Canvas canvas, Path camino) {
+    canvas.drawPath(
+      camino,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 16
+        ..color = CockpitColors.primary.withValues(alpha: 0.13)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
+    );
+    canvas.drawPath(
+      camino,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 7
+        ..color = CockpitColors.primary.withValues(alpha: 0.30),
+    );
+    canvas.drawPath(
+      camino,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3
+        ..strokeCap = StrokeCap.round
+        ..color = CockpitColors.primary,
+    );
+  }
+
+  /// Tramo recorrido: puntos y rayas muy tenues, sin resplandor.
+  void _fantasma(Canvas canvas, Path tramo) {
+    final Paint pincel = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round
+      ..color = CockpitColors.primary.withValues(alpha: 0.16);
+    for (final PathMetric m in tramo.computeMetrics()) {
+      for (double d = 0; d < m.length; d += 12) {
+        canvas.drawPath(m.extractPath(d, math.min(d + 4, m.length)), pincel);
+      }
+    }
+  }
+
+  void _nodo(Canvas canvas, PistaGeometria g, DestinoPista d) {
     final Offset p = g.puntoEn(fraccionDeDestino(d));
     final bool activo = d == destino;
-    final Color color = d == DestinoPista.base
+    final Color color = d == DestinoPista.cuartoComponentes
         ? CockpitColors.ok
-        : (d == DestinoPista.estacionA
+        : (d == DestinoPista.puntoControl
               ? CockpitColors.primary
               : CockpitColors.secondary);
     if (activo) {
@@ -206,56 +328,30 @@ class PintorPista extends CustomPainter {
         ..color = activo ? CockpitColors.primary : color.withValues(alpha: 0.7),
     );
     canvas.drawCircle(p, 5, Paint()..color = color);
-
-    // Etiqueta dentro del lazo (BASE a la derecha, ESTACIÓN A debajo) o fuera
-    // por debajo (ESTACIÓN B), para no chocar con los chips ni con la pista.
-    final TextPainter tp = TextPainter(
-      text: TextSpan(
-        text: d.nombre,
-        style: mono(
-          size: 11,
-          peso: FontWeight.w600,
-          color: activo ? CockpitColors.primary : CockpitColors.onSurface,
-          espaciado: 0.4,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    double x;
-    double y;
-    switch (d) {
-      case DestinoPista.base:
-        x = p.dx + 20;
-        y = p.dy - tp.height / 2;
-        break;
-      case DestinoPista.estacionA:
-        x = p.dx - tp.width / 2;
-        y = p.dy + 20;
-        break;
-      case DestinoPista.estacionB:
-        x = p.dx - tp.width / 2;
-        y = p.dy + 20;
-        break;
-    }
-    x = x.clamp(4.0, size.width - tp.width - 4);
-    tp.paint(canvas, Offset(x, y));
   }
 
-  void _cono(Canvas canvas, Offset p, double ang) {
+  void _etiqueta(Canvas canvas, PistaGeometria g, DestinoPista d) {
+    final Rect r = rectEtiquetaNodo(g, d);
+    final bool activo = d == destino;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(r, const Radius.circular(5)),
+      Paint()..color = CockpitColors.surface.withValues(alpha: 0.88),
+    );
+    final TextPainter tp = _textoEtiqueta(d, activo)..layout();
+    tp.paint(canvas, Offset(r.left + 5, r.top + 3));
+  }
+
+  void _cono(Canvas canvas, PistaGeometria g, Offset p, double ang) {
     final double? d = frenteCm;
     if (d == null || zona == ZonaSonar.fallo || zona == ZonaSonar.sinDatos) {
       return;
     }
     final Color c = colorDeZona(zona);
-    // Largo del cono: proporcional a la lectura, entre 34 y 84 px.
-    final double largo = (34 + (d.clamp(0.0, 150.0) / 150.0) * 50);
-    const double abertura = 0.30;
-    final Offset a = p + Offset.fromDirection(ang - abertura, largo);
-    final Offset b = p + Offset.fromDirection(ang + abertura, largo);
+    final List<Offset> v = triangulosCono(p, ang, d);
     final Path cono = Path()
-      ..moveTo(p.dx, p.dy)
-      ..lineTo(a.dx, a.dy)
-      ..lineTo(b.dx, b.dy)
+      ..moveTo(v[0].dx, v[0].dy)
+      ..lineTo(v[1].dx, v[1].dy)
+      ..lineTo(v[2].dx, v[2].dy)
       ..close();
     canvas.drawPath(cono, Paint()..color = c.withValues(alpha: 0.28));
     canvas.drawPath(
@@ -265,6 +361,8 @@ class PintorPista extends CustomPainter {
         ..strokeWidth = 1.2
         ..color = c.withValues(alpha: 0.75),
     );
+    // Lectura en cm: a un lado o al otro de la punta, donde no pise ninguna
+    // etiqueta de estación.
     final TextPainter tp = TextPainter(
       text: TextSpan(
         text: '${d.toStringAsFixed(0)} cm',
@@ -272,8 +370,21 @@ class PintorPista extends CustomPainter {
       ),
       textDirection: TextDirection.ltr,
     )..layout();
-    final Offset punta = p + Offset.fromDirection(ang, largo + 6);
-    tp.paint(canvas, punta + const Offset(-4, -22));
+    final Offset punta = (v[1] + v[2]) / 2;
+    final List<Rect> etiquetas = <Rect>[
+      for (final DestinoPista n in DestinoPista.values) rectEtiquetaNodo(g, n),
+    ];
+    Rect candidato(double dy) => Rect.fromLTWH(
+      (punta.dx - tp.width / 2).clamp(2.0, g.tamano.width - tp.width - 2),
+      (punta.dy + dy).clamp(2.0, g.tamano.height - tp.height - 2),
+      tp.width,
+      tp.height,
+    );
+    Rect elegido = candidato(-tp.height - 8);
+    if (etiquetas.any((Rect e) => e.overlaps(elegido))) {
+      elegido = candidato(8);
+    }
+    tp.paint(canvas, elegido.topLeft);
   }
 
   void _robot(Canvas canvas, Offset p, double ang) {
@@ -307,6 +418,7 @@ class PintorPista extends CustomPainter {
   bool shouldRepaint(covariant PintorPista v) =>
       v.destino != destino ||
       v.fraccionRobot != fraccionRobot ||
+      v.fraccionInicioTramo != fraccionInicioTramo ||
       v.obstaculo != obstaculo ||
       v.frenteCm != frenteCm ||
       v.zona != zona;
@@ -495,8 +607,9 @@ class _Mapa extends StatelessWidget {
                   child: CustomPaint(
                     key: const Key('mapa-pista-lienzo'),
                     painter: PintorPista(
-                      destino: s?.destino ?? DestinoPista.estacionA,
+                      destino: s?.destino ?? DestinoPista.puntoControl,
                       fraccionRobot: s?.fraccion,
+                      fraccionInicioTramo: s?.fraccionInicioTramo,
                       obstaculo: s?.obstaculoFraccion,
                       frenteCm: s != null ? s.frenteCm : us?.frenteValido,
                       zona: zona,
@@ -746,15 +859,15 @@ class _SelectorDestino extends StatelessWidget {
   final SimulacionPista? sim;
 
   static const Map<DestinoPista, IconData> _iconos = <DestinoPista, IconData>{
-    DestinoPista.base: Icons.home_outlined,
-    DestinoPista.estacionA: Icons.science_outlined,
-    DestinoPista.estacionB: Icons.inventory_2_outlined,
+    DestinoPista.cuartoComponentes: Icons.inventory_2_outlined,
+    DestinoPista.puntoControl: Icons.flag_outlined,
+    DestinoPista.laboratorio1: Icons.science_outlined,
   };
 
   static const Map<DestinoPista, String> _claves = <DestinoPista, String>{
-    DestinoPista.base: 'destino-base',
-    DestinoPista.estacionA: 'destino-a',
-    DestinoPista.estacionB: 'destino-b',
+    DestinoPista.cuartoComponentes: 'destino-cuarto',
+    DestinoPista.puntoControl: 'destino-control',
+    DestinoPista.laboratorio1: 'destino-lab1',
   };
 
   @override
@@ -789,7 +902,7 @@ class _SelectorDestino extends StatelessWidget {
         Row(
           children: <Widget>[
             for (final DestinoPista d in DestinoPista.values) ...<Widget>[
-              if (d != DestinoPista.base) const SizedBox(width: 8),
+              if (d != DestinoPista.cuartoComponentes) const SizedBox(width: 8),
               Expanded(
                 child: _BotonDestino(
                   clave: Key(_claves[d]!),

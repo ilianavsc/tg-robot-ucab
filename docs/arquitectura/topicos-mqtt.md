@@ -56,9 +56,9 @@ asume camino libre**.
 
 Umbrales (RF-05): `< 20 cm` parada, `20–50 cm` aviso, `> 50 cm` despejado.
 
-Lectura alternada: ciclo par = frente, ciclo impar = atrás (100 ms por ciclo). Con el
-TRIG común (GPIO 23) ambos módulos emiten en cada disparo, pero solo se escucha el de
-turno; con TRIG separado (trasero en GPIO 15) quedan aislados también acústicamente.
+Lectura alternada: ciclo par = frente, ciclo impar = atrás (100 ms por ciclo). Cada módulo
+tiene su propio TRIG (frente GPIO 23, atrás GPIO 15): solo emite el sensor de turno y
+quedan aislados también acústicamente.
 
 ## `ordenes` (app → robot, QoS 1)
 

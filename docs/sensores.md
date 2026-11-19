@@ -35,10 +35,10 @@ const float SUMA_MIN  = 0.30f;  // suma mínima para "veo la línea"
 
 | Dato | Valor |
 |---|---|
-| TRIG (común a los 2) | GPIO **23** (`PIN_ULTRA_TRIG_FRENTE` = `PIN_ULTRA_TRIG_ATRAS` = 23) |
+| TRIG frente | GPIO **23** (`PIN_ULTRA_TRIG_FRENTE = 23`) |
+| TRIG atrás | GPIO **15** (`PIN_ULTRA_TRIG_ATRAS = 15`), **separado** del frontal |
 | ECHO frente | GPIO **33** |
 | ECHO atrás | GPIO **5** |
-| GPIO 15 | **reservado**: TRIG trasero separado (opcional, ver abajo) |
 | Alimentación | **3,3 V** (HC-SR04P). El HC-SR04 de 5 V exige divisor 1k/2k en ECHO |
 | Lectura | ISR por flanco (`IRAM_ATTR` + `micros()`), **alternada**: frente en ciclos pares, atrás en impares (100 ms por ciclo → cada sensor cada 200 ms) |
 | Fallo de sensor | 3 lecturas propias sin ningún pulso (600 ms) → `frente_ok`/`atras_ok = false`; se recupera con 2 ecos |
@@ -54,10 +54,11 @@ const float UMBRAL_AVISO_CM  = 50.0f;  // 20-50 cm → zona de aviso (ámbar)
 **Contrato MQTT:**
 - `ucab-tg-sf/robot/ultrasonido` (QoS 0, cada 0,5 s): `{"frente_cm":X,"atras_cm":Y,"frente_ok":true,"atras_ok":true,"t":<millis>}`
 
-**TRIG común vs. separado:** con el TRIG común, los dos módulos emiten en cada disparo;
-la alternancia solo hace que se escuche uno por ciclo. Si en la prueba física aparecen
-lecturas cortas falsas (eco cruzado), cablear el TRIG del trasero a **GPIO 15** y cambiar
-en el firmware `PIN_ULTRA_TRIG_ATRAS = 15`. Registrar el resultado en
+**TRIG separado:** cada módulo tiene su propio TRIG (frente GPIO 23, atrás GPIO 15), así que
+en cada ciclo solo emite el sensor de turno y no hay eco cruzado por disparo común.
+GPIO 15 es un pin de arranque (MTDO): como salida en LOW solo apaga los mensajes de
+arranque del ESP32, sin riesgo. Comprobar en la prueba física que no aparecen lecturas
+cortas falsas y registrar el resultado en
 [`prototipos/P02-sensores/README.md`](../prototipos/P02-sensores/README.md).
 - `ucab-tg-sf/robot/estado` (QoS 0, cada 2 s): incluye `linea_mm` (posición de la línea)
 

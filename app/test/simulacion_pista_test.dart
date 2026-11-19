@@ -20,7 +20,7 @@ void main() {
   group('marcha autónoma (PID suave)', () {
     test('arranca en la base rumbo a la Estación A', () {
       final SimulacionPista s = SimulacionPista();
-      expect(s.destino, DestinoPista.estacionA);
+      expect(s.destino, DestinoPista.puntoControl);
       expect(s.autonomo, isTrue);
       expect(s.fase, FaseMision.enRuta);
       expect(s.posicionM, 0);
@@ -151,7 +151,7 @@ void main() {
       final String todos = s.eventos.map((EventoSim e) => e.texto).join('|');
       expect(todos, contains('Obstáculo detectado'));
       expect(todos, contains('Parada crítica'));
-      expect(todos, contains('Llegó a ESTACIÓN A'));
+      expect(todos, contains('Llegó a PUNTO DE CONTROL'));
     });
   });
 
@@ -238,13 +238,13 @@ void main() {
       'elegir un destino lo alcanza, lo registra y marca 100 % de avance',
       () {
         final SimulacionPista s = SimulacionPista();
-        s.elegirDestino(DestinoPista.estacionB);
-        expect(s.destino, DestinoPista.estacionB);
-        expect(s.ultimoEvento!.texto, 'Destino: ESTACIÓN B');
+        s.elegirDestino(DestinoPista.laboratorio1);
+        expect(s.destino, DestinoPista.laboratorio1);
+        expect(s.ultimoEvento!.texto, 'Destino: LABORATORIO 1');
         bool llego = false;
         correr(s, 80, (SimulacionPista p) {
           if (p.fase == FaseMision.enDestino &&
-              p.destino == DestinoPista.estacionB) {
+              p.destino == DestinoPista.laboratorio1) {
             llego = true;
             expect(p.progresoTramo, 1.0);
           }
@@ -252,14 +252,14 @@ void main() {
         expect(llego, isTrue);
         expect(
           s.eventos.map((EventoSim e) => e.texto),
-          contains('Llegó a ESTACIÓN B'),
+          contains('Llegó a LABORATORIO 1'),
         );
       },
     );
 
     test('el avance del tramo crece de forma monótona hacia el destino', () {
       final SimulacionPista s = SimulacionPista();
-      s.elegirDestino(DestinoPista.estacionB);
+      s.elegirDestino(DestinoPista.laboratorio1);
       double previo = s.progresoTramo;
       correr(s, 12, (SimulacionPista p) {
         if (p.fase == FaseMision.enRuta) {
@@ -275,9 +275,60 @@ void main() {
       () {
         final SimulacionPista s = SimulacionPista();
         correr(s, 25);
-        expect(s.destino, isNot(DestinoPista.estacionA));
+        expect(s.destino, isNot(DestinoPista.puntoControl));
       },
     );
+  });
+
+  group('estaciones reales y borrado progresivo', () {
+    test('las 3 estaciones del trayecto del proyecto y su orden', () {
+      expect(DestinoPista.values.map((DestinoPista d) => d.nombre), <String>[
+        'CUARTO DE COMPONENTES',
+        'PUNTO DE CONTROL',
+        'LABORATORIO 1',
+      ]);
+      final List<double> pos = DestinoPista.values
+          .map((DestinoPista d) => SimulacionPista.posiciones[d]!)
+          .toList();
+      expect(pos[0], 0, reason: 'el Cuarto de Componentes es el inicio');
+      expect(pos[0] < pos[1] && pos[1] < pos[2], isTrue);
+      expect(pos[2], lessThan(SimulacionPista.longitudM));
+      expect(SimulacionPista().destino, DestinoPista.puntoControl);
+    });
+
+    test(
+      'el tramo recorrido empieza donde arrancó el tramo y avanza con el robot',
+      () {
+        final SimulacionPista s = SimulacionPista();
+        expect(s.fraccionInicioTramo, 0);
+        correr(s, 6);
+        expect(s.fraccionInicioTramo, 0, reason: 'sigue el mismo tramo');
+        expect(s.fraccion, greaterThan(0.1));
+        // Cambiar de destino abre un tramo nuevo desde donde está el robot
+        final double aqui = s.fraccion;
+        s.elegirDestino(DestinoPista.laboratorio1);
+        expect(s.fraccionInicioTramo, closeTo(aqui, 1e-9));
+        expect(s.progresoTramo, lessThan(0.05));
+        correr(s, 5);
+        expect(s.fraccionInicioTramo, closeTo(aqui, 1e-9));
+        expect(s.progresoTramo, greaterThan(0.1));
+      },
+    );
+
+    test('al llegar y seguir, el tramo nuevo parte de la estación', () {
+      final SimulacionPista s = SimulacionPista();
+      bool llego = false;
+      double inicioAlLlegar = -1;
+      correr(s, 60, (SimulacionPista p) {
+        if (!llego && p.fase == FaseMision.enDestino) {
+          llego = true;
+          inicioAlLlegar = p.fraccionInicioTramo;
+        }
+      });
+      expect(llego, isTrue);
+      expect(inicioAlLlegar, 0, reason: 'el primer tramo salió del cuarto');
+      expect(s.fraccionInicioTramo, isNot(0), reason: 'luego hubo otro tramo');
+    });
   });
 
   group('telemetría simulada', () {

@@ -77,7 +77,7 @@
 
 **Importante:**
 - Con el broker real, el número es medido (red + broker). En **Modo Demo** la confirmación es simulada (300 ms exactos): no presentarla como medida.
-- El botón **E-STOP** (abajo a la derecha) envía el mismo `frenar` por MQTT: no es un corte eléctrico y no sustituye el interruptor físico del robot.
+- El botón **Freno Remoto** (abajo a la derecha) envía el mismo `frenar` por MQTT: no es un corte eléctrico y no sustituye el interruptor físico del robot.
 - No inventar una cifra: decir solo lo que muestra la pantalla. La mediana de 10 envíos se mide en la prueba física (`docs/centro_de_pruebas.md`).
 
 ---

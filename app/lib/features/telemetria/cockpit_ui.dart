@@ -7,7 +7,7 @@ import '../../core/theme/cockpit_theme.dart';
 
 /// Primitivas visuales del sistema de diseño **Autonomous Laboratory Cockpit**
 /// (`DESIGN.md`): tarjeta, celda de métrica, pastilla de estado, barra de
-/// progreso, botón E-STOP. Solo presentación: ninguna toca MQTT salvo
+/// progreso, botón Freno Remoto. Solo presentación: ninguna toca MQTT salvo
 /// [enviarOrden], que delega en `MqttService.publicarOrden` sin cambiarlo.
 
 /// Estilo monoespaciado de telemetría (JetBrains Mono).
@@ -463,16 +463,16 @@ class CockpitColumnas extends StatelessWidget {
 /// Un toque envía `frenar` de inmediato (no hay "mantener para confirmar": una
 /// parada que tarda no es una parada). Es una orden MQTT, **no** un corte
 /// eléctrico: no sustituye el interruptor físico del robot.
-class EstopButton extends StatefulWidget {
-  const EstopButton({super.key, required this.alPulsar});
+class FrenoRemotoButton extends StatefulWidget {
+  const FrenoRemotoButton({super.key, required this.alPulsar});
 
   final VoidCallback alPulsar;
 
   @override
-  State<EstopButton> createState() => _EstopButtonState();
+  State<FrenoRemotoButton> createState() => _FrenoRemotoButtonState();
 }
 
-class _EstopButtonState extends State<EstopButton>
+class _FrenoRemotoButtonState extends State<FrenoRemotoButton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulso = AnimationController(
     vsync: this,
@@ -503,10 +503,10 @@ class _EstopButtonState extends State<EstopButton>
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Parada de emergencia. Envía la orden frenar al robot.',
+      label: 'Freno Remoto. Envía la orden frenar al robot por MQTT; no es una parada de emergencia cableada.',
       excludeSemantics: true,
       child: Tooltip(
-        message: "Envía 'frenar' por MQTT. No sustituye el interruptor físico.",
+        message: "Envía 'frenar' por MQTT. No es una parada de emergencia física: no sustituye el interruptor cableado.",
         child: Pressable(
           child: AnimatedBuilder(
             animation: _pulso,
@@ -554,12 +554,12 @@ class _EstopButtonState extends State<EstopButton>
                       DiamondAlertIcon(color: CockpitColors.onErrorContainer),
                       SizedBox(width: 8),
                       Text(
-                        'E-STOP',
+                        'Freno Remoto',
                         style: TextStyle(
                           fontFamily: CockpitText.mono,
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
+                          letterSpacing: 0.4,
                           color: CockpitColors.onErrorContainer,
                         ),
                       ),
@@ -575,7 +575,7 @@ class _EstopButtonState extends State<EstopButton>
   }
 }
 
-/// Rombo de advertencia con signo de exclamación (el icono del E-STOP).
+/// Rombo de advertencia con signo de exclamación (el icono del Freno Remoto).
 class DiamondAlertIcon extends StatelessWidget {
   const DiamondAlertIcon({super.key, required this.color, this.tamano = 28});
 

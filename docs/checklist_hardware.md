@@ -91,6 +91,10 @@ entrega la señal al revés, **el PD se aleja de la línea** en vez de seguirla.
 | `39` (VN) | TCRT5000 2.º desde la izquierda (AO) | ADC1 · solo entrada |
 | `34` | TCRT5000 3.º desde la izquierda (AO) | ADC1 · solo entrada |
 | `35` | TCRT5000 más a la derecha (AO) | ADC1 · solo entrada |
+| `23` | TRIG del HC-SR04P **frontal** | Salida; HC-SR04P a 3,3 V |
+| `15` | TRIG del HC-SR04P **trasero** (separado) | Pin de arranque: en LOW solo apaga el log de arranque |
+| `33` | ECHO del HC-SR04P frontal | Entrada; nunca más de 3,3 V |
+| `5` | ECHO del HC-SR04P trasero | Pin de arranque: como ECHO lee LOW en reposo |
 | `32` | Divisor batería (100 kΩ / 22 kΩ) | 12,6 V → 2,27 V |
 | `0` (BOOT) | Pulsador a GND | Alarma de prueba |
 | `21` / `22` | *(reservado)* SDA / SCL de la MPU6050 | No conectar todavía |

@@ -25,7 +25,7 @@ class PantallaControles extends StatelessWidget {
     final bool sin = estadoSinSenal(e);
 
     // Con el banner de alerta visible (p. ej. obstáculo) la lista tiene menos
-    // altura útil: +48 px de colchón al final para que el E-STOP nunca tape
+    // altura útil: +48 px de colchón al final para que el Freno Remoto nunca tape
     // "GIRAR DER" ni "RETROCESO" al desplazarse en 390×844.
     final bool bannerVisible = servicio.centroAlertas.principal != null;
     return ListView(

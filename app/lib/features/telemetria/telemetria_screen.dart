@@ -19,7 +19,7 @@ import 'pantalla_radar.dart';
 /// Pantalla principal de la app (P09) con el sistema de diseño
 /// **Autonomous Laboratory Cockpit**: barra de app con estado y batería,
 /// 4 secciones con barra de navegación inferior (Dashboard, Controles, Radar y
-/// Alertas) y un botón E-STOP siempre a mano.
+/// Alertas) y un botón Freno Remoto siempre a mano.
 ///
 /// Es solo la capa visual: toda la lógica (MQTT, Modo Demo, órdenes, alertas
 /// P11 y analítica P12) sigue en `MqttService` y en `core/`.
@@ -50,12 +50,12 @@ const List<_Seccion> _secciones = <_Seccion>[
 
 class _TelemetriaScreenState extends State<TelemetriaScreen> {
   /// Secciones con botones críticos en pantalla (Dashboard: misión y destinos;
-  /// Controles: matriz táctil): reservan la franja del E-STOP.
-  static const Set<int> _seccionesConFranjaEstop = <int>{0, 1};
+  /// Controles: matriz táctil): reservan la franja del Freno Remoto.
+  static const Set<int> _seccionesConFranjaFreno = <int>{0, 1};
 
-  /// Alto reservado bajo el contenido de Controles: E-STOP (56) + su margen
+  /// Alto reservado bajo el contenido de Controles: Freno Remoto (56) + su margen
   /// con la barra de navegación (16) + 8 de respiro.
-  static const double alturaFranjaEstop = 80;
+  static const double alturaFranjaFreno = 80;
 
   int _indice = 0;
   Timer? _reloj;
@@ -170,16 +170,16 @@ class _TelemetriaScreenState extends State<TelemetriaScreen> {
                   child: _cuerpo(),
                 ),
               ),
-              // En Dashboard y Controles el E-STOP flotante tapaba botones
+              // En Dashboard y Controles el Freno Remoto flotante tapaba botones
               // críticos (misión, destinos, matriz táctil) al desplazar: se
               // reserva su franja para que la lista termine encima.
-              if (_seccionesConFranjaEstop.contains(_indice))
-                const SizedBox(height: alturaFranjaEstop),
+              if (_seccionesConFranjaFreno.contains(_indice))
+                const SizedBox(height: alturaFranjaFreno),
             ],
           ),
         ),
       ),
-      floatingActionButton: EstopButton(
+      floatingActionButton: FrenoRemotoButton(
         alPulsar: () => enviarOrden(context, servicio, 'frenar'),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,

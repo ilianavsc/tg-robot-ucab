@@ -78,7 +78,7 @@ Future<void> _tocar(WidgetTester t, String texto) async {
 void main() {
   setUpAll(_cargarFuentes);
 
-  testWidgets('barra de navegación con las 4 secciones y E-STOP', (
+  testWidgets('barra de navegación con las 4 secciones y Freno Remoto', (
     WidgetTester t,
   ) async {
     final MqttService s = await _montar(t);
@@ -94,7 +94,7 @@ void main() {
         findsOneWidget,
       );
     }
-    expect(find.text('E-STOP'), findsOneWidget);
+    expect(find.text('Freno Remoto'), findsOneWidget);
     expect(t.takeException(), isNull);
     await _cerrar(t, s);
   });
@@ -153,7 +153,7 @@ void main() {
     s.iniciarSimulacion(); // en demo se pueden enviar órdenes sin broker
     await t.pump(const Duration(milliseconds: 100));
 
-    await _tocar(t, 'E-STOP');
+    await _tocar(t, 'Freno Remoto');
     expect(s.ultimoComando, 'frenar');
 
     await _ir(t, 'CONTROLES');
@@ -172,43 +172,46 @@ void main() {
     await _cerrar(t, s);
   });
 
-  testWidgets('sin conexión los controles quedan inactivos y E-STOP avisa', (
-    WidgetTester t,
-  ) async {
-    final MqttService s = await _montar(t);
-    await _ir(t, 'CONTROLES');
-    await _tocar(t, 'AVANZAR'); // deshabilitado: no envía nada
-    expect(s.ultimoComando, isNull);
-    await _tocar(t, 'E-STOP'); // siempre intenta; sin conexión muestra el error
-    expect(find.byType(SnackBar), findsOneWidget);
-    expect(s.ultimoError, contains('no está conectada'));
-    await _cerrar(t, s);
-  });
-
   testWidgets(
-    'P11: banner de alerta y badge de la barra; reconocer lo cierra',
+    'sin conexión los controles quedan inactivos y Freno Remoto avisa',
     (WidgetTester t) async {
       final MqttService s = await _montar(t);
-      s.iniciarSimulacion();
-      // El demo físico hace aparecer un obstáculo a los ~12 s y frena a < 20 cm.
-      for (int i = 0; i < 20 && !(s.pista?.frenteBloqueado ?? false); i++) {
-        s.debugEmitirPasoDemo();
-      }
-      expect(s.pista!.frenteBloqueado, isTrue);
-      await t.pump(const Duration(milliseconds: 300));
-
-      expect(find.text('PARADA POR OBSTÁCULO FRONTAL'), findsWidgets);
-      expect(find.byType(Badge), findsOneWidget);
-      final int antes = s.centroAlertas.pendientes;
-      expect(antes, greaterThan(0));
-
-      await t.tap(find.text('RECONOCER').first);
-      await t.pump(const Duration(milliseconds: 300));
-      expect(s.centroAlertas.pendientes, lessThan(antes));
-      expect(t.takeException(), isNull);
+      await _ir(t, 'CONTROLES');
+      await _tocar(t, 'AVANZAR'); // deshabilitado: no envía nada
+      expect(s.ultimoComando, isNull);
+      await _tocar(
+        t,
+        'Freno Remoto',
+      ); // siempre intenta; sin conexión muestra el error
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(s.ultimoError, contains('no está conectada'));
       await _cerrar(t, s);
     },
   );
+
+  testWidgets('P11: banner de alerta y badge de la barra; reconocer lo cierra', (
+    WidgetTester t,
+  ) async {
+    final MqttService s = await _montar(t);
+    s.iniciarSimulacion();
+    // El demo físico hace aparecer un obstáculo a los ~12 s y frena a < 20 cm.
+    for (int i = 0; i < 20 && !(s.pista?.frenteBloqueado ?? false); i++) {
+      s.debugEmitirPasoDemo();
+    }
+    expect(s.pista!.frenteBloqueado, isTrue);
+    await t.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('PARADA POR OBSTÁCULO FRONTAL'), findsWidgets);
+    expect(find.byType(Badge), findsOneWidget);
+    final int antes = s.centroAlertas.pendientes;
+    expect(antes, greaterThan(0));
+
+    await t.tap(find.text('RECONOCER').first);
+    await t.pump(const Duration(milliseconds: 300));
+    expect(s.centroAlertas.pendientes, lessThan(antes));
+    expect(t.takeException(), isNull);
+    await _cerrar(t, s);
+  });
 
   testWidgets('P12: la analítica se exporta y se reinicia desde el Dashboard', (
     WidgetTester t,

@@ -10,12 +10,12 @@ telemetría. Las fuentes van incrustadas en `assets/fonts/` (subconjunto Latin,
 licencias OFL incluidas), así que el Modo Demo se ve igual sin internet.
 
 - 4 secciones con barra de navegación inferior: **Dashboard**, **Controles**,
-  **Radar** y **Alertas**, más un botón **E-STOP** siempre visible.
+  **Radar** y **Alertas**, más un botón **Freno Remoto** siempre visible.
 - Es solo la capa visual: MQTT, Modo Demo, órdenes, alertas (P11) y analítica
   (P12) siguen en `lib/core/` sin cambios.
 - Lo que el robot no mide no se inventa: las RPM y la tensión de cada celda se
   muestran como **estimadas** (`≈`), y no hay cámara ni sensores laterales.
-- **E-STOP** envía `frenar` por MQTT (un toque, sin confirmar, para no retrasar
+- **Freno Remoto** envía `frenar` por MQTT (un toque, sin confirmar, para no retrasar
   la parada). No es un corte eléctrico: no sustituye el interruptor físico.
 
 ## Estructura
@@ -43,7 +43,7 @@ lib/
       perfil_admin.dart        # solo Admin: Fail-Safe (solo lectura), acceso a usuarios, CSV de P12
       gestion_usuarios.dart    # solo Admin: crear y eliminar Operadores (en memoria, sin backend)
     telemetria/
-      telemetria_screen.dart   # armazón: app bar, 4 secciones, E-STOP
+      telemetria_screen.dart   # armazón: app bar, 4 secciones, Freno Remoto
       mapa_pista.dart          # Mapa de Pista: circuito, cono del ultrasonido, misión, destinos y pausa
       pantalla_dashboard.dart  # Mapa de Pista + estado, enlace MQTT, energía 3S, IR, motores, P12
       pantalla_controles.dart  # matriz táctil, Auto, ACK, núcleo de seguridad
@@ -51,7 +51,7 @@ lib/
       pantalla_alertas.dart    # watchdog, activas y registro de eventos (P11)
       alertas_p11.dart         # Banner de Alerta Activa (P11)
       analitica_p12.dart       # Analítica de Sesión + "Exportar Reporte CSV" (P12)
-      cockpit_ui.dart          # tarjeta, celda, pastilla, E-STOP y demás primitivas
+      cockpit_ui.dart          # tarjeta, celda, pastilla, Freno Remoto y demás primitivas
       cockpit_datos.dart       # cálculos derivados (Dart puro, con tests)
     pedidos/                   # (Fase V) crear pedidos y ver ACK
     alertas/                   # (Fase V) notificaciones push de alertas QoS 2

@@ -86,10 +86,10 @@ void main() {
         }
         // Cierra el lazo: fracción 0 y 1 coinciden
         expect((g.puntoEn(0) - g.puntoEn(1)).distance, lessThan(1));
-        // El orden de marcha es BASE → A → B (sentido horario)
+        // El orden de marcha es Cuarto de Componentes → Punto de Control → Laboratorio 1 (sentido horario)
         expect(
-          fraccionDeDestino(DestinoPista.estacionA),
-          lessThan(fraccionDeDestino(DestinoPista.estacionB)),
+          fraccionDeDestino(DestinoPista.puntoControl),
+          lessThan(fraccionDeDestino(DestinoPista.laboratorio1)),
         );
       },
     );
@@ -107,6 +107,146 @@ void main() {
     });
   });
 
+  group('mapa: borrado progresivo y legibilidad', () {
+    test(
+      'tramoDelCircuito mide recorrido y pendiente, también al dar la vuelta',
+      () {
+        final PistaGeometria g = PistaGeometria(const Size(358, 308));
+        double largo(Path p) =>
+            p.computeMetrics().fold(0.0, (double a, m) => a + m.length);
+        final double l = g.longitud;
+        expect(
+          largo(tramoDelCircuito(g.metrica, 0.1, 0.4)),
+          closeTo(0.3 * l, 1),
+        );
+        // Pasa por el cuarto (0.9 → 0.2): 30 % del circuito
+        expect(
+          largo(tramoDelCircuito(g.metrica, 0.9, 0.2)),
+          closeTo(0.3 * l, 1),
+        );
+        // Recorrido + pendiente = tramo completo hacia el destino
+        const double ini = 0.0, robot = 0.18, dest = 0.42;
+        expect(
+          largo(tramoDelCircuito(g.metrica, ini, robot)) +
+              largo(tramoDelCircuito(g.metrica, robot, dest)),
+          closeTo(largo(tramoDelCircuito(g.metrica, ini, dest)), 1),
+        );
+      },
+    );
+
+    test('el pintor se repinta cuando avanza el robot o cambia el tramo', () {
+      const PintorPista a = PintorPista(
+        destino: DestinoPista.puntoControl,
+        fraccionRobot: 0.1,
+        fraccionInicioTramo: 0,
+      );
+      expect(
+        a.shouldRepaint(
+          const PintorPista(
+            destino: DestinoPista.puntoControl,
+            fraccionRobot: 0.1,
+            fraccionInicioTramo: 0,
+          ),
+        ),
+        isFalse,
+      );
+      expect(
+        a.shouldRepaint(
+          const PintorPista(
+            destino: DestinoPista.puntoControl,
+            fraccionRobot: 0.2,
+            fraccionInicioTramo: 0,
+          ),
+        ),
+        isTrue,
+      );
+      expect(
+        a.shouldRepaint(
+          const PintorPista(
+            destino: DestinoPista.puntoControl,
+            fraccionRobot: 0.1,
+            fraccionInicioTramo: 0.05,
+          ),
+        ),
+        isTrue,
+      );
+    });
+
+    for (final Size tam in const <Size>[
+      Size(358, 308),
+      Size(326, 280),
+      Size(560, 330),
+    ]) {
+      test(
+        'el cono nunca pisa una etiqueta de estación (${tam.width.toInt()}×${tam.height.toInt()})',
+        () {
+          final PistaGeometria g = PistaGeometria(tam);
+          final List<Rect> etiquetas = <Rect>[
+            for (final DestinoPista d in DestinoPista.values)
+              rectEtiquetaNodo(g, d),
+          ];
+          for (final Rect e in etiquetas) {
+            expect(e.left, greaterThanOrEqualTo(0));
+            expect(e.right, lessThanOrEqualTo(tam.width));
+            expect(e.top, greaterThanOrEqualTo(0));
+            expect(e.bottom, lessThanOrEqualTo(tam.height));
+          }
+          for (int i = 0; i < etiquetas.length; i++) {
+            for (int j = i + 1; j < etiquetas.length; j++) {
+              expect(etiquetas[i].overlaps(etiquetas[j]), isFalse);
+            }
+          }
+          // Recorre el circuito con el cono al máximo (frente libre)
+          int solapes = 0;
+          for (double f = 0; f < 1; f += 0.004) {
+            final List<Offset> v = triangulosCono(
+              g.puntoEn(f),
+              g.anguloEn(f),
+              150,
+            );
+            for (double a = 0; a <= 1; a += 0.1) {
+              for (double b = 0; a + b <= 1; b += 0.1) {
+                final Offset p = v[0] * (1 - a - b) + v[1] * a + v[2] * b;
+                if (etiquetas.any((Rect e) => e.inflate(1).contains(p))) {
+                  solapes++;
+                }
+              }
+            }
+          }
+          expect(solapes, 0, reason: 'el cono invade una etiqueta de estación');
+        },
+      );
+    }
+  });
+
+  testWidgets(
+    'Freno Remoto: sustituye al E-STOP en todas las secciones y envía frenar',
+    (WidgetTester t) async {
+      final MqttService s = await _montar(t, demo: true);
+      for (final String seccion in <String>[
+        'DASHBOARD',
+        'CONTROLES',
+        'RADAR',
+        'ALERTAS',
+      ]) {
+        await t.tap(
+          find.descendant(
+            of: find.byType(NavigationBar),
+            matching: find.text(seccion),
+          ),
+        );
+        await t.pump(const Duration(milliseconds: 400));
+        expect(find.text('Freno Remoto'), findsOneWidget, reason: seccion);
+        expect(find.textContaining('E-STOP'), findsNothing, reason: seccion);
+        expect(find.textContaining('PARADA DE EMERGENCIA'), findsNothing);
+      }
+      await t.tap(find.text('Freno Remoto'));
+      await t.pump(const Duration(milliseconds: 100));
+      expect(s.ultimoComando, 'frenar');
+      await _cerrar(t, s);
+    },
+  );
+
   testWidgets(
     'Dashboard: el Mapa de Pista abre la vista con la misión del demo',
     (WidgetTester t) async {
@@ -115,12 +255,12 @@ void main() {
       expect(find.byType(NavigationDestination), findsNWidgets(4));
       expect(find.text('MAPA DE PISTA'), findsOneWidget);
       expect(find.byKey(const Key('mapa-pista-lienzo')), findsOneWidget);
-      expect(find.text('EN RUTA → ESTACIÓN A'), findsOneWidget);
+      expect(find.text('EN RUTA → PUNTO DE CONTROL'), findsOneWidget);
       expect(find.text('PUNTO DE DESTINO'), findsOneWidget);
       expect(find.text('PAUSAR MISIÓN'), findsOneWidget);
-      expect(find.text('BASE'), findsWidgets);
-      expect(find.text('ESTACIÓN A'), findsWidgets);
-      expect(find.text('ESTACIÓN B'), findsWidgets);
+      expect(find.text('CUARTO'), findsWidgets);
+      expect(find.text('CONTROL'), findsWidgets);
+      expect(find.text('LAB. 1'), findsWidgets);
       // No hay rumbo/brújula: el robot no tiene magnetómetro
       expect(find.textContaining('RUMBO'), findsNothing);
       expect(find.textContaining('LIDAR'), findsNothing);
@@ -139,15 +279,15 @@ void main() {
     WidgetTester t,
   ) async {
     final MqttService s = await _montar(t, demo: true);
-    await _tocar(t, const Key('destino-b'));
-    expect(s.pista!.destino, DestinoPista.estacionB);
-    expect(find.text('EN RUTA → ESTACIÓN B'), findsOneWidget);
-    expect(find.textContaining('Destino: ESTACIÓN B'), findsOneWidget);
-    await _tocar(t, const Key('destino-base'));
-    expect(s.pista!.destino, DestinoPista.base);
+    await _tocar(t, const Key('destino-lab1'));
+    expect(s.pista!.destino, DestinoPista.laboratorio1);
+    expect(find.text('EN RUTA → LABORATORIO 1'), findsOneWidget);
+    expect(find.textContaining('Destino: LABORATORIO 1'), findsOneWidget);
+    await _tocar(t, const Key('destino-cuarto'));
+    expect(s.pista!.destino, DestinoPista.cuartoComponentes);
     expect(
       t.widget<Text>(find.byKey(const Key('mision-fase'))).data,
-      contains('BASE / CARGA'),
+      contains('CUARTO DE COMPONENTES'),
     );
     await _cerrar(t, s);
   });
@@ -206,7 +346,11 @@ void main() {
     expect(find.text('SIN POSICIÓN'), findsOneWidget);
     expect(find.textContaining('no hay localización absoluta'), findsOneWidget);
     expect(find.text('SOLO EN DEMO'), findsOneWidget);
-    for (final String k in <String>['destino-base', 'destino-a', 'destino-b']) {
+    for (final String k in <String>[
+      'destino-cuarto',
+      'destino-control',
+      'destino-lab1',
+    ]) {
       expect(
         t.widget<InkWell>(find.byKey(Key(k))).onTap,
         isNull,
@@ -222,17 +366,17 @@ void main() {
     await _cerrar(t, s);
   });
 
-  testWidgets('Pausar y los destinos nunca quedan bajo el E-STOP', (
+  testWidgets('Pausar y los destinos nunca quedan bajo el Freno Remoto', (
     WidgetTester t,
   ) async {
     final MqttService s = await _montar(t, demo: true);
     await _bajarHasta(t, find.byKey(const Key('mision-pausa')));
     await t.pump(const Duration(milliseconds: 100));
-    final Rect estop = t.getRect(find.byType(EstopButton));
+    final Rect estop = t.getRect(find.byType(FrenoRemotoButton));
     final Rect pausa = t.getRect(find.byKey(const Key('mision-pausa')));
     expect(pausa.overlaps(estop), isFalse);
     expect(pausa.bottom, lessThanOrEqualTo(estop.top));
-    final Rect destino = t.getRect(find.byKey(const Key('destino-b')));
+    final Rect destino = t.getRect(find.byKey(const Key('destino-lab1')));
     expect(destino.overlaps(estop), isFalse);
     await _cerrar(t, s);
   });

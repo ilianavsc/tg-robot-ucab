@@ -19,9 +19,8 @@ Es la fusión de los tres prototipos en un solo firmware:
 - **Obstáculo frontal < 20 cm:** frena avance, giros y autónomo; solo deja
   retroceder si el ultrasonido trasero es válido y marca ≥ 20 cm (o nada en rango).
 - **Ultrasonidos alternados:** frente en ciclos pares y atrás en impares (100 ms
-  por ciclo; cada sensor cada 200 ms). Con el TRIG común actual los dos módulos
-  emiten igual en cada disparo: para aislarlos de verdad, cablear el TRIG
-  trasero a GPIO 15 y poner `PIN_ULTRA_TRIG_ATRAS = 15`.
+  por ciclo; cada sensor cada 200 ms). Cada módulo tiene su propio TRIG (frente
+  GPIO 23, atrás GPIO 15), así que solo emite el sensor de turno.
 - **Fallo de ultrasonido:** 3 lecturas propias seguidas sin eco (600 ms) marcan
   el sensor en fallo (`frente_ok`/`atras_ok = false`), bloquean el movimiento en
   esa dirección y publican `fallo_sensor_frente` / `fallo_sensor_atras`.
