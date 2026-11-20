@@ -87,18 +87,18 @@ window.TG = {
 
   /* Texto corto de cada prototipo para las tarjetas: nombre corto + qué hace en 1 línea */
   protoResumen: {
-    P01: { corto: "Arquitectura App ↔ Robot (MQTT)", linea: "Mensajes que no se pierden entre la app y el robot." },
-    P02: { corto: "Sensores y Radar Ultrasónico", linea: "4× TCRT5000 + 2× HC-SR04P (GPIO 15) y MPU-6050: los ojos y oídos del robot." },
-    P03: { corto: "Inspector 3D de Hardware", linea: "Vitrina 3D interactiva de los componentes del robot: ESP32, puente H, encoders y sensores." },
+    P01: { corto: "App ↔ Robot (MQTT)", linea: "Mensajes que no se pierden entre la app y el robot." },
+    P02: { corto: "Sensores y Radar", linea: "4× TCRT5000 + 2× HC-SR04P (GPIO 15) y MPU-6050: los ojos y oídos del robot." },
+    P03: { corto: "Inspector 3D Hardware", linea: "Vitrina 3D interactiva de los componentes del robot: ESP32, puente H, encoders y sensores." },
     P04: { corto: "Balizas BLE (Extremos)", linea: "2 balizas BLE en los extremos para validar inicio y fin del recorrido." },
     P05: { corto: "Robot virtual", linea: "Un robot de prueba conectado a Firebase." },
     P06: { corto: "App versión 1", linea: "Primera app para pedir piezas y ver el estado." },
-    P07: { corto: "Firmware Completo (ESP32)", linea: "Todo el código del ESP32 trabajando junto." },
-    P08: { corto: "Aprendizaje Progresivo · Sim 1 (2 Pistas)", linea: "El robot sigue la cinta negra sin salirse." },
+    P07: { corto: "Firmware ESP32", linea: "Todo el código del ESP32 trabajando junto." },
+    P08: { corto: "Sim 1 · 2 Pistas", linea: "El robot sigue la cinta negra sin salirse." },
     P09: { corto: "App Flutter (Modo Demo)", linea: "Pide y mira el robot desde el celular, sin robot." },
-    P10: { corto: "Aprendizaje Progresivo · Sim 2 (Teach-and-Repeat)", linea: "Gemelo digital de movimiento con teach-and-repeat." },
+    P10: { corto: "Sim 2 · Teach-and-Repeat", linea: "Gemelo digital de movimiento con teach-and-repeat." },
     P11: { corto: "Centro de Alertas", linea: "Obstáculo, sensor sin eco, proximidad o batería crítica: la alerta llega a la app." },
-    P12: { corto: "Analítica y Exportación CSV", linea: "Métricas de cada sesión y reporte CSV para las 20+ repeticiones." },
+    P12: { corto: "Analítica y CSV", linea: "Métricas de cada sesión y reporte CSV para las 20+ repeticiones." },
     P13: { corto: "Radar Ultrasónico (Frente/Atrás)", linea: "El robot mide qué tan lejos está lo que tiene delante y detrás." }
   },
 
@@ -124,7 +124,7 @@ window.TG = {
     { id: "RF-03", tipo: "RF", texto: "Avisar si el robot se desconecta", criterio: "Aviso en menos de 30 s", valida: ["P01"], estado: "validado", nota: "Validado en simulación: 22 s (T6)" },
     { id: "RF-04", tipo: "RF", texto: "Ir por la línea del mostrador al estante y volver", criterio: "Error de posición ≤ ? cm al llegar", valida: ["P08", "H4"], estado: "pendiente", nota: "Simulado en una pista provisional: da la vuelta a 0,41 m/s (P08 avance 1). Falta la pista real" },
     { id: "RF-05", tipo: "RF", texto: "Detectar un obstáculo y detenerse", criterio: "Se detiene cuando el obstáculo frontal está a < 20 cm", valida: ["P02", "P13"], estado: "pendiente", nota: "Parada por obstáculo (< 20 cm), fallo de sensor sin eco y fail-safe de 5 s implementados en firmware (10 escenarios SIL en PC, T1–T10, que incluyen corte por batería y duplicados QoS 1) y con la misma regla en P10 y en el Modo Demo; falta validar con el hardware físico (diciembre) y medir la distancia final de parada [PENDIENTE DE MEDICIÓN FÍSICA]" },
-    { id: "RF-06", tipo: "RF", texto: "Re-localizarse en puntos de referencia", criterio: "Corrige su posición en cada punto (BLE o QR)", valida: ["P04", "Fase IV"], estado: "pendiente" },
+    { id: "RF-06", tipo: "RF", texto: "Re-localizarse en puntos de referencia", criterio: "Corrige su posición en cada punto (2 balizas BLE en los extremos)", valida: ["P04", "Fase IV"], estado: "pendiente" },
         { id: "RF-07", tipo: "RF", texto: "Transportar los componentes pedidos", criterio: "Lleva 3 o 4 piezas pequeñas sin perder la línea", valida: ["H5"], estado: "pendiente", nota: "Entrevista: los pedidos son de 3 o 4 piezas muy livianas" },
         { id: "RF-08", tipo: "RF", texto: "Alarmar si alguien lo levanta o lo mueve sin una orden", criterio: "La alarma llega a la app 1 sola vez y genera un reporte para el encargado y la Escuela; ≤ ? falsas alarmas en N recorridos", valida: ["P11", "H6"], estado: "pendiente", nota: "Entrevista: preocupan igual robo, pérdida y daño" },
     { id: "RF-09", tipo: "RF", texto: "Permitir pedir, ver el estado y recibir avisos desde la app", criterio: "Notificación en ≤ 5 s", valida: ["P06", "P09", "P11"], estado: "pendiente" },
@@ -393,8 +393,7 @@ window.TG = {
       decision: "ESP32-WROOM-32 para el robot.",
       porque: "Es igual al de Wokwi, tiene Bluetooth (el S2 no) y suficientes pines (el C3 no).",
       evidencia: "hardware.html" },
-        { fecha: "", titulo: "Re-localización con BLE o con QR", estado: "abierta", decision: "", porque: "Se decide con la prueba P04 en la Fase II.", evidencia: "" },
-    { fecha: "", titulo: "Bandeja o pinza", estado: "abierta", decision: "", porque: "Depende del pedido típico (entrevista en el laboratorio).", evidencia: "" }
+        { fecha: "", titulo: "Bandeja o pinza", estado: "abierta", decision: "", porque: "Depende del pedido típico (entrevista en el laboratorio).", evidencia: "" }
   ],
 
   /* ---------- TESIS (página tesis.html) ----------

@@ -63,7 +63,8 @@ button.imprimir{font-family:var(--texto);font-weight:700;font-size:15px;padding:
   function fila(r){
     var crit = r.criterio.replace(/\?/g, '<span class="dato">?</span>');
     var chips = r.valida.map(function(v){ var p = protos[v];
-      var c = '<span class="chip ' + (p ? p.estado : "pendiente") + '">' + v + "</span>";
+      var label = (TG.protoResumen && TG.protoResumen[v]) ? TG.protoResumen[v].corto : v;
+      var c = '<span class="chip ' + (p ? p.estado : "pendiente") + '">' + label + "</span>";
       return p && p.url ? '<a href="' + p.url + '" style="text-decoration:none">' + c + "</a>" : c; }).join("");
     return '<div class="fila' + (r.estado === "validado" ? "" : " pend") + '"><span class="id">' + r.id + "</span><div><h3>" + r.texto + "</h3><p>" + crit + "</p>" +
       (r.nota ? '<p style="margin-top:4px;font-size:14px">' + r.nota + "</p>" : "") + '<div class="chips-mini">' + chips + "</div></div>" +

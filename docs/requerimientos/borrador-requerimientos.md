@@ -55,7 +55,7 @@ Lleven cinta métrica, un teléfono para fotos (con permiso) y, si pueden, el ES
 | RF-03 | Avisar si el robot se desconecta | Aviso en menos de 30 s | P01 (T6) | Validado en simulación (22 s) |
 | RF-04 | Ir por la línea del mostrador al estante y volver | Error de posición ≤ ? cm al llegar | P08, H4 | Pendiente |
 | RF-05 | Detectar un obstáculo y detenerse | Se detiene cuando el obstáculo frontal está a < 20 cm | P02 | Pendiente (distancia final de parada: [PENDIENTE DE MEDICIÓN FÍSICA]) |
-| RF-06 | Re-localizarse en puntos de referencia | Corrige su posición en cada punto (BLE o QR) | P04, Fase IV | Pendiente |
+| RF-06 | Re-localizarse en puntos de referencia | Corrige su posición en cada punto (2 balizas BLE en los extremos) | P04, Fase IV | Pendiente |
 | RF-07 | Transportar los componentes pedidos | Carga hasta ? g sin perder la línea | H5 | Pendiente |
 | RF-08 | Alarmar si alguien lo levanta o lo mueve sin una orden | La alarma llega a la app 1 sola vez; ≤ ? falsas alarmas en N recorridos | P11, H6 | Pendiente |
 | RF-09 | Permitir pedir, ver el estado y recibir avisos desde la app | Notificación en ≤ 5 s | P06, P09, P11 | Pendiente |
