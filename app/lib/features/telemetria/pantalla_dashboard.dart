@@ -11,8 +11,10 @@ import '../../core/theme/cockpit_theme.dart';
 import 'cockpit_datos.dart';
 import 'cockpit_ui.dart';
 import 'conexion_cockpit.dart';
+import 'formulario_solicitud.dart';
 import 'mapa_pista.dart';
 import 'radar_hud.dart';
+import 'solicitud_activa.dart';
 
 /// **Dashboard**: estado del robot, enlace MQTT, energía 3S, línea (4×
 /// TCRT5000), motores, obstáculos y analítica de sesión.
@@ -26,6 +28,7 @@ class PantallaDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final MqttService servicio = context.watch<MqttService>();
+    final SolicitudActiva solicitud = context.watch<SolicitudActiva>();
     final Estado? e = servicio.ultimoEstado;
     final Ultrasonido? u = servicio.ultimoUltrasonido;
     final bool sin = estadoSinSenal(e);
@@ -40,6 +43,9 @@ class PantallaDashboard extends StatelessWidget {
         ],
         // Vista principal: Mapa de Pista con misión, destinos y pausa.
         const TarjetaMapaPista(),
+        const SizedBox(height: 12),
+        // Flujo de pedido: crear solicitud o seguir la misión activa.
+        _TarjetaPedido(servicio: servicio, solicitud: solicitud),
         const SizedBox(height: 12),
         CockpitColumnas(
           children: <Widget>[
@@ -114,6 +120,91 @@ class _DetalleTecnico extends StatelessWidget {
             _TarjetaMotores(estado: estado, sin: sin),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Tarjeta del flujo de pedido: "Nueva solicitud" cuando no hay misión, o
+/// "Misión activa" (componente, destino y estado) con "Confirmar entrega".
+class _TarjetaPedido extends StatelessWidget {
+  const _TarjetaPedido({required this.servicio, required this.solicitud});
+
+  final MqttService servicio;
+  final SolicitudActiva solicitud;
+
+  void _abrirFormulario(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext _) => FormularioSolicitud(
+        servicio: servicio,
+        solicitud: solicitud,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (solicitud.haySolicitud) {
+      return CockpitCard(
+        borde: CockpitColors.primary.withValues(alpha: 0.45),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            const SectionLabel(
+              icono: Icons.local_shipping_outlined,
+              etiqueta: 'Misión activa',
+            ),
+            const SizedBox(height: 10),
+            Text(
+              '${solicitud.componente} → ${solicitud.destino}',
+              style: CockpitText.titleMd.copyWith(
+                color: CockpitColors.onSurface,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Estado: ${solicitud.estado.etiqueta}',
+              style: CockpitText.bodyMd.copyWith(
+                color: CockpitColors.primary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              key: const Key('confirmar-entrega'),
+              onPressed: () {
+                solicitud.confirmarEntrega();
+                enviarOrden(context, servicio, 'frenar');
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    const SnackBar(content: Text('Entrega confirmada.')),
+                  );
+              },
+              icon: const Icon(Icons.task_alt),
+              label: const Text('Confirmar entrega'),
+            ),
+          ],
+        ),
+      );
+    }
+    return CockpitCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          const SectionLabel(
+            icono: Icons.inventory_2_outlined,
+            etiqueta: 'Pedido',
+          ),
+          const SizedBox(height: 8),
+          FilledButton.icon(
+            key: const Key('nueva-solicitud'),
+            onPressed: () => _abrirFormulario(context),
+            icon: const Icon(Icons.add),
+            label: const Text('Nueva solicitud'),
+          ),
+        ],
       ),
     );
   }

@@ -15,6 +15,7 @@ import 'pantalla_alertas.dart';
 import 'pantalla_controles.dart';
 import 'pantalla_dashboard.dart';
 import 'pantalla_radar.dart';
+import 'solicitud_activa.dart';
 
 /// Pantalla principal de la app (P09) con el sistema de diseño
 /// **Autonomous Laboratory Cockpit**: barra de app con estado y batería,
@@ -59,6 +60,7 @@ class _TelemetriaScreenState extends State<TelemetriaScreen> {
 
   int _indice = 0;
   Timer? _reloj;
+  final SolicitudActiva _solicitud = SolicitudActiva();
 
   @override
   void initState() {
@@ -72,6 +74,7 @@ class _TelemetriaScreenState extends State<TelemetriaScreen> {
   @override
   void dispose() {
     _reloj?.cancel();
+    _solicitud.dispose();
     super.dispose();
   }
 
@@ -140,7 +143,9 @@ class _TelemetriaScreenState extends State<TelemetriaScreen> {
     final MqttService servicio = context.watch<MqttService>();
     final int pendientes = servicio.centroAlertas.pendientes;
 
-    return Scaffold(
+    return ChangeNotifierProvider<SolicitudActiva>.value(
+      value: _solicitud,
+      child: Scaffold(
       appBar: CockpitAppBar(
         servicio: servicio,
         seccion: _secciones[_indice].nombre,
@@ -212,6 +217,7 @@ class _TelemetriaScreenState extends State<TelemetriaScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

@@ -272,4 +272,51 @@ void main() {
       await _cerrar(t, s);
     },
   );
+
+  testWidgets(
+    'Solicitud y Cierre: crea un pedido y confirma la entrega',
+    (WidgetTester t) async {
+      final MqttService s = await _montar(t);
+      s.iniciarSimulacion();
+      await t.pump(const Duration(milliseconds: 200));
+
+      // 1) "Nueva solicitud" abre el formulario.
+      final Finder nueva = find.byKey(const Key('nueva-solicitud'));
+      await t.scrollUntilVisible(
+        nueva,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await t.tap(nueva);
+      await t.pump(const Duration(milliseconds: 400));
+
+      // 2) Elige componente y destino, y envía.
+      expect(find.byKey(const Key('enviar-solicitud')), findsOneWidget);
+      await _tocar(t, 'Cables / Multímetro');
+      await _tocar(t, 'LABORATORIO 1');
+      await _tocar(t, 'Enviar solicitud');
+      await t.pump(const Duration(milliseconds: 400));
+
+      // 3) La hoja cerró, la solicitud se creó y la misión aparece.
+      expect(find.text('Componente'), findsNothing);
+      expect(find.byKey(const Key('nueva-solicitud')), findsNothing);
+      final Finder confirmar = find.byKey(const Key('confirmar-entrega'));
+      await t.scrollUntilVisible(
+        confirmar,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('MISIÓN ACTIVA'), findsOneWidget);
+      expect(find.text('Cables / Multímetro → LABORATORIO 1'), findsOneWidget);
+
+      // 4) Confirmar entrega cierra el ciclo (la misión y su botón desaparecen).
+      await t.tap(confirmar);
+      await t.pump(const Duration(milliseconds: 400));
+      expect(find.text('MISIÓN ACTIVA'), findsNothing);
+      expect(find.byKey(const Key('confirmar-entrega')), findsNothing);
+
+      expect(t.takeException(), isNull);
+      await _cerrar(t, s);
+    },
+  );
 }
