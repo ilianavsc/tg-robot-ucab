@@ -74,38 +74,106 @@
 .us-detalle-hint { font-family: var(--font-mono); font-weight: 600; font-size: 12px; color: #64748b; }
 .us-detalle-cuerpo { padding: 4px 20px 20px; }
 
+.us-controles-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
 .us-sensor {
-  background: #1e293b; border: 1.5px solid #334155; border-radius: 12px;
-  padding: 12px 14px; margin-bottom: 10px;
+  background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px;
+  padding: 12px 14px;
   transition: border-color 0.2s ease-out, background-color 0.2s ease-out;
 }
-.us-sensor.zona-verde { border-color: #166534; }
-.us-sensor.zona-ambar { border-color: #b45309; }
-.us-sensor.zona-rojo { border-color: #b91c1c; background: #2a1a1f; }
+/* La zona se refleja en el número y en el relleno del slider, no en el borde */
+.us-sensor.zona-verde .us-valor { color: #22c55e; }
+.us-sensor.zona-ambar .us-valor { color: #f59e0b; }
+.us-sensor.zona-rojo .us-valor { color: #ef4444; }
 .us-fila { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
-.us-nombre { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #cbd5e1; }
-.us-valor { font-family: var(--font-display); font-weight: 800; font-size: 28px; color: #fff; line-height: 1; }
-.us-valor small { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: #94a3b8; margin-left: 4px; }
-.us-sensor input[type="range"] { width: 100%; accent-color: #38bdf8; min-height: 44px; cursor: pointer; }
+.us-nombre { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #94a3b8; }
+.us-valor { font-family: var(--font-mono); font-weight: 700; font-size: 24px; font-variant-numeric: tabular-nums; color: #fff; line-height: 1; }
+.us-valor small { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: #64748b; margin-left: 4px; }
 
-.us-opciones { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 0; }
-.us-chk { display: flex; align-items: center; gap: 8px; font-size: 14.5px; color: #cbd5e1; cursor: pointer; min-height: 44px; }
-.us-chk input { width: 20px; height: 20px; accent-color: #38bdf8; }
+/* Sliders personalizados (track fino + relleno dinámico + thumb circular) */
+.us-sensor input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%; height: 44px; margin: 0;
+  background: transparent; cursor: pointer;
+}
+.us-sensor input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px; border-radius: 999px;
+  background: linear-gradient(to right, var(--zona-color, #22c55e) 0%, var(--zona-color, #22c55e) var(--pct, 50%), #1e293b var(--pct, 50%), #1e293b 100%);
+}
+.us-sensor input[type="range"]::-moz-range-track {
+  height: 6px; border-radius: 999px; background: #1e293b;
+}
+.us-sensor input[type="range"]::-moz-range-progress {
+  height: 6px; border-radius: 999px; background: var(--zona-color, #22c55e);
+}
+.us-sensor input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; border: 3px solid var(--zona-color, #22c55e);
+  box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.12);
+  margin-top: -6px;
+  transition: box-shadow 0.15s ease-out;
+}
+.us-sensor input[type="range"]:hover::-webkit-slider-thumb,
+.us-sensor input[type="range"]:active::-webkit-slider-thumb { box-shadow: 0 0 0 7px rgba(148, 163, 184, 0.18); }
+.us-sensor input[type="range"]::-moz-range-thumb {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #fff; border: 3px solid var(--zona-color, #22c55e);
+}
 
 /* Botón único Encender/Detener (toggle) */
 #btn-toggle { min-height: 48px; font-weight: 700; white-space: nowrap; }
 #btn-toggle.apagado { background: var(--accent-primary); border-color: var(--accent-primary-hover); color: #fff; }
 #btn-toggle.encendido { background: #dc2626; border-color: #991b1b; color: #fff; }
 
-/* Aviso de frenado por obstáculo y tarjeta de velocidad */
+/* Aviso de frenado */
 .us-alerta {
-  margin-top: 8px; padding: 8px 10px; border-radius: 8px;
+  margin-top: 10px; padding: 8px 10px; border-radius: 8px;
   background: #7f1d1d; color: #fff; font-family: var(--font-mono);
   font-size: 13px; font-weight: 700; text-align: center; letter-spacing: 0.04em;
 }
 .us-alerta[hidden] { display: block; visibility: hidden; }
-.us-vel-barra { height: 10px; border-radius: 999px; background: #0f172a; border: 1px solid #334155; overflow: hidden; margin-top: 4px; }
+
+/* Fila inferior: Velocidad (solo lectura) + toggle Mover solo */
+.us-fila-inferior {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 12px 20px; margin-top: 4px;
+}
+.us-velocidad { flex: 1 1 240px; min-width: 0; }
+.us-vel-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.us-vel-badge {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 999px; color: #0f172a;
+}
+.us-velocidad.zona-verde .us-vel-badge { background: #22c55e; color: #0f172a; }
+.us-velocidad.zona-ambar .us-vel-badge { background: #f59e0b; color: #0f172a; }
+.us-velocidad.zona-rojo .us-vel-badge { background: #ef4444; color: #fff; }
+.us-vel-num { font-family: var(--font-mono); font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; color: #e2e8f0; margin-top: 2px; }
+.us-vel-num small { font-size: 11.5px; color: #64748b; margin-left: 4px; font-weight: 600; }
+.us-vel-barra { height: 5px; border-radius: 999px; background: #0f172a; border: 1px solid #334155; overflow: hidden; margin-top: 6px; }
 .us-vel-fill { height: 100%; width: 100%; background: var(--verde); transition: width 0.12s ease-out, background-color 0.2s ease-out; }
+
+/* Toggle switch (Mover solo) */
+.us-switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; min-height: 44px; }
+.us-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+.us-switch-pista {
+  position: relative; width: 48px; height: 28px; flex: 0 0 48px;
+  border-radius: 999px; background: #334155; transition: background-color 0.2s ease-out;
+}
+.us-switch-pista::after {
+  content: ""; position: absolute; top: 3px; left: 3px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #e2e8f0; transition: transform 0.2s ease-out;
+}
+.us-switch input:checked + .us-switch-pista { background: var(--accent-primary); }
+.us-switch input:checked + .us-switch-pista::after { transform: translateX(20px); }
+.us-switch input:focus-visible + .us-switch-pista { outline: 3px solid #3b82f6; outline-offset: 2px; }
+.us-switch-texto { font-size: 14.5px; color: #cbd5e1; }
+@media (max-width: 640px) { .us-controles-grid { grid-template-columns: 1fr; } }
 
 .us-broker { font-family: var(--font-mono); font-size: 12.5px; color: #94a3b8; }
 .us-broker b { color: #e2e8f0; }
@@ -182,22 +250,32 @@
       <details class="us-detalle" id="panel-controles">
         <summary>Controles <span class="us-detalle-hint">Adelante · Atrás · Velocidad · Mover solo</span></summary>
         <div class="us-detalle-cuerpo">
-          <div class="us-sensor" id="s-frente">
-            <div class="us-fila"><span class="us-nombre">Adelante</span><span class="us-valor"><span id="v-frente">120</span><small>cm</small></span></div>
-            <input type="range" id="r-frente" min="2" max="200" step="1" value="120" aria-label="Distancia adelante en centímetros">
+          <div class="us-controles-grid">
+            <div class="us-sensor" id="s-frente">
+              <div class="us-fila"><span class="us-nombre">Adelante</span><span class="us-valor"><span id="v-frente">120</span><small>cm</small></span></div>
+              <input type="range" id="r-frente" min="2" max="200" step="1" value="120" aria-label="Distancia adelante en centímetros">
+            </div>
+            <div class="us-sensor" id="s-atras">
+              <div class="us-fila"><span class="us-nombre">Atrás</span><span class="us-valor"><span id="v-atras">150</span><small>cm</small></span></div>
+              <input type="range" id="r-atras" min="2" max="200" step="1" value="150" aria-label="Distancia atrás en centímetros">
+            </div>
           </div>
-          <div class="us-sensor" id="s-atras">
-            <div class="us-fila"><span class="us-nombre">Atrás</span><span class="us-valor"><span id="v-atras">150</span><small>cm</small></span></div>
-            <input type="range" id="r-atras" min="2" max="200" step="1" value="150" aria-label="Distancia atrás en centímetros">
+          <div class="us-fila-inferior">
+            <div class="us-velocidad zona-verde" id="s-velocidad">
+              <div class="us-vel-cabecera">
+                <span class="us-nombre">Velocidad</span>
+                <span class="us-vel-badge" id="vel-badge">Normal</span>
+              </div>
+              <div class="us-vel-num"><span id="v-velocidad">0.60</span><small>m/s</small></div>
+              <div class="us-vel-barra" aria-hidden="true"><div class="us-vel-fill" id="vel-fill"></div></div>
+            </div>
+            <label class="us-switch">
+              <input type="checkbox" id="chk-mover">
+              <span class="us-switch-pista" aria-hidden="true"></span>
+              <span class="us-switch-texto">Mover solo <small style="opacity:.7">(simula un pasillo)</small></span>
+            </label>
           </div>
-          <div class="us-sensor" id="s-velocidad">
-            <div class="us-fila"><span class="us-nombre">Velocidad</span><span class="us-valor"><span id="v-velocidad">0.60</span><small>m/s</small></span></div>
-            <div class="us-vel-barra" aria-hidden="true"><div class="us-vel-fill" id="vel-fill"></div></div>
-            <div class="us-alerta" id="alerta-obstaculo" hidden>FRENADO POR OBSTÁCULO</div>
-          </div>
-          <div class="us-opciones">
-            <label class="us-chk"><input type="checkbox" id="chk-mover"> Mover solo (simula un pasillo)</label>
-          </div>
+          <div class="us-alerta" id="alerta-obstaculo" hidden>FRENADO POR OBSTÁCULO</div>
         </div>
       </details>
 
@@ -251,7 +329,7 @@
   ids.forEach(function (k) { rango[k] = $("r-" + k); valor[k] = $("v-" + k); caja[k] = $("s-" + k); });
   var ledEl = $("led"), estadoEl = $("estado"), lecturaEl = $("lectura"), brokerEl = $("broker"), jsonEl = $("json"), logEl = $("log");
   var btnToggle = $("btn-toggle"), chkMover = $("chk-mover");
-  var alertaObs = $("alerta-obstaculo"), valVelocidad = $("v-velocidad"), velFill = $("vel-fill"), cajaVelocidad = $("s-velocidad");
+  var alertaObs = $("alerta-obstaculo"), valVelocidad = $("v-velocidad"), velFill = $("vel-fill"), cajaVelocidad = $("s-velocidad"), velBadge = $("vel-badge");
   var canvas = $("radar"), ctx = canvas.getContext("2d");
 
   var VEL_NORMAL = 0.60;
@@ -271,6 +349,7 @@
     return VEL_NORMAL * (cm - LIMITE_PELIGRO) / (LIMITE_CERCA - LIMITE_PELIGRO);
   }
   var COLOR = { verde: "#22c55e", ambar: "#f59e0b", rojo: "#ef4444" };
+  function pctDe(v) { return Math.round((v - DIST_MIN) / (DIST_MAX - DIST_MIN) * 100); }
 
   /* ---------------- registro en pantalla ---------------- */
   function log(txt, tipo) {
@@ -391,8 +470,11 @@
 
   function refrescar() {
     ids.forEach(function (k) {
+      var z = zona(dist[k]);
       valor[k].textContent = dist[k];
-      caja[k].className = "us-sensor zona-" + zona(dist[k]);
+      caja[k].className = "us-sensor zona-" + z;
+      rango[k].style.setProperty("--zona-color", COLOR[z]);
+      rango[k].style.setProperty("--pct", pctDe(dist[k]) + "%");
     });
     lecturaEl.textContent = "Adelante " + dist.frente + " · Atrás " + dist.atras + " cm";
     lecturaEl.style.color = dist.frente <= LIMITE_PELIGRO ? "#ef4444" : "#e2e8f0";
@@ -401,7 +483,8 @@
     valVelocidad.textContent = vel.toFixed(2);
     velFill.style.width = Math.round((vel / VEL_NORMAL) * 100) + "%";
     velFill.style.background = COLOR[zFrente];
-    cajaVelocidad.className = "us-sensor zona-" + zFrente;
+    cajaVelocidad.className = "us-velocidad zona-" + zFrente;
+    velBadge.textContent = vel <= 0 ? "Frenado" : (vel < VEL_NORMAL - 0.001 ? "Lento" : "Normal");
     alertaObs.hidden = !(dist.frente <= LIMITE_PELIGRO);
     jsonEl.textContent = JSON.stringify(mensaje(), null, 2);
     dibujar();
