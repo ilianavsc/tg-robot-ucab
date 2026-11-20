@@ -523,9 +523,9 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
               <div class="linea-txt" id="linea-txt">Sin datos</div>
             </div>
             <div class="tarjeta ancha">
-              <p class="tarjeta-titulo"><span>Velocidad de motores</span><b>norm. −0.6 … +0.6</b></p>
-              <div class="motor-fila"><span>Izq.</span><div class="motor-pista"><div class="motor-fill" id="m-izq"></div></div><output id="m-izq-v">—</output></div>
-              <div class="motor-fila"><span>Der.</span><div class="motor-pista"><div class="motor-fill" id="m-der"></div></div><output id="m-der-v">—</output></div>
+              <p class="tarjeta-titulo"><span>Velocidad de motores</span><b>SIM1 −0.46 … +0.46 m/s</b></p>
+              <div class="motor-fila"><span>Izq.</span><div class="motor-pista"><div class="motor-fill" id="m-izq"></div></div><output id="m-izq-v">0.00 ■</output></div>
+              <div class="motor-fila"><span>Der.</span><div class="motor-pista"><div class="motor-fill" id="m-der"></div></div><output id="m-der-v">0.00 ■</output></div>
             </div>
             <div class="tarjeta ancha" id="tarjeta-ultra">
               <p class="tarjeta-titulo">
@@ -705,13 +705,22 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
     return Math.round(lado * POS_SENSORES[0] * 1.2 * 10) / 10;
   }
 
+  /* Parámetros físicos reales de SIM1 (prototipos/P08-seguidor-linea/avance-01-simulador-3d/codigo/model.js + sim.js + linea.js):
+     Motor JGA25-371 Speed 200 (280 rpm @ 12V, carga 0.8, rueda 65 mm), L298N (drop 2.1V), LiPo 3S (12.6/11.1/9.9V),
+     PD.base = 0.80 -> 0.46 m/s máx en recta, 0.41 m/s crucero medio (rango libre 0.38–0.45 m/s), tau = 0.18 s. */
+  var SIM1_VEL_CRUCERO = 0.41;
+  var SIM1_VEL_MAX = 0.46;
+  var SIM1_BAT_INICIAL = 11.85;
+  var SIM1_DESCARGA_MOV_VS = 0.008;  /* descarga gradual bajo carga de motores (V/s) */
+  var SIM1_DESCARGA_BASE_VS = 0.001; /* consumo base ESP32 + sensores en reposo (V/s) */
+
   var PERFILES = [
-    { titulo: "Batería llena · Autónomo centrado", estado: "autonomo", bateria: 100, bateria_v: 12.60, sensores: [0, 1, 1, 0], frente_cm: 150, atras_cm: 160, v_izq: 0.41, v_der: 0.41 },
-    { titulo: "Batería baja · Manual · Desvío izq.", estado: "manual", bateria: 15, bateria_v: 10.35, sensores: [1, 0, 0, 0], frente_cm: 90, atras_cm: 160, v_izq: 0.30, v_der: 0.55 },
-    { titulo: "Línea perdida · Robot frenando", estado: "autonomo", bateria: 45, bateria_v: 11.20, sensores: [0, 0, 0, 0], ladoPerdida: -1, frente_cm: 45, atras_cm: 110, v_izq: 0.05, v_der: 0.05 },
-    { titulo: "Batería crítica (5%) · Obstáculo a 18 cm (parada)", estado: "autonomo", bateria: 5, bateria_v: 9.95, sensores: [0, 0, 0, 1], frente_cm: 18, atras_cm: 60, v_izq: 0.55, v_der: 0.30 },
-    { titulo: "Giro sobre su eje (Ruedas opuestas)", estado: "manual", bateria: 60, bateria_v: 11.50, sensores: [0, 1, 0, 0], frente_cm: 70, atras_cm: 25, v_izq: -0.40, v_der: 0.40 },
-    { titulo: "Autónomo rápido en recta", estado: "autonomo", bateria: 90, bateria_v: 12.10, sensores: [0, 1, 1, 0], frente_cm: 120, atras_cm: 90, v_izq: 0.52, v_der: 0.52 }
+    { titulo: "Crucero nominal SIM1 · Autónomo centrado", estado: "autonomo", bateria: 72, bateria_v: 11.85, sensores: [0, 1, 1, 0], frente_cm: 155, atras_cm: 160, v_izq: 0.41, v_der: 0.41 },
+    { titulo: "Curva suave izq. · Seguimiento PD", estado: "autonomo", bateria: 70, bateria_v: 11.79, sensores: [1, 1, 0, 0], frente_cm: 122, atras_cm: 148, v_izq: 0.38, v_der: 0.44 },
+    { titulo: "Recta larga · Velocidad máx. SIM1", estado: "autonomo", bateria: 68, bateria_v: 11.73, sensores: [0, 1, 1, 0], frente_cm: 142, atras_cm: 135, v_izq: 0.45, v_der: 0.45 },
+    { titulo: "Curva cerrada der. · Corrección PD", estado: "autonomo", bateria: 65, bateria_v: 11.66, sensores: [0, 0, 1, 1], frente_cm: 98, atras_cm: 126, v_izq: 0.44, v_der: 0.38 },
+    { titulo: "Aviso 20–50 cm · Desaceleración progresiva", estado: "autonomo", bateria: 63, bateria_v: 11.60, sensores: [0, 1, 1, 0], frente_cm: 35, atras_cm: 115, v_izq: 0.21, v_der: 0.21 },
+    { titulo: "Batería baja (10.25 V) · Crucero reducido SIM1", estado: "autonomo", bateria: 13, bateria_v: 10.25, sensores: [0, 1, 1, 0], frente_cm: 132, atras_cm: 140, v_izq: 0.36, v_der: 0.36 }
   ].map(function (p) {
     p.linea_mm = calcularLineaMm(p.sensores, p.ladoPerdida || -1);
     return p;
@@ -803,8 +812,11 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
      "manual" = lo maneja la app: adelante, atras, izquierda, derecha o frenar */
   var modoP10 = "auto";
   var ultimoPerfil = PERFILES[0];
+  var batSimV = SIM1_BAT_INICIAL;
+  var velActualSim = { izq: 0, der: 0 };
+  var ultimoTickFisicaMs = Date.now();
   var velManual = { izq: 0, der: 0 };
-  var VEL_MANUAL = 0.40; /* m/s de cada rueda en modo manual */
+  var VEL_MANUAL = SIM1_VEL_CRUCERO; /* 0.41 m/s: crucero nominal SIM1 */
   var CMDS = {
     adelante: { izq: VEL_MANUAL, der: VEL_MANUAL },
     atras: { izq: -VEL_MANUAL, der: -VEL_MANUAL },
@@ -890,6 +902,7 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
       btn.addEventListener("click", function () {
         var idx = parseInt(btn.getAttribute("data-idx"), 10);
         paso = idx;
+        batSimV = PERFILES[idx].bateria_v;
         publicarPaso();
       });
     });
@@ -937,7 +950,7 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
 
   /* ---- Tarjetas de telemetría en tiempo real ---- */
   function pintarMotor(barEl, txtEl, v) {
-    var pct = Math.min(1, Math.abs(v) / 0.6) * 50;
+    var pct = Math.min(1, Math.abs(v) / SIM1_VEL_MAX) * 50;
     barEl.style.width = pct + "%";
     barEl.style.left = (v >= 0 ? 50 : 50 - pct) + "%";
     barEl.className = "motor-fill" + (v < 0 ? " atras" : "");
@@ -1101,6 +1114,14 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
       seg.alertaObstaculoAtras = false;
     }
     seg.parada = "ninguna";
+    /* Desaceleración progresiva en zona de aviso 20–50 cm (coherente con SIM1 y P13) */
+    if (usaFrente && ultraFrenteOk && ultraFrente >= UMBRAL_PARADA_CM && ultraFrente < UMBRAL_AVISO_CM) {
+      var factorAviso = (ultraFrente - UMBRAL_PARADA_CM) / (UMBRAL_AVISO_CM - UMBRAL_PARADA_CM);
+      return {
+        izq: Math.round(deseada.izq * factorAviso * 100) / 100,
+        der: Math.round(deseada.der * factorAviso * 100) / 100
+      };
+    }
     return { izq: deseada.izq, der: deseada.der };
   }
 
@@ -1198,23 +1219,61 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
       : "🕹️ Orden <b>" + escaparHtml(cmd) + "</b>: modo <b>MANUAL</b>, ruedas " + v.izq.toFixed(2) + " / " + v.der.toFixed(2) + " m/s.");
   }
 
-  /* Arma y publica el estado con la regla de seguridad aplicada.
+  /* Arma y publica el estado con la regla de seguridad y dinámica SIM1 aplicada.
      Se llama cada 2 s y, además, en cuanto cambia algo que afecta la seguridad
      (orden, slider, inyección SIL, timeout): el firmware reacciona a 100 Hz. */
   function publicarEstado() {
     var b = brokerActual();
+    var ahoraMs = Date.now();
+    var dt = Math.min(2.5, Math.max(0.05, (ahoraMs - ultimoTickFisicaMs) / 1000));
+    ultimoTickFisicaMs = ahoraMs;
+
     var p = hib.activo ? perfilHibrido(ultimoPerfil) : ultimoPerfil;
-    var bateriaV = silBateriaV !== null ? silBateriaV : p.bateria_v;
-    var bateria = silBateriaV !== null ? bateriaPorcentaje(silBateriaV) : p.bateria;
+
+    /* Descarga gradual realista de LiPo 3S (salvo inyección SIL explícita) */
+    var enMov = Math.abs(velActualSim.izq) > 0.02 || Math.abs(velActualSim.der) > 0.02;
+    if (silBateriaV === null && encendido) {
+      var tasaDescarga = SIM1_DESCARGA_BASE_VS + (enMov ? SIM1_DESCARGA_MOV_VS : 0);
+      batSimV = Math.max(10.15, batSimV - tasaDescarga * dt);
+    }
+    var rippleV = encendido ? Math.sin(ahoraMs / 1700) * 0.01 : 0;
+    var bateriaV = Math.round((silBateriaV !== null ? silBateriaV : (batSimV + rippleV)) * 100) / 100;
+    var bateria = bateriaPorcentaje(bateriaV);
     revisarBateria(bateriaV);
     revisarSensores();
 
-    var deseada = modoP10 === "auto" ? { izq: p.v_izq, der: p.v_der } : velManual;
-    var real = aplicarSeguridad(deseada);
+    /* Velocidad objetivo calibrada al rango libre real de SIM1 (0.38–0.45 m/s, máx 0.46 m/s) */
+    var deseada;
+    if (!encendido) {
+      deseada = { izq: 0, der: 0 };
+    } else if (modoP10 === "auto") {
+      var osc = Math.sin((ahoraMs - inicioMs) / 2600) * 0.025;
+      var vI = Math.max(-SIM1_VEL_MAX, Math.min(SIM1_VEL_MAX, p.v_izq + (p.v_izq > 0.30 ? osc : 0)));
+      var vD = Math.max(-SIM1_VEL_MAX, Math.min(SIM1_VEL_MAX, p.v_der + (p.v_der > 0.30 ? osc : 0)));
+      deseada = { izq: Math.round(vI * 100) / 100, der: Math.round(vD * 100) / 100 };
+    } else {
+      deseada = velManual;
+    }
+
+    var segura = aplicarSeguridad(deseada);
+    /* Inercia de 1er orden (SIM1 R.tau = 0.18 s); en parada de seguridad frena de inmediato */
+    if (seg.parada !== "ninguna" || !encendido) {
+      velActualSim.izq = 0;
+      velActualSim.der = 0;
+    } else {
+      var kTau = 1 - Math.exp(-dt / 0.18);
+      velActualSim.izq = Math.round((velActualSim.izq + (segura.izq - velActualSim.izq) * kTau) * 100) / 100;
+      velActualSim.der = Math.round((velActualSim.der + (segura.der - velActualSim.der) * kTau) * 100) / 100;
+    }
+    var real = { izq: velActualSim.izq, der: velActualSim.der };
 
     secuencia++;
     enviados++;
     var sensoresActivos = p.sensores.slice(0, 4);
+    var ruidoLinea = encendido && (Math.abs(real.izq) > 0.01 || Math.abs(real.der) > 0.01)
+      ? Math.round(Math.sin(ahoraMs / 900) * 4) / 10
+      : 0;
+    var lineaVal = Math.round((calcularLineaMm(sensoresActivos, p.ladoPerdida || -1) + ruidoLinea) * 10) / 10;
     var payload = {
       n: secuencia,
       estado: modoP10 === "auto" ? "autonomo" : "manual",
@@ -1222,7 +1281,7 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
       bateria_v: bateriaV,
       ordenes: ordenesRecibidas,
       sensores: sensoresActivos,
-      linea_mm: calcularLineaMm(sensoresActivos, p.ladoPerdida || -1),
+      linea_mm: lineaVal,
       v_izq: real.izq,
       v_der: real.der,
       parada: seg.parada,
@@ -1254,8 +1313,9 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
     }
     /* MANUAL: misma batería y línea del último perfil, con las velocidades de la orden */
     if (!ultraManual) {
-      ultraFrente = ultimoPerfil.frente_cm;
-      ultraAtras = ultimoPerfil.atras_cm;
+      var jitterU = Math.round(Math.sin(Date.now() / 1300));
+      ultraFrente = Math.max(2, Math.min(200, ultimoPerfil.frente_cm + jitterU));
+      ultraAtras = Math.max(2, Math.min(200, ultimoPerfil.atras_cm - jitterU));
     }
     renderPerfiles(idx);
     publicarEstado();
@@ -1422,6 +1482,8 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
     encendido = true;
     modoP10 = "auto";
     inicioMs = Date.now();
+    ultimoTickFisicaMs = inicioMs;
+    if (silBateriaV === null && batSimV <= 10.20) batSimV = SIM1_BAT_INICIAL;
     intentosEnBroker = 0;
 
     renderBotonPrincipal();
@@ -1437,6 +1499,7 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
   function apagar() {
     encendido = false;
     hoverBtnEsp = false;
+    velActualSim = { izq: 0, der: 0 };
     if (timer) {
       clearInterval(timer);
       timer = null;
@@ -1447,9 +1510,19 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
     }
     limpiarCliente();
     actualizarLed("", "DETENIDO · En espera de arranque");
+    var bvReposo = Math.round((silBateriaV !== null ? silBateriaV : batSimV) * 100) / 100;
+    pintarTelemetria({
+      bateria: bateriaPorcentaje(bvReposo),
+      bateria_v: bvReposo,
+      estado: modoP10 === "auto" ? "autonomo" : "manual",
+      sensores: ultimoPerfil.sensores,
+      linea_mm: calcularLineaMm(ultimoPerfil.sensores, ultimoPerfil.ladoPerdida || -1),
+      v_izq: 0,
+      v_der: 0
+    });
     renderBrokers();
     renderBotonPrincipal();
-    escribirLog("⏹ Emisión del ESP32 Virtual detenida.");
+    escribirLog("⏹ Emisión del ESP32 Virtual detenida (motores en 0.00 m/s).");
   }
 
   function manejarSliderUltra() {
@@ -1720,6 +1793,15 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
   renderBrokers();
   renderBotonPrincipal();
   renderPerfiles(-1);
+  pintarTelemetria({
+    bateria: bateriaPorcentaje(batSimV),
+    bateria_v: batSimV,
+    estado: "autonomo",
+    sensores: ultimoPerfil.sensores,
+    linea_mm: calcularLineaMm(ultimoPerfil.sensores, -1),
+    v_izq: 0,
+    v_der: 0
+  });
   pintarUltrasonido(ultraFrente, ultraAtras);
   pintarSeguridad();
   actualizarPlaca("");
