@@ -28,46 +28,40 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px 16px;
-  border-bottom: 1px solid #334155;
+  gap: 10px 16px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
   font-family: var(--font-mono);
   font-size: 13px;
 }
+.consola-estado { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1 1 240px; }
 .consola-barra strong { overflow-wrap: anywhere; }
 .led-estado {
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  flex: 0 0 auto;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   background: #64748b;
-  margin-right: 8px;
+  transition: background-color 0.2s ease-out, box-shadow 0.2s ease-out;
 }
 .led-estado.activo { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
 .led-estado.conectando { background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
 .led-estado.error { background: #f43f5e; box-shadow: 0 0 10px #f43f5e; }
-.consola-cuerpo { padding: 24px; }
+.consola-cuerpo { padding: 20px; }
 
-/* ---- Cabecera de control ---- */
-.esp-control {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px 20px;
-  align-items: center;
-  justify-content: space-between;
-}
-.esp-control h2 { color: #fff; margin: 0 0 4px; font-size: 22px; }
-.esp-control p { margin: 0; color: #94a3b8; font-size: 14.5px; max-width: 560px; }
-.esp-botones { display: flex; flex-wrap: wrap; gap: 10px; }
+/* ---- Botón principal en la barra superior ---- */
+.esp-botones { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .btn-esp {
-  min-height: 46px;
-  padding: 10px 20px;
-  border-radius: 12px;
+  min-height: 44px;
+  padding: 8px 18px;
+  border-radius: 10px;
   border: 2px solid #059669;
   background: #0f9d84;
   color: #fff;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 15px;
+  font-size: 14px;
+  white-space: nowrap;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -97,35 +91,35 @@
   }
 }
 
-/* ---- Brokers (Selector segmentado horizontal único) ---- */
+/* ---- Brokers (dentro del panel colapsable técnico) ---- */
 .broker-panel {
   background: #1e293b;
-  border: 1.5px solid #334155;
-  border-radius: 14px;
-  padding: 14px 18px;
-  margin: 18px 0 20px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 0 0 14px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
 }
-.broker-actual-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 260px; }
-.broker-actual-titulo { font-family: var(--font-display); font-weight: 800; font-size: 16px; color: #fff; overflow-wrap: anywhere; }
-.broker-actual-sub { font-family: var(--font-mono); font-size: 12.5px; color: #94a3b8; overflow-wrap: anywhere; }
+.broker-actual-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 240px; }
+.broker-actual-titulo { font-family: var(--font-display); font-weight: 800; font-size: 15px; color: #fff; overflow-wrap: anywhere; }
+.broker-actual-sub { font-family: var(--font-mono); font-size: 12px; color: #94a3b8; overflow-wrap: anywhere; }
 .broker-segmentado {
   display: inline-flex;
   align-items: stretch;
   background: #0f172a;
   border: 1.5px solid #334155;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
 }
 .broker-seg {
   font-family: var(--font-mono);
   font-size: 12.5px;
   font-weight: 600;
-  min-height: 42px;
+  min-height: 44px;
   padding: 8px 14px;
   border: none;
   border-right: 1px solid #334155;
@@ -146,9 +140,9 @@
 /* ---- Rejilla placa + telemetría ---- */
 .esp-grid {
   display: grid;
-  grid-template-columns: minmax(260px, 340px) 1fr;
-  gap: 16px;
-  margin-bottom: 20px;
+  grid-template-columns: minmax(250px, 320px) 1fr;
+  gap: 14px;
+  margin-bottom: 0;
 }
 .tarjeta {
   background: #1e293b;
@@ -230,7 +224,7 @@
 /* ---- Tarjetas de telemetría ---- */
 .tele-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-content: start; }
 .tele-grid .ancha { grid-column: 1 / -1; }
-.valor-grande { font-family: var(--font-display); font-weight: 800; font-size: 26px; color: #fff; line-height: 1.1; }
+.valor-grande { font-family: var(--font-display); font-weight: 800; font-size: 26px; font-variant-numeric: tabular-nums; color: #fff; line-height: 1.1; }
 .valor-grande small { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: #94a3b8; margin-left: 6px; }
 .bat-barra { height: 16px; border-radius: 8px; background: #0f172a; border: 1.5px solid #334155; overflow: hidden; margin-top: 10px; }
 .bat-fill { height: 100%; width: 0; border-radius: 6px; background: #22c55e; transition: width 0.4s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.3s ease-out; }
@@ -261,7 +255,7 @@
 .linea-txt.perdida { color: #fda4af; }
 .motor-fila { display: grid; grid-template-columns: 54px 1fr 74px; gap: 10px; align-items: center; margin-top: 8px; font-family: var(--font-mono); font-size: 12px; color: #94a3b8; }
 .motor-fila:first-of-type { margin-top: 0; }
-.motor-fila output { color: #e2e8f0; font-weight: 600; text-align: right; }
+.motor-fila output { color: #e2e8f0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
 .motor-pista { position: relative; height: 14px; border-radius: 7px; background: #0f172a; border: 1.5px solid #334155; overflow: hidden; }
 .motor-pista::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #475569; }
 .motor-fill { position: absolute; top: 0; bottom: 0; width: 0; left: 50%; background: #22c55e; transition: width 0.3s cubic-bezier(0.23, 1, 0.32, 1), left 0.3s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.2s ease-out; }
@@ -271,7 +265,7 @@
 .ultra-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 6px; }
 .ultra-item { background: #0f172a; border: 1.5px solid #334155; border-radius: 10px; padding: 10px 12px; }
 .ultra-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-family: var(--font-mono); font-size: 12px; color: #cbd5e1; margin-bottom: 6px; }
-.ultra-cab output { font-family: var(--font-display); font-weight: 800; font-size: 18px; color: #22c55e; }
+.ultra-cab output { font-family: var(--font-display); font-weight: 800; font-size: 18px; font-variant-numeric: tabular-nums; color: #22c55e; }
 .ultra-cab output.precaucion { color: #f59e0b; }
 .ultra-cab output.peligro { color: #f43f5e; }
 .ultra-cab output.pausado { color: #64748b; }
@@ -284,11 +278,11 @@
 .ultra-acciones { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
 .btn-ultra {
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
-  min-height: 36px;
-  padding: 6px 12px;
-  border-radius: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 10px;
   border: 1.5px solid #475569;
   background: #0f172a;
   color: #e2e8f0;
@@ -383,14 +377,47 @@
 .log-mqtt div { margin-bottom: 4px; overflow-wrap: anywhere; word-break: break-word; }
 .log-mqtt .ts { color: #64748b; }
 
+/* ---- Paneles colapsables (patrón <details> estilo P01/P13) ---- */
+.p10-detalle { border-top: 1.5px solid #1e293b; }
+.p10-detalle summary {
+  cursor: pointer; list-style: none;
+  display: flex; align-items: center; gap: 10px;
+  min-height: 48px; padding: 12px 20px;
+  font-family: var(--font-display); font-weight: 700; font-size: 15.5px; color: #e2e8f0;
+  transition: background-color 0.15s ease-out;
+}
+.p10-detalle summary:hover { background: rgba(255, 255, 255, 0.03); }
+.p10-detalle summary:focus-visible { outline: 2px solid #38bdf8; outline-offset: -2px; }
+.p10-detalle summary::-webkit-details-marker { display: none; }
+.p10-detalle summary::after { content: "▾"; color: #94a3b8; font-size: 14px; transition: transform 0.2s ease-out; }
+.p10-detalle[open] summary::after { transform: rotate(180deg); }
+.p10-detalle-hint { margin-left: auto; font-family: var(--font-mono); font-weight: 600; font-size: 11.5px; color: #64748b; text-align: right; }
+.p10-detalle-cuerpo { padding: 4px 20px 20px; }
+
+.p10-guia {
+  background: var(--bg-card);
+  border: 2px solid var(--border-dark);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.p10-guia summary {
+  cursor: pointer; list-style: none;
+  display: flex; align-items: center; gap: 10px;
+  min-height: 48px; padding: 14px 20px;
+  font-family: var(--font-display); font-weight: 800; font-size: 16px; color: var(--ink-main);
+}
+.p10-guia summary::-webkit-details-marker { display: none; }
+.p10-guia summary::after { content: "▾"; margin-left: auto; color: var(--ink-muted); font-size: 14px; transition: transform 0.2s ease-out; }
+.p10-guia[open] summary::after { transform: rotate(180deg); }
+.p10-guia .pasos { margin: 0; padding: 0 20px 20px; }
+
 /* ---- Móvil ---- */
 @media (max-width: 768px) {
-  .consola-cuerpo { padding: 16px 14px 22px; }
-  .consola-barra { padding: 12px 14px; }
-  .esp-control h2 { font-size: 19px; }
+  .consola-cuerpo { padding: 14px; }
+  .consola-barra { padding: 12px 14px; font-size: 12px; }
   .esp-botones { width: 100%; }
-  .btn-esp { flex: 1 1 100%; min-height: 48px; }
-  .broker-panel { padding: 14px; margin-bottom: 26px; }
+  .btn-esp { flex: 1 1 100%; min-height: 46px; }
+  .broker-panel { padding: 12px; margin-bottom: 14px; }
   .broker-segmentado { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; }
   .broker-seg { padding: 8px 6px; font-size: 11.5px; min-height: 46px; white-space: normal; text-align: center; }
   .esp-grid { grid-template-columns: 1fr; }
@@ -398,8 +425,10 @@
   .ultra-grid { grid-template-columns: 1fr; }
   .seg-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .sil-botones { grid-template-columns: 1fr; }
-  .perfiles-grid { grid-template-columns: 1fr; margin-bottom: 26px; }
+  .perfiles-grid { grid-template-columns: 1fr; margin-bottom: 0; }
   .log-mqtt { height: 200px; font-size: 12px; }
+  .p10-detalle summary { padding: 12px 14px; font-size: 14.5px; }
+  .p10-detalle-cuerpo { padding: 4px 14px 16px; }
 }
 @media (min-width: 769px) and (max-width: 1000px) {
   .esp-grid { grid-template-columns: 1fr; }
@@ -425,51 +454,31 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
   <p class="ceja">Prototipo P10 · Emulador de Hardware en la Nube · MQTT WebSockets</p>
   <h1>P10: Simulador Web del <em>ESP32 Virtual</em></h1>
 
-  <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px">
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px">
     <span class="chip hecho">Simulador Activo</span>
-    <span class="chip">mqtt.js · Fallback Automático</span>
-    <span class="chip">HiveMQ → EMQX → Mosquitto</span>
-    <span class="chip">6 Perfiles de Telemetría</span>
-    <span class="chip">Paridad de seguridad con el firmware</span>
-    <span class="chip">Pruebas SIL (sin hardware)</span>
+    <span class="chip">MQTT WebSockets · Respaldo automático</span>
+    <span class="chip">Pruebas SIL</span>
   </div>
 
   <div class="frase-explicativa">
-    <strong>En pocas palabras:</strong> Esta página actúa como un <strong>ESP32 virtual en el navegador</strong> con la misma lista de brokers de respaldo que la App Flutter: intenta primero con <code>wss://broker.hivemq.com:8884/mqtt</code> y, si la red lo bloquea, salta automáticamente a <code>wss://broker.emqx.io:8084/mqtt</code> y luego a <code>wss://test.mosquitto.org:8081/mqtt</code>, publicando cada 2 segundos en <code>ucab-tg-sf/robot/estado</code>.
+    <strong>En pocas palabras:</strong> ESP32 virtual en el navegador que publica telemetría en vivo por MQTT (HiveMQ → EMQX → Mosquitto) con la misma lógica de seguridad del firmware.
   </div>
 
-  <section aria-labelledby="t-simulador">
+  <section aria-label="Simulador web del ESP32 virtual" style="margin-top:20px">
     <div class="consola-esp32">
       <div class="consola-barra">
-        <div>
-          <span class="led-estado" id="led-mqtt"></span>
-          <span id="estado-mqtt">DESCONECTADO · En espera de arranque</span>
+        <div class="consola-estado">
+          <span class="led-estado" id="led-mqtt" aria-hidden="true"></span>
+          <span id="estado-mqtt" role="status">DESCONECTADO · En espera de arranque</span>
         </div>
-        <div>Tópicos: <strong>ucab-tg-sf/robot/estado</strong> + <strong>ultrasonido</strong> (QoS 0) · <strong>alertas</strong> (QoS 2)</div>
+        <div class="esp-botones">
+          <button type="button" id="btn-esp-toggle" class="btn-esp">
+            ⚡ Encender ESP32 Virtual
+          </button>
+        </div>
       </div>
 
       <div class="consola-cuerpo">
-        <div class="esp-control">
-          <div>
-            <h2 id="t-simulador">Panel de Emisión del Robot Virtual</h2>
-            <p>Pulsa el botón principal para encender el ciclo automático de 6 perfiles o cambia de broker manualmente si lo necesitas.</p>
-          </div>
-          <div class="esp-botones">
-            <button type="button" id="btn-esp-toggle" class="btn-esp">
-              ⚡ Encender ESP32 Virtual
-            </button>
-          </div>
-        </div>
-
-        <!-- Panel de estado del Broker conectado (igual que la App Flutter) -->
-        <div class="broker-panel" aria-live="polite">
-          <div class="broker-actual-info">
-            <span class="broker-actual-titulo" id="broker-titulo">Enlace MQTT · HiveMQ (Listo para conectar)</span>
-            <span class="broker-actual-sub" id="broker-sub">broker.hivemq.com:8884 · Respaldo automático: HiveMQ → EMQX → Mosquitto</span>
-          </div>
-          <div class="broker-segmentado" id="brokers-pills" role="group" aria-label="Selector de broker MQTT"></div>
-        </div>
-
         <!-- Placa virtual + tarjetas de telemetría en tiempo real -->
         <div class="esp-grid">
           <div class="tarjeta">
@@ -542,13 +551,13 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
                 </div>
               </div>
               <div class="ultra-acciones">
-                <button type="button" id="btn-ultra-pausa" class="btn-ultra">⏸ Pausar envío (Probar 'Sin señal' &gt; 3 s)</button>
+                <button type="button" id="btn-ultra-pausa" class="btn-ultra">⏸ Pausar envío (&gt; 3 s)</button>
                 <button type="button" id="btn-ultra-perfil" class="btn-ultra" disabled>🔄 Seguir perfil</button>
               </div>
             </div>
             <div class="tarjeta ancha" id="tarjeta-seguridad">
               <p class="tarjeta-titulo">
-                <span>Seguridad RF-05 · misma regla que el firmware</span>
+                <span>Seguridad RF-05</span>
                 <span class="seg-badge" id="seg-badge">LIBRE</span>
               </p>
               <div class="seg-grid">
@@ -560,70 +569,89 @@ button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
             </div>
           </div>
         </div>
-
-        <!-- Inyección de eventos: valida las reacciones de seguridad y de la App (P11) sin hardware -->
-        <div class="sil-panel" role="group" aria-labelledby="t-sil">
-          <div class="sil-cab">
-            <strong id="t-sil">Inyección de Eventos Virtuales (SIL)</strong>
-            <span>SIL = Software In the Loop: el firmware se emula aquí. Las pruebas HIL (Hardware In the Loop) son con el ESP32 y los sensores reales (diciembre).</span>
-          </div>
-          <div class="sil-botones">
-            <button type="button" class="btn-sil peligro" data-sil="frontal">🧱 Simular Obstáculo Frontal (14 cm)</button>
-            <button type="button" class="btn-sil peligro" data-sil="bloqueo">⛔ Simular Obstáculo Trasero + Frontal (Bloqueo total)</button>
-            <button type="button" class="btn-sil aviso" data-sil="sin-eco">📡 Simular Fallo Sensor Frontal (sin eco)</button>
-            <button type="button" class="btn-sil aviso" data-sil="bateria">🪫 Simular Batería Crítica (10.05 V)</button>
-            <button type="button" class="btn-sil peligro" data-sil="corte">🔌 Simular Corte por Batería (9.85 V)</button>
-            <button type="button" class="btn-sil ok" data-sil="normal">♻️ Restaurar Ciclo Normal</button>
-          </div>
-        </div>
-
-        <!-- Escenario híbrido (SIL): tramo sin cinta con heading hold simulado de la MPU-6050 y RSSI BLE de 2 balizas ESP32 fijas -->
-        <div class="sil-panel hib-panel" id="panel-hibrido" role="group" aria-labelledby="t-hibrido">
-          <div class="sil-cab">
-            <strong id="t-hibrido">Simulación Híbrida (SIL): tramo sin cinta + balizas BLE</strong>
-            <span>Escenario virtual: 1 ESP32 móvil + 2 ESP32 fijos (balizas BLE) en el Cuarto de Componentes y el Laboratorio 1.</span>
-          </div>
-          <div class="sil-botones">
-            <button type="button" class="btn-sil aviso" id="btn-hibrido" aria-pressed="false">🛤️ Activar tramo sin cinta (heading hold + BLE)</button>
-            <button type="button" class="btn-sil ok" id="btn-hibrido-reiniciar" disabled>♻️ Reiniciar escenario híbrido</button>
-          </div>
-          <div class="hib-grid" aria-live="polite">
-            <div class="seg-item"><small>Fase</small><strong id="hib-fase">Inactivo</strong></div>
-            <div class="seg-item"><small>TCRT5000 (S1…S4)</small><strong id="hib-tcrt">—</strong></div>
-            <div class="seg-item"><small>Heading hold (MPU-6050 virtual)</small><strong id="hib-heading">—</strong></div>
-            <div class="seg-item"><small>Deriva lateral con / sin hold</small><strong id="hib-deriva">—</strong></div>
-            <div class="seg-item"><small>RSSI baliza Cuarto de Componentes</small><strong id="hib-rssi-cuarto">— dBm</strong></div>
-            <div class="seg-item"><small>RSSI baliza Laboratorio 1</small><strong id="hib-rssi-lab">— dBm</strong></div>
-            <div class="seg-item"><small>Confirmación BLE</small><strong id="hib-confirma">—</strong></div>
-            <div class="seg-item"><small>Avance del recorrido</small><strong id="hib-avance">—</strong></div>
-          </div>
-          <p class="hib-nota">SIL, no HIL: la lectura de la MPU-6050 y el escaneo BLE <b>[PENDIENTE DE INTEGRACIÓN EN FIRMWARE]</b>. El heading hold mantiene el rumbo <i>relativo</i> con el giroscopio (sin magnetómetro ni brújula). Las distancias, la velocidad y el sesgo del giroscopio son supuestos de simulación.</p>
-        </div>
-
-        <div class="perfiles-grid" id="grid-perfiles"></div>
-
-        <div class="log-cab">
-          <span class="t">Monitor Serie / Payloads en ucab-tg-sf/robot/estado, ultrasonido y alertas</span>
-          <span class="c" id="contador-enviados">0 paquetes enviados</span>
-        </div>
-        <div class="log-mqtt" id="log-mqtt">
-          <div class="ts">[Sistema listo] Pulsa "Encender ESP32 Virtual" para conectar (HiveMQ → EMQX → Mosquitto) y transmitir telemetría...</div>
-        </div>
       </div>
+
+      <!-- Paneles técnicos colapsables por defecto (patrón P01/P13) -->
+      <details class="p10-detalle" id="detalle-sil">
+        <summary>Pruebas SIL y Escenario Híbrido <span class="p10-detalle-hint">Eventos · Tramo sin cinta + BLE</span></summary>
+        <div class="p10-detalle-cuerpo">
+          <div class="sil-panel" role="group" aria-labelledby="t-sil">
+            <div class="sil-cab">
+              <strong id="t-sil">Inyección de Eventos Virtuales (SIL)</strong>
+              <span>Emula obstáculos, fallos de sensor y batería crítica sin hardware.</span>
+            </div>
+            <div class="sil-botones">
+              <button type="button" class="btn-sil peligro" data-sil="frontal">🧱 Obstáculo Frontal (14 cm)</button>
+              <button type="button" class="btn-sil peligro" data-sil="bloqueo">⛔ Bloqueo Total (Frente + Atrás)</button>
+              <button type="button" class="btn-sil aviso" data-sil="sin-eco">📡 Fallo Sensor Frontal (sin eco)</button>
+              <button type="button" class="btn-sil aviso" data-sil="bateria">🪫 Batería Crítica (10.05 V)</button>
+              <button type="button" class="btn-sil peligro" data-sil="corte">🔌 Corte por Batería (9.85 V)</button>
+              <button type="button" class="btn-sil ok" data-sil="normal">♻️ Restaurar Ciclo Normal</button>
+            </div>
+          </div>
+
+          <div class="sil-panel hib-panel" id="panel-hibrido" role="group" aria-labelledby="t-hibrido" style="margin-bottom:0">
+            <div class="sil-cab">
+              <strong id="t-hibrido">Simulación Híbrida (SIL): tramo sin cinta + balizas BLE</strong>
+              <span>1 ESP32 móvil + 2 balizas BLE (Cuarto de Componentes y Laboratorio 1).</span>
+            </div>
+            <div class="sil-botones">
+              <button type="button" class="btn-sil aviso" id="btn-hibrido" aria-pressed="false">🛤️ Activar tramo sin cinta (heading hold + BLE)</button>
+              <button type="button" class="btn-sil ok" id="btn-hibrido-reiniciar" disabled>♻️ Reiniciar escenario híbrido</button>
+            </div>
+            <div class="hib-grid" aria-live="polite">
+              <div class="seg-item"><small>Fase</small><strong id="hib-fase">Inactivo</strong></div>
+              <div class="seg-item"><small>TCRT5000 (S1…S4)</small><strong id="hib-tcrt">—</strong></div>
+              <div class="seg-item"><small>Heading hold (MPU-6050 virtual)</small><strong id="hib-heading">—</strong></div>
+              <div class="seg-item"><small>Deriva lateral con / sin hold</small><strong id="hib-deriva">—</strong></div>
+              <div class="seg-item"><small>RSSI baliza Cuarto de Componentes</small><strong id="hib-rssi-cuarto">— dBm</strong></div>
+              <div class="seg-item"><small>RSSI baliza Laboratorio 1</small><strong id="hib-rssi-lab">— dBm</strong></div>
+              <div class="seg-item"><small>Confirmación BLE</small><strong id="hib-confirma">—</strong></div>
+              <div class="seg-item"><small>Avance del recorrido</small><strong id="hib-avance">—</strong></div>
+            </div>
+            <p class="hib-nota">SIL, no HIL: la lectura de la MPU-6050 y el escaneo BLE <b>[PENDIENTE DE INTEGRACIÓN EN FIRMWARE]</b>. El heading hold mantiene el rumbo <i>relativo</i> con el giroscopio (sin magnetómetro ni brújula).</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="p10-detalle" id="detalle-perfiles">
+        <summary>Perfiles de Telemetría <span class="p10-detalle-hint">6 perfiles automáticos</span></summary>
+        <div class="p10-detalle-cuerpo">
+          <div class="perfiles-grid" id="grid-perfiles" style="margin-bottom:0"></div>
+        </div>
+      </details>
+
+      <details class="p10-detalle" id="detalle-mqtt">
+        <summary>Broker y Consola MQTT <span class="p10-detalle-hint">HiveMQ · EMQX · Mosquitto · Registro</span></summary>
+        <div class="p10-detalle-cuerpo">
+          <div class="broker-panel" aria-live="polite">
+            <div class="broker-actual-info">
+              <span class="broker-actual-titulo" id="broker-titulo">Enlace MQTT · HiveMQ (Listo para conectar)</span>
+              <span class="broker-actual-sub" id="broker-sub">broker.hivemq.com:8884 · Respaldo automático: HiveMQ → EMQX → Mosquitto</span>
+            </div>
+            <div class="broker-segmentado" id="brokers-pills" role="group" aria-label="Selector de broker MQTT"></div>
+          </div>
+
+          <div class="log-cab">
+            <span class="t">Monitor Serie · estado, ultrasonido (QoS 0) y alertas (QoS 2)</span>
+            <span class="c" id="contador-enviados">0 paquetes enviados</span>
+          </div>
+          <div class="log-mqtt" id="log-mqtt">
+            <div class="ts">[Sistema listo] Pulsa "Encender ESP32 Virtual" para conectar (HiveMQ → EMQX → Mosquitto) y transmitir telemetría...</div>
+          </div>
+        </div>
+      </details>
     </div>
   </section>
 
-  <section aria-labelledby="t-como-probar">
-    <h2 id="t-como-probar">Cómo probar junto con la App Flutter (P09)</h2>
+  <details class="p10-guia">
+    <summary>Cómo probar junto con la App Flutter (P09)</summary>
     <ol class="pasos">
-      <li><b>1. Enciende el ESP32 Virtual</b><span>Haz clic en <strong>"Encender ESP32 Virtual"</strong> arriba. El simulador probará la lista de respaldo hasta conectar y mostrará en pantalla a qué broker se enlazó.</span></li>
-      <li><b>2. Verifica el mismo Broker en la App</b><span>Abre <a href="../../app/" target="_blank" rel="noopener">la Interfaz Flutter</a> y comprueba en la tarjeta superior ("Enlace MQTT · ...") que ambos estén en el mismo broker (HiveMQ, EMQX o Mosquitto).</span></li>
-      <li><b>3. Observa la Telemetría en Vivo</b><span>Verás cómo la batería, el modo autónomo/manual y la posición de la línea cambian automáticamente cada 2 segundos.</span></li>
-      <li><b>4. Manda un pedido</b><span>Desde el <a href="../P01-mqtt-base/banco.html" target="_blank" rel="noopener">banco de pruebas P01</a> pulsa "Enviar un pedido": el ESP32 virtual lo recibe en <code>ordenes</code> y lo confirma en <code>ordenes/ack</code>. Lo verás en el registro de las dos páginas.</span></li>
-      <li><b>5. Maneja el robot desde la app</b><span>En la app, los botones de dirección y <strong>Frenar</strong> pasan el ESP32 virtual a MANUAL (velocidades de la orden). <strong>Auto</strong> lo vuelve a AUTÓNOMO y retoma los 6 perfiles. Igual que el firmware, si pasan <strong>5 s sin órdenes</strong> en MANUAL, el robot frena y se queda en MANUAL (nunca pasa solo a autónomo).</span></li>
-      <li><b>6. Prueba la seguridad (SIL)</b><span>Usa el panel <strong>Inyección de Eventos Virtuales (SIL)</strong>: con un obstáculo frontal a 14 cm el robot queda en <code>0.00 m/s</code>, publica la alerta en <code>ucab-tg-sf/robot/alertas</code> (QoS 2) y solo deja retroceder si atrás hay ≥ 20 cm con el sensor válido. La App muestra el banner rojo/ámbar del Centro de Alertas (P11).</span></li>
+      <li><b>1. Enciende el ESP32 Virtual</b><span>Pulsa <strong>"Encender ESP32 Virtual"</strong> arriba para conectar y publicar cada 2 s.</span></li>
+      <li><b>2. Abre la App Flutter</b><span>Comprueba en <a href="../../app/" target="_blank" rel="noopener">la Interfaz Flutter</a> que ambos usen el mismo broker (HiveMQ, EMQX o Mosquitto).</span></li>
+      <li><b>3. Envía órdenes o prueba SIL</b><span>Desde la App o el <a href="../P01-mqtt-base/banco.html" target="_blank" rel="noopener">banco P01</a> puedes enviar órdenes (<code>ordenes</code> / <code>ordenes/ack</code>) o abrir <strong>Pruebas SIL</strong> para validar alertas QoS 2 y el tramo sin cinta.</span></li>
     </ol>
-  </section>
+  </details>
 </main>
 
 <footer id="pie"></footer>
