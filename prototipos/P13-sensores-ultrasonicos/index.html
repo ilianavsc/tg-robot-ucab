@@ -477,11 +477,6 @@
       ctx.strokeStyle = c; ctx.lineWidth = 4; ctx.lineCap = "round";
       ctx.beginPath(); ctx.arc(ox, oy, r, a0, a1); ctx.stroke();
       ctx.lineWidth = 1;
-      /* etiqueta */
-      var am = rad(ANG[k]) - Math.PI / 2, rl = Math.max(r - 16, 22);
-      ctx.fillStyle = "#e2e8f0"; ctx.textAlign = "center";
-      ctx.font = "700 13px 'JetBrains Mono', monospace";
-      ctx.fillText(cm, ox + rl * Math.cos(am), oy + rl * Math.sin(am) + 4);
     });
 
     /* robot */
@@ -505,6 +500,33 @@
     ctx.lineWidth = arrastrando ? 2.5 : 2;
     ctx.beginPath(); ctx.arc(obsX, obsY, 10, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
     ctx.lineWidth = 1;
+
+    /* etiquetas de distancia sobre los conos (siempre legibles, sin solaparse con el obstáculo) */
+    ctx.textAlign = "center";
+    ctx.font = "700 13px 'JetBrains Mono', monospace";
+    ids.forEach(function (k) {
+      var cm = dist[k], r = R * cm / DIST_MAX;
+      var am = rad(ANG[k]) - Math.PI / 2;
+      var rl = Math.max(r - 18, 28);
+      var lx = ox + rl * Math.cos(am), ly = oy + rl * Math.sin(am);
+      if (Math.hypot(lx - obsX, ly - obsY) < 28) {
+        var rAlt = r + 26 <= R - 12 ? r + 26 : Math.max(r - 28, 26);
+        lx = ox + rAlt * Math.cos(am);
+        ly = oy + rAlt * Math.sin(am);
+      }
+      var txt = String(cm);
+      var tw = ctx.measureText(txt).width + 10;
+      ctx.fillStyle = "rgba(11, 20, 36, 0.82)";
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(lx - tw / 2, ly - 9, tw, 18, 5);
+      } else {
+        ctx.rect(lx - tw / 2, ly - 9, tw, 18);
+      }
+      ctx.fill();
+      ctx.fillStyle = "#f1f5f9";
+      ctx.fillText(txt, lx, ly + 4);
+    });
   }
 
   /* ---------------- lectura y mensaje ---------------- */
