@@ -187,10 +187,48 @@
   background: rgba(120, 53, 15, 0.42);
   box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.25), 0 4px 12px rgba(2, 6, 23, 0.45);
 }
+
+/* Mini velocímetro semicircular en la esquina superior izquierda del radar */
+.us-velo-widget {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  width: 94px;
+  padding: 6px 8px 5px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(148, 163, 184, 0.26);
+  background: rgba(11, 20, 36, 0.88);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  pointer-events: none;
+  user-select: none;
+  box-shadow: 0 4px 12px rgba(2, 6, 23, 0.45);
+  transition: border-color 0.2s ease-out;
+}
+.us-velo-widget svg { width: 76px; height: 42px; display: block; overflow: visible; }
+.us-velo-pista { fill: none; stroke: #1e293b; stroke-width: 6; stroke-linecap: round; }
+.us-velo-arco { fill: none; stroke: #22c55e; stroke-width: 6; stroke-linecap: round; transition: stroke 0.2s ease-out; }
+.us-velo-aguja { stroke: #f8fafc; stroke-width: 2.2; stroke-linecap: round; }
+.us-velo-pivote { fill: #f8fafc; }
+.us-velo-val {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #22c55e;
+  line-height: 1.1;
+  white-space: nowrap;
+  transition: color 0.2s ease-out;
+}
+.us-velo-val small { font-size: 9.5px; font-weight: 600; color: #94a3b8; margin-left: 2px; }
 .us-leyenda { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; font-size: 13px; color: #94a3b8; }
 .us-leyenda i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
 
-/* Paneles colapsables (patrón <details> estilo P01, adaptado al cockpit) */
+/* Panel colapsable Telemetría (patrón <details> estilo P01, adaptado al cockpit) */
 .us-detalle { border-top: 1.5px solid #1e293b; }
 .us-detalle summary {
   cursor: pointer; list-style: none;
@@ -207,85 +245,15 @@
 .us-detalle-hint { margin-left: auto; font-family: var(--font-mono); font-weight: 600; font-size: 11.5px; color: #64748b; }
 .us-detalle-cuerpo { padding: 4px 20px 20px; }
 
-.us-controles-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.us-sensor {
-  background: #1e293b; border: 1px solid rgba(148, 163, 184, 0.14); border-radius: 12px;
-  padding: 12px 14px;
-  transition: border-color 0.2s ease-out, background-color 0.2s ease-out;
-}
-/* La zona se refleja en el número y en el relleno del slider, no en el borde */
-.us-sensor.zona-verde .us-valor { color: #22c55e; }
-.us-sensor.zona-ambar .us-valor { color: #f59e0b; }
-.us-sensor.zona-rojo .us-valor { color: #ef4444; }
-.us-fila { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
-.us-nombre { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #94a3b8; }
-.us-valor { font-family: var(--font-mono); font-weight: 700; font-size: 24px; font-variant-numeric: tabular-nums; color: #fff; line-height: 1; }
-.us-valor small { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: #64748b; margin-left: 4px; }
-
-/* Sliders personalizados (track fino de alto contraste + relleno dinámico + thumb circular) */
-.us-sensor input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%; height: 38px; margin: 0;
-  background: transparent; cursor: pointer;
-}
-.us-sensor input[type="range"]:disabled { opacity: 0.55; cursor: not-allowed; }
-.us-sensor input[type="range"]::-webkit-slider-runnable-track {
-  height: 6px; border-radius: 999px;
-  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.22);
-  background: linear-gradient(to right, var(--zona-color, #22c55e) 0%, var(--zona-color, #22c55e) var(--pct, 50%), #0f172a var(--pct, 50%), #0f172a 100%);
-}
-.us-sensor input[type="range"]::-moz-range-track {
-  height: 6px; border-radius: 999px; background: #0f172a;
-  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.22);
-}
-.us-sensor input[type="range"]::-moz-range-progress {
-  height: 6px; border-radius: 999px; background: var(--zona-color, #22c55e);
-}
-.us-sensor input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none;
-  width: 18px; height: 18px; border-radius: 50%;
-  background: #fff; border: 3px solid var(--zona-color, #22c55e);
-  box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.14);
-  margin-top: -6px;
-  transition: box-shadow 0.15s ease-out, transform 0.12s ease-out;
-}
-.us-sensor input[type="range"]:hover:not(:disabled)::-webkit-slider-thumb,
-.us-sensor input[type="range"]:active:not(:disabled)::-webkit-slider-thumb { box-shadow: 0 0 0 7px rgba(148, 163, 184, 0.22); }
-.us-sensor input[type="range"]::-moz-range-thumb {
-  width: 12px; height: 12px; border-radius: 50%;
-  background: #fff; border: 3px solid var(--zona-color, #22c55e);
-}
-
-/* Fila inferior: Velocidad (solo lectura) */
-.us-fila-inferior {
-  background: #1e293b; border: 1px solid rgba(148, 163, 184, 0.14); border-radius: 12px;
-  padding: 12px 14px; margin-top: 10px;
-}
-.us-velocidad { flex: 1 1 240px; min-width: 0; }
-.us-vel-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.us-vel-badge {
-  font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
-  text-transform: uppercase; padding: 2px 8px; border-radius: 999px; color: #0f172a;
-}
-.us-velocidad.zona-verde .us-vel-badge { background: #22c55e; color: #0f172a; }
-.us-velocidad.zona-ambar .us-vel-badge { background: #f59e0b; color: #0f172a; }
-.us-velocidad.zona-rojo .us-vel-badge { background: #ef4444; color: #fff; }
-.us-vel-num { font-family: var(--font-mono); font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; color: #e2e8f0; margin-top: 2px; }
-.us-vel-num small { font-size: 11.5px; color: #64748b; margin-left: 4px; font-weight: 600; }
-.us-vel-barra { height: 5px; border-radius: 999px; background: #0f172a; border: 1px solid #334155; overflow: hidden; margin-top: 6px; }
-.us-vel-fill { height: 100%; width: 100%; background: var(--verde); transition: width 0.12s ease-out, background-color 0.2s ease-out; }
-
 @media (max-width: 640px) {
-  .us-controles-grid { grid-template-columns: 1fr; }
   .us-botones-barra { width: 100%; }
   #btn-toggle { width: 100%; min-height: 46px; }
   .us-lectura { width: 100%; text-align: center; }
   .us-alertas { padding: 10px 14px 0; }
+  .us-velo-widget { width: 78px; padding: 5px 6px 4px; top: 8px; left: 8px; }
+  .us-velo-widget svg { width: 64px; height: 35px; }
+  .us-velo-val { font-size: 10.5px; }
+  .us-obs-base { top: 8px; right: 8px; }
 }
 
 .us-broker { font-family: var(--font-mono); font-size: 12.5px; color: #94a3b8; }
@@ -357,6 +325,15 @@
         <div class="us-radar-caja">
           <div class="us-radar-escena">
             <canvas id="radar" width="520" height="520" role="img" aria-label="Radar interactivo con distancias adelante y atrás; arrastra el círculo rojo desde la esquina hacia el radar para colocar un obstáculo"></canvas>
+            <div id="velocimetro" class="us-velo-widget" aria-label="Velocímetro del robot">
+              <svg viewBox="0 0 80 46" aria-hidden="true">
+                <path class="us-velo-pista" d="M 10 40 A 30 30 0 0 1 70 40"/>
+                <path id="velo-arco" class="us-velo-arco" d="M 10 40 A 30 30 0 0 1 70 40" stroke-dasharray="94.25" stroke-dashoffset="0"/>
+                <line id="velo-aguja" class="us-velo-aguja" x1="40" y1="40" x2="40" y2="15" transform="rotate(90 40 40)"/>
+                <circle class="us-velo-pivote" cx="40" cy="40" r="3"/>
+              </svg>
+              <div class="us-velo-val" id="velo-val">0.60<small>m/s</small></div>
+            </div>
             <div id="base-obstaculo" class="us-obs-base" role="button" tabindex="0" aria-label="Arrastra el obstáculo al radar o pulsa para devolverlo a su base">
               <span class="us-obs-hueco" aria-hidden="true"><span class="us-obs-ficha"></span></span>
               <span class="us-obs-etiqueta" id="etiqueta-base-obs">Obstáculo</span>
@@ -370,32 +347,6 @@
           </div>
         </div>
       </div>
-
-      <details class="us-detalle" id="panel-controles">
-        <summary>Controles <span class="us-detalle-hint">Adelante · Atrás · Velocidad</span></summary>
-        <div class="us-detalle-cuerpo">
-          <div class="us-controles-grid">
-            <div class="us-sensor" id="s-frente">
-              <div class="us-fila"><span class="us-nombre">Adelante</span><span class="us-valor"><span id="v-frente">160</span><small>cm</small></span></div>
-              <input type="range" id="r-frente" min="2" max="200" step="1" value="160" aria-label="Distancia adelante en centímetros">
-            </div>
-            <div class="us-sensor" id="s-atras">
-              <div class="us-fila"><span class="us-nombre">Atrás</span><span class="us-valor"><span id="v-atras">150</span><small>cm</small></span></div>
-              <input type="range" id="r-atras" min="2" max="200" step="1" value="150" aria-label="Distancia atrás en centímetros">
-            </div>
-          </div>
-          <div class="us-fila-inferior">
-            <div class="us-velocidad zona-verde" id="s-velocidad">
-              <div class="us-vel-cabecera">
-                <span class="us-nombre">Velocidad</span>
-                <span class="us-vel-badge" id="vel-badge">Normal</span>
-              </div>
-              <div class="us-vel-num"><span id="v-velocidad">0.60</span><small>m/s</small></div>
-              <div class="us-vel-barra" aria-hidden="true"><div class="us-vel-fill" id="vel-fill"></div></div>
-            </div>
-          </div>
-        </div>
-      </details>
 
       <details class="us-detalle" id="panel-telemetria">
         <summary>Telemetría <span class="us-detalle-hint">Broker · JSON · Registro</span></summary>
@@ -443,14 +394,14 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var ids = ["frente", "atras"];
-  var rango = {}, valor = {}, caja = {};
-  ids.forEach(function (k) { rango[k] = $("r-" + k); valor[k] = $("v-" + k); caja[k] = $("s-" + k); });
   var ledEl = $("led"), estadoEl = $("estado"), lecturaEl = $("lectura"), brokerEl = $("broker"), jsonEl = $("json"), logEl = $("log");
   var btnToggle = $("btn-toggle"), baseObs = $("base-obstaculo"), etiquetaBaseObs = $("etiqueta-base-obs");
-  var alertaObs = $("alerta-obstaculo"), valVelocidad = $("v-velocidad"), velFill = $("vel-fill"), cajaVelocidad = $("s-velocidad"), velBadge = $("vel-badge");
+  var alertaObs = $("alerta-obstaculo");
+  var veloWidget = $("velocimetro"), veloArco = $("velo-arco"), veloAguja = $("velo-aguja"), veloVal = $("velo-val");
   var canvas = $("radar"), ctx = canvas.getContext("2d");
 
   var VEL_NORMAL = 0.60;
+  var ARCO_LEN = 94.25;
   var DIST_LIBRE_FRENTE = 160, DIST_LIBRE_ATRAS = 150;
   var ANG_DETECCION = 35;                       /* semiamplitud (°) para detectar obstáculo en cada sensor */
   var dist = { frente: DIST_LIBRE_FRENTE, atras: DIST_LIBRE_ATRAS };
@@ -486,7 +437,6 @@
     return VEL_NORMAL * (cm - LIMITE_PELIGRO) / (LIMITE_CERCA - LIMITE_PELIGRO);
   }
   var COLOR = { verde: "#22c55e", ambar: "#f59e0b", rojo: "#ef4444" };
-  function pctDe(v) { return Math.round((v - DIST_MIN) / (DIST_MAX - DIST_MIN) * 100); }
 
   /* ---------------- registro en pantalla ---------------- */
   function log(txt, tipo) {
@@ -534,20 +484,20 @@
     var det = deteccionObstaculo();
     ctx.clearRect(0, 0, W, H);
 
-    /* anillos de distancia (etiquetas arriba-izquierda para dejar la esquina superior derecha libre para el botón) */
+    /* anillos de distancia (etiquetas abajo-derecha para dejar ambas esquinas superiores libres) */
     var esMovil = W < 400;
     ctx.lineWidth = 1;
     ctx.font = (esMovil ? "9.5px" : "11px") + " 'JetBrains Mono', monospace";
     ctx.fillStyle = "#64748b";
     ctx.textAlign = "center";
-    ctx.textBaseline = "bottom";
-    var angEtiqueta = -3 * Math.PI / 4;
+    ctx.textBaseline = "top";
+    var angEtiqueta = Math.PI / 4;
     [50, 100, 150, 200].forEach(function (cm) {
       var r = R * cm / DIST_MAX;
       ctx.strokeStyle = "rgba(148,163,184,0.25)";
       ctx.beginPath(); ctx.arc(ox, oy, r, 0, 2 * Math.PI); ctx.stroke();
       var etiqueta = (esMovil && cm < 200) ? String(cm) : (cm + " cm");
-      ctx.fillText(etiqueta, ox + r * Math.cos(angEtiqueta), oy + r * Math.sin(angEtiqueta) - 2);
+      ctx.fillText(etiqueta, ox + r * Math.cos(angEtiqueta), oy + r * Math.sin(angEtiqueta) + 2);
     });
     ctx.textBaseline = "alphabetic";
     /* líneas guía */
@@ -679,22 +629,21 @@
     if (!forzar && clave === ultimoRender) return;
     ultimoRender = clave;
 
-    ids.forEach(function (k) {
-      var z = zona(dist[k]);
-      valor[k].textContent = dist[k];
-      caja[k].className = "us-sensor zona-" + z;
-      rango[k].style.setProperty("--zona-color", COLOR[z]);
-      rango[k].style.setProperty("--pct", pctDe(dist[k]) + "%");
-    });
     var zFrente = zona(dist.frente);
     var velTxt = vel.toFixed(2);
     lecturaEl.textContent = "Adelante " + dist.frente + " · Atrás " + dist.atras + " cm · " + velTxt + " m/s";
     lecturaEl.style.color = zFrente === "rojo" ? "#fca5a5" : (zFrente === "ambar" ? "#fcd34d" : "#e2e8f0");
-    valVelocidad.textContent = velTxt;
-    velFill.style.width = Math.round((vel / VEL_NORMAL) * 100) + "%";
-    velFill.style.background = COLOR[zFrente];
-    cajaVelocidad.className = "us-velocidad zona-" + zFrente;
-    velBadge.textContent = vel <= 0.005 ? "Frenado" : (vel < VEL_NORMAL - 0.005 ? "Lento" : "Normal");
+
+    /* Mini velocímetro SVG (solo el sensor delantero reduce la velocidad) */
+    var ratioVel = Math.max(0, Math.min(1, vel / VEL_NORMAL));
+    var colorVel = vel <= 0.005 ? COLOR.rojo : (vel < VEL_NORMAL - 0.005 ? COLOR.ambar : COLOR.verde);
+    veloArco.setAttribute("stroke-dashoffset", (ARCO_LEN * (1 - ratioVel)).toFixed(2));
+    veloArco.style.stroke = colorVel;
+    veloAguja.setAttribute("transform", "rotate(" + (-90 + ratioVel * 180).toFixed(1) + " 40 40)");
+    veloVal.innerHTML = velTxt + "<small>m/s</small>";
+    veloVal.style.color = colorVel;
+    veloWidget.style.borderColor = vel <= 0.005 ? "rgba(239, 68, 68, 0.6)" : (vel < VEL_NORMAL - 0.005 ? "rgba(245, 158, 11, 0.55)" : "rgba(148, 163, 184, 0.26)");
+
     if (dist.frente <= LIMITE_PELIGRO) {
       alertaObs.textContent = (vel <= 0.005 ? "FRENADO POR OBSTÁCULO · 0.00 m/s" : "FRENANDO POR OBSTÁCULO · " + velTxt + " m/s");
       alertaObs.className = "us-alerta";
@@ -709,17 +658,6 @@
     jsonEl.textContent = JSON.stringify(mensaje(), null, 2);
     dibujar();
   }
-
-  ids.forEach(function (k) {
-    rango[k].addEventListener("input", function () {
-      dist[k] = parseInt(rango[k].value, 10);
-      if (k === "frente" && obstaculoActivo) {
-        obstaculo.xCm = 0;
-        obstaculo.yCm = dist.frente;
-      }
-      refrescar(true);
-    });
-  });
 
   /* Base en la esquina del radar: arrastra el círculo rojo al radar o devuélvelo a su base */
   function actualizarBaseObstaculo() {
@@ -737,8 +675,6 @@
     baseObs.classList.remove("zona-soltar");
     dist.frente = DIST_LIBRE_FRENTE;
     dist.atras = DIST_LIBRE_ATRAS;
-    rango.frente.value = DIST_LIBRE_FRENTE;
-    rango.atras.value = DIST_LIBRE_ATRAS;
     actualizarBaseObstaculo();
     refrescar(true);
   }
@@ -765,17 +701,13 @@
     var det = deteccionObstaculo();
     if (det.frente) {
       dist.frente = det.cm;
-      rango.frente.value = det.cm;
     } else if (prevDet.frente && !encendido) {
       dist.frente = DIST_LIBRE_FRENTE;
-      rango.frente.value = DIST_LIBRE_FRENTE;
     }
     if (det.atras) {
       dist.atras = det.cm;
-      rango.atras.value = det.cm;
     } else if (prevDet.atras && !encendido) {
       dist.atras = DIST_LIBRE_ATRAS;
-      rango.atras.value = DIST_LIBRE_ATRAS;
     }
     prevDet.frente = det.frente;
     prevDet.atras = det.atras;
@@ -835,7 +767,6 @@
       obstaculo.xCm = 0;
       obstaculo.yCm = 75;
       dist.frente = 75;
-      rango.frente.value = 75;
       actualizarBaseObstaculo();
       refrescar(true);
     }
@@ -917,11 +848,9 @@
       var det = deteccionObstaculo();
       if (!det.frente) {
         dist.frente = f(150, 35, 0.45, 1.2);
-        rango.frente.value = dist.frente;
       }
       if (!det.atras) {
         dist.atras = f(130, 40, 0.6, 0);
-        rango.atras.value = dist.atras;
       }
     }
 
@@ -1017,14 +946,12 @@
 
   function encender() {
     encendido = true; enviados = 0; indice = 0; inicioMs = Date.now(); t0 = performance.now();
-    ids.forEach(function (k) { rango[k].disabled = true; });
     actualizarBoton();
     conectar();
     timerPub = setInterval(publicar, PERIODO_MS);
   }
   function apagar() {
     encendido = false;
-    ids.forEach(function (k) { rango[k].disabled = false; });
     if (timerPub) { clearInterval(timerPub); timerPub = null; }
     limpiarCliente();
     actualizarBoton();
