@@ -451,10 +451,12 @@
   var canvas = $("radar"), ctx = canvas.getContext("2d");
 
   var VEL_NORMAL = 0.60;
-  var DIST_LIBRE_FRENTE = 160;
-  var dist = { frente: DIST_LIBRE_FRENTE, atras: 150 };
+  var DIST_LIBRE_FRENTE = 160, DIST_LIBRE_ATRAS = 150;
+  var ANG_DETECCION = 35;                       /* semiamplitud (°) para detectar obstáculo en cada sensor */
+  var dist = { frente: DIST_LIBRE_FRENTE, atras: DIST_LIBRE_ATRAS };
   var obstaculoActivo = false;
   var obstaculo = { xCm: 0, yCm: 75 };
+  var prevDet = { frente: false, atras: false };
   var velActual = VEL_NORMAL;
   var arrastrando = false;
   var sobreObstaculo = false;
@@ -463,6 +465,19 @@
   var encendido = false, conectado = false;
   var cliente = null, indice = 0, timerPub = null, timerFallo = null, timerReintento = null;
   var inicioMs = 0, enviados = 0;
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function deteccionObstaculo() {
+    if (!obstaculoActivo) return { frente: false, atras: false, cm: 0 };
+    var cm = Math.round(Math.max(DIST_MIN, Math.min(DIST_MAX, Math.hypot(obstaculo.xCm, obstaculo.yCm))));
+    var angFrente = Math.abs(Math.atan2(obstaculo.xCm, obstaculo.yCm) * 180 / Math.PI);
+    var angAtras = Math.abs(Math.atan2(obstaculo.xCm, -obstaculo.yCm) * 180 / Math.PI);
+    return {
+      frente: obstaculo.yCm >= 0 && angFrente <= ANG_DETECCION,
+      atras: obstaculo.yCm < 0 && angAtras <= ANG_DETECCION,
+      cm: cm
+    };
+  }
 
   function zona(cm) { return cm <= LIMITE_PELIGRO ? "rojo" : (cm <= LIMITE_CERCA ? "ambar" : "verde"); }
   function calcularVelocidadObjetivo(cm) {
@@ -511,10 +526,12 @@
 
   function rad(g) { return g * Math.PI / 180; }
 
-  function dibujar() {
+  function dibujar(ts) {
     var W = canvas.clientWidth || 520, H = canvas.clientHeight || W;
     var ox = W / 2, oy = H / 2;                    /* el robot va en el centro */
     var R = Math.min(W, H) / 2 - 14;
+    var tSeg = reduceMotion ? 0.4 : ((ts || performance.now()) / 1000);
+    var det = deteccionObstaculo();
     ctx.clearRect(0, 0, W, H);
 
     /* anillos de distancia (etiquetas arriba-izquierda para dejar la esquina superior derecha libre para el botón) */
@@ -541,9 +558,10 @@
       ctx.lineTo(ox + R * Math.sin(rad(g)), oy - R * Math.cos(rad(g))); ctx.stroke();
     });
 
-    /* conos de cada sensor */
+    /* conos y ondas ultrasónicas simultáneas en ambos sensores (delantero y trasero) */
+    var rMin = 15;
     ids.forEach(function (k) {
-      var cm = dist[k], r = R * cm / DIST_MAX, c = COLOR[zona(cm)];
+      var cm = dist[k], r = R * cm / DIST_MAX, z = zona(cm), c = COLOR[z];
       var a0 = rad(ANG[k] - MEDIO_CONO) - Math.PI / 2, a1 = rad(ANG[k] + MEDIO_CONO) - Math.PI / 2;
       /* alcance máximo, solo contorno */
       ctx.strokeStyle = "rgba(148,163,184,0.2)"; ctx.setLineDash([4, 5]);
@@ -551,7 +569,36 @@
       /* zona libre hasta el obstáculo */
       ctx.fillStyle = c + "33";
       ctx.beginPath(); ctx.moveTo(ox, oy); ctx.arc(ox, oy, r, a0, a1); ctx.closePath(); ctx.fill();
-      /* borde del obstáculo */
+
+      /* ondas emitidas salientes (siempre activas en ambos sensores a la vez) */
+      var rLimite = Math.max(rMin + 4, r);
+      var desfase = k === "atras" ? 0.17 : 0;
+      ctx.lineCap = "round";
+      for (var i = 0; i < 3; i++) {
+        var p = (tSeg * 0.58 + i / 3 + desfase) % 1;
+        var rOnda = rMin + p * (rLimite - rMin);
+        var alpha = (1 - p) * 0.62;
+        ctx.strokeStyle = "rgba(125, 211, 252, " + alpha.toFixed(3) + ")";
+        ctx.lineWidth = 1.75;
+        ctx.beginPath(); ctx.arc(ox, oy, rOnda, a0 + 0.03, a1 - 0.03); ctx.stroke();
+      }
+
+      /* ondas de eco rebotando desde el obstáculo de vuelta hacia el sensor */
+      if (det[k]) {
+        var ecoRgb = z === "rojo" ? "252, 165, 165" : (z === "ambar" ? "253, 230, 138" : "134, 239, 172");
+        ctx.setLineDash([6, 4]);
+        for (var j = 0; j < 2; j++) {
+          var pEco = (tSeg * 0.72 + j * 0.5) % 1;
+          var rEco = rLimite - pEco * (rLimite - rMin);
+          var alphaEco = Math.sin(pEco * Math.PI) * 0.92;
+          ctx.strokeStyle = "rgba(" + ecoRgb + ", " + alphaEco.toFixed(3) + ")";
+          ctx.lineWidth = 2.2;
+          ctx.beginPath(); ctx.arc(ox, oy, rEco, a0 + 0.02, a1 - 0.02); ctx.stroke();
+        }
+        ctx.setLineDash([]);
+      }
+
+      /* borde del obstáculo / alcance actual */
       ctx.strokeStyle = c; ctx.lineWidth = 4; ctx.lineCap = "round";
       ctx.beginPath(); ctx.arc(ox, oy, r, a0, a1); ctx.stroke();
       ctx.lineWidth = 1;
@@ -571,6 +618,16 @@
       ctx.setLineDash([3, 4]);
       ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(obsX, obsY); ctx.stroke();
       ctx.setLineDash([]);
+
+      /* ondas de impacto/rebote en el objeto cuando alguno de los sensores lo detecta */
+      if (det.frente || det.atras) {
+        var pImp = (tSeg * 0.72) % 1;
+        var rImp = 11 + pImp * 18;
+        ctx.strokeStyle = "rgba(252, 165, 165, " + ((1 - pImp) * 0.85).toFixed(3) + ")";
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(obsX, obsY, rImp, 0, 2 * Math.PI); ctx.stroke();
+        ctx.lineWidth = 1;
+      }
 
       ctx.fillStyle = arrastrando ? "rgba(239, 68, 68, 0.38)" : (sobreObstaculo ? "rgba(239, 68, 68, 0.30)" : "rgba(239, 68, 68, 0.22)");
       ctx.beginPath(); ctx.arc(obsX, obsY, arrastrando ? 21 : (sobreObstaculo ? 19 : 17), 0, 2 * Math.PI); ctx.fill();
@@ -674,10 +731,14 @@
     obstaculoActivo = false;
     arrastrando = false;
     sobreObstaculo = false;
+    prevDet.frente = false;
+    prevDet.atras = false;
     canvas.classList.remove("arrastrando", "sobre-obs");
     baseObs.classList.remove("zona-soltar");
     dist.frente = DIST_LIBRE_FRENTE;
+    dist.atras = DIST_LIBRE_ATRAS;
     rango.frente.value = DIST_LIBRE_FRENTE;
+    rango.atras.value = DIST_LIBRE_ATRAS;
     actualizarBaseObstaculo();
     refrescar(true);
   }
@@ -700,6 +761,25 @@
     var R = Math.min(W, H) / 2 - 14;
     return { x: ox + (obstaculo.xCm / DIST_MAX) * R, y: oy - (obstaculo.yCm / DIST_MAX) * R };
   }
+  function sincronizarSensoresConObstaculo() {
+    var det = deteccionObstaculo();
+    if (det.frente) {
+      dist.frente = det.cm;
+      rango.frente.value = det.cm;
+    } else if (prevDet.frente && !encendido) {
+      dist.frente = DIST_LIBRE_FRENTE;
+      rango.frente.value = DIST_LIBRE_FRENTE;
+    }
+    if (det.atras) {
+      dist.atras = det.cm;
+      rango.atras.value = det.cm;
+    } else if (prevDet.atras && !encendido) {
+      dist.atras = DIST_LIBRE_ATRAS;
+      rango.atras.value = DIST_LIBRE_ATRAS;
+    }
+    prevDet.frente = det.frente;
+    prevDet.atras = det.atras;
+  }
   function moverObstaculoDesdeEvento(ev) {
     if (!obstaculoActivo) return;
     var rect = canvas.getBoundingClientRect();
@@ -716,7 +796,6 @@
       dy = dy * R / rPx;
       rPx = R;
     }
-    var cm = Math.round(Math.max(DIST_MIN, Math.min(DIST_MAX, (rPx / R) * DIST_MAX)));
     obstaculo.xCm = (dx / R) * DIST_MAX;
     obstaculo.yCm = (dy / R) * DIST_MAX;
 
@@ -724,13 +803,7 @@
     baseObs.classList.toggle("zona-soltar", enZonaDevolver);
 
     if (!enZonaDevolver) {
-      if (dy >= 0) {
-        dist.frente = cm;
-        rango.frente.value = cm;
-      } else {
-        dist.atras = cm;
-        rango.atras.value = cm;
-      }
+      sincronizarSensoresConObstaculo();
     }
     refrescar(true);
   }
@@ -831,7 +904,7 @@
   window.addEventListener("resize", ajustarCanvas);
 
   /* Bucle continuo de simulación: nunca se pausa (ni al detectar obstáculo ni en 0.00 m/s).
-     Al pulsar Encender arranca automáticamente el movimiento continuo junto con MQTT. */
+     Ambos sensores (delantero y trasero) operan siempre en simultáneo e independientemente. */
   var t0 = 0, ultimoTs = 0;
   function bucleSimulacion(ts) {
     if (!ultimoTs) ultimoTs = ts;
@@ -841,11 +914,12 @@
     if (encendido) {
       var s = (ts - t0) / 1000;
       var f = function (base, amp, vel, fase) { return Math.round(Math.max(DIST_MIN, Math.min(DIST_MAX, base + amp * Math.sin(s * vel + fase)))); };
-      if (!obstaculoActivo) {
+      var det = deteccionObstaculo();
+      if (!det.frente) {
         dist.frente = f(150, 35, 0.45, 1.2);
         rango.frente.value = dist.frente;
       }
-      if (!obstaculoActivo || obstaculo.yCm >= 0) {
+      if (!det.atras) {
         dist.atras = f(130, 40, 0.6, 0);
         rango.atras.value = dist.atras;
       }
@@ -864,6 +938,7 @@
     }
 
     refrescar(false);
+    if (!reduceMotion) dibujar(ts);
     requestAnimationFrame(bucleSimulacion);
   }
 
