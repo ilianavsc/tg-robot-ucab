@@ -41,7 +41,7 @@ jobs:
       - name: Pruebas de la vitrina autónoma de P03 (ruta, sensores y modelo)
         run: node prototipos/P03-motores/avance-02-simulador-3d/codigo/vitrina.test.js
 
-      - name: Pruebas del Simulador 1 de aprendizaje progresivo (P08: pistas, lectura de línea y modos)
+      - name: Pruebas del Simulador 1 de aprendizaje progresivo (P08, pistas, lectura de línea y modos)
         run: node prototipos/P08-seguidor-linea/avance-01-simulador-3d/codigo/simulador1.test.js
 
       - name: Instalar Flutter (misma versión que en las pruebas)
