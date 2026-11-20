@@ -44,6 +44,14 @@
 .led-us.espera { background: var(--ambar); box-shadow: 0 0 8px var(--ambar); }
 .led-us.error { background: var(--rojo); box-shadow: 0 0 8px var(--rojo); }
 .us-lectura { font-weight: 700; color: #e2e8f0; white-space: nowrap; }
+.us-botones-barra { display: flex; flex-wrap: wrap; gap: 8px; }
+#btn-mover { min-height: 44px; font-weight: 700; white-space: nowrap; }
+#btn-mover.mover-inactivo { background: #334155; border-color: #475569; color: #cbd5e1; }
+#btn-mover.mover-activo { background: var(--accent-primary); border-color: var(--accent-primary-hover); color: #fff; }
+
+/* Zona de alertas arriba del radar (altura estable: no salta) */
+.us-alertas { padding: 10px 20px 0; }
+.us-alertas .us-alerta { margin-top: 0; }
 
 /* El radar es el protagonista: centrado y grande */
 .us-cuerpo { display: flex; justify-content: center; padding: 22px; }
@@ -132,10 +140,11 @@
 
 /* Aviso de frenado */
 .us-alerta {
-  margin-top: 10px; padding: 8px 10px; border-radius: 8px;
+  padding: 8px 10px; border-radius: 8px;
   background: #7f1d1d; color: #fff; font-family: var(--font-mono);
   font-size: 13px; font-weight: 700; text-align: center; letter-spacing: 0.04em;
 }
+.us-alerta.cerca { background: #b45309; }
 .us-alerta[hidden] { display: block; visibility: hidden; }
 
 /* Fila inferior: Velocidad (solo lectura) + toggle Mover solo */
@@ -157,22 +166,6 @@
 .us-vel-barra { height: 5px; border-radius: 999px; background: #0f172a; border: 1px solid #334155; overflow: hidden; margin-top: 6px; }
 .us-vel-fill { height: 100%; width: 100%; background: var(--verde); transition: width 0.12s ease-out, background-color 0.2s ease-out; }
 
-/* Toggle switch (Mover solo) */
-.us-switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; min-height: 44px; }
-.us-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
-.us-switch-pista {
-  position: relative; width: 48px; height: 28px; flex: 0 0 48px;
-  border-radius: 999px; background: #334155; transition: background-color 0.2s ease-out;
-}
-.us-switch-pista::after {
-  content: ""; position: absolute; top: 3px; left: 3px;
-  width: 22px; height: 22px; border-radius: 50%;
-  background: #e2e8f0; transition: transform 0.2s ease-out;
-}
-.us-switch input:checked + .us-switch-pista { background: var(--accent-primary); }
-.us-switch input:checked + .us-switch-pista::after { transform: translateX(20px); }
-.us-switch input:focus-visible + .us-switch-pista { outline: 3px solid #3b82f6; outline-offset: 2px; }
-.us-switch-texto { font-size: 14.5px; color: #cbd5e1; }
 @media (max-width: 640px) { .us-controles-grid { grid-template-columns: 1fr; } }
 
 .us-broker { font-family: var(--font-mono); font-size: 12.5px; color: #94a3b8; }
@@ -233,7 +226,13 @@
       <div class="us-barra">
         <div class="us-estado"><span class="led-us" id="led" aria-hidden="true"></span><span id="estado" role="status">DETENIDO · pulsa Encender para publicar</span></div>
         <div class="us-lectura" id="lectura">Adelante 120 · Atrás 150 cm</div>
-        <button type="button" id="btn-toggle" class="btn apagado">⚡ Encender</button>
+        <div class="us-botones-barra">
+          <button type="button" id="btn-mover" class="btn mover-inactivo">▶ Mover solo</button>
+          <button type="button" id="btn-toggle" class="btn apagado">⚡ Encender</button>
+        </div>
+      </div>
+      <div class="us-alertas">
+        <div class="us-alerta" id="alerta-obstaculo" hidden>FRENADO POR OBSTÁCULO</div>
       </div>
 
       <div class="us-cuerpo">
@@ -248,7 +247,7 @@
       </div>
 
       <details class="us-detalle" id="panel-controles">
-        <summary>Controles <span class="us-detalle-hint">Adelante · Atrás · Velocidad · Mover solo</span></summary>
+        <summary>Controles <span class="us-detalle-hint">Adelante · Atrás · Velocidad</span></summary>
         <div class="us-detalle-cuerpo">
           <div class="us-controles-grid">
             <div class="us-sensor" id="s-frente">
@@ -269,13 +268,7 @@
               <div class="us-vel-num"><span id="v-velocidad">0.60</span><small>m/s</small></div>
               <div class="us-vel-barra" aria-hidden="true"><div class="us-vel-fill" id="vel-fill"></div></div>
             </div>
-            <label class="us-switch">
-              <input type="checkbox" id="chk-mover">
-              <span class="us-switch-pista" aria-hidden="true"></span>
-              <span class="us-switch-texto">Mover solo <small style="opacity:.7">(simula un pasillo)</small></span>
-            </label>
           </div>
-          <div class="us-alerta" id="alerta-obstaculo" hidden>FRENADO POR OBSTÁCULO</div>
         </div>
       </details>
 
@@ -328,7 +321,7 @@
   var rango = {}, valor = {}, caja = {};
   ids.forEach(function (k) { rango[k] = $("r-" + k); valor[k] = $("v-" + k); caja[k] = $("s-" + k); });
   var ledEl = $("led"), estadoEl = $("estado"), lecturaEl = $("lectura"), brokerEl = $("broker"), jsonEl = $("json"), logEl = $("log");
-  var btnToggle = $("btn-toggle"), chkMover = $("chk-mover");
+  var btnToggle = $("btn-toggle"), btnMover = $("btn-mover");
   var alertaObs = $("alerta-obstaculo"), valVelocidad = $("v-velocidad"), velFill = $("vel-fill"), cajaVelocidad = $("s-velocidad"), velBadge = $("vel-badge");
   var canvas = $("radar"), ctx = canvas.getContext("2d");
 
@@ -485,7 +478,17 @@
     velFill.style.background = COLOR[zFrente];
     cajaVelocidad.className = "us-velocidad zona-" + zFrente;
     velBadge.textContent = vel <= 0 ? "Frenado" : (vel < VEL_NORMAL - 0.001 ? "Lento" : "Normal");
-    alertaObs.hidden = !(dist.frente <= LIMITE_PELIGRO);
+    if (dist.frente <= LIMITE_PELIGRO) {
+      alertaObs.textContent = "FRENADO POR OBSTÁCULO";
+      alertaObs.className = "us-alerta";
+      alertaObs.hidden = false;
+    } else if (dist.frente <= LIMITE_CERCA) {
+      alertaObs.textContent = "OBSTÁCULO CERCA";
+      alertaObs.className = "us-alerta cerca";
+      alertaObs.hidden = false;
+    } else {
+      alertaObs.hidden = true;
+    }
     jsonEl.textContent = JSON.stringify(mensaje(), null, 2);
     dibujar();
   }
@@ -527,8 +530,9 @@
     obstaculo.xCm = (dx / R) * DIST_MAX;
     obstaculo.yCm = (dy / R) * DIST_MAX;
 
-    if (chkMover.checked) {
-      chkMover.checked = false;
+    if (moviendo) {
+      moviendo = false;
+      actualizarBotonMover();
     }
     if (dy >= 0) {
       dist.frente = cm;
@@ -571,10 +575,21 @@
   window.addEventListener("pointercancel", soltarObstaculo);
   window.addEventListener("resize", ajustarCanvas);
 
-  /* "Mover solo": distancias que suben y bajan, para ver el radar vivo */
-  var rafId = null, t0 = 0;
+  /* "Mover solo": distancias que suben y bajan, para ver el radar vivo.
+     No se pausa al detectar un obstáculo: el ciclo sigue aunque velocidad sea 0. */
+  var rafId = null, t0 = 0, moviendo = false;
+  function actualizarBotonMover() {
+    btnMover.textContent = moviendo ? "⏸ Mover solo" : "▶ Mover solo";
+    btnMover.className = "btn " + (moviendo ? "mover-activo" : "mover-inactivo");
+    ids.forEach(function (k) { rango[k].disabled = moviendo; });
+  }
+  function alternarMover() {
+    moviendo = !moviendo;
+    actualizarBotonMover();
+    if (moviendo && !rafId) { t0 = performance.now(); rafId = requestAnimationFrame(pasear); }
+  }
   function pasear(ts) {
-    if (!chkMover.checked) { rafId = null; return; }
+    if (!moviendo) { rafId = null; return; }
     var s = (ts - t0) / 1000;
     var f = function (base, amp, vel, fase) { return Math.round(Math.max(DIST_MIN, Math.min(DIST_MAX, base + amp * Math.sin(s * vel + fase)))); };
     dist.frente = f(110, 95, 0.5, 1.6);
@@ -583,10 +598,7 @@
     refrescar();
     rafId = requestAnimationFrame(pasear);
   }
-  chkMover.addEventListener("change", function () {
-    ids.forEach(function (k) { rango[k].disabled = chkMover.checked; });
-    if (chkMover.checked && !rafId) { t0 = performance.now(); rafId = requestAnimationFrame(pasear); }
-  });
+  btnMover.addEventListener("click", alternarMover);
 
   /* ---------------- MQTT con brokers de respaldo ---------------- */
   function limpiarCliente() {
@@ -681,6 +693,7 @@
 
   ajustarCanvas();
   actualizarBoton();
+  actualizarBotonMover();
   refrescar();
 })();
 </script>
