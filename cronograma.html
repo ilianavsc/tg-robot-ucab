@@ -57,12 +57,47 @@
 .protos-etapa {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 10px;
 }
 .protos-etapa a {
   text-decoration: none;
 }
 .protos-etapa .chip {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.bloque {
+  flex: 1 1 100%;
+  min-width: 0;
+  border: 1.5px solid var(--border-dark);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  background: var(--surface-alt);
+}
+.bloque-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  margin-bottom: 10px;
+}
+.bloque-titulo {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15.5px;
+  color: var(--text-main);
+}
+.bloque-hijos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.bloque-hijos a {
+  text-decoration: none;
+}
+.bloque-hijos .chip {
   max-width: 100%;
   white-space: normal;
   overflow-wrap: anywhere;
@@ -171,6 +206,75 @@
   var semActual = s.n || 1;
   var pctTotal = Math.min(100, Math.round((semActual / D.totalSemanas) * 100));
 
+  /* Agrupación visual de los submódulos dentro de cada fase. */
+  var bloques = {
+    1: [
+      { tipo: "solo", codigo: "P01" },
+      { tipo: "bloque", codigo: "P02", hijos: ["P03", "P13"] }
+    ],
+    2: [
+      { tipo: "bloque", codigo: "P05", hijos: ["P08", "P10"] },
+      { tipo: "solo", codigo: "P07" },
+      { tipo: "solo", codigo: "P04" }
+    ],
+    3: [
+      { tipo: "bloque", titulo: "App y Alertas", hijos: ["P09", "P11", "P12"] }
+    ],
+    4: []
+  };
+  function protoDe(codigo) {
+    for (var i = 0; i < D.prototipos.length; i++) {
+      if (D.prototipos[i].codigo === codigo) return D.prototipos[i];
+    }
+    return null;
+  }
+  function cortoDe(codigo) {
+    var p = protoDe(codigo);
+    if (!p) return codigo;
+    return (D.protoResumen && D.protoResumen[codigo]) ? D.protoResumen[codigo].corto : p.nombre;
+  }
+  function claseDe(estado) {
+    return estado === "listo" ? "hecho" : estado === "en_pruebas" ? "pruebas" : "pendiente";
+  }
+  function etiquetaDe(estado) {
+    return estado === "listo" ? "Listo" : estado === "en_pruebas" ? "En pruebas" : "Pendiente";
+  }
+  function chipProto(p) {
+    var info = (D.protoResumen && D.protoResumen[p.codigo]) || { corto: p.nombre };
+    var c = '<span class="chip ' + claseDe(p.estado) + '" title="' + p.nombre + '">' + info.corto + "</span>";
+    return p.url ? '<a href="' + p.url + '">' + c + "</a>" : c;
+  }
+  function renderBloques(items) {
+    var out = "";
+    items.forEach(function (it) {
+      if (it.tipo === "solo") {
+        var p = protoDe(it.codigo);
+        if (p) out += chipProto(p);
+        return;
+      }
+      var hijos = (it.hijos || []).map(protoDe).filter(function (x) { return x; });
+      var titulo = it.titulo || cortoDe(it.codigo);
+      var estado = "pendiente";
+      if (it.codigo) {
+        var padre = protoDe(it.codigo);
+        if (padre) estado = padre.estado;
+      } else {
+        for (var i = 0; i < hijos.length; i++) {
+          if (hijos[i].estado === "en_pruebas") { estado = "en_pruebas"; break; }
+          if (hijos[i].estado === "listo") { estado = "listo"; }
+        }
+      }
+      out += '<div class="bloque">' +
+        '<div class="bloque-cabecera">' +
+          '<span class="bloque-titulo">' + titulo + '</span>' +
+          '<span class="chip ' + claseDe(estado) + '">' + etiquetaDe(estado) + '</span>' +
+        '</div>' +
+        '<div class="bloque-hijos">' + hijos.map(chipProto).join("") + '</div>' +
+      '</div>';
+    });
+    return out;
+  }
+
   /* 1. Resumen superior y barra de progreso de 32 semanas */
   document.getElementById("resumen").innerHTML = s.extra
     ? "Semana extra de parciales · seguimos avanzando en construcción y pruebas."
@@ -243,12 +347,7 @@
       chipHtml = '<span class="chip pendiente">Por venir</span>';
     }
 
-    var protosHtml = protosEt.map(function (p) {
-      var info = (D.protoResumen && D.protoResumen[p.codigo]) || { corto: p.tema };
-      var claseEstado = p.estado === "listo" ? "hecho" : p.estado === "en_pruebas" ? "pruebas" : "pendiente";
-      var c = '<span class="chip ' + claseEstado + '" title="' + p.nombre + '">' + info.corto + "</span>";
-      return p.url ? '<a href="' + p.url + '">' + c + "</a>" : c;
-    }).join("");
+    var protosHtml = renderBloques(bloques[et.n] || []);
 
     var semanasItems = "";
     for (var sw = wIni; sw <= wFin; sw++) {
