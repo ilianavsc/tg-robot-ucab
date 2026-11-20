@@ -96,9 +96,9 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
               CabeceraIdentidad(sesion: sesion, rol: rol),
               const SizedBox(height: 16),
               if (admin) ...<Widget>[
-                SeccionAdministracion(servicio: servicio),
-                const SizedBox(height: 12),
                 const TarjetaFailSafe(),
+                const SizedBox(height: 12),
+                SeccionAdministracion(servicio: servicio),
                 const SizedBox(height: 12),
               ],
               TarjetaSesionActual(sesion: sesion, servicio: servicio),
