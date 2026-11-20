@@ -28,42 +28,93 @@
   padding: 12px 20px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 20px;
+  gap: 10px 18px;
   align-items: center;
   justify-content: space-between;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
   font-family: var(--font-mono);
   font-size: 13px;
 }
-.us-estado { display: flex; align-items: center; gap: 8px; }
+.us-estado { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .led-us {
-  display: inline-block; width: 11px; height: 11px; border-radius: 50%;
+  display: inline-block; flex: 0 0 auto; width: 11px; height: 11px; border-radius: 50%;
   background: #64748b; vertical-align: middle;
   transition: background-color 0.2s ease-out, box-shadow 0.2s ease-out;
 }
 .led-us.ok { background: var(--verde); box-shadow: 0 0 8px var(--verde); }
 .led-us.espera { background: var(--ambar); box-shadow: 0 0 8px var(--ambar); }
 .led-us.error { background: var(--rojo); box-shadow: 0 0 8px var(--rojo); }
-.us-lectura { font-weight: 700; color: #e2e8f0; white-space: nowrap; }
-.us-botones-barra { display: flex; flex-wrap: wrap; gap: 8px; }
-#btn-mover { min-height: 44px; font-weight: 700; white-space: nowrap; }
-#btn-mover.mover-inactivo { background: #334155; border-color: #475569; color: #cbd5e1; }
-#btn-mover.mover-activo { background: var(--accent-primary); border-color: var(--accent-primary-hover); color: #fff; }
+.us-lectura {
+  font-weight: 700; color: #e2e8f0; white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+.us-botones-barra { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+#btn-mover, #btn-toggle {
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: transform 0.14s var(--p11-ease), background-color 0.18s ease-out, border-color 0.18s ease-out, box-shadow 0.18s ease-out;
+}
+#btn-mover:active, #btn-toggle:active { transform: scale(0.97); }
+#btn-mover.mover-inactivo { background: #334155; border-color: #475569; color: #e2e8f0; }
+#btn-mover.mover-inactivo:hover { background: #475569; }
+#btn-mover.mover-activo { background: #0284c7; border-color: #38bdf8; color: #fff; box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.22); }
+#btn-toggle.apagado { background: var(--accent-primary); border-color: var(--accent-primary-hover); color: #fff; }
+#btn-toggle.encendido { background: #dc2626; border-color: #f87171; color: #fff; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.22); }
 
-/* Zona de alertas arriba del radar (altura estable: no salta) */
-.us-alertas { padding: 10px 20px 0; }
-.us-alertas .us-alerta { margin-top: 0; }
+/* Zona de alertas arriba del radar (espacio reservado fijo: 0 px de salto) */
+.us-alertas {
+  padding: 12px 20px 0;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.us-alerta {
+  width: 100%;
+  max-width: 520px;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(185, 28, 28, 0.92);
+  border: 1.5px solid #f87171;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.05em;
+  opacity: 1;
+  transition: opacity 0.18s ease-out, background-color 0.18s ease-out, border-color 0.18s ease-out;
+}
+.us-alerta.cerca { background: rgba(180, 83, 9, 0.92); border-color: #fbbf24; }
+.us-alerta[hidden] { display: flex; visibility: hidden; opacity: 0; pointer-events: none; }
 
 /* El radar es el protagonista: centrado y grande */
-.us-cuerpo { display: flex; justify-content: center; padding: 22px; }
+.us-cuerpo { display: flex; justify-content: center; padding: 14px 22px 22px; }
 .us-radar-caja { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 12px; }
 #radar {
   width: 100%; height: auto; aspect-ratio: 1 / 1; max-width: 520px; margin: 0 auto; display: block;
-  background: radial-gradient(ellipse at 50% 100%, #12263f 0%, #0b1424 70%);
-  border: 1.5px solid #334155; border-radius: 14px;
-  touch-action: pan-y;
-  cursor: grab;
+  background: radial-gradient(circle at 50% 50%, #12263f 0%, #0b1424 72%);
+  border: 1.5px solid #334155; border-radius: 16px;
+  box-shadow: inset 0 0 28px rgba(2, 6, 23, 0.65);
+  touch-action: none;
+  cursor: default;
   user-select: none;
 }
+#radar.sobre-obs { cursor: grab; }
 #radar.arrastrando { cursor: grabbing; }
 .us-leyenda { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; font-size: 13px; color: #94a3b8; }
 .us-leyenda i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
@@ -72,14 +123,17 @@
 .us-detalle { border-top: 1.5px solid #1e293b; }
 .us-detalle summary {
   cursor: pointer; list-style: none;
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  display: flex; align-items: center; gap: 10px;
   min-height: 48px; padding: 12px 20px;
-  font-family: var(--font-display); font-weight: 700; font-size: 16px; color: #e2e8f0;
+  font-family: var(--font-display); font-weight: 700; font-size: 15.5px; color: #e2e8f0;
+  transition: background-color 0.15s ease-out;
 }
+.us-detalle summary:hover { background: rgba(255, 255, 255, 0.03); }
+.us-detalle summary:focus-visible { outline: 2px solid #38bdf8; outline-offset: -2px; }
 .us-detalle summary::-webkit-details-marker { display: none; }
-.us-detalle summary::after { content: "▾"; color: #64748b; font-size: 14px; transition: transform 0.2s ease-out; }
+.us-detalle summary::after { content: "▾"; color: #94a3b8; font-size: 14px; transition: transform 0.2s ease-out; }
 .us-detalle[open] summary::after { transform: rotate(180deg); }
-.us-detalle-hint { font-family: var(--font-mono); font-weight: 600; font-size: 12px; color: #64748b; }
+.us-detalle-hint { margin-left: auto; font-family: var(--font-mono); font-weight: 600; font-size: 11.5px; color: #64748b; }
 .us-detalle-cuerpo { padding: 4px 20px 20px; }
 
 .us-controles-grid {
@@ -88,7 +142,7 @@
   gap: 10px;
 }
 .us-sensor {
-  background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px;
+  background: #1e293b; border: 1px solid rgba(148, 163, 184, 0.14); border-radius: 12px;
   padding: 12px 14px;
   transition: border-color 0.2s ease-out, background-color 0.2s ease-out;
 }
@@ -96,24 +150,27 @@
 .us-sensor.zona-verde .us-valor { color: #22c55e; }
 .us-sensor.zona-ambar .us-valor { color: #f59e0b; }
 .us-sensor.zona-rojo .us-valor { color: #ef4444; }
-.us-fila { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.us-fila { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
 .us-nombre { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #94a3b8; }
 .us-valor { font-family: var(--font-mono); font-weight: 700; font-size: 24px; font-variant-numeric: tabular-nums; color: #fff; line-height: 1; }
 .us-valor small { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: #64748b; margin-left: 4px; }
 
-/* Sliders personalizados (track fino + relleno dinámico + thumb circular) */
+/* Sliders personalizados (track fino de alto contraste + relleno dinámico + thumb circular) */
 .us-sensor input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
-  width: 100%; height: 44px; margin: 0;
+  width: 100%; height: 38px; margin: 0;
   background: transparent; cursor: pointer;
 }
+.us-sensor input[type="range"]:disabled { opacity: 0.55; cursor: not-allowed; }
 .us-sensor input[type="range"]::-webkit-slider-runnable-track {
   height: 6px; border-radius: 999px;
-  background: linear-gradient(to right, var(--zona-color, #22c55e) 0%, var(--zona-color, #22c55e) var(--pct, 50%), #1e293b var(--pct, 50%), #1e293b 100%);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.22);
+  background: linear-gradient(to right, var(--zona-color, #22c55e) 0%, var(--zona-color, #22c55e) var(--pct, 50%), #0f172a var(--pct, 50%), #0f172a 100%);
 }
 .us-sensor input[type="range"]::-moz-range-track {
-  height: 6px; border-radius: 999px; background: #1e293b;
+  height: 6px; border-radius: 999px; background: #0f172a;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.22);
 }
 .us-sensor input[type="range"]::-moz-range-progress {
   height: 6px; border-radius: 999px; background: var(--zona-color, #22c55e);
@@ -122,35 +179,21 @@
   -webkit-appearance: none; appearance: none;
   width: 18px; height: 18px; border-radius: 50%;
   background: #fff; border: 3px solid var(--zona-color, #22c55e);
-  box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.12);
+  box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.14);
   margin-top: -6px;
-  transition: box-shadow 0.15s ease-out;
+  transition: box-shadow 0.15s ease-out, transform 0.12s ease-out;
 }
-.us-sensor input[type="range"]:hover::-webkit-slider-thumb,
-.us-sensor input[type="range"]:active::-webkit-slider-thumb { box-shadow: 0 0 0 7px rgba(148, 163, 184, 0.18); }
+.us-sensor input[type="range"]:hover:not(:disabled)::-webkit-slider-thumb,
+.us-sensor input[type="range"]:active:not(:disabled)::-webkit-slider-thumb { box-shadow: 0 0 0 7px rgba(148, 163, 184, 0.22); }
 .us-sensor input[type="range"]::-moz-range-thumb {
   width: 12px; height: 12px; border-radius: 50%;
   background: #fff; border: 3px solid var(--zona-color, #22c55e);
 }
 
-/* Botón único Encender/Detener (toggle) */
-#btn-toggle { min-height: 48px; font-weight: 700; white-space: nowrap; }
-#btn-toggle.apagado { background: var(--accent-primary); border-color: var(--accent-primary-hover); color: #fff; }
-#btn-toggle.encendido { background: #dc2626; border-color: #991b1b; color: #fff; }
-
-/* Aviso de frenado */
-.us-alerta {
-  padding: 8px 10px; border-radius: 8px;
-  background: #7f1d1d; color: #fff; font-family: var(--font-mono);
-  font-size: 13px; font-weight: 700; text-align: center; letter-spacing: 0.04em;
-}
-.us-alerta.cerca { background: #b45309; }
-.us-alerta[hidden] { display: block; visibility: hidden; }
-
-/* Fila inferior: Velocidad (solo lectura) + toggle Mover solo */
+/* Fila inferior: Velocidad (solo lectura) */
 .us-fila-inferior {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-  gap: 12px 20px; margin-top: 4px;
+  background: #1e293b; border: 1px solid rgba(148, 163, 184, 0.14); border-radius: 12px;
+  padding: 12px 14px; margin-top: 10px;
 }
 .us-velocidad { flex: 1 1 240px; min-width: 0; }
 .us-vel-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -166,7 +209,13 @@
 .us-vel-barra { height: 5px; border-radius: 999px; background: #0f172a; border: 1px solid #334155; overflow: hidden; margin-top: 6px; }
 .us-vel-fill { height: 100%; width: 100%; background: var(--verde); transition: width 0.12s ease-out, background-color 0.2s ease-out; }
 
-@media (max-width: 640px) { .us-controles-grid { grid-template-columns: 1fr; } }
+@media (max-width: 640px) {
+  .us-controles-grid { grid-template-columns: 1fr; }
+  .us-botones-barra { width: 100%; }
+  #btn-mover, #btn-toggle { flex: 1 1 0; min-height: 46px; }
+  .us-lectura { width: 100%; text-align: center; }
+  .us-alertas { padding: 10px 14px 0; }
+}
 
 .us-broker { font-family: var(--font-mono); font-size: 12.5px; color: #94a3b8; }
 .us-broker b { color: #e2e8f0; }
@@ -221,27 +270,28 @@
     Al pulsar <strong>Encender</strong>, la página publica las lecturas dos veces por segundo, como lo haría el ESP32.
   </div>
 
-  <section aria-labelledby="t-us" style="margin-top:24px">
+  <section aria-label="Simulador de sensores ultrasónicos" style="margin-top:24px">
     <div class="consola-us">
       <div class="us-barra">
         <div class="us-estado"><span class="led-us" id="led" aria-hidden="true"></span><span id="estado" role="status">DETENIDO · pulsa Encender para publicar</span></div>
-        <div class="us-lectura" id="lectura">Adelante 120 · Atrás 150 cm</div>
+        <div class="us-lectura" id="lectura">Adelante 120 · Atrás 150 cm · 0.60 m/s</div>
         <div class="us-botones-barra">
-          <button type="button" id="btn-mover" class="btn mover-inactivo">▶ Mover solo</button>
-          <button type="button" id="btn-toggle" class="btn apagado">⚡ Encender</button>
+          <button type="button" id="btn-mover" class="btn mover-inactivo" aria-pressed="false">▶ Mover solo</button>
+          <button type="button" id="btn-toggle" class="btn apagado" aria-pressed="false">⚡ Encender</button>
         </div>
       </div>
-      <div class="us-alertas">
+      <div class="us-alertas" aria-live="polite">
         <div class="us-alerta" id="alerta-obstaculo" hidden>FRENADO POR OBSTÁCULO</div>
       </div>
 
       <div class="us-cuerpo">
         <div class="us-radar-caja">
-          <canvas id="radar" width="520" height="520" role="img" aria-label="Radar con las distancias adelante y atrás"></canvas>
+          <canvas id="radar" width="520" height="520" role="img" aria-label="Radar interactivo con distancias adelante y atrás; arrastra el círculo rojo para mover el obstáculo"></canvas>
           <div class="us-leyenda">
-            <span><i style="background:#22c55e"></i>Libre (más de 50 cm)</span>
-            <span><i style="background:#f59e0b"></i>Cerca (20 a 50 cm)</span>
-            <span><i style="background:#ef4444"></i>Peligro (menos de 20 cm)</span>
+            <span><i style="background:#22c55e"></i>Libre (&gt; 50 cm)</span>
+            <span><i style="background:#f59e0b"></i>Cerca (20–50 cm)</span>
+            <span><i style="background:#ef4444"></i>Peligro (&le; 20 cm)</span>
+            <span><i style="background:#ef4444;border-radius:50%;border:1.5px solid #fff"></i>Arrastra el obstáculo</span>
           </div>
         </div>
       </div>
@@ -329,8 +379,9 @@
   var dist = { frente: 120, atras: 150 };
   var obstaculo = { xCm: 0, yCm: 120 };
   var arrastrando = false;
+  var sobreObstaculo = false;
   var dragOffset = { x: 0, y: 0 };
-  var HIT_R = 30;                               /* radio de agarre del obstáculo (px CSS) */
+  var HIT_R = 36;                               /* radio de agarre del obstáculo (px CSS) */
   var encendido = false, conectado = false;
   var cliente = null, indice = 0, timerPub = null, timerFallo = null, timerReintento = null;
   var inicioMs = 0, enviados = 0;
@@ -363,6 +414,7 @@
   function actualizarBoton() {
     btnToggle.textContent = encendido ? "⏹ Detener" : "⚡ Encender";
     btnToggle.className = "btn " + (encendido ? "encendido" : "apagado");
+    btnToggle.setAttribute("aria-pressed", String(encendido));
   }
 
   /* ---------------- radar ---------------- */
@@ -446,11 +498,11 @@
     ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(obsX, obsY); ctx.stroke();
     ctx.setLineDash([]);
 
-    ctx.fillStyle = "rgba(239, 68, 68, 0.25)";
-    ctx.beginPath(); ctx.arc(obsX, obsY, 17, 0, 2 * Math.PI); ctx.fill();
+    ctx.fillStyle = arrastrando ? "rgba(239, 68, 68, 0.38)" : (sobreObstaculo ? "rgba(239, 68, 68, 0.30)" : "rgba(239, 68, 68, 0.22)");
+    ctx.beginPath(); ctx.arc(obsX, obsY, arrastrando ? 21 : (sobreObstaculo ? 19 : 17), 0, 2 * Math.PI); ctx.fill();
     ctx.fillStyle = "#ef4444";
     ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = arrastrando ? 2.5 : 2;
     ctx.beginPath(); ctx.arc(obsX, obsY, 10, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
     ctx.lineWidth = 1;
   }
@@ -469,21 +521,21 @@
       rango[k].style.setProperty("--zona-color", COLOR[z]);
       rango[k].style.setProperty("--pct", pctDe(dist[k]) + "%");
     });
-    lecturaEl.textContent = "Adelante " + dist.frente + " · Atrás " + dist.atras + " cm";
-    lecturaEl.style.color = dist.frente <= LIMITE_PELIGRO ? "#ef4444" : "#e2e8f0";
     var vel = calcularVelocidad(dist.frente);
     var zFrente = zona(dist.frente);
+    lecturaEl.textContent = "Adelante " + dist.frente + " · Atrás " + dist.atras + " cm · " + vel.toFixed(2) + " m/s";
+    lecturaEl.style.color = zFrente === "rojo" ? "#fca5a5" : (zFrente === "ambar" ? "#fcd34d" : "#e2e8f0");
     valVelocidad.textContent = vel.toFixed(2);
     velFill.style.width = Math.round((vel / VEL_NORMAL) * 100) + "%";
     velFill.style.background = COLOR[zFrente];
     cajaVelocidad.className = "us-velocidad zona-" + zFrente;
     velBadge.textContent = vel <= 0 ? "Frenado" : (vel < VEL_NORMAL - 0.001 ? "Lento" : "Normal");
     if (dist.frente <= LIMITE_PELIGRO) {
-      alertaObs.textContent = "FRENADO POR OBSTÁCULO";
+      alertaObs.textContent = "FRENADO POR OBSTÁCULO · 0.00 m/s";
       alertaObs.className = "us-alerta";
       alertaObs.hidden = false;
     } else if (dist.frente <= LIMITE_CERCA) {
-      alertaObs.textContent = "OBSTÁCULO CERCA";
+      alertaObs.textContent = "OBSTÁCULO CERCA · " + vel.toFixed(2) + " m/s";
       alertaObs.className = "us-alerta cerca";
       alertaObs.hidden = false;
     } else {
@@ -545,8 +597,7 @@
   }
 
   canvas.addEventListener("pointerdown", function (ev) {
-    /* Solo inicia el arrastre si el toque cae sobre el obstáculo (hit-area 30 px).
-       Si no, se deja el gesto al navegador para no bloquear el scroll vertical. */
+    /* Solo inicia el arrastre si el toque cae sobre el obstáculo (hit-area 36 px). */
     var rect = canvas.getBoundingClientRect();
     var px = ev.clientX - rect.left;
     var py = ev.clientY - rect.top;
@@ -560,6 +611,26 @@
     if (ev.cancelable) ev.preventDefault();
     moverObstaculoDesdeEvento(ev);
   });
+  canvas.addEventListener("pointermove", function (ev) {
+    if (arrastrando) return;
+    var rect = canvas.getBoundingClientRect();
+    var px = ev.clientX - rect.left;
+    var py = ev.clientY - rect.top;
+    var o = obstaculoEnPx();
+    var cerca = Math.hypot(px - o.x, py - o.y) <= HIT_R;
+    if (cerca !== sobreObstaculo) {
+      sobreObstaculo = cerca;
+      canvas.classList.toggle("sobre-obs", cerca);
+      dibujar();
+    }
+  });
+  canvas.addEventListener("pointerleave", function () {
+    if (sobreObstaculo) {
+      sobreObstaculo = false;
+      canvas.classList.remove("sobre-obs");
+      dibujar();
+    }
+  });
   window.addEventListener("pointermove", function (ev) {
     if (!arrastrando) return;
     if (ev.cancelable) ev.preventDefault();
@@ -570,6 +641,7 @@
     arrastrando = false;
     canvas.classList.remove("arrastrando");
     try { canvas.releasePointerCapture(ev.pointerId); } catch (_) {}
+    dibujar();
   }
   window.addEventListener("pointerup", soltarObstaculo);
   window.addEventListener("pointercancel", soltarObstaculo);
@@ -581,6 +653,7 @@
   function actualizarBotonMover() {
     btnMover.textContent = moviendo ? "⏸ Mover solo" : "▶ Mover solo";
     btnMover.className = "btn " + (moviendo ? "mover-activo" : "mover-inactivo");
+    btnMover.setAttribute("aria-pressed", String(moviendo));
     ids.forEach(function (k) { rango[k].disabled = moviendo; });
   }
   function alternarMover() {
@@ -594,6 +667,8 @@
     var f = function (base, amp, vel, fase) { return Math.round(Math.max(DIST_MIN, Math.min(DIST_MAX, base + amp * Math.sin(s * vel + fase)))); };
     dist.frente = f(110, 95, 0.5, 1.6);
     dist.atras = f(100, 70, 0.7, 0);
+    obstaculo.xCm = 0;
+    obstaculo.yCm = dist.frente;
     ids.forEach(function (k) { rango[k].value = dist[k]; });
     refrescar();
     rafId = requestAnimationFrame(pasear);
