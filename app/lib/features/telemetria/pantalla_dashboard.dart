@@ -73,7 +73,7 @@ class _DetalleTecnico extends StatelessWidget {
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          key: const Key('dashboard-detalle-tecnico'),
+          key: const PageStorageKey<String>('dashboard-detalle-tecnico'),
           initiallyExpanded: false,
           tilePadding: const EdgeInsets.symmetric(horizontal: 16),
           childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
