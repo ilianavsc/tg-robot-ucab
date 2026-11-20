@@ -71,7 +71,7 @@ La numeración oficial es P01 a P13 (fuente: `datos/proyecto.js`). Estado al 19/
 | P01 | MQTT base | Comunicación robot ↔ app (QoS, confirmaciones, última voluntad) | Hecho (simulación): 7/7 pruebas, 50/50 pedidos |
 | P02 | Los sentidos del robot | 4× TCRT5000 (línea) y 2× HC-SR04P (frente y atrás) | En pruebas (simulación); HIL en diciembre |
 | P03 | Motores que van parejo | Tracción diferencial, PWM, encoders, PID | En pruebas (simulación) |
-| P04 | ¿BLE o QR? | Re-localización en puntos de referencia | Pendiente (Fase II) |
+| P04 | Balizas BLE (Extremos) | Re-localización en puntos de referencia | Pendiente (Fase II) |
 | P05 | Robot virtual y puente | Puente MQTT a Firebase | Pendiente |
 | P06 | Primera versión de la app | Pedidos y estado (con Firebase) | Pendiente |
 | P07 | El cerebro completo | Firmware integrado (`robot_integrado.ino`) | En pruebas (lógica validada en PC) |
@@ -197,7 +197,7 @@ El trabajo se organiza en **7 fases** durante **32 semanas** (26/10/2026 al 11/0
 - *Criterio de cierre:* requerimientos con criterio de aceptación; hardware pedido; P01 cerrado (7/7 pruebas, 50/50 pedidos en simulación).
 
 **Fase II · Diseño del sistema**
-- *Actividades:* especificación de tópicos MQTT y QoS (`docs/arquitectura/topicos-mqtt.md`), modelado CAD del chasis, esquemas electrónicos, P04 (¿BLE o QR?), compilación del firmware con el core ESP32 en el Arduino IDE. El hardware pedido llega a Miami entre el 15 y el 28 de diciembre de 2026 (luego falta el envío a Venezuela), por lo que las primeras mediciones HIL caen entre el final de esta fase y el inicio de la siguiente.
+- *Actividades:* especificación de tópicos MQTT y QoS (`docs/arquitectura/topicos-mqtt.md`), modelado CAD del chasis, esquemas electrónicos, P04 (Balizas BLE (Extremos)), compilación del firmware con el core ESP32 en el Arduino IDE. El hardware pedido llega a Miami entre el 15 y el 28 de diciembre de 2026 (luego falta el envío a Venezuela), por lo que las primeras mediciones HIL caen entre el final de esta fase y el inicio de la siguiente.
 - *Criterio de cierre:* planos y esquemas revisados por el tutor; arquitectura MQTT documentada; firmware compilado sin errores en el Arduino IDE.
 
 **Fase III · Construcción y firmware**

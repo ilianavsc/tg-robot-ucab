@@ -44,7 +44,7 @@ La lista oficial vive en [`datos/proyecto.js`](datos/proyecto.js) (`TG.prototipo
 | P01 | Así se hablan el robot y la app | MQTT | Hecho |
 | P02 | Los sentidos del robot | Sensores (4× TCRT5000 + 2× HC-SR04P) | En pruebas (simulación) |
 | P03 | Motores que van parejo | PID / encoders | En pruebas (simulación) |
-| P04 | ¿BLE o QR? | Ubicación | Pendiente |
+| P04 | Balizas BLE (Extremos) | Ubicación | Pendiente |
 | P05 | Robot virtual y puente | Firebase | Pendiente |
 | P06 | Primera versión de la app | Flutter | Pendiente |
 | P07 | El cerebro completo | Firmware integrado (`firmware/`) | En pruebas (lógica validada en PC) |

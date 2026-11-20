@@ -75,7 +75,7 @@ Lleven cinta métrica, un teléfono para fotos (con permiso) y, si pueden, el ES
 | RNF-08 | Resultados confiables | Mínimo 20 repeticiones por prueba en la Fase VII | Cronograma |
 
 ## 5. Matriz de hardware v2
-Cambios respecto a la lista v1: divisor de batería corregido, RPM de motores definidas, fusible lento y acople metálico. Las tres decisiones abiertas (placa, driver y BLE o QR) se cierran con datos.
+Cambios respecto a la lista v1: divisor de batería corregido, RPM de motores definidas, fusible lento y acople metálico.
 
 | Componente | Elección | Alternativa | Por qué | Estado |
 |---|---|---|---|---|

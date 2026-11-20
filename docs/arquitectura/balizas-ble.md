@@ -45,4 +45,4 @@ El firmware **no publica** nada de BLE. Para la simulación, P10 puede publicar 
 1. Integrar la lectura de la MPU-6050 y medir el sesgo real del giroscopio.
 2. Escaneo BLE en el robot y anuncio en las 2 balizas; medir RSSI vs. distancia en el pasillo real.
 3. Fijar umbrales de confirmación y tolerancia de deriva con mediciones (≥ 20 repeticiones).
-4. Decidir con P04 si la re-localización final es BLE o QR.
+4. Re-localización con las 2 balizas BLE de los extremos (decisión cerrada; sin QR).
