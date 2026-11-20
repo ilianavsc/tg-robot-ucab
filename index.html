@@ -306,11 +306,25 @@ a.ir:hover {
 <script>
 (function () {
   var U = TGU, D = TG, hoy = U.hoy(), s = U.semana(hoy), fase = U.faseDe(hoy);
-  var P = D.prototipos;
+  var sim2Proto = {
+    codigo: "SIM2",
+    nombre: "Sim 2 · Teach & Repeat",
+    tema: "Teach & Repeat",
+    semana: 16,
+    estado: "listo",
+    categoria: "software",
+    etapa: 2,
+    url: "prototipos/simulador-2-v2-teach-and-repeat/index.html",
+    historico: "prototipos/simulador-2-v2-teach-and-repeat/README.md"
+  };
+  var P = D.prototipos.slice();
+  if (!P.some(function (x) { return x.codigo === "SIM2"; })) {
+    P.push(sim2Proto);
+  }
   var listosArr = P.filter(function (p) { return p.estado === "listo"; });
   var caminoArr = P.filter(function (p) { return p.estado === "en_pruebas" || p.estado === "pendiente"; });
 
-  /* 1. Hero: barra de avance (calculada de TG.prototipos, P01–P13) */
+  /* 1. Hero: barra de avance (calculada dinámicamente de P) */
   var pct = Math.round((listosArr.length / P.length) * 100);
   document.getElementById("hero-avance-label").textContent = listosArr.length + "/" + P.length + " prototipos listos";
   document.getElementById("hero-avance-pct").textContent = pct + " % completado";
@@ -329,9 +343,83 @@ a.ir:hover {
   var gridEl = document.getElementById("grid-prototipos");
   var filtroActual = "todos";
 
-  function claseEstado(e) {
-    return e === "listo" ? "hecho" : e === "en_pruebas" ? "pruebas" : "pendiente";
-  }
+  var TARJETAS_LISTO = {
+    P01: {
+      corto: "App ↔ Robot (MQTT)",
+      linea: "Mensajes que no se pierden entre la app y el robot (QoS 1/2 y detección LWT).",
+      boton: "Abrir Prueba MQTT",
+      url: "prototipos/P01-mqtt-base/simulador-3d/",
+      tecnico: "MQTT WebSockets · QoS 1/2 · 0 pérdidas en 50 órdenes · LWT 22 s.",
+      links: [
+        { label: "Descargar .ino", href: "prototipos/P01-mqtt-base/codigo-esp32/robot_mqtt/robot_mqtt.ino", download: true },
+        { label: "Ficha técnica (.md)", href: "prototipos/P01-mqtt-base/README.md", md: true, titulo: "Ficha técnica P01" }
+      ]
+    },
+    P03: {
+      corto: "Inspector 3D Hardware",
+      linea: "Vitrina 3D interactiva de los componentes del robot: ESP32, L298N, encoders y sensores.",
+      boton: "Abrir Inspector 3D",
+      url: "prototipos/P03-motores/avance-02-simulador-3d/",
+      tecnico: "2× JGA25-371 Speed 200 · PWM 20 kHz · encoders 11 PPR · LiPo 3S.",
+      links: [
+        { label: "Descargar .ino", href: "prototipos/P03-motores/avance-02-simulador-3d/codigo-esp32/traccion_encoders/traccion_encoders.ino", download: true }
+      ]
+    },
+    P13: {
+      corto: "Radar Ultrasónico (P13)",
+      linea: "Sensores delantero/trasero con rebote de eco, obstáculo arrastrable y velocímetro calibrado a SIM1.",
+      boton: "Abrir Radar Ultrasónico",
+      url: "prototipos/P13-sensores-ultrasonicos/index.html",
+      tecnico: "2× HC-SR04P simultáneos · umbral < 20 cm / 20–50 cm · crucero SIM1 0,41 m/s · ucab-tg-sf/robot/ultrasonido.",
+      links: [
+        { label: "Tópicos MQTT (.md)", href: "docs/arquitectura/topicos-mqtt.md", md: true, titulo: "Tópicos MQTT" },
+        { label: "Firmware (.ino)", href: "firmware/robot_integrado.ino", download: true }
+      ]
+    },
+    P08: {
+      corto: "Sim 1 · 2 Pistas",
+      linea: "El robot sigue la cinta negra con control PD a 100 Hz en 2 pistas (8,05 m y 9,0 m).",
+      boton: "Abrir Simulador 3D",
+      url: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/",
+      tecnico: "4× TCRT5000 · PD 100 Hz · 0,41 m/s crucero · 0,46 m/s máx. recta · 16/16 pruebas.",
+      links: [
+        { label: "Descargar .ino", href: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/codigo-esp32/seguidor_linea/seguidor_linea.ino", download: true },
+        { label: "Ficha técnica (.md)", href: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/README.md", md: true, titulo: "Ficha técnica P08 (SIM1)" }
+      ]
+    },
+    SIM2: {
+      corto: "Sim 2 · Teach & Repeat",
+      linea: "Gemelo digital sobre las 2 pistas de SIM1 con enseñanza/repetición y radar ultrasónico.",
+      boton: "Abrir Simulador 2",
+      url: "prototipos/simulador-2-v2-teach-and-repeat/index.html",
+      tecnico: "Teach & Repeat · pistas A/B heredadas de SIM1 · radar ultrasónico integrado · navegación sin cinta.",
+      links: [
+        { label: "Ficha técnica (.md)", href: "prototipos/simulador-2-v2-teach-and-repeat/README.md", md: true, titulo: "Ficha técnica Sim 2 · Teach & Repeat" }
+      ]
+    },
+    P10: {
+      corto: "Simulador ESP32 (P10)",
+      linea: "Telemetría virtual calibrada con SIM1: LiPo 3S, velocidad real 0,41–0,46 m/s y MQTT en vivo.",
+      boton: "Abrir Simulador ESP32",
+      url: "prototipos/P10-simulador-esp32/index.html",
+      tecnico: "ESP32 virtual · HiveMQ → EMQX → Mosquitto · paridad RF-05 · pruebas SIL + híbrido BLE (10/10).",
+      links: [
+        { label: "Tópicos MQTT (.md)", href: "docs/arquitectura/topicos-mqtt.md", md: true, titulo: "Tópicos MQTT" },
+        { label: "Firmware (.ino)", href: "firmware/robot_integrado.ino", download: true }
+      ]
+    },
+    P09: {
+      corto: "App Flutter (v1 · Modo Demo)",
+      linea: "Pide y monitorea el robot desde el celular, con acceso por rol y Modo Demo integrado.",
+      boton: "Probar App en vivo",
+      url: "app/",
+      tecnico: "Flutter Web / Móvil · roles Operador y Admin · MQTT en vivo + Modo Demo sin hardware.",
+      links: [
+        { label: "Tópicos MQTT (.md)", href: "docs/arquitectura/topicos-mqtt.md", md: true, titulo: "Tópicos MQTT" }
+      ]
+    }
+  };
+
   function etiquetaEstado(p) {
     if (p.estado === "listo") return '<span class="chip hecho">Listo</span>';
     if (p.estado === "en_pruebas") return '<span class="chip pruebas">En pruebas</span>';
@@ -339,9 +427,10 @@ a.ir:hover {
   }
 
   function textoBoton(p) {
-    if (p.codigo === "P09") return "Probar App en vivo";
-    if (p.codigo === "P10") return "Abrir Simulador ESP32";
-    if (p.url) return "Abrir Simulador 3D";
+    var cfg = TARJETAS_LISTO[p.codigo];
+    if (cfg && cfg.boton) return cfg.boton;
+    if (p.url === "app/") return "Probar App en vivo";
+    if (p.url) return "Abrir Prototipo";
     return "Ver en Cronograma";
   }
 
@@ -351,8 +440,8 @@ a.ir:hover {
       if (filtroActual === "camino") return p.estado === "en_pruebas" || p.estado === "pendiente";
       return true;
     });
-    // Los Listos primero, en el mismo orden 3x2 de prototipos/index.html.
-    var ordenListos = ["P01", "P03", "P13", "P08", "P10", "P09"];
+    // Los Listos primero en orden lógico del proyecto.
+    var ordenListos = ["P01", "P03", "P13", "P08", "SIM2", "P10", "P09"];
     lista = lista.slice().sort(function (a, b) {
       var ia = ordenListos.indexOf(a.codigo), ib = ordenListos.indexOf(b.codigo);
       if (ia === -1 && ib === -1) return 0;
@@ -362,20 +451,37 @@ a.ir:hover {
     });
 
     gridEl.innerHTML = lista.map(function (p) {
-      var info = (D.protoResumen && D.protoResumen[p.codigo]) || { corto: p.nombre, linea: p.tema };
-      var titulo = info.corto;
+      var cfg = TARJETAS_LISTO[p.codigo];
+      var baseInfo = (D.protoResumen && D.protoResumen[p.codigo]) || { corto: p.nombre, linea: p.tema };
+      var titulo = cfg ? cfg.corto : baseInfo.corto;
+      var linea = cfg ? cfg.linea : baseInfo.linea;
       var esListo = p.estado === "listo";
-      var hrefAccion = p.url ? p.url : "cronograma.html#sem-" + p.semana;
+      var hrefAccion = (cfg && cfg.url) ? cfg.url : (p.url ? p.url : "cronograma.html#sem-" + p.semana);
       var claseBtn = esListo ? "btn btn-principal" : "btn btn-secundario";
 
       var extras = "";
-      if (p.ino || p.historico || p.codigo === "P09") {
+      if (cfg || p.ino || p.historico) {
         extras = '<details class="desplegable-tecnico"><summary>Ver detalle técnico</summary><div class="desplegable-cuerpo" style="display:flex;flex-wrap:wrap;gap:8px">';
-        if (p.ino) {
-          extras += '<a href="' + p.ino + '" download class="btn-descargar" style="padding:6px 12px;font-size:13.5px">Descargar .ino</a>';
+        if (cfg && cfg.tecnico) {
+          extras += '<p style="margin:0 0 4px;width:100%;font-family:var(--font-mono);font-size:12.5px;color:var(--text-muted);line-height:1.45">' + cfg.tecnico + '</p>';
         }
-        if (p.historico) {
-          extras += '<a href="' + p.historico + '" data-md="' + p.historico + '" data-titulo="Ficha técnica ' + p.codigo + '" class="btn-descargar" style="padding:6px 12px;font-size:13.5px">Ficha técnica (.md)</a>';
+        var enlaces = (cfg && cfg.links) ? cfg.links : [];
+        enlaces.forEach(function (lk) {
+          if (lk.download) {
+            extras += '<a href="' + lk.href + '" download class="btn-descargar" style="padding:6px 12px;font-size:13.5px">' + lk.label + '</a>';
+          } else if (lk.md) {
+            extras += '<a href="' + lk.href + '" data-md="' + lk.href + '" data-titulo="' + lk.titulo + '" class="btn-descargar" style="padding:6px 12px;font-size:13.5px">' + lk.label + '</a>';
+          } else {
+            extras += '<a href="' + lk.href + '" class="btn-descargar" style="padding:6px 12px;font-size:13.5px">' + lk.label + '</a>';
+          }
+        });
+        if (!cfg) {
+          if (p.ino) {
+            extras += '<a href="' + p.ino + '" download class="btn-descargar" style="padding:6px 12px;font-size:13.5px">Descargar .ino</a>';
+          }
+          if (p.historico) {
+            extras += '<a href="' + p.historico + '" data-md="' + p.historico + '" data-titulo="Ficha técnica ' + p.codigo + '" class="btn-descargar" style="padding:6px 12px;font-size:13.5px">Ficha técnica (.md)</a>';
+          }
         }
         if (p.codigo === "P09") {
           var flujoPasos = [
@@ -400,7 +506,7 @@ a.ir:hover {
             etiquetaEstado(p) +
           '</div>' +
           '<h3 class="proto-nombre-corto">' + titulo + '</h3>' +
-          '<p class="proto-una-linea">' + info.linea + '</p>' +
+          '<p class="proto-una-linea">' + linea + '</p>' +
         '</div>' +
         '<div>' +
           '<a href="' + hrefAccion + '" class="' + claseBtn + '" style="width:100%;padding:10px 16px;font-size:15px">' + textoBoton(p) + '</a>' +
