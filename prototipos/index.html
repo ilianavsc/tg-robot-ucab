@@ -65,7 +65,7 @@ a.proto:hover{transform:translate(-2px,-2px)}
   });
   document.getElementById("por-fase").innerHTML = html;
   // Orden fijo de "Listos para usar" (3x2): P13 en la 3.ª, P08 en la 6.ª.
-  var ordenListos = ["P01", "P03", "P13", "P09", "P10", "P08"];
+  var ordenListos = ["P01", "P03", "P13", "P08", "P10", "P09"];
   document.getElementById("listos").innerHTML = ordenListos.map(function(cod){
     var p = D.prototipos.filter(function(x){ return x.codigo === cod; })[0];
     if (!p) return "";
