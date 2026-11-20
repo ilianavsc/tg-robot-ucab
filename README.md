@@ -50,7 +50,7 @@ La lista oficial vive en [`datos/proyecto.js`](datos/proyecto.js) (`TG.prototipo
 | P07 | El cerebro completo | Firmware integrado (`firmware/`) | En pruebas (lógica validada en PC) |
 | P08 | Seguir la línea | Simulador 3D | En pruebas (simulación) |
 | **P09** | **Interfaz Web / Modo Demo** | **App Flutter** (`app/`) | Hecho |
-| **P10** | **Simulador ESP32 Virtual** | **ESP32 en el navegador** (`prototipos/P10-simulador-esp32/`) | Hecho |
+| **P10** | **Prueba ESP32 ↔ App Web** | **ESP32 en el navegador** (`prototipos/P10-simulador-esp32/`) | Hecho |
 | P11 | La alarma llega al teléfono | Centro de Alertas en la app | En pruebas (validado en simulación, falta hardware) |
 | P12 | Pruebas y estadística | Analítica de sesión + CSV en la app | En pruebas (validado en simulación, falta hardware) |
 | P13 | Radar Ultrasónico (Frente/Atrás) | 2× HC-SR04P | En pruebas (simulación) |
