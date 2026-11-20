@@ -66,6 +66,58 @@
 #aviso-carga { margin: 0 0 16px; padding: 10px 14px; border-radius: 10px; border: 1.5px solid #f59e0b; background: rgba(245, 158, 11, 0.12); font-family: var(--font-mono); font-size: 12.5px; }
 #aviso-carga.error { border-color: #f43f5e; background: rgba(244, 63, 94, 0.14); }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }
+
+/* los textos que cambian de largo reservan su altura: nada se desplaza al cambiar de estado */
+#estado-activo { min-height: 1.7em; }
+@media (max-width: 640px) { #estado-activo { min-height: 3.5em; } }
+#evento-actual { min-height: 3.4em; }
+#mov-detalle { min-height: 6.2em; }
+#us-frente, #us-atras { min-height: 2.7em; }
+#tcrt-txt { min-height: 3.2em; }
+#ruta-ensenada { min-height: 3.6em; }
+/* ---- V2 · pistas de SIM1, flujo Enseñar/Repetir y radar P13 ---- */
+.alerta-slot { height: 62px; padding: 8px 18px 0; display: flex; align-items: center; box-sizing: border-box; }
+.alerta { width: 100%; height: 46px; box-sizing: border-box; overflow: hidden; line-height: 1.2; display: flex; align-items: center; justify-content: center; text-align: center; padding: 6px 12px; border-radius: 10px; border: 1.5px solid #334155; background: #1e293b; color: #94a3b8; font-family: var(--font-mono); font-weight: 700; font-size: 12.5px; letter-spacing: 0.02em; overflow-wrap: anywhere; }
+.alerta.ver { border-color: #f43f5e; background: rgba(185, 28, 28, 0.92); color: #fff; }
+.alerta.aviso { background: rgba(180, 83, 9, 0.92); border-color: #fbbf24; }
+.alerta.ok { background: rgba(21, 128, 61, 0.92); border-color: #4ade80; }
+.pistas { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.pista-op { text-align: left; min-height: 64px; display: block; width: 100%; }
+.pista-op small { display: block; font-weight: 400; font-size: 11px; color: #94a3b8; margin-top: 3px; overflow-wrap: anywhere; }
+.flujo { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.paso-t { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.paso-t i { font-style: normal; display: inline-flex; width: 24px; height: 24px; align-items: center; justify-content: center; border-radius: 50%; border: 1.5px solid #38bdf8; color: #7dd3fc; font-family: var(--font-mono); font-size: 12px; font-weight: 700; flex: none; }
+.paso-t i.hecho { background: #22c55e; border-color: #22c55e; color: #052e16; }
+.paso-t h3 { margin: 0; }
+.radar-caja { position: relative; }
+.radar-escena { position: relative; border-radius: 12px; overflow: hidden; }
+#lienzo-pista { height: 270px; touch-action: pan-y; cursor: default; }
+.velo { position: absolute; bottom: 8px; left: 8px; width: 92px; padding: 6px 8px 5px; border-radius: 10px; background: rgba(15, 23, 42, 0.82); border: 1.5px solid rgba(148, 163, 184, 0.3); text-align: center; pointer-events: none; }
+.velo svg { width: 76px; height: 42px; display: block; margin: 0 auto; overflow: visible; }
+.velo-pista { fill: none; stroke: #1e293b; stroke-width: 6; stroke-linecap: round; }
+.velo-arco { fill: none; stroke: #22c55e; stroke-width: 6; stroke-linecap: round; transition: stroke 0.2s ease-out; }
+.velo-aguja { stroke: #f8fafc; stroke-width: 2.2; stroke-linecap: round; }
+.velo-pivote { fill: #f8fafc; }
+.velo-val { font-family: var(--font-mono); font-weight: 700; font-size: 12px; color: #86efac; line-height: 1.1; }
+.velo-val small { font-size: 9.5px; font-weight: 600; color: #94a3b8; margin-left: 2px; }
+.velo-esc { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 8.5px; color: #64748b; padding: 0 6px; }
+.obs-base { position: absolute; right: 8px; bottom: 8px; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 10px 4px 6px; border-radius: 999px; background: rgba(15, 23, 42, 0.82); border: 1.5px dashed #f43f5e; color: #fecdd3; font-family: var(--font-mono); font-size: 11px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+.obs-base:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+.obs-ficha { width: 28px; height: 28px; border-radius: 50%; background: #ef4444; border: 2px solid #fff; flex: none; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25); }
+.obs-base.usado .obs-ficha { opacity: 0.35; }
+.leyenda-us { display: flex; flex-wrap: wrap; gap: 6px 14px; font-family: var(--font-mono); font-size: 11px; color: #94a3b8; margin-top: 8px; }
+.leyenda-us i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.mini { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+details.det { background: #1e293b; border: 1.5px solid #334155; border-radius: 12px; }
+details.det > summary { list-style: none; cursor: pointer; min-height: 44px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #cbd5e1; }
+details.det > summary::-webkit-details-marker { display: none; }
+details.det > summary::after { content: "▾"; margin-left: auto; color: #94a3b8; transition: transform 0.2s ease-out; }
+details.det[open] > summary::after { transform: rotate(180deg); }
+details.det > summary:focus-visible { outline: 2px solid #38bdf8; outline-offset: -2px; }
+details.det > summary small { font-weight: 400; letter-spacing: 0; text-transform: none; color: #64748b; }
+.det-cuerpo { padding: 4px 14px 14px; display: grid; gap: 12px; min-width: 0; }
+.json { white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 11.5px; color: #a5f3fc; background: #0b1220; border: 1px solid #334155; border-radius: 10px; padding: 10px; max-height: 260px; overflow: auto; }
+@media (max-width: 640px) { #lienzo-pista { height: 230px; } .sim2-cuerpo { padding: 12px; } .alerta-slot { padding: 8px 12px 0; } .alerta { font-size: 11.5px; padding: 4px 10px; } .obs-base span.txt { display: none; } .obs-base { padding: 4px; } }
 </style>
 </head>
 <body data-pagina="prototipos" data-base="../../">
@@ -79,23 +131,64 @@
 
   <p class="ceja">Simulador 2 V2 · Movimiento, control y aprendizaje progresivo</p>
   <h1>Gemelo digital de <em>movimiento</em> y teach-and-repeat</h1>
-  <p class="bajada">El robot recorre la pista canónica de <strong>9,0 m</strong> entre el Cuarto de Componentes y el Laboratorio 1. Puedes retirar cinta en vivo y ver cómo el núcleo <strong>teach-and-repeat</strong> pasa de seguir la línea a mantener el rumbo con el giroscopio y a validar la llegada con la baliza BLE del extremo.</p>
+  <p class="bajada">Elige una de las <strong>dos pistas de SIM1</strong> (8,05 m y 9,0 m), <strong>enseña</strong> la ruta con la cinta completa, retira cinta de un tramo recto y <strong>repite</strong>: el núcleo <strong>teach-and-repeat</strong> pasa de seguir la línea a mantener el rumbo con el giroscopio y a validar la llegada con la baliza BLE. Arrastra el obstáculo sobre la pista para ver los radares de los 2 HC-SR04P.</p>
 
   <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px">
     <span class="chip hecho">Simulación (SIL)</span>
     <span class="chip">Núcleo: specs/navegacion/teach_and_repeat.js</span>
-    <span class="chip">Pista: specs/pista_canonica.json</span>
+    <span class="chip">Pistas: SIM1 (A 8,05 m · B 9,0 m) + specs/pista_canonica.json</span>
     <span class="chip">2 balizas BLE solo en los extremos</span>
   </div>
 
-  <p id="aviso-carga" role="status">Cargando el núcleo teach-and-repeat y la pista canónica…</p>
+  <p id="aviso-carga" role="status">Cargando el núcleo teach-and-repeat y las pistas de SIM1…</p>
 
-  <section class="sim2" aria-labelledby="t-sim">
+    <section class="sim2" aria-labelledby="t-sim">
     <div class="sim2-barra">
       <strong id="t-sim">Estado del núcleo teach-and-repeat</strong>
       <span id="barra-resumen">—</span>
     </div>
+    <!-- Ranura de alertas: ocupa SIEMPRE su altura (visibility, no display), así nada salta cuando aparece una alerta (delta = 0 px) -->
+    <div class="alerta-slot" aria-live="polite"><div class="alerta" id="alerta" role="status">Sin alertas</div></div>
+
     <div class="sim2-cuerpo">
+
+      <div>
+        <h3>1 · Elige la pista (las dos de SIM1)</h3>
+        <div class="pistas" role="group" aria-label="Pista del simulador">
+          <button class="b pista-op" type="button" data-pista="A" aria-pressed="false">Pista 1 · circuito histórico (8,05 m)<small>Curvas continuas de hasta 22 cm de radio: se enseña y se repite con cinta completa.</small></button>
+          <button class="b pista-op sel" type="button" data-pista="B" aria-pressed="true">Pista 2 · canónica (9,0 m, Pasillo UCAB)<small>Rectas de 3,5 m y curvas de 27 cm. Tramos T1–T4 de specs/pista_canonica.json.</small></button>
+        </div>
+      </div>
+
+      <div class="flujo">
+        <div class="panel">
+          <div class="paso-t"><i id="flujo-1">1</i><h3>Enseñar (Teach)</h3></div>
+          <div class="fila"><button class="b info" id="btn-ensenar" type="button">🎓 Enseñar la ruta</button></div>
+          <p class="nota" id="ruta-ensenada">Ruta enseñada: —</p>
+          <p class="nota">Pone toda la cinta y el robot recorre la pista siguiendo la línea; el giroscopio anota su rumbo.</p>
+        </div>
+        <div class="panel">
+          <div class="paso-t"><i id="flujo-2">2</i><h3>Retirar cinta</h3></div>
+          <div class="fila" id="cinta-tramos" aria-label="Tramos de cinta"></div>
+          <div class="fila">
+            <button class="b aviso" id="btn-retiro-progresivo" type="button">➖ Retirar 0,5 m por delante</button>
+            <button class="b ok" id="btn-restaurar-cinta" type="button">♻️ Restaurar cinta</button>
+          </div>
+          <p class="nota" id="nota-cinta">Solo se pueden retirar tramos RECTOS que la pasada de enseñanza recorrió.</p>
+        </div>
+        <div class="panel">
+          <div class="paso-t"><i id="flujo-3">3</i><h3>Repetir (Repeat)</h3></div>
+          <div class="fila">
+            <button class="b ok" id="btn-viaje-ida" type="button">▶ Repetir la ruta</button>
+            <button class="b" id="btn-play" type="button" aria-pressed="false">▶ Iniciar</button>
+          </div>
+          <div class="fila">
+            <button class="b peligro" id="btn-freno" type="button">⛔ Freno Remoto</button>
+            <button class="b ok" id="btn-reanudar" type="button">▶ Reanudar (auto)</button>
+          </div>
+          <p class="nota">El Freno Remoto envía la orden <code>frenar</code>: no es un E-STOP cableado.</p>
+        </div>
+      </div>
 
       <div>
         <div class="estado-grande" id="estado-activo" aria-live="polite">—</div>
@@ -103,19 +196,54 @@
         <p class="nota" id="evento-actual">Evento: —</p>
       </div>
 
-      <div>
-        <h3>Pista dinámica · 9,0 m</h3>
-        <canvas class="lienzo" id="lienzo-pista" role="img" aria-label="Pista de 9 metros con el robot, los tramos de cinta, los puntos de control y las dos balizas BLE"></canvas>
-        <p class="nota">Línea punteada tenue = tramo ya recorrido (<i>ghost line</i>) · turquesa = tramo pendiente con cinta · ámbar discontinuo = sin cinta enseñada · rojo = sin cinta NO enseñada · las balizas BLE (círculos) solo validan los extremos.</p>
-        <h3 style="margin-top:12px">Vista ampliada sobre la cinta</h3>
-        <canvas class="lienzo" id="lienzo-zoom" role="img" aria-label="Vista ampliada del robot sobre la cinta con los 4 sensores TCRT5000"></canvas>
+      <div class="radar-caja">
+        <h3>Radar · 2 × HC-SR04P (cono de ±15°)</h3>
+        <div class="radar-escena">
+          <canvas class="lienzo" id="lienzo-pista" role="img" aria-label="Vista cenital de la pista con el robot, la cinta, los puntos de control, los conos de los dos ultrasonidos y el obstáculo arrastrable"></canvas>
+          <div class="velo" id="velocimetro" aria-label="Velocímetro del robot, de 0,00 a 0,46 metros por segundo">
+            <svg viewBox="0 0 80 46" aria-hidden="true">
+              <path class="velo-pista" d="M 10 40 A 30 30 0 0 1 70 40"/>
+              <path id="velo-arco" class="velo-arco" d="M 10 40 A 30 30 0 0 1 70 40" stroke-dasharray="94.25" stroke-dashoffset="94.25"/>
+              <line id="velo-aguja" class="velo-aguja" x1="40" y1="40" x2="40" y2="15" transform="rotate(-90 40 40)"/>
+              <circle class="velo-pivote" cx="40" cy="40" r="3"/>
+            </svg>
+            <div class="velo-esc" aria-hidden="true"><span>0.00</span><span>0.46</span></div>
+            <div class="velo-val" id="velo-val">0.00<small>m/s</small></div>
+          </div>
+          <div class="obs-base" id="base-obstaculo" role="button" tabindex="0" aria-label="Obstáculo: arrástralo sobre la pista, o pulsa Enter para ponerlo 90 cm delante del robot; Supr lo retira">
+            <span class="obs-ficha" aria-hidden="true"></span><span class="txt" id="etiqueta-obs">Obstáculo</span>
+          </div>
+        </div>
+        <div class="leyenda-us">
+          <span><i style="background:#22c55e"></i>Libre (&gt; 50 cm)</span>
+          <span><i style="background:#f59e0b"></i>Precaución (20–50 cm)</span>
+          <span><i style="background:#ef4444"></i>Crítica (&lt; 20 cm: parada)</span>
+          <span>Arrastra la ficha roja sobre la pista</span>
+        </div>
       </div>
 
-      <div class="cols">
+      <div class="mini">
         <div class="panel">
-          <h3>Ejecución</h3>
+          <h3>4 × TCRT5000 (izq → der)</h3>
+          <div class="tcrt" id="tcrt-bin" aria-live="off"></div>
+          <div class="sub" id="tcrt-txt">[—]</div>
+        </div>
+        <div class="panel">
+          <h3>2 × HC-SR04P</h3>
+          <div class="val" id="us-frente">—</div>
+          <div class="val" id="us-atras" style="margin-top:6px">—</div>
+        </div>
+        <div class="panel">
+          <h3>Movimiento</h3>
+          <div class="val" id="mov-vel">—</div>
+          <div class="sub" id="mov-detalle">—</div>
+        </div>
+      </div>
+
+      <details class="det" id="det-ejecucion">
+        <summary>Ejecución avanzada <small>paso a paso · velocidad · vuelta</small></summary>
+        <div class="det-cuerpo">
           <div class="fila">
-            <button class="b ok" id="btn-play" type="button">▶ Iniciar</button>
             <button class="b" id="btn-paso" type="button">⏭ Paso (20 ms)</button>
             <button class="b" id="btn-paso-medio" type="button">⏭ +0,5 s</button>
           </div>
@@ -125,13 +253,16 @@
             <button class="b" type="button" data-vel="5" aria-pressed="false">×5</button>
           </div>
           <div class="fila">
-            <button class="b info" id="btn-viaje-ida" type="button">🚩 Viaje de ida (Cuarto → Laboratorio 1)</button>
-            <button class="b info" id="btn-viaje-vuelta" type="button">🔙 Viaje de vuelta</button>
+            <button class="b info" id="btn-viaje-vuelta" type="button">🔙 Viaje de vuelta (otra enseñanza)</button>
+            <button class="b" id="btn-rearmar" type="button">♻️ Reiniciar viaje</button>
           </div>
+          <p class="nota">La vuelta se enseña aparte: el rumbo del giroscopio es otro en sentido contrario.</p>
         </div>
+      </details>
 
-        <div class="panel">
-          <h3>Modo de control</h3>
+      <details class="det" id="det-manual">
+        <summary>Control manual <small>pruebas de fail-safe</small></summary>
+        <div class="det-cuerpo">
           <div class="fila" role="group" aria-label="Modo de control">
             <button class="b sel" id="modo-auto" type="button" aria-pressed="true">🤖 Teach-and-repeat (automático)</button>
             <button class="b" id="modo-manual" type="button" aria-pressed="false">🎮 Manual / pruebas</button>
@@ -143,104 +274,93 @@
           </div>
           <p class="nota">En manual el núcleo queda en pausa; siguen activos los fail-safe: frente &lt; 20 cm bloquea avance y giros; atrás &lt; 20 cm bloquea el retroceso.</p>
         </div>
+      </details>
 
-        <div class="panel">
-          <h3>Cinta física · retiro progresivo</h3>
-          <div class="fila" id="cinta-tramos" aria-label="Tramos de cinta"></div>
+      <details class="det" id="det-fallas">
+        <summary>Inyección de fallas <small>obstáculos fijos · deriva · empujón</small></summary>
+        <div class="det-cuerpo">
           <div class="fila">
-            <button class="b aviso" id="btn-retiro-progresivo" type="button">➖ Retirar 0,5 m de cinta por delante</button>
-            <button class="b ok" id="btn-restaurar-cinta" type="button">♻️ Restaurar cinta</button>
-          </div>
-          <div class="fila">
-            <button class="b info" id="btn-ensenar" type="button">🎓 Enseñar ruta con la cinta actual</button>
-          </div>
-          <p class="nota" id="ruta-ensenada">Ruta enseñada: —</p>
-          <p class="nota">También puedes hacer clic sobre la pista para quitar o poner 0,5 m de cinta. Si retiras cinta y NO enseñas el hueco, el robot lo trata como pérdida real y se detiene por seguridad (timeout de 4 s). Un hueco enseñado se cruza con HEADING_HOLD. Si el hueco termina en un extremo, la baliza BLE (RSSI ≥ −80 dBm) pasa directo a WAIT_BEACON sin REACQUIRE_LINE. El límite de 4 s sin línea (deriva del MPU-6050) no se amplía: un hueco de más de ~4,5 m lejos de un extremo termina en timeout_sin_linea.</p>
-        </div>
-
-        <div class="panel">
-          <h3>Inyección de fallas y pruebas</h3>
-          <div class="fila">
-            <button class="b peligro" id="ctl-obstaculo-critico" type="button">🧱 Obstáculo &lt; 20 cm (12 cm)</button>
-            <button class="b aviso" id="ctl-obstaculo-precaucion" type="button">⚠️ Obstáculo 20–50 cm (35 cm)</button>
-            <button class="b aviso" id="ctl-obstaculo-fisico" type="button">📦 Obstáculo físico a 90 cm</button>
+            <button class="b peligro" id="ctl-obstaculo-critico" type="button">🧱 Lectura frontal 12 cm</button>
+            <button class="b aviso" id="ctl-obstaculo-precaucion" type="button">⚠️ Lectura frontal 35 cm</button>
             <button class="b ok" id="ctl-quitar-obstaculo" type="button">✔ Quitar obstáculo</button>
           </div>
           <div class="rango"><label for="ctl-deriva">Deriva del giroscopio</label><input type="range" id="ctl-deriva" min="-3" max="3" step="0.25" value="0"><output id="ctl-deriva-v" for="ctl-deriva">0,00 °/s</output></div>
-          <div class="rango"><label for="ctl-atras">HC-SR04P trasero</label><input type="range" id="ctl-atras" min="5" max="200" step="1" value="160"><output id="ctl-atras-v" for="ctl-atras">160 cm</output></div>
           <div class="fila">
             <button class="b aviso" id="ctl-empujon" type="button">👋 Empujón +35° de rumbo</button>
             <button class="b aviso" id="ctl-empujon-neg" type="button">👋 Empujón −35°</button>
           </div>
-          <div class="fila">
-            <button class="b peligro" id="btn-freno" type="button">⛔ Freno Remoto</button>
-            <button class="b ok" id="btn-reanudar" type="button">▶ Reanudar (orden auto)</button>
-            <button class="b" id="btn-rearmar" type="button">♻️ Reiniciar viaje</button>
-          </div>
-          <p class="nota">El Freno Remoto envía la orden <code>frenar</code>: no es un E-STOP cableado ni sustituye el interruptor físico.</p>
         </div>
-      </div>
+      </details>
 
-      <div>
-        <h3>Telemetría lógica en vivo</h3>
-        <div class="tel">
-          <div class="panel">
-            <h3>4 × TCRT5000 (izq → der)</h3>
-            <div class="tcrt" id="tcrt-bin" aria-live="off"></div>
-            <div class="sub" id="tcrt-txt">[—]</div>
-          </div>
-          <div class="panel">
-            <h3>MPU-6050 (rumbo relativo)</h3>
-            <div class="val" id="mpu-rumbo">—</div>
-            <div class="sub" id="mpu-deriva">Deriva en HEADING_HOLD: —</div>
-            <div class="barra"><i id="mpu-barra"></i></div>
-            <div class="sub">Sin magnetómetro: 0° = dirección de la pista al empezar el viaje. Límite de deriva: 30°. <b>[PENDIENTE DE INTEGRACIÓN EN FIRMWARE]</b></div>
-          </div>
-          <div class="panel">
-            <h3>2 × HC-SR04P</h3>
-            <div class="val" id="us-frente">—</div>
-            <div class="val" id="us-atras" style="margin-top:6px">—</div>
-            <div class="sub">&lt; 20 cm parada crítica · 20–50 cm precaución (velocidad a la mitad) · &gt; 50 cm libre</div>
-          </div>
-          <div class="panel">
-            <h3>BLE RSSI (solo extremos)</h3>
-            <div class="val sin" id="ble-rssi">—</div>
-            <div class="barra"><i id="ble-barra"></i></div>
-            <div class="sub" id="ble-validacion">—</div>
-          </div>
-          <div class="panel">
-            <h3>Movimiento</h3>
-            <div class="val" id="mov-vel">—</div>
-            <div class="sub" id="mov-detalle">—</div>
+      <details class="det" id="det-telemetria">
+        <summary>Telemetría lógica <small>MPU-6050 · BLE · cinta</small></summary>
+        <div class="det-cuerpo">
+          <div class="tel">
+            <div class="panel">
+              <h3>MPU-6050 (rumbo relativo)</h3>
+              <div class="val" id="mpu-rumbo">—</div>
+              <div class="sub" id="mpu-deriva">Deriva en HEADING_HOLD: —</div>
+              <div class="barra"><i id="mpu-barra"></i></div>
+              <div class="sub">Sin magnetómetro: 0° = dirección al empezar el viaje. Límite de deriva: 30°. <b>[PENDIENTE DE INTEGRACIÓN EN FIRMWARE]</b></div>
+            </div>
+            <div class="panel">
+              <h3>BLE RSSI (solo extremos)</h3>
+              <div class="val sin" id="ble-rssi">—</div>
+              <div class="barra"><i id="ble-barra"></i></div>
+              <div class="sub" id="ble-validacion">—</div>
+            </div>
           </div>
         </div>
-      </div>
+      </details>
 
-      <div class="panel">
-        <h3>Registro de eventos</h3>
-        <div class="log" id="log-eventos" aria-live="polite"></div>
-      </div>
+      <details class="det" id="det-contrato">
+        <summary>Contrato del gemelo digital <small>JSON · puente con el mapa de la app</small></summary>
+        <div class="det-cuerpo">
+          <div class="json" id="contrato-json" aria-label="Estado del gemelo digital">—</div>
+          <p class="nota">Estado del gemelo: <code>pista, x, y, angulo, velocidad_ms, frente_cm, atras_cm, alerta, s_m</code> (x, y en metros del mundo de SIM1; angulo en grados, 0 = +x, antihorario). El mapa de la app usa <code>s_m / largo_m</code>. Solo <code>estado</code> y <code>ultimo ultrasonido</code> existen en el firmware real; la posición es solo del gemelo (SIL).</p>
+        </div>
+      </details>
 
-      <p class="nota">Simulación (SIL), no HIL: la velocidad máxima (0,65 m/s con PWM 1,0), el ancho entre ruedas, el sesgo del giroscopio y el modelo de RSSI (−80 dBm a 1,5 m → −52 dBm a 0,25 m) son supuestos. <b>[PENDIENTE DE MEDICIÓN FÍSICA]</b>. La lectura de la MPU-6050 y el escaneo BLE están <b>[PENDIENTE DE INTEGRACIÓN EN FIRMWARE]</b>. Hardware real: 1 ESP32 móvil (4× TCRT5000, 2× HC-SR04P, MPU-6050, 3S Li-Ion) y 2 ESP32 fijos como balizas BLE en los extremos. Sin LiDAR ni magnetómetro.</p>
+      <details class="det" id="det-zoom">
+        <summary>Vista ampliada de la cinta <small>4 TCRT5000 a escala</small></summary>
+        <div class="det-cuerpo">
+          <canvas class="lienzo" id="lienzo-zoom" role="img" aria-label="Vista ampliada del robot sobre la cinta con los 4 sensores TCRT5000"></canvas>
+        </div>
+      </details>
+
+      <details class="det" id="det-registro">
+        <summary>Registro de eventos <small>últimos 8</small></summary>
+        <div class="det-cuerpo"><div class="log" id="log-eventos" aria-live="polite"></div></div>
+      </details>
+
+      <p class="nota">Simulación (SIL), no HIL. Física calibrada con SIM1 (JGA25-371 a 11,1 V: 0,457 m/s en recta con PWM 0,8, ruedas de 0,18 s, 0,18 m entre ruedas); sesgo del giroscopio y RSSI son supuestos <b>[PENDIENTE DE MEDICIÓN FÍSICA]</b>. En un circuito cerrado las dos balizas coinciden: el RSSI se calcula por <b>distancia recorrida</b> sobre la pista, con detección a 0,40 m. La lectura de la MPU-6050 y el escaneo BLE están <b>[PENDIENTE DE INTEGRACIÓN EN FIRMWARE]</b>. El núcleo solo trae el término P de la corrección de línea; la planta añade el D del firmware real. Hardware: 1 ESP32 móvil (4× TCRT5000, 2× HC-SR04P, MPU-6050, 3S Li-Ion) y 2 ESP32 fijos como balizas BLE en los extremos. Sin LiDAR ni magnetómetro.</p>
     </div>
   </section>
+
 </main>
 <footer id="pie"></footer>
 
 <script src="../../datos/proyecto.js"></script>
 <script src="../../assets/sitio.js"></script>
+<script src="pistas_sim1.js"></script>
+<script src="radar_us.js"></script>
 <script src="simulador_movimiento.js"></script>
+<script src="gemelo_estado.js"></script>
 <script>
 (function () {
   "use strict";
   var BASE = "../../";
+  var URL_SIM1 = "../P08-seguidor-linea/avance-01-simulador-3d/codigo/pista.js"; /* las 2 pistas de SIM1, sin copiarlas */
+  var NOMBRES = { A: "Pista 1 · circuito histórico (SIM1)", B: "Pista 2 · canónica (SIM1)" };
+  var BLE_RADIO_M = 0.40, BLE_CERCA_M = 0.15; /* circuito cerrado: detección corta (supuesto de simulación) */
   var $ = function (id) { return document.getElementById(id); };
   var avisoEl = $("aviso-carga");
-  var nucleo = null, pista = null, sim = null;
+  var nucleo = null, canonica = null, sim1 = null, pistaObj = null, tr = null, sim = null, pistaId = "B";
   var corriendo = false, velSim = 1, ultimoFrame = 0, acum = 0, ultimoDom = 0;
   var TICK_MS = 20;
+  var S = SimMovimiento, R = RadarUS;
 
-  /* ---- 1) Carga el núcleo y la pista tal cual están en specs/ (sin copiarlos) ---- */
+  /* ---- 1) Carga el núcleo, la pista canónica y las pistas de SIM1 ---- */
   function cargarNucleo(texto) {
     var m = { exports: {} };
     new Function("module", "exports", texto)(m, m.exports);
@@ -248,75 +368,103 @@
   }
   Promise.all([
     fetch(BASE + "specs/navegacion/teach_and_repeat.js").then(function (r) { if (!r.ok) throw new Error("teach_and_repeat.js: HTTP " + r.status); return r.text(); }),
-    fetch(BASE + "specs/pista_canonica.json").then(function (r) { if (!r.ok) throw new Error("pista_canonica.json: HTTP " + r.status); return r.json(); })
+    fetch(BASE + "specs/pista_canonica.json").then(function (r) { if (!r.ok) throw new Error("pista_canonica.json: HTTP " + r.status); return r.json(); }),
+    import(URL_SIM1)
   ]).then(function (res) {
     nucleo = cargarNucleo(res[0]);
-    pista = res[1];
+    canonica = res[1];
+    sim1 = res[2];
     iniciar();
   }).catch(function (e) {
     avisoEl.className = "error";
-    avisoEl.textContent = "No se pudo cargar specs/ (" + e.message + "). Abre el sitio por http (por ejemplo con un servidor local), no con file://.";
+    avisoEl.textContent = "No se pudo cargar specs/ ni las pistas de SIM1 (" + e.message + "). Abre el sitio por http (por ejemplo con un servidor local), no con file://.";
   });
-
   var estadosChips, tcrtEls = [];
 
-  function iniciar() {
-    sim = SimMovimiento.crear(nucleo, pista);
+  function cargarPista(id) {
+    pistaId = id;
+    var p1 = sim1.crearPista(id);
+    tr = PistasSim1.crearTrazado(p1, id, NOMBRES[id]);
+    pistaObj = PistasSim1.pistaPara(id, canonica, p1.largo);
+    sim = S.crear(nucleo, pistaObj, { trazado: tr, cintaCompleta: true, bleRadioM: BLE_RADIO_M, bleCercaM: BLE_CERCA_M });
+    sim.sesgoDps = Number($("ctl-deriva").value);
+    corriendo = false; acum = 0;
+    $("btn-play").textContent = "▶ Iniciar"; $("btn-play").setAttribute("aria-pressed", "false");
+    Array.prototype.forEach.call(document.querySelectorAll("[data-pista]"), function (b) { var on = b.getAttribute("data-pista") === id; b.classList.toggle("sel", on); b.setAttribute("aria-pressed", String(on)); });
+    ponerModo("auto");
+    construirBotonesCinta();
+    ajustarVista();
     avisoEl.className = "";
-    avisoEl.textContent = "Núcleo teach-and-repeat y pista de " + pista.longitudTotalM.toFixed(1) + " m cargados desde specs/. Pulsa Iniciar.";
-    /* chips de estado: salen del propio núcleo */
+    avisoEl.textContent = NOMBRES[id] + " de " + p1.largo.toFixed(2).replace(".", ",") + " m cargada desde SIM1. Pulsa «Enseñar la ruta».";
+  }
+
+  function iniciar() {
     estadosChips = nucleo.NOMBRE_ESTADO.map(function (n) { var s = document.createElement("span"); s.textContent = n; $("estados-chips").appendChild(s); return s; });
     for (var i = 0; i < 4; i++) {
       var d = document.createElement("div"); d.className = "s"; d.innerHTML = "S" + (i + 1) + "<small>0.00</small>";
       $("tcrt-bin").appendChild(d); tcrtEls.push(d);
     }
-    construirBotonesCinta();
-    enlazar();
     redimensionar();
+    cargarPista("B");
+    enlazar();
     refrescarDom(true);
     ultimoFrame = performance.now();
     requestAnimationFrame(bucle);
   }
 
-  /* ---- 2) Bucle de simulación ---- */
+  /* ---- 2) Bucle de simulación (nunca se pausa por un obstáculo: el robot frena y el tiempo sigue) ---- */
   function bucle(ahora) {
     var dtReal = Math.min(100, ahora - ultimoFrame);
     ultimoFrame = ahora;
     if (corriendo) {
       acum += dtReal * velSim;
       var n = 0;
-      while (acum >= TICK_MS && n < 60) { SimMovimiento.paso(sim, TICK_MS); acum -= TICK_MS; n++; }
-      if (sim.llegadaCompleta || sim.nav.paradaSeguridad) detener("");
+      while (acum >= TICK_MS && n < 60) { S.paso(sim, TICK_MS); acum -= TICK_MS; n++; }
+      if (sim.llegadaCompleta || sim.nav.paradaSeguridad) detener();
     }
-    dibujar();
+    dibujar(ahora);
     if (ahora - ultimoDom > 100) { refrescarDom(false); ultimoDom = ahora; }
     requestAnimationFrame(bucle);
   }
-
   function detener() { corriendo = false; $("btn-play").textContent = "▶ Reanudar"; $("btn-play").setAttribute("aria-pressed", "false"); }
   function reproducir() { corriendo = true; $("btn-play").textContent = "⏸ Pausar"; $("btn-play").setAttribute("aria-pressed", "true"); }
 
   /* ---- 3) Controles ---- */
+  function todaLaCinta() {
+    pistaObj.tramos.forEach(function (t) { S.setCinta(sim, t.desdeM, t.hastaM, true); });
+    sim.tramosEnsenados = []; sim.huecosRechazados = [];
+  }
+  function resincronizar() { if (sim.perfiles[sim.dir]) S.ensenar(sim); construirBotonesCinta(); }
+
   function enlazar() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-pista]"), function (b) {
+      b.addEventListener("click", function () { cargarPista(b.getAttribute("data-pista")); refrescarDom(true); });
+    });
+    $("btn-ensenar").addEventListener("click", function () {
+      todaLaCinta();
+      S.iniciarEnsenanza(sim, 1); ponerModo("auto"); construirBotonesCinta(); reproducir(); refrescarDom(true);
+    });
+    $("btn-viaje-ida").addEventListener("click", function () {
+      S.nuevoViaje(sim, 1); ponerModo("auto"); reproducir(); refrescarDom(true);
+    });
     $("btn-play").addEventListener("click", function () {
       if (corriendo) { detener(); }
       else {
-        if (sim.llegadaCompleta || sim.nav.paradaSeguridad) SimMovimiento.nuevoViaje(sim, sim.dir);
+        if (sim.llegadaCompleta || sim.nav.paradaSeguridad) S.nuevoViaje(sim, sim.dir);
         reproducir();
       }
       refrescarDom(true);
     });
-    $("btn-paso").addEventListener("click", function () { detener(); SimMovimiento.paso(sim, TICK_MS); refrescarDom(true); });
-    $("btn-paso-medio").addEventListener("click", function () { detener(); for (var i = 0; i < 25; i++) SimMovimiento.paso(sim, TICK_MS); refrescarDom(true); });
+    $("btn-paso").addEventListener("click", function () { detener(); S.paso(sim, TICK_MS); refrescarDom(true); });
+    $("btn-paso-medio").addEventListener("click", function () { detener(); for (var i = 0; i < 25; i++) S.paso(sim, TICK_MS); refrescarDom(true); });
     Array.prototype.forEach.call(document.querySelectorAll("[data-vel]"), function (b) {
       b.addEventListener("click", function () {
         velSim = Number(b.getAttribute("data-vel"));
         Array.prototype.forEach.call(document.querySelectorAll("[data-vel]"), function (o) { var on = o === b; o.classList.toggle("sel", on); o.setAttribute("aria-pressed", String(on)); });
       });
     });
-    $("btn-viaje-ida").addEventListener("click", function () { SimMovimiento.nuevoViaje(sim, 1); ponerModo("auto"); refrescarDom(true); });
-    $("btn-viaje-vuelta").addEventListener("click", function () { SimMovimiento.nuevoViaje(sim, -1); ponerModo("auto"); refrescarDom(true); });
-    $("btn-rearmar").addEventListener("click", function () { SimMovimiento.nuevoViaje(sim, sim.dir); sim.sesgoDps = 0; $("ctl-deriva").value = 0; $("ctl-deriva-v").textContent = "0,00 °/s"; SimMovimiento.quitarObstaculo(sim); sim.atrasForzadoCm = null; refrescarDom(true); });
+    $("btn-viaje-vuelta").addEventListener("click", function () { S.nuevoViaje(sim, -1); ponerModo("auto"); reproducir(); refrescarDom(true); });
+    $("btn-rearmar").addEventListener("click", function () { S.nuevoViaje(sim, sim.dir); sim.sesgoDps = 0; $("ctl-deriva").value = 0; $("ctl-deriva-v").textContent = "0,00 °/s"; S.quitarObstaculo(sim); sim.atrasForzadoCm = null; refrescarDom(true); });
     $("modo-auto").addEventListener("click", function () { ponerModo("auto"); });
     $("modo-manual").addEventListener("click", function () { ponerModo("manual"); });
     Array.prototype.forEach.call(document.querySelectorAll("[data-cmd]"), function (b) {
@@ -324,58 +472,42 @@
         ponerModo("manual");
         sim.frenoRemoto = false; /* una orden nueva sustituye al "frenar" */
         sim.manual = b.getAttribute("data-cmd");
-        SimMovimiento.registrar(sim, "Orden manual: " + sim.manual);
+        S.registrar(sim, "Orden manual: " + sim.manual);
         if (!corriendo) reproducir();
         refrescarDom(true);
       });
     });
-    $("btn-freno").addEventListener("click", function () { SimMovimiento.frenoRemoto(sim); refrescarDom(true); });
-    $("btn-reanudar").addEventListener("click", function () { ponerModo("auto"); SimMovimiento.reanudar(sim); if (!corriendo) reproducir(); refrescarDom(true); });
-    $("ctl-obstaculo-critico").addEventListener("click", function () { SimMovimiento.forzarFrente(sim, 12); refrescarDom(true); });
-    $("ctl-obstaculo-precaucion").addEventListener("click", function () { SimMovimiento.forzarFrente(sim, 35); refrescarDom(true); });
-    $("ctl-obstaculo-fisico").addEventListener("click", function () { SimMovimiento.inyectarObstaculo(sim, 0.9); refrescarDom(true); });
-    $("ctl-quitar-obstaculo").addEventListener("click", function () { SimMovimiento.quitarObstaculo(sim); refrescarDom(true); });
+    $("btn-freno").addEventListener("click", function () { S.frenoRemoto(sim); refrescarDom(true); });
+    $("btn-reanudar").addEventListener("click", function () { ponerModo("auto"); S.reanudar(sim); if (!corriendo) reproducir(); refrescarDom(true); });
+    $("ctl-obstaculo-critico").addEventListener("click", function () { S.forzarFrente(sim, 12); refrescarDom(true); });
+    $("ctl-obstaculo-precaucion").addEventListener("click", function () { S.forzarFrente(sim, 35); refrescarDom(true); });
+    $("ctl-quitar-obstaculo").addEventListener("click", function () { S.quitarObstaculo(sim); $("base-obstaculo").classList.remove("usado"); refrescarDom(true); });
     $("ctl-deriva").addEventListener("input", function () {
       sim.sesgoDps = Number($("ctl-deriva").value);
       $("ctl-deriva-v").textContent = sim.sesgoDps.toFixed(2).replace(".", ",") + " °/s";
     });
-    $("ctl-atras").addEventListener("input", function () {
-      sim.atrasForzadoCm = Number($("ctl-atras").value);
-      $("ctl-atras-v").textContent = sim.atrasForzadoCm + " cm";
-    });
-    $("ctl-empujon").addEventListener("click", function () { SimMovimiento.empujon(sim, 35); refrescarDom(true); });
-    $("ctl-empujon-neg").addEventListener("click", function () { SimMovimiento.empujon(sim, -35); refrescarDom(true); });
-    $("btn-ensenar").addEventListener("click", function () { SimMovimiento.ensenar(sim); refrescarDom(true); });
+    $("ctl-empujon").addEventListener("click", function () { S.empujon(sim, 35); refrescarDom(true); });
+    $("ctl-empujon-neg").addEventListener("click", function () { S.empujon(sim, -35); refrescarDom(true); });
     $("btn-restaurar-cinta").addEventListener("click", function () {
-      pista.tramos.forEach(function (t) { SimMovimiento.setCinta(sim, t.desdeM, t.hastaM, t.tipo !== "sin_linea"); });
-      sim.tramosEnsenados = pista.tramos.filter(function (t) { return t.tipo === "sin_linea"; }).map(function (t) { return { desdeM: t.desdeM, hastaM: t.hastaM, rumbo: t.rumboGrados }; });
-      SimMovimiento.registrar(sim, "Cinta restaurada a la pista canónica (ruta enseñada original)");
+      todaLaCinta();
+      S.registrar(sim, "Cinta restaurada en toda la pista");
       construirBotonesCinta(); refrescarDom(true);
     });
-    /* Retiro progresivo en vivo: quita 0,5 m de cinta por delante del robot, uno tras otro */
+    /* Retiro progresivo en vivo: quita 0,5 m de cinta por delante del robot, uno tras otro (solo tramos rectos) */
     $("btn-retiro-progresivo").addEventListener("click", function () {
-      var P = SimMovimiento.P, desde = sim.s + sim.dir * 0.6, k, s, pieza = null;
+      var P = S.P, desde = sim.s + sim.dir * 0.6, k, s, pieza = null;
       for (k = 0; k < 200; k++) {
         s = desde + sim.dir * k * P.CELDA_M;
         if (s < 0 || s > sim.L) break;
-        if (SimMovimiento.hayCinta(sim, s)) { pieza = Math.floor(s / 0.5 + 1e-9) * 0.5; break; }
+        if (S.hayCinta(sim, s)) { pieza = Math.floor(s / 0.5 + 1e-9) * 0.5; break; }
       }
-      if (pieza === null) { SimMovimiento.registrar(sim, "No queda cinta por delante"); refrescarDom(true); return; }
-      SimMovimiento.setCinta(sim, pieza, pieza + 0.5, false);
-      SimMovimiento.registrar(sim, "Cinta retirada: " + pieza.toFixed(1) + "–" + (pieza + 0.5).toFixed(1) + " m");
-      construirBotonesCinta(); refrescarDom(true);
+      if (pieza === null) { S.registrar(sim, "No queda cinta por delante"); refrescarDom(true); return; }
+      S.setCinta(sim, pieza, pieza + 0.5, false);
+      S.registrar(sim, "Cinta retirada: " + pieza.toFixed(1) + "–" + (pieza + 0.5).toFixed(1) + " m");
+      resincronizar(); refrescarDom(true);
     });
-    /* Clic sobre la pista: quita o pone 0,5 m de cinta en ese punto */
-    $("lienzo-pista").addEventListener("click", function (ev) {
-      var r = $("lienzo-pista").getBoundingClientRect(), mx = 20, ancho = r.width - 2 * mx;
-      var s = (ev.clientX - r.left - mx) / ancho * sim.L;
-      if (s < 0 || s >= sim.L) return;
-      var pieza = Math.floor(s / 0.5) * 0.5, con = SimMovimiento.tramoConCinta(sim, pieza, pieza + 0.5);
-      SimMovimiento.setCinta(sim, pieza, pieza + 0.5, !con);
-      SimMovimiento.registrar(sim, (con ? "Cinta retirada: " : "Cinta puesta: ") + pieza.toFixed(1) + "–" + (pieza + 0.5).toFixed(1) + " m");
-      construirBotonesCinta(); refrescarDom(true);
-    });
-    window.addEventListener("resize", redimensionar);
+    window.addEventListener("resize", function () { redimensionar(); ajustarVista(); });
+    enlazarObstaculo();
   }
 
   function ponerModo(m) {
@@ -385,54 +517,127 @@
     $("modo-manual").setAttribute("aria-pressed", String(m === "manual")); $("modo-manual").classList.toggle("sel", m === "manual");
   }
 
+  /* Tramos con cinta/sin cinta. Solo B tiene tramos propios de la especificación; en la Pista 1 no hay ningún recto de 1,5 m */
   function construirBotonesCinta() {
     var cont = $("cinta-tramos");
     cont.innerHTML = "";
-    pista.tramos.forEach(function (t) {
-      var con = SimMovimiento.tramoConCinta(sim, t.desdeM, t.hastaM);
+    var recta = tr.rectaMasLarga(10);
+    var puede = recta.largoM >= 1.5;
+    $("btn-retiro-progresivo").disabled = !puede;
+    $("btn-ensenar").title = "Restaura la cinta y recorre la pista grabando el rumbo";
+    $("nota-cinta").textContent = puede
+      ? "Solo se pueden retirar tramos RECTOS que la pasada de enseñanza recorrió: el núcleo sostiene un rumbo, no una curva."
+      : "Esta pista no tiene un tramo recto de 1,5 m (el más largo mide " + recta.largoM.toFixed(2).replace(".", ",") + " m): se enseña y se repite con cinta completa.";
+    pistaObj.tramos.forEach(function (t) {
+      var con = S.tramoConCinta(sim, t.desdeM, t.hastaM);
+      var recto = tr.rectoEn(t.desdeM, t.hastaM);
       var b = document.createElement("button");
       b.type = "button";
       b.className = "b" + (con ? "" : " sin-cinta");
       b.setAttribute("aria-pressed", String(con));
       b.setAttribute("data-tramo", t.id);
-      b.textContent = t.id + " · " + t.desdeM + "–" + t.hastaM + " m · " + (con ? "con cinta" : "sin cinta");
+      b.disabled = !recto;
+      b.title = recto ? "" : "Tramo con curvas: no se puede retirar la cinta";
+      b.textContent = t.id + " · " + String(+t.desdeM.toFixed(2)).replace(".", ",") + "–" + String(+t.hastaM.toFixed(2)).replace(".", ",") + " m · " + (con ? "con cinta" : "sin cinta") + (recto ? "" : " (curvo)");
       b.addEventListener("click", function () {
-        var ahora = SimMovimiento.tramoConCinta(sim, t.desdeM, t.hastaM);
-        SimMovimiento.setCinta(sim, t.desdeM, t.hastaM, !ahora);
-        SimMovimiento.registrar(sim, (ahora ? "Cinta retirada en " : "Cinta puesta en ") + t.id);
-        construirBotonesCinta(); refrescarDom(true);
+        var ahora = S.tramoConCinta(sim, t.desdeM, t.hastaM);
+        S.setCinta(sim, t.desdeM, t.hastaM, !ahora);
+        S.registrar(sim, (ahora ? "Cinta retirada en " : "Cinta puesta en ") + t.id);
+        resincronizar(); refrescarDom(true);
       });
       cont.appendChild(b);
     });
   }
 
-  /* ---- 4) Panel de telemetría ---- */
+  /* ---- 4) Obstáculo arrastrable (ficha roja de P13) sobre la vista cenital ---- */
+  var arrastre = null;
+  function aMundo(cx, cy) {
+    var r = cvP.getBoundingClientRect();
+    return { x: (cx - r.left - vista.ox) / vista.sc, y: (vista.oy - (cy - r.top)) / vista.sc, dentro: cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom };
+  }
+  function enlazarObstaculo() {
+    var base = $("base-obstaculo");
+    function empezar(ev) {
+      arrastre = true; ev.preventDefault();
+      if (base.setPointerCapture && ev.pointerId !== undefined && ev.currentTarget === base) { try { base.setPointerCapture(ev.pointerId); } catch (e) { /* sin captura: sigue por window */ } }
+      mover(ev);
+    }
+    function mover(ev) {
+      if (!arrastre) return;
+      var m = aMundo(ev.clientX, ev.clientY);
+      if (m.dentro) { S.colocarObstaculo(sim, m.x, m.y); base.classList.add("usado"); } 
+    }
+    function soltar(ev) {
+      if (!arrastre) return;
+      arrastre = false;
+      var m = aMundo(ev.clientX, ev.clientY);
+      if (!m.dentro) { S.quitarObstaculo(sim); base.classList.remove("usado"); }
+      refrescarDom(true);
+    }
+    base.addEventListener("pointerdown", empezar);
+    cvP.addEventListener("pointerdown", function (ev) {
+      if (!sim.obstaculos.length) return;
+      var o = sim.obstaculos[0], px = vista.ox + o.x * vista.sc, py = vista.oy - o.y * vista.sc, r = cvP.getBoundingClientRect();
+      if (Math.hypot(ev.clientX - r.left - px, ev.clientY - r.top - py) <= 26) { empezar(ev); try { cvP.setPointerCapture(ev.pointerId); } catch (e) { /* ignora */ } }
+    });
+    window.addEventListener("pointermove", mover);
+    window.addEventListener("pointerup", soltar);
+    window.addEventListener("pointercancel", soltar);
+    cvP.addEventListener("pointermove", function (ev) {
+      if (arrastre || !sim.obstaculos.length) { cvP.style.cursor = arrastre ? "grabbing" : ""; return; }
+      var o = sim.obstaculos[0], r = cvP.getBoundingClientRect();
+      cvP.style.cursor = Math.hypot(ev.clientX - r.left - (vista.ox + o.x * vista.sc), ev.clientY - r.top - (vista.oy - o.y * vista.sc)) <= 26 ? "grab" : "";
+    });
+    base.addEventListener("keydown", function (ev) {
+      if (ev.key === "Enter" || ev.key === " ") {
+        ev.preventDefault();
+        var p = S.poseMundo(sim), a = p.angulo * Math.PI / 180, d = 0.9;
+        S.colocarObstaculo(sim, p.x + Math.cos(a) * d, p.y + Math.sin(a) * d); base.classList.add("usado"); refrescarDom(true);
+      } else if (ev.key === "Delete" || ev.key === "Backspace" || ev.key === "Escape") {
+        ev.preventDefault(); S.quitarObstaculo(sim); base.classList.remove("usado"); refrescarDom(true);
+      }
+    });
+  }
+
+  /* ---- 5) Panel de telemetría ---- */
   function fmt(x, d) { return x.toFixed(d).replace(".", ","); }
   function zonaTxt(z) { return z === "critica" ? "PARADA CRÍTICA (< 20 cm)" : (z === "precaucion" ? "PRECAUCIÓN (20–50 cm)" : "LIBRE"); }
 
+  /* Alerta de la ranura superior: por prioridad; siempre ocupa su sitio, solo cambia su contenido */
+  function alertaActual(vel, zf, zatras) {
+    if (sim.nav.paradaSeguridad) return { n: "", t: "PARADA DE SEGURIDAD · " + (sim.motivoParada || "latch") + " · " + vel + " m/s" };
+    if (sim.ultimaSalida && sim.ultimaSalida.frenadoCritico && sim.modo === "auto") return { n: "", t: "FRENADO POR OBSTÁCULO · " + vel + " m/s" };
+    if (zf === "critica") return { n: "", t: "OBSTÁCULO < 20 cm · PARADA · " + vel + " m/s" };
+    if (zf === "precaucion") return { n: "aviso", t: "OBSTÁCULO CERCA · " + vel + " m/s" };
+    if (zatras === "critica") return { n: "aviso", t: "OBSTÁCULO ATRÁS < 20 cm · no se permite retroceder" };
+    if (sim.frenoRemoto) return { n: "aviso", t: "FRENO REMOTO · orden frenar" };
+    if (sim.llegadaCompleta) return { n: "ok", t: sim.rutaEnsenada && !sim.ensenando && sim.perfiles[sim.dir] ? "LLEGADA VALIDADA POR LA BALIZA · ruta enseñada y repetida" : "LLEGADA VALIDADA POR LA BALIZA" };
+    return null;
+  }
+
   function refrescarDom() {
-    var C = nucleo.CFG, S = SimMovimiento;
+    var C = nucleo.CFG;
     var nombre = nucleo.NOMBRE_ESTADO[sim.nav.estado];
     var manual = sim.modo === "manual";
-    var alerta = sim.nav.paradaSeguridad;
-    var texto = alerta ? "PARADA DE SEGURIDAD (latch) · " + nombre
+    var alertaSeg = sim.nav.paradaSeguridad;
+    var texto = alertaSeg ? "PARADA DE SEGURIDAD (latch) · " + nombre
       : (sim.llegadaCompleta ? "LLEGADA VALIDADA · " + nombre
-      : (sim.frenoRemoto ? "FRENO REMOTO · núcleo en pausa" : (manual ? "MANUAL · núcleo en pausa" : nombre)));
+      : (sim.frenoRemoto ? "FRENO REMOTO · núcleo en pausa" : (manual ? "MANUAL · núcleo en pausa" : (sim.ensenando ? "ENSEÑANDO · " + nombre : nombre))));
     if (sim.ultimaSalida && sim.ultimaSalida.frenadoCritico && !manual) texto = "PARADA CRÍTICA (frente < 20 cm) · " + nombre;
     $("estado-activo").textContent = texto;
     estadosChips.forEach(function (c, i) {
-      c.className = (!manual && !sim.frenoRemoto && i === sim.nav.estado) ? (alerta ? "alerta" : "activo") : (i === sim.nav.estado ? "pausa" : "");
+      c.className = (!manual && !sim.frenoRemoto && i === sim.nav.estado) ? (alertaSeg ? "alerta" : "activo") : (i === sim.nav.estado ? "pausa" : "");
     });
     $("evento-actual").textContent = "Evento del núcleo: " + (sim.ultimaSalida && sim.ultimaSalida.evento ? sim.ultimaSalida.evento : "—") +
-      (sim.ultimaSalida && sim.ultimaSalida.precaucion ? " · precaución (velocidad ×0,5)" : "");
-    $("barra-resumen").textContent = "t = " + fmt(sim.t, 1) + " s · s = " + fmt(sim.s, 2) + " m · " + (sim.dir > 0 ? "ida" : "vuelta") + " · modo " + (manual ? "manual" : "teach-and-repeat");
+      (sim.ultimaSalida && sim.ultimaSalida.precaucion ? " · precaución (velocidad ×0,5, con rampa)" : "");
+    $("barra-resumen").textContent = tr.id + " · t = " + fmt(sim.t, 1) + " s · s = " + fmt(sim.s, 2) + " / " + fmt(sim.L, 2) + " m · " + (sim.dir > 0 ? "ida" : "vuelta") + " · " + (sim.ensenando ? "enseñando" : (manual ? "manual" : "repetir"));
 
     var sens = sim.sensores || S.sensoresActuales(sim);
     tcrtEls.forEach(function (e, i) { e.className = "s" + (sens.bin[i] ? " on" : ""); e.firstChild.nodeValue = "S" + (i + 1) + " " + sens.bin[i]; e.lastChild.textContent = sens.n[i].toFixed(2); });
     $("tcrt-txt").textContent = "[" + sens.bin.join(", ") + "] · línea " + (sens.hayCinta ? "detectada" : "perdida") + " · línea_mm = " + (sens.bin.some(function (b) { return b; }) ? fmt(nucleo.posicionLinea(sens.n).linea_mm, 1) : "—") + " mm";
 
     var ym = S.yawMedido(sim);
-    $("mpu-rumbo").textContent = fmt(ym, 1) + "° medido · " + fmt(sim.yawVerdad, 1) + "° real";
+    $("mpu-rumbo").textContent = fmt(ym, 1) + "° medido · " + fmt(sim.yawAbs, 1) + "° real";
     var enHold = sim.nav.estado === nucleo.ESTADO.HEADING_HOLD && !manual;
     var err = nucleo.anguloNormalizado(ym - sim.nav.rumboObjetivo);
     $("mpu-deriva").textContent = "Deriva en HEADING_HOLD: " + fmt(sim.derivaEnHoldGrados, 2) + "° (pico " + fmt(sim.derivaPicoGrados, 2) + "°) · sesgo " + fmt(sim.sesgoDps, 2) + " °/s" + (enHold ? " · error vs rumbo enseñado " + fmt(err, 2) + "°" : "");
@@ -447,129 +652,182 @@
     var rs = S.rssiActual(sim);
     var hay = rs.rssi >= C.RSSI_DETECTA_DBM;
     $("ble-rssi").className = "val" + (hay ? "" : " sin");
-    $("ble-rssi").textContent = hay ? (rs.baliza + " · " + fmt(rs.rssi, 1) + " dBm") : "sin señal (a mitad de pasillo no hay baliza)";
-    $("ble-barra").style.width = hay ? Math.round((rs.rssi + 80) / 28 * 100) + "%" : "0%";
-    var lleg = sim.llegadaCompleta ? "LLEGADA VALIDADA por la baliza del extremo" : (sim.nav.estado === nucleo.ESTADO.WAIT_BEACON ? "WAIT_BEACON: esperando RSSI ≥ " + C.RSSI_LLEGADA_DBM + " dBm" : "En el pasillo la posición NO la valida ninguna baliza");
-    $("ble-validacion").textContent = "Solo extremos: B1 = Cuarto de Componentes (0 m) · B2 = Laboratorio 1 (" + fmt(sim.L, 1) + " m). Detecta ≥ " + C.RSSI_DETECTA_DBM + " dBm · llegada ≥ " + C.RSSI_LLEGADA_DBM + " dBm. " + lleg + ".";
+    $("ble-rssi").textContent = hay ? (rs.baliza + " · " + fmt(rs.rssi, 1) + " dBm") : "sin señal (lejos de los extremos no hay baliza)";
+    $("ble-barra").style.width = hay ? Math.max(0, Math.min(100, Math.round((rs.rssi + 80) / 28 * 100))) + "%" : "0%";
+    var lleg = sim.llegadaCompleta ? "LLEGADA VALIDADA por la baliza del extremo" : (sim.nav.estado === nucleo.ESTADO.WAIT_BEACON ? "WAIT_BEACON: esperando RSSI ≥ " + C.RSSI_LLEGADA_DBM + " dBm" : "A mitad de pista NO la valida ninguna baliza");
+    $("ble-validacion").textContent = "Solo extremos: B1 en 0 m y B2 en " + fmt(sim.L, 2) + " m (en el circuito cerrado coinciden: RSSI por distancia recorrida). Detecta ≥ " + C.RSSI_DETECTA_DBM + " dBm · llegada ≥ " + C.RSSI_LLEGADA_DBM + " dBm. " + lleg + ".";
 
-    $("mov-vel").textContent = fmt(Math.abs(sim.vLineal), 2) + " m/s";
-    $("mov-detalle").textContent = "PWM izq/der: " + fmt(sim.vIzq, 2) + " / " + fmt(sim.vDer, 2) + " · desvío lateral " + fmt(sim.y * 100, 1) + " cm · tiempo sin línea " + fmt(sim.nav.perdidaMs / 1000, 1) + " s (máx " + fmt(C.TIEMPO_MAX_SIN_LINEA_MS / 1000, 0) + " s)";
+    var vel = fmt(Math.abs(sim.vLineal), 2);
+    $("mov-vel").textContent = vel + " m/s";
+    $("mov-detalle").textContent = "PWM izq/der: " + fmt(sim.vIzq, 2) + " / " + fmt(sim.vDer, 2) + " · desvío " + fmt(sim.y * 100, 1) + " cm · sin línea " + fmt(sim.nav.perdidaMs / 1000, 1) + " s (máx " + fmt(C.TIEMPO_MAX_SIN_LINEA_MS / 1000, 0) + " s)" + (sim.limitadorActivo ? " · limitador de rampa activo" : "");
 
-    var huecos = sim.tramosEnsenados.map(function (t) { return fmt(t.desdeM, 1) + "–" + fmt(t.hastaM, 1) + " m"; });
-    var sinEnsenar = S.huecosDeCinta(sim).filter(function (h) { return !sim.tramosEnsenados.some(function (t) { return Math.abs(t.desdeM - h.desdeM) < 0.06 && Math.abs(t.hastaM - h.hastaM) < 0.06; }); });
-    $("ruta-ensenada").textContent = "Ruta enseñada (huecos de cinta): " + (huecos.length ? huecos.join(" · ") : "ninguno") + (sinEnsenar.length ? " · ⚠ hueco SIN enseñar: " + sinEnsenar.map(function (h) { return fmt(h.desdeM, 1) + "–" + fmt(h.hastaM, 1) + " m"; }).join(", ") : "");
+    /* velocímetro SVG de P13 (0,00–0,46 m/s) */
+    var v = R.velocimetro(sim.vLineal);
+    $("velo-arco").setAttribute("stroke-dashoffset", String(v.dashoffset));
+    $("velo-arco").style.stroke = v.color === "rojo" ? "#ef4444" : ((zf !== "libre" || sim.limitadorActivo) ? "#f59e0b" : "#22c55e");
+    $("velo-aguja").setAttribute("transform", "rotate(" + v.agujaGrados + " 40 40)");
+    $("velo-val").innerHTML = vel.replace(",", ".") + "<small>m/s</small>";
 
-    var log = $("log-eventos");
-    log.innerHTML = sim.eventos.slice(-8).reverse().map(function (e) { return "<div><b>" + fmt(e.t, 2) + " s</b> " + e.texto.replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }) + "</div>"; }).join("");
+    /* alerta arriba, sin saltos */
+    var al = alertaActual(vel, zf, za), el = $("alerta");
+    if (al) { el.textContent = al.t; el.className = "alerta ver" + (al.n ? " " + al.n : ""); } else { el.textContent = "Sin alertas"; el.className = "alerta"; }
+
+    /* flujo 1 · 2 · 3 */
+    var ens = !!sim.perfiles[1] || !!sim.perfiles[-1];
+    $("flujo-1").className = ens ? "hecho" : "";
+    $("flujo-2").className = (ens && S.huecosDeCinta(sim).length) ? "hecho" : "";
+    $("flujo-3").className = sim.llegadaCompleta && !sim.ensenando && ens ? "hecho" : "";
+    var huecos = sim.tramosEnsenados.map(function (t) { return fmt(t.desdeM, 1) + "–" + fmt(t.hastaM, 1) + " m (rumbo " + fmt(t.rumbo, 1) + "°)"; });
+    var rech = sim.huecosRechazados.map(function (h) { return fmt(h.desdeM, 1) + "–" + fmt(h.hastaM, 1) + " m: " + h.motivo; });
+    var sinEns = ens ? [] : S.huecosDeCinta(sim).map(function (h) { return fmt(h.desdeM, 1) + "–" + fmt(h.hastaM, 1) + " m"; });
+    $("ruta-ensenada").textContent = (sim.ensenando ? "Enseñando… " + Math.round(sim.s / sim.L * 100) + " %" : (ens ? "Ruta enseñada ✔" : "Ruta enseñada: todavía no")) +
+      (huecos.length ? " · huecos enseñados: " + huecos.join(" · ") : "") + (rech.length ? " · ⚠ no enseñable: " + rech.join("; ") : "") + (sinEns.length ? " · ⚠ hueco SIN enseñar: " + sinEns.join(", ") : "");
+
+    if ($("det-contrato").open) {
+      var e = GemeloEstado.estadoGemelo(sim, S);
+      $("contrato-json").textContent = JSON.stringify(e, null, 2) + "\n\n// lo que entiende la app hoy (topics del firmware) + posición solo del gemelo\n" + JSON.stringify(GemeloEstado.aContratoApp(e, sim, S), null, 2);
+    }
+    if ($("det-registro").open) {
+      var log = $("log-eventos");
+      log.innerHTML = sim.eventos.slice(-8).reverse().map(function (e) { return "<div><b>" + fmt(e.t, 2) + " s</b> " + e.texto.replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }) + "</div>"; }).join("");
+    }
   }
 
-  /* ---- 5) Dibujo ---- */
+  /* ---- 6) Dibujo ---- */
   var cvP = $("lienzo-pista"), cvZ = $("lienzo-zoom"), ctxP = cvP.getContext("2d"), ctxZ = cvZ.getContext("2d");
   var dpr = Math.min(2, window.devicePixelRatio || 1);
   function ajustar(cv) { var r = cv.getBoundingClientRect(); cv.width = Math.max(1, Math.round(r.width * dpr)); cv.height = Math.max(1, Math.round(r.height * dpr)); return { w: r.width, h: r.height }; }
-  var dimP = { w: 300, h: 230 }, dimZ = { w: 300, h: 150 };
-  function redimensionar() { dimP = ajustar(cvP); dimZ = ajustar(cvZ); }
+  var dimP = { w: 300, h: 270 }, dimZ = { w: 300, h: 150 };
+  var vista = { sc: 100, ox: 0, oy: 0 };
+  function redimensionar() { dimP = ajustar(cvP); if ($("det-zoom").open) dimZ = ajustar(cvZ); }
+  $("det-zoom").addEventListener("toggle", function () { if ($("det-zoom").open) dimZ = ajustar(cvZ); });
+  /* encaja la pista en el lienzo (y arriba = +y del mundo) */
+  function ajustarVista() {
+    if (!tr) return;
+    var b = tr.caja(), m = 26, w = dimP.w, h = dimP.h;
+    var sc = Math.min((w - 2 * m) / Math.max(0.5, b.x1 - b.x0), (h - 2 * m - 20) / Math.max(0.5, b.y1 - b.y0));
+    vista = { sc: sc, ox: (w - (b.x1 - b.x0) * sc) / 2 - b.x0 * sc, oy: (h + (b.y1 - b.y0) * sc) / 2 + b.y0 * sc + 6 };
+  }
+  var VX = function (x) { return vista.ox + x * vista.sc; }, VY = function (y) { return vista.oy - y * vista.sc; };
 
-  var COL = { cinta: "#00f2fe", fantasma: "rgba(0,242,254,0.22)", ens: "#f59e0b", sinEns: "#f43f5e", texto: "#cbd5e1", ok: "#4ade80", crit: "#f43f5e" };
+  var COL = { cinta: "#00f2fe", fantasma: "rgba(0,242,254,0.22)", ens: "#f59e0b", sinEns: "#f43f5e", ok: "#4ade80", crit: "#f43f5e", aviso: "#f59e0b" };
 
-  function dibujar() {
+  function dibujar(ahora) {
     if (!sim) return;
-    dibujarPista();
-    dibujarZoom();
+    dibujarPista(ahora);
+    if ($("det-zoom").open) dibujarZoom();
   }
 
-  function dibujarPista() {
-    var c = ctxP, w = dimP.w, h = dimP.h, S = SimMovimiento, L = sim.L, P = S.P;
+  function sector(c, rI, rF, semi, color, alfa) {
+    c.beginPath(); c.arc(0, 0, rF, -semi, semi); c.arc(0, 0, rI, semi, -semi, true); c.closePath();
+    c.globalAlpha = alfa; c.fillStyle = color; c.fill(); c.globalAlpha = 1;
+  }
+
+  /* Un sensor: cono de 2 zonas (rojo 0–20 cm, ámbar 20–50 cm), ondas que salen y, si hay eco, el rebote desde el obstáculo */
+  function dibujarCono(c, ahora, lado, cm, zona) {
+    var P = S.P, sc = vista.sc, semi = P.CONO_US_GRADOS * Math.PI / 180;
+    var off = lado === "frente" ? P.FRENTE_ROBOT_M : -P.ATRAS_ROBOT_M;
+    c.save(); c.translate(off * sc, 0); if (lado === "atras") c.rotate(Math.PI);
+    var act = zona;
+    sector(c, 0, 0.2 * sc, semi, COL.crit, act === "critica" ? 0.42 : 0.1);
+    sector(c, 0.2 * sc, 0.5 * sc, semi, COL.aviso, act === "precaucion" ? 0.34 : (act === "critica" ? 0.14 : 0.08));
+    c.strokeStyle = "rgba(148,163,184,0.35)"; c.lineWidth = 1; c.beginPath(); c.moveTo(0, 0); c.lineTo(0.5 * sc * Math.cos(semi), -0.5 * sc * Math.sin(semi)); c.moveTo(0, 0); c.lineTo(0.5 * sc * Math.cos(semi), 0.5 * sc * Math.sin(semi)); c.stroke();
+    /* ondas */
+    var t = (ahora / 1000) * 0.9, k, f, r;
+    for (k = 0; k < 3; k++) {
+      f = (t + k / 3) % 1; r = f * 0.5 * sc;
+      if (cm > 0 && r > cm / 100 * sc) continue; /* el frente de onda se corta en el obstáculo */
+      c.globalAlpha = (1 - f) * 0.7; c.strokeStyle = zona === "critica" ? COL.crit : (zona === "precaucion" ? COL.aviso : "#7dd3fc"); c.lineWidth = 1.5;
+      c.beginPath(); c.arc(0, 0, r, -semi, semi); c.stroke();
+    }
+    c.globalAlpha = 1;
+    /* eco: arcos que vuelven al sensor desde el obstáculo */
+    if (cm > 0 && cm < 150) {
+      var d = cm / 100 * sc, fe = 1 - ((t * 1.3) % 1);
+      c.strokeStyle = zona === "critica" ? COL.crit : "#fde68a"; c.lineWidth = 1; c.setLineDash([3, 3]);
+      c.beginPath(); c.moveTo(0, 0); c.lineTo(d, 0); c.stroke(); c.setLineDash([]);
+      for (k = 0; k < 2; k++) {
+        var ff = (fe + k * 0.5) % 1, rr = d * ff;
+        c.globalAlpha = 0.25 + 0.6 * (1 - ff); c.beginPath(); c.arc(d, 0, Math.max(2, d - rr) * 0.18 + 3, Math.PI - semi, Math.PI + semi); c.stroke();
+      }
+      c.globalAlpha = 1;
+    }
+    c.restore();
+  }
+
+  function dibujarPista(ahora) {
+    var c = ctxP, w = dimP.w, h = dimP.h, P = S.P, L = sim.L;
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     c.clearRect(0, 0, w, h);
-    var mx = 20, ancho = w - 2 * mx, yL = h * 0.46;
-    var X = function (s) { return mx + s / L * ancho; };
-    c.font = "10.5px JetBrains Mono, monospace";
-    c.textBaseline = "middle";
+    c.font = "10.5px JetBrains Mono, monospace"; c.textBaseline = "middle";
 
-    /* rejilla cada metro */
-    c.strokeStyle = "rgba(148,163,184,0.12)"; c.lineWidth = 1;
-    for (var m = 0; m <= L; m++) { c.beginPath(); c.moveTo(X(m), yL - 46); c.lineTo(X(m), yL + 46); c.stroke(); }
-    c.fillStyle = "#64748b"; c.textAlign = "center";
-    for (m = 0; m <= L; m += 1) c.fillText(String(m), X(m), yL + 56);
-
-    /* tramos T1..T4 (nombres) */
-    c.fillStyle = "#94a3b8";
-    pista.tramos.forEach(function (t) { c.fillText(t.id, X((t.desdeM + t.hastaM) / 2), yL - 52); });
-
-    /* cinta: recorrida (ghost) / pendiente (iluminada) / hueco */
-    var s0 = sim.dir > 0 ? 0 : L, sR = sim.s;
-    var lo = Math.min(s0, sR), hi = Math.max(s0, sR);
-    var n = sim.cinta.length, i, a, b, tieneHuecoEns;
-    c.lineCap = "butt";
+    /* cinta por celdas: recorrida (fantasma) / pendiente / hueco enseñado (ámbar) / hueco sin enseñar (rojo) */
+    var s0 = sim.dir > 0 ? 0 : L, lo = Math.min(s0, sim.s), hi = Math.max(s0, sim.s), n = sim.cinta.length, i, a, b, pa, pb, mid;
+    c.lineCap = "round";
     for (i = 0; i < n; i++) {
-      a = i * P.CELDA_M; b = a + P.CELDA_M;
-      var mid = (a + b) / 2;
-      var recorrida = mid >= lo && mid <= hi;
+      a = i * P.CELDA_M; b = a + P.CELDA_M; mid = (a + b) / 2;
+      pa = tr.puntoEn(a); pb = tr.puntoEn(b);
       if (sim.cinta[i]) {
-        if (recorrida) { c.strokeStyle = COL.fantasma; c.lineWidth = 2; c.setLineDash([2, 4]); }
-        else { c.strokeStyle = COL.cinta; c.lineWidth = 5; c.setLineDash([]); c.shadowColor = COL.cinta; c.shadowBlur = 6; }
-        c.beginPath(); c.moveTo(X(a), yL); c.lineTo(X(b) + 0.5, yL); c.stroke();
-        c.shadowBlur = 0; c.setLineDash([]);
+        if (mid >= lo && mid <= hi) { c.strokeStyle = COL.fantasma; c.lineWidth = 2; c.setLineDash([2, 4]); }
+        else { c.strokeStyle = COL.cinta; c.lineWidth = 4; c.setLineDash([]); }
       } else {
-        tieneHuecoEns = !!S.tramoEnsenadoEn(sim, mid);
-        c.strokeStyle = tieneHuecoEns ? COL.ens : COL.sinEns; c.lineWidth = 2; c.setLineDash([4, 4]);
-        c.beginPath(); c.moveTo(X(a), yL); c.lineTo(X(b) + 0.5, yL); c.stroke(); c.setLineDash([]);
+        c.strokeStyle = S.tramoEnsenadoEn(sim, mid) ? COL.ens : COL.sinEns; c.lineWidth = 3; c.setLineDash([4, 4]);
       }
+      c.beginPath(); c.moveTo(VX(pa.x), VY(pa.y)); c.lineTo(VX(pb.x), VY(pb.y)); c.stroke();
     }
+    c.setLineDash([]);
 
-    /* puntos de control */
+    /* tramos y puntos de control (estaciones de la especificación) */
     c.textAlign = "center";
-    pista.puntosDeControl.forEach(function (pc) {
-      var x = X(pc.posicionM);
+    pistaObj.tramos.forEach(function (t) {
+      if (pistaObj.tramos.length < 2) return;
+      var p = tr.puntoEn((t.desdeM + t.hastaM) / 2), ang = tr.rumboPistaGrados((t.desdeM + t.hastaM) / 2) * Math.PI / 180;
+      c.fillStyle = "#94a3b8"; c.fillText(t.id, VX(p.x) + Math.sin(ang) * 18, VY(p.y) - Math.cos(ang) * 18);
+    });
+    pistaObj.puntosDeControl.forEach(function (pc) {
+      var p = tr.puntoEn(pc.posicionM), x = VX(p.x), y = VY(p.y);
       c.fillStyle = "#0b1220"; c.strokeStyle = "#a78bfa"; c.lineWidth = 2;
-      c.beginPath(); c.moveTo(x, yL - 11); c.lineTo(x + 8, yL); c.lineTo(x, yL + 11); c.lineTo(x - 8, yL); c.closePath(); c.fill(); c.stroke();
-      c.fillStyle = "#c4b5fd"; c.fillText(pc.id, x, yL + 24);
+      c.beginPath(); c.moveTo(x, y - 8); c.lineTo(x + 6, y); c.lineTo(x, y + 8); c.lineTo(x - 6, y); c.closePath(); c.fill(); c.stroke();
+      c.fillStyle = "#c4b5fd"; c.fillText(pc.id, x, y + 18);
+    });
+    /* balizas BLE de los extremos (en el circuito cerrado caen en el mismo punto: se separan para verlas) */
+    pistaObj.balizasBLE.forEach(function (bl, k) {
+      var p = tr.puntoEn(bl.posicionM), x = VX(p.x), y = VY(p.y) + (k ? 14 : -14);
+      c.strokeStyle = "rgba(56,189,248,0.4)"; c.lineWidth = 1; c.setLineDash([3, 3]);
+      c.beginPath(); c.arc(VX(p.x), VY(p.y), BLE_RADIO_M * vista.sc, 0, 7); c.stroke(); c.setLineDash([]);
+      c.fillStyle = "#38bdf8"; c.beginPath(); c.arc(x, y, 5, 0, 7); c.fill();
+      c.fillStyle = "#e0f2fe"; c.textAlign = "left"; c.fillText(w < 520 ? bl.id : bl.id + (bl.extremo === "inicio" ? " · inicio" : " · fin"), x + 9, y);
     });
 
-    /* balizas BLE solo en los extremos, con su radio útil */
-    pista.balizasBLE.forEach(function (bl) {
-      var x = X(bl.posicionM), r = P.RADIO_BLE_M / L * ancho;
-      c.strokeStyle = "rgba(56,189,248,0.35)"; c.lineWidth = 1; c.setLineDash([3, 3]);
-      c.beginPath(); c.arc(x, yL, r, bl.extremo === "inicio" ? -Math.PI / 2 : Math.PI / 2, bl.extremo === "inicio" ? Math.PI / 2 : -Math.PI / 2 + Math.PI * 2, bl.extremo !== "inicio"); c.stroke(); c.setLineDash([]);
-      c.fillStyle = "#38bdf8"; c.beginPath(); c.arc(x, yL - 30, 6, 0, 7); c.fill();
-      c.fillStyle = "#e0f2fe"; c.textAlign = bl.extremo === "inicio" ? "left" : "right";
-      var corto = w < 520 ? (bl.extremo === "inicio" ? "B1 · Cuarto" : "B2 · Lab. 1") : (bl.id + " · " + bl.ubicacion);
-      c.fillText(corto, x + (bl.extremo === "inicio" ? -8 : 8), yL - 80);
-    });
-
-    /* obstáculo */
-    if (sim.obstaculoS !== null) {
-      c.fillStyle = COL.crit; c.fillRect(X(sim.obstaculoS) - 4, yL - 12, 8, 24);
-    }
-
-    /* robot: rectángulo con flecha; el cono frontal según la zona */
-    var rx = X(sim.s), psi = sim.yawVerdad * Math.PI / 180;
-    var f = S.frenteActualCm(sim), z = S.zonaFrente(sim, f);
-    c.save(); c.translate(rx, yL - sim.y * ancho / L * 12); c.scale(sim.dir, 1); c.rotate(psi);
-    var cc = z === "critica" ? COL.crit : (z === "precaucion" ? "#f59e0b" : COL.ok);
-    c.fillStyle = cc + "33"; c.strokeStyle = cc; c.lineWidth = 1;
-    var cono = Math.min(34, 14 + (f > 0 ? Math.min(f, 150) / 150 * 20 : 20));
-    c.beginPath(); c.moveTo(8, 0); c.lineTo(8 + cono, -8); c.lineTo(8 + cono, 8); c.closePath(); c.fill(); c.stroke();
+    /* robot con sus dos conos */
+    var pose = S.poseMundo(sim), f = S.frenteActualCm(sim), at = S.atrasActualCm(sim);
+    var zf = S.zonaFrente(sim, f), za = S.zonaFrente(sim, at);
+    c.save(); c.translate(VX(pose.x), VY(pose.y)); c.rotate(-pose.angulo * Math.PI / 180);
+    dibujarCono(c, ahora, "frente", f, zf);
+    dibujarCono(c, ahora, "atras", at < 160 ? at : 0, za);
+    var largo = Math.max(14, 0.24 * vista.sc), ancho = Math.max(10, 0.18 * vista.sc);
     c.fillStyle = "#1e293b"; c.strokeStyle = COL.cinta; c.lineWidth = 2;
-    c.fillRect(-9, -6, 18, 12); c.strokeRect(-9, -6, 18, 12);
-    c.fillStyle = COL.cinta; c.beginPath(); c.moveTo(7, 0); c.lineTo(-2, -4); c.lineTo(-2, 4); c.closePath(); c.fill();
+    c.fillRect(-largo / 2 + 0.03 * vista.sc, -ancho / 2, largo, ancho); c.strokeRect(-largo / 2 + 0.03 * vista.sc, -ancho / 2, largo, ancho);
+    c.fillStyle = COL.cinta; c.beginPath(); c.moveTo(largo / 2 + 0.03 * vista.sc - 2, 0); c.lineTo(0.03 * vista.sc + largo / 2 - 9, -5); c.lineTo(0.03 * vista.sc + largo / 2 - 9, 5); c.closePath(); c.fill();
     c.restore();
 
-    /* destino y leyenda */
+    /* obstáculo */
+    sim.obstaculos.forEach(function (o) {
+      var r = Math.max(7, o.r * vista.sc);
+      c.fillStyle = "#ef4444"; c.strokeStyle = "#fff"; c.lineWidth = 2;
+      c.beginPath(); c.arc(VX(o.x), VY(o.y), r, 0, 7); c.fill(); c.stroke();
+    });
+
     c.textAlign = "left"; c.fillStyle = "#94a3b8";
-    c.fillText("s = " + fmt(sim.s, 2) + " m", mx, h - 8);
+    c.fillText(tr.id === "B" ? "Pista 2 · 9,0 m" : "Pista 1 · 8,05 m", 10, 14);
   }
 
   function dibujarZoom() {
-    var c = ctxZ, w = dimZ.w, h = dimZ.h, S = SimMovimiento, P = S.P;
+    var c = ctxZ, w = dimZ.w, h = dimZ.h, P = S.P;
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     c.clearRect(0, 0, w, h);
-    var pxm = Math.min(w / 1.2, h / 0.5), ventana = w / pxm, cy = h * 0.5;
-    var dir = sim.dir;
-    /* x en pantalla: el avance del robot siempre va hacia la derecha */
+    var pxm = Math.min(w / 1.2, h / 0.5), ventana = w / pxm, cy = h * 0.5, dir = sim.dir;
     var XZ = function (s) { return w / 2 + (s - sim.s) * dir * pxm; };
-    /* cinta a escala real (19 mm) */
     var halfPx = P.ANCHO_CINTA_MM / 2000 * pxm;
     for (var i = 0; i < sim.cinta.length; i++) {
       var a = i * P.CELDA_M, b = a + P.CELDA_M, xa = XZ(a), xb = XZ(b);
@@ -578,18 +836,14 @@
       if (sim.cinta[i]) { c.fillStyle = "rgba(0,242,254,0.85)"; c.fillRect(x0, cy - halfPx, ww, halfPx * 2); }
       else { c.strokeStyle = "rgba(245,158,11,0.5)"; c.setLineDash([3, 3]); c.strokeRect(x0, cy - halfPx, ww, halfPx * 2); c.setLineDash([]); }
     }
-    /* robot (centrado en pantalla) con yaw y desvío lateral */
-    var psi = sim.yawVerdad * Math.PI / 180;
-    var ry = cy - sim.y * pxm; /* izquierda = arriba */
+    var psi = sim.yawVerdad * Math.PI / 180, ry = cy - sim.y * pxm;
     c.save(); c.translate(w / 2, ry); c.rotate(psi);
-    var largo = 0.24 * pxm, ancho = 0.16 * pxm;
+    var largo = 0.24 * pxm, ancho = 0.18 * pxm;
     c.fillStyle = "#1e293b"; c.strokeStyle = COL.cinta; c.lineWidth = 2;
     c.fillRect(-largo / 2, -ancho / 2, largo, ancho); c.strokeRect(-largo / 2, -ancho / 2, largo, ancho);
-    c.fillStyle = COL.cinta; c.beginPath(); c.moveTo(largo / 2 - 2, 0); c.lineTo(largo / 2 - 14, -7); c.lineTo(largo / 2 - 14, 7); c.closePath(); c.fill();
-    /* los 4 TCRT5000 delante del eje */
-    var xs = pista.umbrales.posicionesSensoresMm, sens = sim.sensores || S.sensoresActuales(sim);
+    var xs = pistaObj.umbrales.posicionesSensoresMm, sens = sim.sensores || S.sensoresActuales(sim);
     for (var k = 0; k < 4; k++) {
-      var sx = largo / 2 + (P.ADELANTE_SENSOR_M - 0.12) * pxm, sy = -xs[k] / 1000 * pxm;
+      var sx = P.ADELANTE_SENSOR_M * pxm, sy = -xs[k] / 1000 * pxm;
       c.fillStyle = sens.bin[k] ? "#5eead4" : "#475569";
       c.beginPath(); c.arc(sx, sy, 4.5, 0, 7); c.fill();
     }
@@ -597,6 +851,9 @@
     c.fillStyle = "#94a3b8"; c.font = "10.5px JetBrains Mono, monospace"; c.textAlign = "left";
     c.fillText("ventana de " + fmt(ventana, 1) + " m · cinta de 19 mm a escala · avance →", 8, h - 8);
   }
+
+  /* para las pruebas de navegador y las capturas */
+  window.__sim2 = { get sim() { return sim; }, get tr() { return tr; }, get vista() { return vista; }, cargarPista: cargarPista, refrescar: refrescarDom };
 })();
 </script>
 </body>

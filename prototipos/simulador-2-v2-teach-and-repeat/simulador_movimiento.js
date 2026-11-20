@@ -12,6 +12,13 @@
  * [PENDIENTE DE INTEGRACIÓN EN FIRMWARE]. Sin magnetómetro: el rumbo es
  * RELATIVO a la dirección de la pista al empezar el viaje.
  *
+ * Física calibrada con SIM1 (JGA25-371 Speed 200 + L298N, 3S a 11,1 V; model.js de P08): PWM 1,0 = 0,572 m/s
+ * (PWM 0,8 = 0,457 m/s en recta), constante de las ruedas 0,18 s, ancho entre ruedas 0,18 m, sensores TCRT5000
+ * a 0,06 m del eje. Las dos pistas de SIM1 (A: 8,05 m, B: 9,0 m) entran por `opciones.trazado`
+ * (pistas_sim1.js): la planta usa coordenadas de Frenet (s, y, ψ) con la curvatura κ(s) de la pista, así que en
+ * curva el robot "ve" cómo se aleja la cinta. Sin trazado (los tests clásicos) la pista es un pasillo recto.
+ * El rumbo de HEADING_HOLD es el del giroscopio ABSOLUTO desde la salida (yawAbs), igual que el MPU-6050 real.
+ *
  * Convenios: s = posición sobre la pista (m, 0 = Cuarto de Componentes,
  * 9,0 = Laboratorio 1). dir = +1 (ida) o -1 (vuelta). yaw positivo = giro a la
  * derecha (horario). y = desvío lateral a la IZQUIERDA de la cinta (m);
@@ -19,20 +26,21 @@
  * Navegación teach-and-repeat: se enseña la ruta y se repite.
  */
 (function (raiz, fabrica) {
-  if (typeof module === "object" && module.exports) module.exports = fabrica();
-  else raiz.SimMovimiento = fabrica();
-})(typeof self !== "undefined" ? self : this, function () {
+  if (typeof module === "object" && module.exports) module.exports = fabrica(require("./radar_us.js"));
+  else raiz.SimMovimiento = fabrica(raiz.RadarUS);
+})(typeof self !== "undefined" ? self : this, function (RadarUS) {
   "use strict";
 
   /* Supuestos de la planta (no vienen de la pista ni del núcleo) */
   var P = {
-    V_MAX_MS: 0.65,        /* velocidad con PWM = 1,0; BASE_VEL 0,8 -> 0,52 m/s */
-    ANCHO_EJES_M: 0.16,    /* separación entre ruedas */
-    ADELANTE_SENSOR_M: 0.08, /* los TCRT5000 van delante del eje */
-    FRENTE_ROBOT_M: 0.12,  /* del centro al HC-SR04P frontal */
+    V_MAX_MS: 0.572,       /* velocidad con PWM = 1,0 (SIM1: (11,1 − 2,1 V)/12 × 280 rpm × 0,8 × π × 0,065 / 60) */
+    ANCHO_EJES_M: 0.18,    /* separación entre ruedas (SIM1) */
+    ADELANTE_SENSOR_M: 0.06, /* los TCRT5000 van 6 cm delante del eje (SIM1) */
+    FRENTE_ROBOT_M: 0.076, /* del eje a la cara del HC-SR04P frontal (modelo 3D de SIM1/P03) */
+    ATRAS_ROBOT_M: 0.136,  /* del eje a la cara del HC-SR04P trasero */
     ANCHO_CINTA_MM: 19,
     CAIDA_SENSOR_MM: 6,    /* el sensor pasa de ver a no ver la cinta en 6 mm */
-    TAU_RUEDAS_S: 0.10,    /* retardo de primer orden de las ruedas */
+    TAU_RUEDAS_S: 0.18,    /* retardo de primer orden de las ruedas (SIM1) */
     CELDA_M: 0.05,         /* resolución de la cinta */
     RADIO_BLE_M: 1.5,      /* a 1,5 m de una baliza el RSSI vale -80 dBm */
     CERCA_BLE_M: 0.25,     /* a 0,25 m vale -52 dBm */
@@ -40,7 +48,12 @@
     VEL_MANUAL_PWM: 0.8,
     GIRO_MANUAL_PWM: 0.4,
     ATRAS_LIBRE_CM: 160,
-    ALCANCE_US_CM: 400
+    ALCANCE_US_CM: 400,
+    CONO_US_GRADOS: 15,    /* semiapertura del haz del HC-SR04P (P03) */
+    OBST_RADIO_M: 0.05,    /* ficha del obstáculo: ⌀ 10 cm */
+    RAMPA_DECEL_MS2: 0.55, /* limitador suave del frenado (P13) */
+    RAMPA_ACEL_MS2: 0.9,
+    KD_LINEA_FW: 0.0015    /* término D del PD del firmware (robot_integrado.ino y SIM1: PWM por mm/s); el núcleo solo trae el P */
   };
 
   function clamp(x, a, b) { return x < a ? a : (x > b ? b : x); }
@@ -48,25 +61,31 @@
 
   /* RSSI (dBm) a una distancia d (m) de la baliza más cercana. Solo hay señal
      útil cerca de los EXTREMOS: a mitad de pasillo no se oye ninguna baliza. */
-  function rssiAUnaBaliza(d) {
-    if (d <= P.CERCA_BLE_M) return -52;
-    if (d >= P.RADIO_BLE_M) {
-      return Math.max(P.RSSI_PISO_DBM, -80 - 10 * (d - P.RADIO_BLE_M));
+  function rssiAUnaBaliza(d, radio, cerca) {
+    radio = radio || P.RADIO_BLE_M; cerca = cerca || P.CERCA_BLE_M;
+    if (d <= cerca) return -52;
+    if (d >= radio) {
+      return Math.max(P.RSSI_PISO_DBM, -80 - 10 * (d - radio));
     }
-    var f = (d - P.CERCA_BLE_M) / (P.RADIO_BLE_M - P.CERCA_BLE_M);
+    var f = (d - cerca) / (radio - cerca);
     return Math.round((-52 - 28 * Math.pow(f, 0.8)) * 10) / 10;
   }
 
   /* ------------------------------------------------------------ creación */
 
-  /* nucleo: módulo teach_and_repeat.js · pista: specs/pista_canonica.json */
-  function crear(nucleo, pista) {
+  /* nucleo: módulo teach_and_repeat.js · pista: specs/pista_canonica.json (o pistaPara() de pistas_sim1.js)
+     opciones: { trazado (pistas_sim1.crearTrazado: pista con curvas), cintaCompleta (sin ruta enseñada: se enseña primero) } */
+  function crear(nucleo, pista, opciones) {
+    opciones = opciones || {};
     var L = pista.longitudTotalM;
     var celdas = Math.round(L / P.CELDA_M);
     var sim = {
-      nucleo: nucleo, pista: pista, L: L, P: P,
-      cinta: [], tramosEnsenados: [],
-      s: 0, dir: 1, y: 0, yawVerdad: 0, sesgoAcumGrados: 0, sesgoDps: 0,
+      nucleo: nucleo, pista: pista, L: L, P: P, trazado: opciones.trazado || null,
+      cinta: [], tramosEnsenados: [], huecosRechazados: [], perfiles: {}, rutaEnsenada: null,
+      ensenando: false, perfilTmp: null, rumboMedio: null, obstaculos: [], motivoParada: null,
+      bleRadioM: opciones.bleRadioM || P.RADIO_BLE_M, bleCercaM: opciones.bleCercaM || P.CERCA_BLE_M,
+      baseLim: null, rampaActiva: false, baseUlt: 0, limitadorActivo: false, cintaVersion: 0,
+      s: 0, dir: 1, y: 0, yawVerdad: 0, yawAbs: 0, sesgoAcumGrados: 0, sesgoDps: 0,
       vIzqCmd: 0, vDerCmd: 0, vIzq: 0, vDer: 0, vLineal: 0,
       modo: "auto",          /* "auto" = teach-and-repeat · "manual" */
       frenoRemoto: false,
@@ -80,6 +99,11 @@
     /* La cinta física sale de la pista canónica: tramos "linea" = con cinta */
     var i;
     for (i = 0; i < celdas; i++) sim.cinta.push(true);
+    if (opciones.cintaCompleta) {
+      /* se enseña primero con toda la cinta: aún no hay ruta enseñada */
+      registrar(sim, "Pista " + (sim.trazado ? sim.trazado.id + " " : "") + L.toFixed(2) + " m con toda la cinta: falta enseñar la ruta");
+      return sim;
+    }
     pista.tramos.forEach(function (t) {
       if (t.tipo === "sin_linea") setCinta(sim, t.desdeM, t.hastaM, false);
     });
@@ -117,6 +141,7 @@
     for (i = a; i < b && i < sim.cinta.length; i++) {
       if (i >= 0) sim.cinta[i] = presente;
     }
+    sim.cintaVersion++;
   }
 
   /* ¿El tramo [desde,hasta] tiene toda su cinta? (para los botones de la UI) */
@@ -141,14 +166,56 @@
     return res;
   }
 
-  /* FASE DE ENSEÑANZA: graba como "sin cinta" cada hueco de la cinta actual,
-     con el rumbo del tramo (0° = a lo largo de la pista). */
+  /* celda de la cinta por la que va (o entra) el robot */
+  function celdaDe(sim, s) { return indiceCelda(sim, s); }
+
+  /* Convierte los huecos de cinta actuales en tramos enseñados.
+     · Con una pasada de enseñanza hecha (perfiles) el rumbo de cada hueco es el que midió el giroscopio al entrar en él,
+       y solo se aceptan huecos RECTOS que la pasada recorrió con cinta: el núcleo sostiene UN rumbo, no una curva.
+     · Sin pasada (los tests clásicos del pasillo recto) el rumbo es 0° = a lo largo de la pista. */
   function ensenar(sim) {
-    sim.tramosEnsenados = huecosDeCinta(sim).map(function (h) {
-      return { desdeM: h.desdeM, hastaM: h.hastaM, rumbo: 0 };
+    var perfil = sim.perfiles[sim.dir], huecos = huecosDeCinta(sim);
+    sim.tramosEnsenados = []; sim.huecosRechazados = [];
+    huecos.forEach(function (h) {
+      var entra = sim.dir > 0 ? h.desdeM : h.hastaM, rumbo = 0, motivo = null, c;
+      if (sim.trazado) {
+        if (!perfil) motivo = "sin pasada de enseñanza";
+        else if (!sim.trazado.rectoEn(h.desdeM, h.hastaM)) motivo = "tramo curvo: el giroscopio sostiene un rumbo, no una curva";
+        else {
+          c = celdaDe(sim, Math.max(0, Math.min(sim.L, entra - sim.dir * 0.1)));
+          if (perfil[c] === null || perfil[c] === undefined) motivo = "la pasada no recorrió este tramo";
+          else rumbo = perfil[c];
+        }
+      }
+      if (motivo) sim.huecosRechazados.push({ desdeM: h.desdeM, hastaM: h.hastaM, motivo: motivo });
+      else sim.tramosEnsenados.push({ desdeM: h.desdeM, hastaM: h.hastaM, rumbo: rumbo });
     });
-    registrar(sim, "Enseñanza: " + sim.tramosEnsenados.length + " tramo(s) sin cinta grabado(s)");
+    registrar(sim, "Enseñanza: " + sim.tramosEnsenados.length + " tramo(s) sin cinta grabado(s)" +
+      (sim.huecosRechazados.length ? " · " + sim.huecosRechazados.length + " rechazado(s) (" + sim.huecosRechazados[0].motivo + ")" : ""));
     return sim.tramosEnsenados;
+  }
+
+  /* PASADA DE ENSEÑANZA: el robot recorre la pista con TODA la cinta siguiendo la línea y el giroscopio anota,
+     celda a celda, su rumbo absoluto. Al llegar queda guardada la ruta enseñada (perfil de rumbo por sentido). */
+  function iniciarEnsenanza(sim, dir) {
+    if (!tramoConCinta(sim, 0, sim.L)) {
+      registrar(sim, "Para enseñar la pista necesita toda la cinta: restaura la cinta");
+      return false;
+    }
+    nuevoViaje(sim, dir || 1);
+    sim.ensenando = true;
+    sim.perfilTmp = [];
+    for (var i = 0; i < sim.cinta.length; i++) sim.perfilTmp.push(null);
+    registrar(sim, "Pasada de enseñanza " + (sim.dir > 0 ? "de ida" : "de vuelta") + ": el robot sigue la línea y graba su rumbo");
+    return true;
+  }
+
+  function terminarEnsenanza(sim) {
+    sim.ensenando = false;
+    sim.perfiles[sim.dir] = sim.perfilTmp;
+    sim.perfilTmp = null;
+    sim.rutaEnsenada = { pista: sim.trazado ? sim.trazado.id : "B", dir: sim.dir, largoM: sim.L, celdas: sim.cinta.length };
+    registrar(sim, "Ruta enseñada y guardada (" + sim.rutaEnsenada.celdas + " celdas de " + (P.CELDA_M * 100) + " cm)");
   }
 
   /* ¿La ruta enseñada dice que aquí hay un hueco de cinta? */
@@ -169,7 +236,8 @@
     var sSensor = sim.s + sim.dir * P.ADELANTE_SENSOR_M;
     var tiene = hayCinta(sim, sSensor);
     /* desvío lateral del sensor respecto a la cinta (izquierda positiva) */
-    var ySensor = sim.y - P.ADELANTE_SENSOR_M * Math.sin(psi);
+    var kap = sim.trazado ? sim.dir * sim.trazado.kappa(sim.s) : 0;
+    var ySensor = sim.y - P.ADELANTE_SENSOR_M * Math.sin(psi) - kap * P.ADELANTE_SENSOR_M * P.ADELANTE_SENSOR_M / 2;
     var lineaMm = -ySensor * 1000;
     var n = [], bin = [], i, d, v;
     for (i = 0; i < 4; i++) {
@@ -187,24 +255,43 @@
   function rssiActual(sim) {
     var d1 = Math.abs(sim.s - 0), d2 = Math.abs(sim.s - sim.L);
     var d = Math.min(d1, d2);
-    return { rssi: rssiAUnaBaliza(d), baliza: d1 <= d2 ? "B1" : "B2", distM: d };
+    return { rssi: rssiAUnaBaliza(d, sim.bleRadioM, sim.bleCercaM), baliza: d1 <= d2 ? "B1" : "B2", distM: d };
+  }
+
+  /* Pose del robot en el mundo de SIM1 (solo con trazado): {x, y, angulo en grados, 0 = +x, antihorario} */
+  function poseMundo(sim) {
+    if (sim.trazado) return sim.trazado.pose(sim.s, sim.dir, sim.y, sim.yawVerdad);
+    return { x: sim.s, y: sim.y, angulo: sim.dir > 0 ? -sim.yawVerdad : 180 - sim.yawVerdad };
+  }
+
+  /* Lectura (cm) del sensor lado = "frente" | "atras" sobre los obstáculos del mundo (fichas), o null si no hay eco */
+  function eco(sim, lado) {
+    if (!sim.obstaculos.length) return null;
+    var p = poseMundo(sim), a = p.angulo + (lado === "atras" ? 180 : 0), off = lado === "atras" ? P.ATRAS_ROBOT_M : P.FRENTE_ROBOT_M, rad = Math.PI / 180;
+    return RadarUS.medirCono({ x: p.x + Math.cos(a * rad) * off, y: p.y + Math.sin(a * rad) * off, angulo: a }, sim.obstaculos, P.CONO_US_GRADOS, P.ALCANCE_US_CM / 100);
   }
 
   function frenteActualCm(sim) {
     if (sim.frenteForzadoCm !== null) return sim.frenteForzadoCm;
-    if (sim.obstaculoS === null) return 0; /* 0 = sin eco / despejado */
-    var dist = (sim.obstaculoS - (sim.s + sim.dir * P.FRENTE_ROBOT_M)) * sim.dir * 100;
-    if (dist <= 0) return 1; /* contacto: lectura mínima */
-    return dist > P.ALCANCE_US_CM ? 0 : Math.round(dist * 10) / 10;
+    var mundo = eco(sim, "frente"), cm = 0;
+    if (sim.obstaculoS !== null) {
+      var dist = (sim.obstaculoS - (sim.s + sim.dir * P.FRENTE_ROBOT_M)) * sim.dir * 100;
+      if (dist <= 0) cm = 1; /* contacto: lectura mínima */
+      else cm = dist > P.ALCANCE_US_CM ? 0 : Math.round(dist * 10) / 10;
+    }
+    if (mundo !== null && (cm === 0 || mundo < cm)) cm = mundo;
+    return cm; /* 0 = sin eco / despejado */
   }
 
   function atrasActualCm(sim) {
-    return sim.atrasForzadoCm !== null ? sim.atrasForzadoCm : P.ATRAS_LIBRE_CM;
+    if (sim.atrasForzadoCm !== null) return sim.atrasForzadoCm;
+    var mundo = eco(sim, "atras");
+    return mundo !== null ? mundo : P.ATRAS_LIBRE_CM;
   }
 
   /* Rumbo medido por el MPU-6050 virtual: el real + el sesgo acumulado. */
   function yawMedido(sim) {
-    return sim.yawVerdad + sim.sesgoAcumGrados;
+    return sim.yawAbs + sim.sesgoAcumGrados;
   }
 
   /* ---------------------------------------------------------------- paso */
@@ -222,6 +309,11 @@
     var pwmIzq = 0, pwmDer = 0;
 
     sim.sensores = sens;
+    if (sim.cintaVersion !== sim.cintaVersionVista) {
+      sim.cintaVersionVista = sim.cintaVersion;
+      /* con una pasada de enseñanza hecha, los huecos de cinta se enseñan solos (si son rectos y la pasada los recorrió) */
+      if (sim.perfiles[sim.dir] && !sim.ensenando && sim.cintaVersion > 0) ensenar(sim);
+    }
     /* Con cinta a la vista el rumbo se resincroniza con la línea: el sesgo del
        giroscopio solo se acumula (deriva) cuando se pierde la cinta. */
     if (sens.bin[0] || sens.bin[1] || sens.bin[2] || sens.bin[3]) sim.sesgoAcumGrados = 0;
@@ -236,11 +328,43 @@
       sim.ultimaSalida = salida;
       pwmIzq = salida.vIzq;
       pwmDer = salida.vDer;
+      /* Limitador suave de planta (P13): el núcleo manda PWM 0,5× en precaución y 0 en parada crítica; la planta
+         suaviza la componente COMÚN con una rampa en m/s² (el diferencial de la corrección de línea no se toca).
+         La parada a < 20 cm es inmediata; al despejar, la velocidad se recupera con rampa. */
+      /* Término D del PD del firmware real (el núcleo compartido solo tiene el P): amortigua la corrección de línea.
+         Con la dinámica calibrada de SIM1 (ruedas de 0,18 s) el P solo no sostiene las curvas de 22–27 cm. */
+      var estN = nucleo.ESTADO;
+      if ((sim.nav.estado === estN.FOLLOW_LINE || sim.nav.estado === estN.REACQUIRE_LINE) && sens.hayCinta && !salida.frenadoCritico && (sens.bin[0] || sens.bin[1] || sens.bin[2] || sens.bin[3])) {
+        var lmAhora = nucleo.posicionLinea(sens.n).linea_mm;
+        if (sim.lmPrevio !== null && sim.lmPrevio !== undefined) {
+          var corrD = P.KD_LINEA_FW * (lmAhora - sim.lmPrevio) / dt;
+          pwmIzq -= corrD; pwmDer += corrD;
+        }
+        sim.lmPrevio = lmAhora;
+      } else { sim.lmPrevio = null; }
+      var baseNuc = (pwmIzq + pwmDer) / 2, difNuc = (pwmDer - pwmIzq) / 2;
+      if (salida.frenadoCritico) {
+        sim.baseLim = baseNuc; sim.rampaActiva = true;
+      } else if (salida.precaucion || sim.rampaActiva) {
+        if (sim.baseLim === null) sim.baseLim = sim.baseUlt;
+        sim.rampaActiva = true;
+        sim.baseLim = RadarUS.rampa(sim.baseLim, baseNuc, dt, P.V_MAX_MS, P.RAMPA_DECEL_MS2, P.RAMPA_ACEL_MS2);
+        if (Math.abs(sim.baseLim - baseNuc) < 1e-3 && !salida.precaucion) { sim.baseLim = null; sim.rampaActiva = false; }
+      } else {
+        sim.baseUlt = baseNuc;
+      }
+      sim.limitadorActivo = sim.rampaActiva;
+      if (sim.rampaActiva && sim.baseLim !== null) {
+        pwmIzq = sim.baseLim - difNuc;
+        pwmDer = sim.baseLim + difNuc;
+      }
       if (salida.evento && salida.evento !== sim.ultimoEvento) registrar(sim, "Evento: " + salida.evento);
+      if (salida.paradaSeguridad && salida.evento) sim.motivoParada = salida.evento;
       sim.ultimoEvento = salida.evento;
       if (salida.llegada) {
         sim.llegadaCompleta = true;
         registrar(sim, "Llegada validada por la baliza del extremo (" + rs.baliza + ")");
+        if (sim.ensenando) terminarEnsenanza(sim);
       }
     } else if (sim.modo === "manual" && !sim.frenoRemoto) {
       var m = sim.manual, bloqueaFrente = frente > 0 && frente < nucleo.CFG.UMBRAL_PARADA_CM;
@@ -252,6 +376,7 @@
     } else {
       sim.ultimaSalida = null; /* freno remoto o llegada: ruedas a 0 */
     }
+    if (sim.modo !== "auto" || sim.frenoRemoto) { sim.baseLim = null; sim.rampaActiva = false; sim.limitadorActivo = false; }
 
     /* Ruedas: retardo de primer orden hacia la orden (el núcleo da PWM 0..1) */
     sim.vIzqCmd = pwmIzq; sim.vDerCmd = pwmDer;
@@ -262,18 +387,33 @@
       sim.vIzq = 0; sim.vDer = 0;
     }
 
-    /* Cinemática diferencial */
+    /* Cinemática diferencial en coordenadas de Frenet: s = avance sobre la pista, y = desvío a la izquierda,
+       yawVerdad = giro respecto a la pista (horario +). Con curvatura κ el rumbo relativo cambia aunque el robot
+       no gire: ψ' = ω + κ·σ'. El giroscopio (yawAbs) solo mide la rotación del propio robot. */
     var vL = (sim.vIzq + sim.vDer) / 2 * P.V_MAX_MS;
     var omegaCw = (sim.vIzq - sim.vDer) * P.V_MAX_MS / P.ANCHO_EJES_M; /* rad/s, horario + */
     var psi = sim.yawVerdad * RAD;
-    sim.s += sim.dir * vL * Math.cos(psi) * dt;
+    var kap = sim.trazado ? sim.dir * sim.trazado.kappa(sim.s) : 0;
+    var den = Math.max(0.25, 1 - kap * sim.y);
+    var sigma = vL * Math.cos(psi) / den;
+    sim.s += sim.dir * sigma * dt;
     sim.y += -vL * Math.sin(psi) * dt;
-    sim.yawVerdad += omegaCw / RAD * dt;
+    sim.yawVerdad += (omegaCw + kap * sigma) / RAD * dt;
+    sim.yawAbs += omegaCw / RAD * dt;
     sim.vLineal = vL;
     sim.sesgoAcumGrados += sim.sesgoDps * dt;
     if (sim.s < 0) { sim.s = 0; }
     if (sim.s > sim.L) { sim.s = sim.L; }
     sim.t += dt;
+    /* pasada de enseñanza: el giroscopio anota su rumbo por celda */
+    if (sim.ensenando && sim.perfilTmp) {
+      /* rumbo SUAVIZADO (media móvil de 0,4 s): el robot serpentea unos grados sobre la cinta y el rumbo que se
+         sostiene sin cinta debe ser el de la pista, no el de un instante */
+      var ym = yawMedido(sim);
+      sim.rumboMedio = sim.rumboMedio === null ? ym : sim.rumboMedio + (ym - sim.rumboMedio) * Math.min(1, dt / 0.4);
+      var ce = celdaDe(sim, sim.s);
+      if (sim.perfilTmp[ce] === null) sim.perfilTmp[ce] = sim.rumboMedio;
+    }
 
     /* Contadores de HEADING_HOLD para el panel */
     if (salida && sim.nav.estado === nucleo.ESTADO.HEADING_HOLD) {
@@ -300,13 +440,16 @@
     sim.nav = sim.nucleo.nuevoNav();
     sim.dir = dir;
     sim.s = dir > 0 ? 0 : sim.L;
-    sim.y = 0; sim.yawVerdad = 0; sim.sesgoAcumGrados = 0;
+    sim.y = 0; sim.yawVerdad = 0; sim.yawAbs = 0; sim.sesgoAcumGrados = 0;
     sim.vIzq = sim.vDer = sim.vLineal = 0;
+    sim.ensenando = false; sim.perfilTmp = null; sim.rumboMedio = null; sim.motivoParada = null;
+    sim.baseLim = null; sim.rampaActiva = false; sim.baseUlt = 0; sim.limitadorActivo = false;
     sim.llegadaCompleta = false; sim.estadoPrevio = null; sim.ultimoEvento = null;
     sim.derivaEnHoldGrados = 0; sim.derivaPicoGrados = 0; sim.tHoldMs = 0; sim.maxErrHold = 0;
     sim.frenoRemoto = false;
     sim.modo = "auto";
     registrar(sim, dir > 0 ? "Viaje de ida: Cuarto de Componentes → Laboratorio 1" : "Viaje de vuelta: Laboratorio 1 → Cuarto de Componentes");
+    if (sim.perfiles[sim.dir]) ensenar(sim); /* repetir: los huecos de cinta se cruzan con lo enseñado */
   }
 
   function frenoRemoto(sim) {
@@ -327,8 +470,16 @@
   }
 
   function quitarObstaculo(sim) {
-    sim.obstaculoS = null; sim.frenteForzadoCm = null;
+    sim.obstaculoS = null; sim.frenteForzadoCm = null; sim.obstaculos = [];
     registrar(sim, "Obstáculo retirado");
+  }
+
+  /* Ficha del obstáculo puesta (o movida) en el mundo de SIM1: la detectan los dos HC-SR04P con su cono de ±15° */
+  function colocarObstaculo(sim, x, y) {
+    var nuevo = !sim.obstaculos.length;
+    sim.obstaculos = [{ x: x, y: y, r: P.OBST_RADIO_M }];
+    sim.frenteForzadoCm = null;
+    if (nuevo) registrar(sim, "Obstáculo colocado en (" + x.toFixed(2) + "; " + y.toFixed(2) + ") m");
   }
 
   function forzarFrente(sim, cm) {
@@ -338,7 +489,7 @@
 
   /* Empujón: gira el robot de golpe (el giroscopio también lo mide). */
   function empujon(sim, grados) {
-    sim.yawVerdad += grados;
+    sim.yawVerdad += grados; sim.yawAbs += grados;
     registrar(sim, "Empujón de rumbo " + (grados >= 0 ? "+" : "") + grados + "°");
   }
 
@@ -358,6 +509,7 @@
     atrasActualCm: atrasActualCm, yawMedido: yawMedido, nuevoViaje: nuevoViaje,
     frenoRemoto: frenoRemoto, reanudar: reanudar, inyectarObstaculo: inyectarObstaculo,
     quitarObstaculo: quitarObstaculo, forzarFrente: forzarFrente, empujon: empujon,
-    zonaFrente: zonaFrente, registrar: registrar
+    zonaFrente: zonaFrente, registrar: registrar,
+    poseMundo: poseMundo, colocarObstaculo: colocarObstaculo, iniciarEnsenanza: iniciarEnsenanza, eco: eco
   };
 });

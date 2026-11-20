@@ -317,4 +317,8 @@ prueba("index.html trae pista, controles y telemetría lógica con sus elementos
   }
 });
 
-console.log("\nResultado: " + ok + " pruebas OK");
+/* ---- V2 con las 2 pistas de SIM1, Teach, radar P13 y estado del gemelo (asíncrono: importa los módulos ESM de SIM1) ---- */
+require("./pistas_radar.test.js")({ N, PISTA, S, contar: () => { ok++; } }).then(
+  () => console.log("\nResultado: " + ok + " pruebas OK"),
+  (e) => { console.error(e); process.exit(1); }
+);
