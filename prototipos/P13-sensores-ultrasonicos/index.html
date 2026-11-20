@@ -65,16 +65,53 @@
 .us-nombre { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #cbd5e1; }
 .us-valor { font-family: var(--font-display); font-weight: 800; font-size: 28px; color: #fff; line-height: 1; }
 .us-valor small { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: #94a3b8; margin-left: 4px; }
-.us-sensor input[type="range"] { width: 100%; accent-color: #38bdf8; min-height: 28px; cursor: pointer; }
+.us-sensor input[type="range"] { width: 100%; accent-color: #38bdf8; min-height: 44px; cursor: pointer; }
 
 .us-opciones { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 0; }
-.us-chk { display: flex; align-items: center; gap: 8px; font-size: 14.5px; color: #cbd5e1; cursor: pointer; min-height: 32px; }
-.us-chk input { width: 18px; height: 18px; accent-color: #38bdf8; }
+.us-chk { display: flex; align-items: center; gap: 8px; font-size: 14.5px; color: #cbd5e1; cursor: pointer; min-height: 44px; }
+.us-chk input { width: 20px; height: 20px; accent-color: #38bdf8; }
 
 .us-botones { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
 .us-botones .btn { min-height: 46px; flex: 1 1 140px; }
 .us-botones .btn:active:not(:disabled) { transform: scale(0.97); }
 .us-botones .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Escenarios rápidos (presets) */
+.us-presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+.chip-esc {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 44px; padding: 0 14px;
+  border-radius: 999px; border: 1.5px solid #334155;
+  background: #1e293b; color: #e2e8f0;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: background-color 0.15s ease-out, border-color 0.15s ease-out;
+}
+.chip-esc small { color: #94a3b8; font-weight: 600; font-size: 11.5px; }
+.chip-esc:hover { background: #243447; border-color: #38bdf8; }
+.chip-esc:active { transform: scale(0.97); }
+.chip-esc-reset { border-color: #475569; }
+.chip-esc-reset:hover { border-color: #f59e0b; }
+
+/* Indicador de modo + aviso breve */
+.us-modo { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; font-family: var(--font-mono); font-size: 12.5px; }
+.us-modo::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #38bdf8; }
+.us-modo.auto::before { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+.us-modo.manual::before { background: #38bdf8; box-shadow: 0 0 8px #38bdf8; }
+#modo { color: #e2e8f0; font-weight: 700; }
+.us-aviso { color: #7dd3fc; }
+
+/* Atajos (solo escritorio) */
+.us-atajos { margin: 12px 0 0; color: #94a3b8; font-size: 12.5px; font-family: var(--font-mono); }
+.us-atajos kbd {
+  display: inline-block; min-width: 20px; padding: 1px 5px; margin: 0 1px;
+  border: 1px solid #475569; border-bottom-width: 2px; border-radius: 5px;
+  background: #1e293b; color: #e2e8f0; font-family: inherit; font-size: 11.5px; text-align: center;
+}
+@media (max-width: 820px) { .us-atajos { display: none; } }
+
+/* Sensor sin eco */
+.us-sensor.zona-fallo { border-color: #64748b; background: #1a2332; }
+.us-sensor.zona-fallo .us-valor { color: #94a3b8; }
 
 /* Botón único Encender/Detener (toggle) */
 #btn-toggle { min-height: 46px; font-weight: 700; }
@@ -96,7 +133,7 @@
   width: 100%; height: auto; aspect-ratio: 1 / 1; max-width: 520px; margin: 0 auto; display: block;
   background: radial-gradient(ellipse at 50% 100%, #12263f 0%, #0b1424 70%);
   border: 1.5px solid #334155; border-radius: 14px;
-  touch-action: none;
+  touch-action: pan-y;
   cursor: grab;
   user-select: none;
 }
@@ -159,15 +196,19 @@
 
       <div class="us-cuerpo">
         <div class="us-panel">
+          <div class="us-modo manual" id="modo-fila">
+            <span id="modo">Control manual</span>
+            <span class="us-aviso" id="aviso" hidden role="status"></span>
+          </div>
           <h2 id="t-us">Distancias (cm)</h2>
           <p>Cada sensor mide de 2 a 200 cm. Debajo de 20 cm es peligro y por encima de 50 cm hay paso libre.</p>
 
           <div class="us-sensor" id="s-frente">
-            <div class="us-fila"><span class="us-nombre">Adelante</span><span class="us-valor"><span id="v-frente">120</span><small>cm</small></span></div>
+            <div class="us-fila"><span class="us-nombre">Adelante</span><span class="us-valor"><span id="v-frente">120</span><small id="u-frente">cm</small></span></div>
             <input type="range" id="r-frente" min="2" max="200" step="1" value="120" aria-label="Distancia adelante en centímetros">
           </div>
           <div class="us-sensor" id="s-atras">
-            <div class="us-fila"><span class="us-nombre">Atrás</span><span class="us-valor"><span id="v-atras">150</span><small>cm</small></span></div>
+            <div class="us-fila"><span class="us-nombre">Atrás</span><span class="us-valor"><span id="v-atras">150</span><small id="u-atras">cm</small></span></div>
             <input type="range" id="r-atras" min="2" max="200" step="1" value="150" aria-label="Distancia atrás en centímetros">
           </div>
           <div class="us-sensor" id="s-velocidad">
@@ -176,9 +217,20 @@
             <div class="us-alerta" id="alerta-obstaculo" hidden>FRENADO POR OBSTÁCULO</div>
           </div>
 
+          <div class="us-presets" role="group" aria-label="Escenarios rápidos">
+            <button type="button" class="chip-esc" data-preset="libre">Libre <small>150 / 150</small></button>
+            <button type="button" class="chip-esc" data-preset="cerca">Cerca <small>35 / 120</small></button>
+            <button type="button" class="chip-esc" data-preset="peligro">Peligro <small>12 / 15</small></button>
+            <button type="button" class="chip-esc chip-esc-reset" id="btn-reset">Reset <small>120 / 150</small></button>
+          </div>
+
           <div class="us-opciones">
             <label class="us-chk"><input type="checkbox" id="chk-mover"> Mover solo (simula un pasillo)</label>
+            <label class="us-chk"><input type="checkbox" id="chk-eco-frente"> Frente sin eco</label>
+            <label class="us-chk"><input type="checkbox" id="chk-eco-atras"> Atrás sin eco</label>
           </div>
+
+          <p class="us-atajos" id="atajos">Atajos: <kbd>↑</kbd><kbd>↓</kbd> Adelante · <kbd>←</kbd><kbd>→</kbd> Atrás (Shift ±1 cm) · <kbd>Espacio</kbd> Mover solo · <kbd>R</kbd> Reset</p>
 
           <div class="us-botones">
             <button type="button" id="btn-toggle" class="btn apagado">⚡ Encender</button>
@@ -236,17 +288,30 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var ids = ["frente", "atras"];
-  var rango = {}, valor = {}, caja = {};
-  ids.forEach(function (k) { rango[k] = $("r-" + k); valor[k] = $("v-" + k); caja[k] = $("s-" + k); });
+  var rango = {}, valor = {}, caja = {}, unidad = {};
+  ids.forEach(function (k) {
+    rango[k] = $("r-" + k); valor[k] = $("v-" + k); caja[k] = $("s-" + k); unidad[k] = $("u-" + k);
+  });
   var ledEl = $("led"), estadoEl = $("estado"), brokerEl = $("broker"), jsonEl = $("json"), logEl = $("log");
-  var btnToggle = $("btn-toggle"), chkMover = $("chk-mover");
+  var btnToggle = $("btn-toggle"), chkMover = $("chk-mover"), chkEcoFrente = $("chk-eco-frente"), chkEcoAtras = $("chk-eco-atras");
   var alertaObs = $("alerta-obstaculo"), valVelocidad = $("v-velocidad"), velFill = $("vel-fill"), cajaVelocidad = $("s-velocidad");
+  var modoEl = $("modo"), filaModo = $("modo-fila"), avisoEl = $("aviso"), btnReset = $("btn-reset");
   var canvas = $("radar"), ctx = canvas.getContext("2d");
 
   var VEL_NORMAL = 0.60;
   var dist = { frente: 120, atras: 150 };
+  var ok = { frente: true, atras: true };      /* false = sensor sin eco */
   var obstaculo = { xCm: 0, yCm: 120 };
   var arrastrando = false;
+  var dragOffset = { x: 0, y: 0 };
+  var HIT_R = 30;                               /* radio de agarre del obstáculo (px CSS) */
+  var PRESETS = {
+    libre: { frente: 150, atras: 150 },
+    cerca: { frente: 35, atras: 120 },
+    peligro: { frente: 12, atras: 15 }
+  };
+  var RESET = { frente: 120, atras: 150 };
+  var avisoTimer = null;
   var encendido = false, conectado = false;
   var cliente = null, indice = 0, timerPub = null, timerFallo = null, timerReintento = null;
   var inicioMs = 0, enviados = 0;
@@ -278,6 +343,80 @@
   function actualizarBoton() {
     btnToggle.textContent = encendido ? "⏹ Detener" : "⚡ Encender";
     btnToggle.className = "btn " + (encendido ? "encendido" : "apagado");
+  }
+
+  /* Modo activo: Control manual / Animación automática, con aviso breve. */
+  function actualizarModo() {
+    var auto = chkMover.checked;
+    modoEl.textContent = auto ? "Animación automática" : "Control manual";
+    if (filaModo) filaModo.className = "us-modo " + (auto ? "auto" : "manual");
+  }
+  function avisar(txt) {
+    if (!avisoEl) return;
+    avisoEl.textContent = txt;
+    avisoEl.hidden = false;
+    if (avisoTimer) clearTimeout(avisoTimer);
+    avisoTimer = setTimeout(function () { avisoEl.hidden = true; }, 2600);
+  }
+  /* Pasa de animación a manual mostrando el motivo (en vez de desmarcar en silencio). */
+  function pasarAManual(motivo) {
+    if (!chkMover.checked) return false;
+    chkMover.checked = false;
+    ids.forEach(function (k) { rango[k].disabled = false; });
+    actualizarModo();
+    avisar("Control manual · " + motivo);
+    return true;
+  }
+  function aplicar(d) {
+    dist.frente = d.frente;
+    dist.atras = d.atras;
+    rango.frente.value = d.frente;
+    rango.atras.value = d.atras;
+    obstaculo.xCm = 0;
+    obstaculo.yCm = d.frente;
+    refrescar();
+  }
+  function elegirPreset(nombre) {
+    pasarAManual("Escenario " + nombre);
+    aplicar(PRESETS[nombre]);
+  }
+  function reset() {
+    pasarAManual("Reset");
+    chkEcoFrente.checked = false;
+    chkEcoAtras.checked = false;
+    ok.frente = true;
+    ok.atras = true;
+    aplicar(RESET);
+  }
+  function cambiarFrente(valor) {
+    var cm = Math.round(Math.max(DIST_MIN, Math.min(DIST_MAX, valor)));
+    if (cm === dist.frente) return;
+    pasarAManual("Teclado");
+    dist.frente = cm;
+    rango.frente.value = cm;
+    obstaculo.xCm = 0;
+    obstaculo.yCm = cm;
+    refrescar();
+  }
+  function cambiarAtras(valor) {
+    var cm = Math.round(Math.max(DIST_MIN, Math.min(DIST_MAX, valor)));
+    if (cm === dist.atras) return;
+    pasarAManual("Teclado");
+    dist.atras = cm;
+    rango.atras.value = cm;
+    refrescar();
+  }
+  function esCampoActivo() {
+    var el = document.activeElement;
+    if (!el) return false;
+    var tag = el.tagName;
+    if (tag === "TEXTAREA") return true;
+    if (tag === "INPUT") {
+      var t = (el.type || "text").toLowerCase();
+      return t !== "range" && t !== "checkbox" && t !== "radio" && t !== "button";
+    }
+    if (tag === "SELECT") return true;
+    return el.isContentEditable === true;
   }
 
   /* ---------------- radar ---------------- */
@@ -326,9 +465,11 @@
       ctx.lineTo(ox + R * Math.sin(rad(g)), oy - R * Math.cos(rad(g))); ctx.stroke();
     });
 
-    /* conos de cada sensor */
+    /* conos de cada sensor (gris y "SIN ECO" si la lectura es inválida) */
     ids.forEach(function (k) {
-      var cm = dist[k], r = R * cm / DIST_MAX, c = COLOR[zona(cm)];
+      var cm = dist[k], r = R * cm / DIST_MAX;
+      var sinEco = !ok[k];
+      var c = sinEco ? "#64748b" : COLOR[zona(cm)];
       var a0 = rad(ANG[k] - MEDIO_CONO) - Math.PI / 2, a1 = rad(ANG[k] + MEDIO_CONO) - Math.PI / 2;
       /* alcance máximo, solo contorno */
       ctx.strokeStyle = "rgba(148,163,184,0.2)"; ctx.setLineDash([4, 5]);
@@ -342,9 +483,9 @@
       ctx.lineWidth = 1;
       /* etiqueta */
       var am = rad(ANG[k]) - Math.PI / 2, rl = Math.max(r - 16, 22);
-      ctx.fillStyle = "#e2e8f0"; ctx.textAlign = "center";
-      ctx.font = "700 13px 'JetBrains Mono', monospace";
-      ctx.fillText(cm, ox + rl * Math.cos(am), oy + rl * Math.sin(am) + 4);
+      ctx.fillStyle = sinEco ? "#94a3b8" : "#e2e8f0"; ctx.textAlign = "center";
+      ctx.font = sinEco ? "700 11px 'JetBrains Mono', monospace" : "700 13px 'JetBrains Mono', monospace";
+      ctx.fillText(sinEco ? "SIN ECO" : String(cm), ox + rl * Math.cos(am), oy + rl * Math.sin(am) + 4);
     });
 
     /* robot */
@@ -372,28 +513,39 @@
 
   /* ---------------- lectura y mensaje ---------------- */
   function mensaje() {
-    var vel = Number(calcularVelocidad(dist.frente).toFixed(2));
-    return { frente_cm: dist.frente, atras_cm: dist.atras, velocidad_ms: vel, frente_ok: true, atras_ok: true, t: encendido ? Date.now() - inicioMs : 0 };
+    var vel = ok.frente ? Number(calcularVelocidad(dist.frente).toFixed(2)) : 0;
+    return { frente_cm: dist.frente, atras_cm: dist.atras, velocidad_ms: vel, frente_ok: ok.frente, atras_ok: ok.atras, t: encendido ? Date.now() - inicioMs : 0 };
   }
 
   function refrescar() {
     ids.forEach(function (k) {
-      valor[k].textContent = dist[k];
-      caja[k].className = "us-sensor zona-" + zona(dist[k]);
+      valor[k].textContent = ok[k] ? dist[k] : "—";
+      unidad[k].textContent = ok[k] ? "cm" : "sin eco";
+      caja[k].className = "us-sensor zona-" + (ok[k] ? zona(dist[k]) : "fallo");
     });
-    var vel = calcularVelocidad(dist.frente);
-    var zFrente = zona(dist.frente);
+    var frenado = !ok.frente || dist.frente <= LIMITE_PELIGRO;
+    var vel = frenado ? 0 : calcularVelocidad(dist.frente);
     valVelocidad.textContent = vel.toFixed(2);
     velFill.style.width = Math.round((vel / VEL_NORMAL) * 100) + "%";
-    velFill.style.background = COLOR[zFrente];
-    cajaVelocidad.className = "us-sensor zona-" + zFrente;
-    alertaObs.hidden = !(dist.frente <= LIMITE_PELIGRO);
+    velFill.style.background = frenado ? "#ef4444" : COLOR[zona(dist.frente)];
+    cajaVelocidad.className = "us-sensor zona-" + (frenado ? "rojo" : zona(dist.frente));
+    if (!ok.frente) {
+      alertaObs.textContent = "FRENADO · SENSOR FRONTAL SIN ECO";
+      alertaObs.hidden = false;
+    } else if (dist.frente <= LIMITE_PELIGRO) {
+      alertaObs.textContent = "FRENADO POR OBSTÁCULO";
+      alertaObs.hidden = false;
+    } else {
+      alertaObs.hidden = true;
+    }
     jsonEl.textContent = JSON.stringify(mensaje(), null, 2);
     dibujar();
   }
 
   ids.forEach(function (k) {
+    rango[k].addEventListener("pointerdown", function () { pasarAManual("Slider"); });
     rango[k].addEventListener("input", function () {
+      pasarAManual("Slider");
       dist[k] = parseInt(rango[k].value, 10);
       if (k === "frente") {
         obstaculo.xCm = 0;
@@ -404,13 +556,19 @@
   });
 
   /* Arrastre (Drag & Drop) del círculo rojo sobre el radar */
+  function obstaculoEnPx() {
+    var W = canvas.clientWidth || 520, H = canvas.clientHeight || W;
+    var ox = W / 2, oy = H / 2;
+    var R = Math.min(W, H) / 2 - 14;
+    return { x: ox + (obstaculo.xCm / DIST_MAX) * R, y: oy - (obstaculo.yCm / DIST_MAX) * R };
+  }
   function moverObstaculoDesdeEvento(ev) {
     var rect = canvas.getBoundingClientRect();
     var W = canvas.clientWidth || 520, H = canvas.clientHeight || W;
     var ox = W / 2, oy = H / 2;
     var R = Math.min(W, H) / 2 - 14;
-    var px = ev.clientX - rect.left;
-    var py = ev.clientY - rect.top;
+    var px = ev.clientX - rect.left - dragOffset.x;
+    var py = ev.clientY - rect.top - dragOffset.y;
     var dx = px - ox;
     var dy = oy - py; /* positivo = adelante */
     var rPx = Math.hypot(dx, dy);
@@ -423,10 +581,7 @@
     obstaculo.xCm = (dx / R) * DIST_MAX;
     obstaculo.yCm = (dy / R) * DIST_MAX;
 
-    if (chkMover.checked) {
-      chkMover.checked = false;
-      ids.forEach(function (k) { rango[k].disabled = false; });
-    }
+    pasarAManual("Arrastre en el radar");
     if (dy >= 0) {
       dist.frente = cm;
       rango.frente.value = cm;
@@ -438,13 +593,24 @@
   }
 
   canvas.addEventListener("pointerdown", function (ev) {
+    /* Solo inicia el arrastre si el toque cae sobre el obstáculo (hit-area 30 px).
+       Si no, se deja el gesto al navegador para no bloquear el scroll vertical. */
+    var rect = canvas.getBoundingClientRect();
+    var px = ev.clientX - rect.left;
+    var py = ev.clientY - rect.top;
+    var o = obstaculoEnPx();
+    if (Math.hypot(px - o.x, py - o.y) > HIT_R) return;
     arrastrando = true;
+    dragOffset.x = px - o.x;
+    dragOffset.y = py - o.y;
     canvas.classList.add("arrastrando");
     try { canvas.setPointerCapture(ev.pointerId); } catch (_) {}
+    if (ev.cancelable) ev.preventDefault();
     moverObstaculoDesdeEvento(ev);
   });
   window.addEventListener("pointermove", function (ev) {
     if (!arrastrando) return;
+    if (ev.cancelable) ev.preventDefault();
     moverObstaculoDesdeEvento(ev);
   });
   function soltarObstaculo(ev) {
@@ -470,7 +636,7 @@
     rafId = requestAnimationFrame(pasear);
   }
   chkMover.addEventListener("change", function () {
-    ids.forEach(function (k) { rango[k].disabled = chkMover.checked; });
+    actualizarModo();
     if (chkMover.checked && !rafId) { t0 = performance.now(); rafId = requestAnimationFrame(pasear); }
   });
 
@@ -565,8 +731,41 @@
   }
   btnToggle.addEventListener("click", function () { encendido ? apagar() : encender(); });
 
+  /* Presets, Reset, "sin eco" y atajos de teclado */
+  document.querySelectorAll(".chip-esc[data-preset]").forEach(function (b) {
+    b.addEventListener("click", function () { elegirPreset(b.getAttribute("data-preset")); });
+  });
+  btnReset.addEventListener("click", reset);
+  chkEcoFrente.addEventListener("change", function () { ok.frente = !chkEcoFrente.checked; refrescar(); });
+  chkEcoAtras.addEventListener("change", function () { ok.atras = !chkEcoAtras.checked; refrescar(); });
+
+  document.addEventListener("keydown", function (ev) {
+    if (esCampoActivo()) return;
+    var el = document.activeElement;
+    var esRango = !!(el && el.tagName === "INPUT" && el.type === "range");
+    var esBotonCheck = !!(el && (el.tagName === "BUTTON" ||
+      (el.tagName === "INPUT" && (el.type === "checkbox" || el.type === "radio"))));
+    var paso = ev.shiftKey ? 1 : 5;
+    var k = ev.key;
+    if ((k === "ArrowUp" || k === "ArrowDown") && !esRango) {
+      cambiarFrente(dist.frente + (k === "ArrowUp" ? paso : -paso));
+      ev.preventDefault();
+    } else if ((k === "ArrowLeft" || k === "ArrowRight") && !esRango) {
+      cambiarAtras(dist.atras + (k === "ArrowRight" ? paso : -paso));
+      ev.preventDefault();
+    } else if ((k === " " || k === "Spacebar") && !esBotonCheck) {
+      chkMover.checked = !chkMover.checked;
+      chkMover.dispatchEvent(new Event("change"));
+      ev.preventDefault();
+    } else if (k === "r" || k === "R") {
+      reset();
+      ev.preventDefault();
+    }
+  });
+
   ajustarCanvas();
   actualizarBoton();
+  actualizarModo();
   refrescar();
 })();
 </script>
