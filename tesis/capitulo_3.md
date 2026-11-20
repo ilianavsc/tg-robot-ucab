@@ -73,10 +73,9 @@ La numeración oficial es P01 a P13 (fuente: `datos/proyecto.js`). Estado al 19/
 | P03 | Motores que van parejo | Tracción diferencial, PWM, encoders, PID | En pruebas (simulación) |
 | P04 | Balizas BLE (Extremos) | Re-localización en puntos de referencia | Pendiente (Fase II) |
 | P05 | Robot virtual y puente | Puente MQTT a Firebase | Pendiente |
-| P06 | Primera versión de la app | Pedidos y estado (con Firebase) | Pendiente |
 | P07 | El cerebro completo | Firmware integrado (`robot_integrado.ino`) | En pruebas (lógica validada en PC) |
 | P08 | Seguir la línea | Control PD a 100 Hz sobre 4 sensores | En pruebas (simulación) |
-| P09 | Interfaz Web / Modo Demo | App Flutter Web (*Autonomous Laboratory Cockpit*): Dashboard con Mapa de Pista, Controles, Radar y Alertas; acceso local con roles Operador y Administrador; analítica y CSV | Hecho (simulación); sin backend ni Firebase |
+| P09 | App Flutter (v1 · Modo Demo) | App Flutter Web (*Autonomous Laboratory Cockpit*): Dashboard con Mapa de Pista, Controles, Radar y Alertas; acceso local con roles Operador y Administrador; analítica y CSV | Hecho (simulación); sin backend ni Firebase |
 | P10 | Prueba ESP32 ↔ App Web | Robot virtual en el navegador (gemelo digital) | Hecho |
 | P11 | La alarma llega al teléfono | Centro de alertas en la app | En pruebas (simulación) |
 | P12 | Pruebas y estadística | Analítica de sesión y reporte CSV | En pruebas (simulación) |

@@ -37,7 +37,7 @@ gantt
     section Fase V: App Móvil & Backend
     Ventana de Oro (Dedicación intensiva)     :crit, v_oro, 2027-03-15, 2027-04-09
     App en Flutter y enlace Firebase          :f5, 2027-03-15, 2027-04-16
-    P05/P06 (Firebase y app con pedidos)      :p06, 2027-03-22, 2027-04-16
+    P05 (Firebase)                            :p06, 2027-03-22, 2027-04-16
 
     section Fase VI: Integración Total
     Alertas antirrobo y calibración física    :f6, 2027-04-19, 2027-05-07
@@ -75,10 +75,9 @@ La lista oficial está en `datos/proyecto.js`. Estado al 19 nov 2026 (todo lo ma
 | P03 | Motores que van parejo (JGA25-371, PWM 20 kHz, encoders) | En pruebas (simulación) |
 | P04 | Balizas BLE (Extremos) (re-localización con 2 ESP32 fijos como balizas BLE; ver `docs/arquitectura/balizas-ble.md`) | Pendiente (diseño y simulación; BLE y MPU-6050 **[PENDIENTE DE INTEGRACIÓN EN FIRMWARE]**) |
 | P05 | Robot virtual y puente Firebase | Pendiente |
-| P06 | Primera versión de la app con pedidos | Pendiente |
 | P07 | El cerebro completo (`firmware/robot_integrado.ino`) | En pruebas (10 escenarios SIL T1-T10 en PC y CI; falta HIL con el ESP32 real) |
 | P08 | Seguir la línea (PD a 100 Hz, simulador 3D) | En pruebas (simulación) |
-| **P09** | **App Flutter Web** (`app/`): Mapa de Pista, Freno Remoto, login/RBAC local (maqueta en memoria), perfiles y Aprendizaje de Ruta (Admin) | Hecho (SIL; sin backend de producción) |
+| **P09** | **App Flutter (v1 · Modo Demo)** (`app/`): Mapa de Pista, Freno Remoto, login/RBAC local (maqueta en memoria), perfiles y Aprendizaje de Ruta (Admin) | Hecho (SIL; sin backend de producción) |
 | **P10** | **Prueba ESP32 ↔ App Web** (robot falso en el navegador), con escenario híbrido de tramo sin cinta y RSSI BLE | Hecho (SIL) |
 | P11 | Centro de Alertas en la app (obstáculo, sensor sin eco, proximidad, batería) | En pruebas (simulación) |
 | P12 | Analítica de sesión y reporte CSV | En pruebas (simulación) |
