@@ -312,7 +312,7 @@
     <div class="consola-us">
       <div class="us-barra">
         <div class="us-estado"><span class="led-us" id="led" aria-hidden="true"></span><span id="estado" role="status">DETENIDO · pulsa Encender para iniciar</span></div>
-        <div class="us-lectura" id="lectura">Adelante 160 · Atrás 150 cm · 0.60 m/s</div>
+        <div class="us-lectura" id="lectura">Adelante 160 · Atrás 150 cm · 0.41 m/s</div>
         <div class="us-botones-barra">
           <button type="button" id="btn-toggle" class="btn apagado" aria-pressed="false">⚡ Encender</button>
         </div>
@@ -325,14 +325,14 @@
         <div class="us-radar-caja">
           <div class="us-radar-escena">
             <canvas id="radar" width="520" height="520" role="img" aria-label="Radar interactivo con distancias adelante y atrás; arrastra el círculo rojo desde la esquina hacia el radar para colocar un obstáculo"></canvas>
-            <div id="velocimetro" class="us-velo-widget" aria-label="Velocímetro del robot">
+            <div id="velocimetro" class="us-velo-widget" aria-label="Velocímetro del robot (escala SIM1 hasta 0.46 m/s)">
               <svg viewBox="0 0 80 46" aria-hidden="true">
                 <path class="us-velo-pista" d="M 10 40 A 30 30 0 0 1 70 40"/>
-                <path id="velo-arco" class="us-velo-arco" d="M 10 40 A 30 30 0 0 1 70 40" stroke-dasharray="94.25" stroke-dashoffset="0"/>
-                <line id="velo-aguja" class="us-velo-aguja" x1="40" y1="40" x2="40" y2="15" transform="rotate(90 40 40)"/>
+                <path id="velo-arco" class="us-velo-arco" d="M 10 40 A 30 30 0 0 1 70 40" stroke-dasharray="94.25" stroke-dashoffset="10.24"/>
+                <line id="velo-aguja" class="us-velo-aguja" x1="40" y1="40" x2="40" y2="15" transform="rotate(70.4 40 40)"/>
                 <circle class="us-velo-pivote" cx="40" cy="40" r="3"/>
               </svg>
-              <div class="us-velo-val" id="velo-val">0.60<small>m/s</small></div>
+              <div class="us-velo-val" id="velo-val">0.41<small>m/s</small></div>
             </div>
             <div id="base-obstaculo" class="us-obs-base" role="button" tabindex="0" aria-label="Arrastra el obstáculo al radar o pulsa para devolverlo a su base">
               <span class="us-obs-hueco" aria-hidden="true"><span class="us-obs-ficha"></span></span>
@@ -400,7 +400,11 @@
   var veloWidget = $("velocimetro"), veloArco = $("velo-arco"), veloAguja = $("velo-aguja"), veloVal = $("velo-val");
   var canvas = $("radar"), ctx = canvas.getContext("2d");
 
-  var VEL_NORMAL = 0.60;
+  /* Velocidades reales de SIM1 (prototipos/P08-seguidor-linea/avance-01-simulador-3d/codigo/model.js + sim.js):
+     Motor JGA25-371 Speed 200 @ 11,1 V nominal y 80% PWM -> 0,46 m/s máx en recta, 0,41 m/s crucero medio (0,38–0,45 m/s). */
+  var VEL_MAX = 0.46;
+  var VEL_CRUCERO = 0.41;
+  var VEL_VAR_CRUCERO = 0.035;
   var ARCO_LEN = 94.25;
   var DIST_LIBRE_FRENTE = 160, DIST_LIBRE_ATRAS = 150;
   var ANG_DETECCION = 35;                       /* semiamplitud (°) para detectar obstáculo en cada sensor */
@@ -408,7 +412,8 @@
   var obstaculoActivo = false;
   var obstaculo = { xCm: 0, yCm: 75 };
   var prevDet = { frente: false, atras: false };
-  var velActual = VEL_NORMAL;
+  var velActual = VEL_CRUCERO;
+  var tDeteccionFrente = 0;                     /* tiempo sostenido (s) con obstáculo detectado adelante */
   var arrastrando = false;
   var sobreObstaculo = false;
   var dragOffset = { x: 0, y: 0 };
@@ -431,10 +436,23 @@
   }
 
   function zona(cm) { return cm <= LIMITE_PELIGRO ? "rojo" : (cm <= LIMITE_CERCA ? "ambar" : "verde"); }
-  function calcularVelocidadObjetivo(cm) {
-    if (cm <= LIMITE_PELIGRO) return 0.0;
-    if (cm > LIMITE_CERCA) return VEL_NORMAL;
-    return VEL_NORMAL * (cm - LIMITE_PELIGRO) / (LIMITE_CERCA - LIMITE_PELIGRO);
+  function velocidadCrucero(ts) {
+    if (!encendido) return VEL_CRUCERO;
+    var s = ((ts || performance.now()) - t0) / 1000;
+    return VEL_CRUCERO + VEL_VAR_CRUCERO * Math.sin(s * 0.55);
+  }
+  function calcularVelocidadObjetivo(cm, detFrente, velBase) {
+    if (!detFrente && cm > LIMITE_CERCA) return velBase;
+    /* Factor 1: distancia (0 en <= 20 cm, lineal 20..50 cm, atenuación leve > 50 cm si hay obstáculo en el cono) */
+    var fDist = cm <= LIMITE_PELIGRO
+      ? 0.0
+      : (cm <= LIMITE_CERCA
+        ? (cm - LIMITE_PELIGRO) / (LIMITE_CERCA - LIMITE_PELIGRO)
+        : 0.75 + 0.25 * Math.min(1, (cm - LIMITE_CERCA) / 100));
+    /* Factor 2: tiempo sostenido de detección (acumula frenado progresivo hasta 0.00 m/s si persiste adelante) */
+    var tUmbral = cm <= LIMITE_PELIGRO ? 0.65 : (cm <= LIMITE_CERCA ? 2.2 : 3.5);
+    var fTiempo = Math.max(0, 1 - (tDeteccionFrente / tUmbral));
+    return velBase * fDist * fTiempo;
   }
   var COLOR = { verde: "#22c55e", ambar: "#f59e0b", rojo: "#ef4444" };
 
@@ -625,30 +643,32 @@
   var ultimoRender = "";
   function refrescar(forzar) {
     var vel = velActual;
-    var clave = dist.frente + "|" + dist.atras + "|" + vel.toFixed(2) + "|" + (obstaculoActivo ? 1 : 0) + "|" + (encendido ? 1 : 0);
+    var det = deteccionObstaculo();
+    var clave = dist.frente + "|" + dist.atras + "|" + vel.toFixed(2) + "|" + (det.frente ? 1 : 0) + "|" + (obstaculoActivo ? 1 : 0) + "|" + (encendido ? 1 : 0);
     if (!forzar && clave === ultimoRender) return;
     ultimoRender = clave;
 
     var zFrente = zona(dist.frente);
     var velTxt = vel.toFixed(2);
     lecturaEl.textContent = "Adelante " + dist.frente + " · Atrás " + dist.atras + " cm · " + velTxt + " m/s";
-    lecturaEl.style.color = zFrente === "rojo" ? "#fca5a5" : (zFrente === "ambar" ? "#fcd34d" : "#e2e8f0");
+    lecturaEl.style.color = (vel <= 0.005 || zFrente === "rojo") ? "#fca5a5" : ((det.frente || zFrente === "ambar") ? "#fcd34d" : "#e2e8f0");
 
-    /* Mini velocímetro SVG (solo el sensor delantero reduce la velocidad) */
-    var ratioVel = Math.max(0, Math.min(1, vel / VEL_NORMAL));
-    var colorVel = vel <= 0.005 ? COLOR.rojo : (vel < VEL_NORMAL - 0.005 ? COLOR.ambar : COLOR.verde);
+    /* Mini velocímetro SVG (escala SIM1 hasta 0.46 m/s; solo el sensor delantero frena) */
+    var ratioVel = Math.max(0, Math.min(1, vel / VEL_MAX));
+    var frenando = det.frente || dist.frente <= LIMITE_CERCA || vel < (VEL_CRUCERO - VEL_VAR_CRUCERO - 0.01);
+    var colorVel = vel <= 0.005 ? COLOR.rojo : (frenando ? COLOR.ambar : COLOR.verde);
     veloArco.setAttribute("stroke-dashoffset", (ARCO_LEN * (1 - ratioVel)).toFixed(2));
     veloArco.style.stroke = colorVel;
     veloAguja.setAttribute("transform", "rotate(" + (-90 + ratioVel * 180).toFixed(1) + " 40 40)");
     veloVal.innerHTML = velTxt + "<small>m/s</small>";
     veloVal.style.color = colorVel;
-    veloWidget.style.borderColor = vel <= 0.005 ? "rgba(239, 68, 68, 0.6)" : (vel < VEL_NORMAL - 0.005 ? "rgba(245, 158, 11, 0.55)" : "rgba(148, 163, 184, 0.26)");
+    veloWidget.style.borderColor = vel <= 0.005 ? "rgba(239, 68, 68, 0.6)" : (frenando ? "rgba(245, 158, 11, 0.55)" : "rgba(148, 163, 184, 0.26)");
 
-    if (dist.frente <= LIMITE_PELIGRO) {
+    if (dist.frente <= LIMITE_PELIGRO || (det.frente && vel <= 0.005)) {
       alertaObs.textContent = (vel <= 0.005 ? "FRENADO POR OBSTÁCULO · 0.00 m/s" : "FRENANDO POR OBSTÁCULO · " + velTxt + " m/s");
       alertaObs.className = "us-alerta";
       alertaObs.hidden = false;
-    } else if (dist.frente <= LIMITE_CERCA) {
+    } else if (dist.frente <= LIMITE_CERCA || det.frente) {
       alertaObs.textContent = "OBSTÁCULO CERCA · " + velTxt + " m/s";
       alertaObs.className = "us-alerta cerca";
       alertaObs.hidden = false;
@@ -842,10 +862,10 @@
     var dt = Math.min(Math.max((ts - ultimoTs) / 1000, 0), 0.1);
     ultimoTs = ts;
 
+    var det = deteccionObstaculo();
     if (encendido) {
       var s = (ts - t0) / 1000;
       var f = function (base, amp, vel, fase) { return Math.round(Math.max(DIST_MIN, Math.min(DIST_MAX, base + amp * Math.sin(s * vel + fase)))); };
-      var det = deteccionObstaculo();
       if (!det.frente) {
         dist.frente = f(150, 35, 0.45, 1.2);
       }
@@ -854,16 +874,24 @@
       }
     }
 
-    var objetivo = calcularVelocidadObjetivo(dist.frente);
+    /* Acumulación / decaimiento del tiempo sostenido de detección frontal */
+    if (det.frente || dist.frente <= LIMITE_CERCA) {
+      tDeteccionFrente = Math.min(4.0, tDeteccionFrente + dt);
+    } else {
+      tDeteccionFrente = Math.max(0, tDeteccionFrente - dt * 2.2);
+    }
+
+    var velBase = velocidadCrucero(ts);
+    var objetivo = calcularVelocidadObjetivo(dist.frente, det.frente, velBase);
     if (Math.abs(velActual - objetivo) > 0.0005) {
-      var tasa = objetivo < velActual ? 0.85 : 1.10;
+      var tasa = objetivo < velActual ? 0.55 : 0.42;
       var paso = tasa * dt;
       if (Math.abs(objetivo - velActual) <= paso) {
         velActual = objetivo;
       } else {
         velActual += (objetivo > velActual ? paso : -paso);
       }
-      velActual = Math.max(0, Math.min(VEL_NORMAL, velActual));
+      velActual = Math.max(0, Math.min(VEL_MAX, velActual));
     }
 
     refrescar(false);
