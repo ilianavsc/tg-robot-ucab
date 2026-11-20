@@ -4,8 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
 import 'package:robot_ucab_app/core/mqtt/mqtt_service.dart';
 import 'package:robot_ucab_app/core/theme/cockpit_theme.dart';
+import 'package:robot_ucab_app/features/auth/registro_usuarios.dart';
+import 'package:robot_ucab_app/features/auth/sesion_local.dart';
+import 'package:robot_ucab_app/features/perfil/aprendizaje_ruta.dart';
+import 'package:robot_ucab_app/features/perfil/pantalla_perfil.dart';
 import 'package:robot_ucab_app/features/telemetria/telemetria_screen.dart';
 
 /// Carga las fuentes reales del Cockpit: sin esto, `flutter test` usa Ahem
@@ -30,14 +35,28 @@ Future<MqttService> _montar(
   WidgetTester t, {
   double ancho = 390,
   double alto = 844,
+  bool admin = false,
 }) async {
   t.view.physicalSize = Size(ancho * 2, alto * 2);
   t.view.devicePixelRatio = 2;
   addTearDown(t.view.reset);
   final MqttService servicio = MqttService();
+  final SesionLocal sesion = SesionLocal();
+  if (admin) {
+    sesion.iniciar(RolUsuario.administrador, usuario: 'admin');
+  }
   await t.pumpWidget(
-    ChangeNotifierProvider<MqttService>.value(
-      value: servicio,
+    MultiProvider(
+      providers: <SingleChildWidget>[
+        ChangeNotifierProvider<MqttService>.value(value: servicio),
+        ChangeNotifierProvider<SesionLocal>.value(value: sesion),
+        ChangeNotifierProvider<RegistroUsuarios>(
+          create: (_) => RegistroUsuarios(),
+        ),
+        ChangeNotifierProvider<AprendizajeRuta>(
+          create: (_) => AprendizajeRuta(),
+        ),
+      ],
       child: MaterialApp(
         theme: buildCockpitTheme(),
         home: const TelemetriaScreen(),
@@ -157,13 +176,20 @@ void main() {
     expect(s.ultimoComando, 'frenar');
 
     await _ir(t, 'CONTROLES');
+    // Pestañas de modo (arriba de la lista): MANUAL RC envía frenar y pasa a
+    // manual; LINE TRACK envía auto y vuelve a autónomo.
+    await _tocar(t, 'MANUAL RC');
+    expect(s.ultimoComando, 'frenar', reason: 'MANUAL RC');
+    await t.pump(const Duration(milliseconds: 400));
+    await _tocar(t, 'LINE TRACK');
+    expect(s.ultimoComando, 'auto', reason: 'LINE TRACK');
+    // Matriz táctil (D-pad).
     for (final (String boton, String orden) in <(String, String)>[
       ('AVANZAR', 'adelante'),
       ('GIRAR IZQ', 'izquierda'),
       ('GIRAR DER', 'derecha'),
       ('RETROCESO', 'atras'),
       ('ALTO', 'frenar'),
-      ('AUTO NAV', 'auto'),
     ]) {
       await _tocar(t, boton);
       expect(s.ultimoComando, orden, reason: boton);
@@ -213,24 +239,37 @@ void main() {
     await _cerrar(t, s);
   });
 
-  testWidgets('P12: la analítica se exporta y se reinicia desde el Dashboard', (
-    WidgetTester t,
-  ) async {
-    final MqttService s = await _montar(t);
-    s.iniciarSimulacion();
-    s.debugEmitirPasoDemo();
-    await t.pump(const Duration(milliseconds: 200));
-    final Finder exportar = find.text('EXPORTAR REPORTE CSV');
-    // El Mapa de Pista ocupa el inicio del Dashboard: se baja hasta la tarjeta.
-    await t.scrollUntilVisible(
-      exportar,
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    expect(exportar, findsOneWidget);
-    expect(s.analitica.totalPaquetes, greaterThan(0));
-    await _tocar(t, 'REINICIAR');
-    expect(s.analitica.totalPaquetes, 0);
-    await _cerrar(t, s);
-  });
+  testWidgets(
+    'P12: la analítica se exporta y se reinicia desde Administración (Perfil)',
+    (WidgetTester t) async {
+      final MqttService s = await _montar(t, admin: true);
+      s.iniciarSimulacion();
+      s.debugEmitirPasoDemo();
+      await t.pump(const Duration(milliseconds: 200));
+      // La analítica y el CSV viven ahora en Perfil > Administración (rol Admin).
+      final Finder botonPerfil = find.byKey(const Key('boton-perfil'));
+      expect(botonPerfil, findsOneWidget);
+      await t.tap(botonPerfil);
+      for (int i = 0; i < 8; i++) {
+        await t.pump(const Duration(milliseconds: 100));
+      }
+      expect(find.text('PERFIL · ADMIN'), findsOneWidget, reason: 'no abrió Perfil');
+      final Finder exportar = find.text('EXPORTAR REPORTE CSV');
+      await t.scrollUntilVisible(
+        exportar,
+        300,
+        scrollable: find
+            .descendant(
+              of: find.byType(PantallaPerfil),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      expect(exportar, findsOneWidget);
+      expect(s.analitica.totalPaquetes, greaterThan(0));
+      await _tocar(t, 'REINICIAR');
+      expect(s.analitica.totalPaquetes, 0);
+      await _cerrar(t, s);
+    },
+  );
 }
