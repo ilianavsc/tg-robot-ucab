@@ -96,21 +96,15 @@ class _PantallaPerfilState extends State<PantallaPerfil> {
               CabeceraIdentidad(sesion: sesion, rol: rol),
               const SizedBox(height: 16),
               if (admin) ...<Widget>[
+                SeccionAdministracion(servicio: servicio),
+                const SizedBox(height: 12),
                 const TarjetaFailSafe(),
-                const SizedBox(height: 12),
-                const TarjetaAprendizajeRuta(),
-                const SizedBox(height: 12),
-                const TarjetaGestionUsuarios(),
                 const SizedBox(height: 12),
               ],
               TarjetaSesionActual(sesion: sesion, servicio: servicio),
               const SizedBox(height: 12),
               TarjetaEnlaceMqtt(servicio: servicio),
               const SizedBox(height: 16),
-              if (admin) ...<Widget>[
-                BotonExportarSesion(servicio: servicio),
-                const SizedBox(height: 10),
-              ],
               OutlinedButton.icon(
                 key: const Key('perfil-cerrar'),
                 style: OutlinedButton.styleFrom(

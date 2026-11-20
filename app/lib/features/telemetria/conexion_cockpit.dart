@@ -22,11 +22,13 @@ import 'cockpit_ui.dart';
 }
 
 /// Controles de conexión del Cockpit: selector de broker (HiveMQ / EMQX /
-/// Mosquitto), botón de conexión de 3 estados y botón de Modo Demo.
+/// Mosquitto) y botón de conexión de 3 estados.
+///
+/// El Modo Demo **no** se activa desde aquí: tiene un único punto de entrada,
+/// el botón "Modo Demo (Offline)" de la pantalla de acceso (Login).
 ///
 /// Es la misma lógica de la pantalla anterior (mismas llamadas a
-/// `seleccionarBroker`, `conectar`, `desconectar`, `iniciarSimulacion` y
-/// `detenerSimulacion`); solo cambia el aspecto.
+/// `seleccionarBroker`, `conectar` y `desconectar`); solo cambia el aspecto.
 class ConexionControles extends StatelessWidget {
   const ConexionControles({super.key, required this.servicio});
 
@@ -39,13 +41,7 @@ class ConexionControles extends StatelessWidget {
       children: <Widget>[
         _SelectorBroker(servicio: servicio),
         const SizedBox(height: 10),
-        Row(
-          children: <Widget>[
-            Expanded(child: _BotonConexion(servicio: servicio)),
-            const SizedBox(width: 8),
-            Expanded(child: _BotonDemo(servicio: servicio)),
-          ],
-        ),
+        _BotonConexion(servicio: servicio),
       ],
     );
   }
@@ -162,48 +158,6 @@ class _BotonConexionState extends State<_BotonConexion> {
           label: FittedBox(fit: BoxFit.scaleDown, child: Text(etiqueta)),
         ),
       ),
-    );
-  }
-}
-
-/// Botón del Modo Demo (telemetría simulada sin red).
-class _BotonDemo extends StatelessWidget {
-  const _BotonDemo({required this.servicio});
-
-  final MqttService servicio;
-
-  @override
-  Widget build(BuildContext context) {
-    final bool activo = servicio.simulando;
-    final VoidCallback accion = activo
-        ? servicio.detenerSimulacion
-        : servicio.iniciarSimulacion;
-    return Pressable(
-      child: activo
-          ? FilledButton.icon(
-              onPressed: accion,
-              style: FilledButton.styleFrom(
-                backgroundColor: CockpitColors.secondaryContainer,
-                foregroundColor: const Color(0xFFE6ECFF),
-              ),
-              icon: const Icon(Icons.stop, size: 18),
-              label: const FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text('DETENER DEMO'),
-              ),
-            )
-          : OutlinedButton.icon(
-              onPressed: accion,
-              icon: const Icon(
-                Icons.science_outlined,
-                size: 18,
-                color: CockpitColors.secondary,
-              ),
-              label: const FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text('MODO DEMO'),
-              ),
-            ),
     );
   }
 }

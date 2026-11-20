@@ -8,7 +8,6 @@ import '../../core/models/estado.dart';
 import '../../core/models/ultrasonido.dart';
 import '../../core/mqtt/mqtt_service.dart';
 import '../../core/theme/cockpit_theme.dart';
-import 'analitica_p12.dart';
 import 'cockpit_datos.dart';
 import 'cockpit_ui.dart';
 import 'conexion_cockpit.dart';
@@ -46,15 +45,76 @@ class PantallaDashboard extends StatelessWidget {
           children: <Widget>[
             _TarjetaEstadoRobot(estado: e, sin: sin),
             _TarjetaEnlace(servicio: servicio),
-            _TarjetaEnergia(estado: e, sin: sin),
-            _TarjetaIr(estado: e, sin: sin),
-            _TarjetaMotores(estado: e, sin: sin),
             _TarjetaObstaculos(ultrasonido: u),
-            _AccionesRapidas(servicio: servicio),
-            const TarjetaAnaliticaSesion(),
+            _DetalleTecnico(estado: e, sin: sin),
           ],
         ),
       ],
+    );
+  }
+}
+
+/// **Detalle técnico**: Energía 3S, sensores de línea (4× TCRT5000) y motores
+/// agrupados en un panel plegado por defecto, para que el Dashboard muestre
+/// primero lo esencial (mapa, estado, enlace y obstáculos).
+///
+/// Al estar plegado, `ExpansionTile` no construye las tarjetas hasta que el
+/// operador lo abre.
+class _DetalleTecnico extends StatelessWidget {
+  const _DetalleTecnico({required this.estado, required this.sin});
+
+  final Estado? estado;
+  final bool sin;
+
+  @override
+  Widget build(BuildContext context) {
+    return CockpitCard(
+      padding: EdgeInsets.zero,
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          key: const Key('dashboard-detalle-tecnico'),
+          initiallyExpanded: false,
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+          childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          shape: const Border(),
+          collapsedShape: const Border(),
+          iconColor: CockpitColors.primary,
+          collapsedIconColor: CockpitColors.onSurfaceVariant,
+          leading: Container(
+            width: 32,
+            height: 32,
+            decoration: const BoxDecoration(
+              color: CockpitColors.surfaceContainer,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.tune,
+              size: 16,
+              color: CockpitColors.primary,
+            ),
+          ),
+          title: Text(
+            'Detalle técnico',
+            style: CockpitText.labelMd.copyWith(
+              color: CockpitColors.onSurface,
+            ),
+          ),
+          subtitle: Text(
+            'Energía · Línea · Motores',
+            style: CockpitText.telemetrySm.copyWith(
+              color: CockpitColors.onSurfaceVariant,
+            ),
+          ),
+          children: <Widget>[
+            _TarjetaEnergia(estado: estado, sin: sin),
+            const SizedBox(height: 12),
+            _TarjetaIr(estado: estado, sin: sin),
+            const SizedBox(height: 12),
+            _TarjetaMotores(estado: estado, sin: sin),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -86,8 +146,9 @@ class _TarjetaEspera extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Enciende el ESP32, abre el simulador P10 o pulsa MODO DEMO '
-                  'para ver los sensores en vivo.',
+                  'Enciende el ESP32 o abre el simulador P10 para ver los '
+                  'sensores en vivo. El Modo Demo se activa desde la pantalla '
+                  'de acceso.',
                   style: CockpitText.bodySm.copyWith(
                     color: CockpitColors.onSurfaceVariant,
                   ),
@@ -942,57 +1003,6 @@ class _TarjetaObstaculos extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// Acciones rápidas: Frenar y Modo Auto (mismas órdenes y reglas de siempre).
-class _AccionesRapidas extends StatelessWidget {
-  const _AccionesRapidas({required this.servicio});
-
-  final MqttService servicio;
-
-  @override
-  Widget build(BuildContext context) {
-    final bool activo = servicio.puedeEnviarOrdenes;
-    return Row(
-      children: <Widget>[
-        Expanded(
-          child: Pressable(
-            habilitado: activo,
-            child: OutlinedButton.icon(
-              onPressed: activo
-                  ? () => enviarOrden(context, servicio, 'frenar')
-                  : null,
-              icon: const Icon(
-                Icons.stop_circle_outlined,
-                size: 20,
-                color: CockpitColors.primary,
-              ),
-              label: const FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text('FRENAR'),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Pressable(
-            habilitado: activo,
-            child: FilledButton.icon(
-              onPressed: activo
-                  ? () => enviarOrden(context, servicio, 'auto')
-                  : null,
-              icon: const Icon(Icons.smart_toy_outlined, size: 20),
-              label: const FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text('MODO AUTO'),
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

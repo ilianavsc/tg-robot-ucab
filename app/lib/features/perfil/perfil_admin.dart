@@ -168,6 +168,40 @@ class _FilaFailSafe extends StatelessWidget {
   }
 }
 
+/// **Administración (Admin)**: sección única dentro de Perfil que reúne
+/// Aprendizaje de Ruta, Gestión de Usuarios y Analítica CSV (P12), separadas
+/// del flujo principal del operador.
+class SeccionAdministracion extends StatelessWidget {
+  const SeccionAdministracion({super.key, required this.servicio});
+
+  final MqttService servicio;
+
+  @override
+  Widget build(BuildContext context) {
+    return CockpitCard(
+      key: const Key('perfil-administracion'),
+      borde: CockpitColors.primary.withValues(alpha: 0.40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          const SectionLabel(
+            icono: Icons.admin_panel_settings_outlined,
+            etiqueta: 'Administración',
+          ),
+          const SizedBox(height: 12),
+          const TarjetaAprendizajeRuta(),
+          const SizedBox(height: 10),
+          const TarjetaGestionUsuarios(),
+          const SizedBox(height: 12),
+          const TarjetaAnaliticaSesion(),
+          const SizedBox(height: 10),
+          BotonExportarSesion(servicio: servicio),
+        ],
+      ),
+    );
+  }
+}
+
 /// **Aprendizaje de Ruta (Admin)**: acceso a la pasada virtual, los puntos de
 /// control y la vista previa de la reducción progresiva de cinta (SIL).
 class TarjetaAprendizajeRuta extends StatelessWidget {

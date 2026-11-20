@@ -9,8 +9,8 @@ import 'alertas_p11.dart';
 import 'cockpit_datos.dart';
 import 'cockpit_ui.dart';
 
-/// **Controles**: modo, matriz táctil en cruz, Auto, último ACK y el núcleo de
-/// seguridad.
+/// **Controles**: modo (MANUAL RC / LINE TRACK), matriz táctil en cruz, último
+/// ACK y el núcleo de seguridad.
 ///
 /// Las órdenes son las del firmware (`adelante`, `atras`, `izquierda`,
 /// `derecha`, `frenar`, `auto`) y salen por `MqttService.publicarOrden` (QoS 1)
@@ -42,7 +42,7 @@ class PantallaControles extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                _AutoYAck(servicio: servicio, estado: sin ? null : e),
+                _TarjetaAck(servicio: servicio),
                 const SizedBox(height: 12),
                 _NucleoSeguridad(servicio: servicio, estado: sin ? null : e),
               ],
@@ -273,7 +273,7 @@ class _MatrizTactil extends StatelessWidget {
           Text(
             activo
                 ? 'Un toque envía la orden. En manual, 5 s sin órdenes y el robot frena.'
-                : 'Conéctate al broker o activa el Modo Demo para enviar órdenes.',
+                : 'Conéctate al broker para enviar órdenes.',
             style: CockpitText.bodySm.copyWith(
               color: CockpitColors.onSurfaceVariant,
             ),
@@ -516,34 +516,19 @@ class _BotonAlto extends StatelessWidget {
   }
 }
 
-/// Tarjetas AUTO (orden `auto`) y último ACK.
-class _AutoYAck extends StatelessWidget {
-  const _AutoYAck({required this.servicio, required this.estado});
+/// Tarjeta del último ACK. El cambio de modo (MANUAL RC / LINE TRACK) vive solo
+/// en las pestañas de arriba: no se repite aquí como "AUTO NAV".
+class _TarjetaAck extends StatelessWidget {
+  const _TarjetaAck({required this.servicio});
 
   final MqttService servicio;
-  final Estado? estado;
 
   @override
   Widget build(BuildContext context) {
-    final bool activo = servicio.puedeEnviarOrdenes;
-    final bool autonomo = estado?.esAutonomo ?? false;
     final ({String titulo, String detalle, String etiqueta, Color color}) ack =
         _resumenAck(servicio);
 
-    final Widget auto = _TarjetaAccion(
-      icono: Icons.smart_toy_outlined,
-      colorIcono: CockpitColors.primary,
-      fondoIcono: CockpitColors.primaryTonal,
-      etiqueta: !activo ? 'SIN ENLACE' : (autonomo ? 'ACTIVO' : 'LISTO'),
-      colorEtiqueta: !activo
-          ? CockpitColors.outline
-          : (autonomo ? CockpitColors.ok : CockpitColors.primary),
-      titulo: 'AUTO NAV',
-      detalle: 'Seguir la línea de forma autónoma (PD a 100 Hz).',
-      habilitado: activo,
-      alTocar: () => enviarOrden(context, servicio, 'auto'),
-    );
-    final Widget confirmacion = _TarjetaAccion(
+    return _TarjetaAccion(
       icono: ack.etiqueta == 'ESPERANDO'
           ? Icons.hourglass_top
           : Icons.check_circle_outline,
@@ -555,27 +540,6 @@ class _AutoYAck extends StatelessWidget {
       detalle: ack.detalle,
       habilitado: false,
       alTocar: null,
-    );
-
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints c) {
-        if (c.maxWidth >= 520) {
-          return IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Expanded(child: auto),
-                const SizedBox(width: 12),
-                Expanded(child: confirmacion),
-              ],
-            ),
-          );
-        }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[auto, const SizedBox(height: 12), confirmacion],
-        );
-      },
     );
   }
 
