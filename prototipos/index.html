@@ -25,7 +25,7 @@ a.proto:hover{transform:translate(-2px,-2px)}
 <main>
 <p class="ceja">Prototipos</p>
 <h1>Cada prueba, <em>explicada en simple</em></h1>
-<p class="bajada">P = prototipo en simulador. H = prueba con hardware real. Los que tienen borde punteado todavía no empiezan.</p>
+<p class="bajada">Los que tienen borde punteado todavía no empiezan.</p>
 <h2 class="fase-titulo" style="margin-top:8px">Listos para usar</h2>
 <div class="lista" id="listos"></div>
 <h2 class="fase-titulo">Simuladores de movimiento</h2>
@@ -42,20 +42,31 @@ a.proto:hover{transform:translate(-2px,-2px)}
 <script>
 (function(){
   var U = TGU, D = TG, html = "";
+  // Categorías limpias (sin prefijo P0X): solo el tema visual de cada tarjeta.
+  var categorias = {
+    P01: "MQTT",
+    P03: "Hardware 3D",
+    P08: "Simulador 3D",
+    P09: "Flutter",
+    P10: "Simulador 3D",
+    P13: "Ultrasonido"
+  };
   D.fases.forEach(function(f){
     var ps = D.prototipos.filter(function(p){ return !p.principal && U.faseDe(U.inicioSemana(p.semana)).id === f.id; });
     if (!ps.length) return;
     html += '<h2 class="fase-titulo">Fase ' + f.id + " · " + f.nombre + '</h2><div class="lista">';
     ps.forEach(function(p){
       var et = p.estado === "pruebas" ? "En pruebas" : p.estado === "hecho" ? "Hecho" : "Pendiente";
-      var inner = '<span class="cod">' + p.codigo + " · " + p.tema + "</span><h3>" + p.nombre + "</h3><p>Semana " + p.semana + " · desde el " + U.corto(U.inicioSemana(p.semana)) + '</p><span class="chip ' + p.estado + '">' + et + "</span>";
+      var titulo = (D.protoResumen && D.protoResumen[p.codigo]) ? D.protoResumen[p.codigo].corto : p.nombre;
+      var inner = '<span class="cod">' + (categorias[p.codigo] || p.tema) + "</span><h3>" + titulo + "</h3><p>Semana " + p.semana + " · desde el " + U.corto(U.inicioSemana(p.semana)) + '</p><span class="chip ' + p.estado + '">' + et + "</span>";
       html += p.url ? '<a class="proto" href="../' + p.url + '">' + inner + "</a>" : '<div class="proto pendiente">' + inner + "</div>";
     });
     html += "</div>";
   });
   document.getElementById("por-fase").innerHTML = html;
   document.getElementById("listos").innerHTML = D.prototipos.filter(function(p){ return p.principal; }).map(function(p){
-    return '<a class="proto" href="../' + p.url + '"><span class="cod">' + p.codigo + " · " + p.tema + "</span><h3>" + p.nombre + "</h3><p>" + p.simuladorTexto + (p.ino ? " · código ESP32" : "") + "</p></a>";
+    var titulo = (D.protoResumen && D.protoResumen[p.codigo]) ? D.protoResumen[p.codigo].corto : p.nombre;
+    return '<a class="proto" href="../' + p.url + '"><span class="cod">' + (categorias[p.codigo] || p.tema) + "</span><h3>" + titulo + "</h3><p>" + p.simuladorTexto + (p.ino ? " · código ESP32" : "") + "</p></a>";
   }).join("");
 })();
 </script>
