@@ -217,7 +217,7 @@
     if (protosEt.length > 0) {
       var peso = 0;
       protosEt.forEach(function (p) {
-        peso += p.estado === "hecho" ? 1 : (p.estado === "pruebas" ? 0.5 : 0);
+        peso += p.estado === "listo" ? 1 : (p.estado === "en_pruebas" ? 0.5 : 0);
       });
       pctEt = Math.min(100, Math.max(0, Math.round((peso / protosEt.length) * 100)));
     } else {
@@ -245,7 +245,8 @@
 
     var protosHtml = protosEt.map(function (p) {
       var info = (D.protoResumen && D.protoResumen[p.codigo]) || { corto: p.tema };
-      var c = '<span class="chip ' + p.estado + '" title="' + p.nombre + '">' + info.corto + "</span>";
+      var claseEstado = p.estado === "listo" ? "hecho" : p.estado === "en_pruebas" ? "pruebas" : "pendiente";
+      var c = '<span class="chip ' + claseEstado + '" title="' + p.nombre + '">' + info.corto + "</span>";
       return p.url ? '<a href="' + p.url + '">' + c + "</a>" : c;
     }).join("");
 
@@ -323,8 +324,10 @@
 
   D.prototipos.forEach(function (p, i) {
     var px = x(U.inicioSemana(p.semana)) + 10, py = 205 + (i % 3) * 34;
-    var fill = p.estado === "hecho" ? "#0F9D84" : p.estado === "pruebas" ? "#6B4EE6" : "#FFFFFF";
-    var g = '<g><title>' + p.codigo + ": " + p.nombre + '</title><path d="M' + px + " " + (py - 8) + " l8 8 l-8 8 l-8 -8 z" + '" fill="' + fill + '" stroke="#14213D" stroke-width="1.5"/>' +
+    var fill = p.estado === "listo" ? "#0F9D84" : p.estado === "en_pruebas" ? "#6B4EE6" : "#FFFFFF";
+    var estadoTxt = p.estado === "listo" ? "Listo" : p.estado === "en_pruebas" ? "En pruebas" : "Pendiente";
+    var tituloUnico = (D.protoResumen && D.protoResumen[p.codigo]) ? D.protoResumen[p.codigo].corto : p.nombre;
+    var g = '<g><title>' + p.codigo + ": " + tituloUnico + " · " + estadoTxt + '</title><path d="M' + px + " " + (py - 8) + " l8 8 l-8 8 l-8 -8 z" + '" fill="' + fill + '" stroke="#14213D" stroke-width="1.5"/>' +
       t(px + 12, py + 4, p.codigo, 'font-family="JetBrains Mono, monospace" font-size="12" font-weight="600" fill="#14213D"') + "</g>";
     out += p.url ? '<a href="' + p.url + '">' + g + "</a>" : g;
   });

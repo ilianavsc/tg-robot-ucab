@@ -298,32 +298,9 @@ a.ir:hover {
 <script>
 (function () {
   var U = TGU, D = TG, hoy = U.hoy(), s = U.semana(hoy), fase = U.faseDe(hoy);
-  // P13 quedó consolidado dentro de P02: se retira su tarjeta del grid y su
-  // enlace se muestra dentro de la tarjeta de P02 (para no perder acceso).
-  var P = D.prototipos.filter(function (p) { return !p.consolidadoEn; });
-  var consolidados = {};
-  D.prototipos.forEach(function (p) {
-    if (p.consolidadoEn) {
-      (consolidados[p.consolidadoEn] = consolidados[p.consolidadoEn] || []).push(p);
-    }
-  });
-
-  // Títulos visibles limpios (sin prefijo P0X). Si falta, se usa protoResumen.corto.
-  var titulosLimpios = {
-    P01: "Arquitectura App ↔ Robot (MQTT)",
-    P02: "Sensores y Radar Ultrasónico",
-    P03: "Inspector 3D de Hardware",
-    P04: "Balizas BLE (Extremos)",
-    P06: "App Flutter (Cockpit + Modo Demo)",
-    P07: "Firmware Completo (ESP32)",
-    P08: "Aprendizaje Progresivo · Sim 1 (2 Pistas)",
-    P09: "App Flutter (Cockpit + Modo Demo)",
-    P10: "Aprendizaje Progresivo · Sim 2 (Teach-and-Repeat)",
-    P11: "Centro de Alertas",
-    P12: "Analítica y Exportación CSV"
-  };
-  var listosArr = P.filter(function (p) { return p.estado !== "pendiente"; });
-  var caminoArr = P.filter(function (p) { return p.estado === "pendiente"; });
+  var P = D.prototipos;
+  var listosArr = P.filter(function (p) { return p.estado === "listo"; });
+  var caminoArr = P.filter(function (p) { return p.estado === "en_pruebas" || p.estado === "pendiente"; });
 
   /* 1. Hero: barra de avance (calculada de TG.prototipos, P01–P13) */
   var pct = Math.round((listosArr.length / P.length) * 100);
@@ -338,16 +315,19 @@ a.ir:hover {
   /* 2. Contadores en botones de filtro */
   document.getElementById("f-todos").textContent = "Todos (" + P.length + ")";
   document.getElementById("f-listos").textContent = "Listos (" + listosArr.length + ")";
-  document.getElementById("f-camino").textContent = "En camino (" + caminoArr.length + ")";
+  document.getElementById("f-camino").textContent = "En pruebas (" + caminoArr.length + ")";
 
   /* 3. Render de tarjetas compactas de prototipos */
   var gridEl = document.getElementById("grid-prototipos");
   var filtroActual = "todos";
 
+  function claseEstado(e) {
+    return e === "listo" ? "hecho" : e === "en_pruebas" ? "pruebas" : "pendiente";
+  }
   function etiquetaEstado(p) {
-    if (p.estado === "hecho") return '<span class="chip hecho">Listo</span>';
-    if (p.estado === "pruebas") return '<span class="chip pruebas">Listo · Sim 3D</span>';
-    return '<span class="chip pendiente">En camino · Sem. ' + p.semana + '</span>';
+    if (p.estado === "listo") return '<span class="chip hecho">Listo</span>';
+    if (p.estado === "en_pruebas") return '<span class="chip pruebas">En pruebas</span>';
+    return '<span class="chip pendiente">Pendiente · Sem. ' + p.semana + '</span>';
   }
 
   function textoBoton(p) {
@@ -359,15 +339,24 @@ a.ir:hover {
 
   function renderPrototipos() {
     var lista = P.filter(function (p) {
-      if (filtroActual === "listos") return p.estado !== "pendiente";
-      if (filtroActual === "camino") return p.estado === "pendiente";
+      if (filtroActual === "listos") return p.estado === "listo";
+      if (filtroActual === "camino") return p.estado === "en_pruebas" || p.estado === "pendiente";
       return true;
+    });
+    // Los Listos primero, en el mismo orden 3x2 de prototipos/index.html.
+    var ordenListos = ["P01", "P03", "P13", "P08", "P10", "P09"];
+    lista = lista.slice().sort(function (a, b) {
+      var ia = ordenListos.indexOf(a.codigo), ib = ordenListos.indexOf(b.codigo);
+      if (ia === -1 && ib === -1) return 0;
+      if (ia === -1) return 1;
+      if (ib === -1) return -1;
+      return ia - ib;
     });
 
     gridEl.innerHTML = lista.map(function (p) {
       var info = (D.protoResumen && D.protoResumen[p.codigo]) || { corto: p.nombre, linea: p.tema };
-      var titulo = titulosLimpios[p.codigo] || info.corto;
-      var esListo = p.estado !== "pendiente";
+      var titulo = info.corto;
+      var esListo = p.estado === "listo";
       var hrefAccion = p.url ? p.url : "cronograma.html#sem-" + p.semana;
       var claseBtn = esListo ? "btn btn-principal" : "btn btn-secundario";
 
@@ -383,14 +372,6 @@ a.ir:hover {
         extras += '</div></details>';
       }
 
-      // Sub-enlaces de prototipos consolidados dentro de este (p. ej. P13 en P02).
-      var subLinks = "";
-      if (consolidados[p.codigo]) {
-        subLinks = consolidados[p.codigo].map(function (c) {
-          return '<a href="' + c.url + '" class="btn btn-secundario" style="width:100%;padding:8px 12px;font-size:13px;margin-top:6px">' + c.nombre + '</a>';
-        }).join("");
-      }
-
       return '<article class="proto-card-compacta' + (esListo ? "" : " en-camino") + '">' +
         '<div>' +
           '<div class="proto-cabecera">' +
@@ -401,7 +382,6 @@ a.ir:hover {
         '</div>' +
         '<div>' +
           '<a href="' + hrefAccion + '" class="' + claseBtn + '" style="width:100%;padding:10px 16px;font-size:15px">' + textoBoton(p) + '</a>' +
-          subLinks +
           extras +
         '</div>' +
       '</article>';

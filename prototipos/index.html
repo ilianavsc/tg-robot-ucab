@@ -51,14 +51,15 @@ a.proto:hover{transform:translate(-2px,-2px)}
     P10: "Simulador 3D",
     P13: "Ultrasonido"
   };
+  function claseEstado(e) { return e === "listo" ? "hecho" : e === "en_pruebas" ? "pruebas" : "pendiente"; }
   D.fases.forEach(function(f){
     var ps = D.prototipos.filter(function(p){ return !p.principal && p.codigo !== "P02" && U.faseDe(U.inicioSemana(p.semana)).id === f.id; });
     if (!ps.length) return;
     html += '<h2 class="fase-titulo">Fase ' + f.id + " · " + f.nombre + '</h2><div class="lista">';
     ps.forEach(function(p){
-      var et = p.estado === "pruebas" ? "En pruebas" : p.estado === "hecho" ? "Hecho" : "Pendiente";
+      var et = p.estado === "listo" ? "Listo" : p.estado === "en_pruebas" ? "En pruebas" : "Pendiente";
       var titulo = (D.protoResumen && D.protoResumen[p.codigo]) ? D.protoResumen[p.codigo].corto : p.nombre;
-      var inner = '<span class="cod">' + (categorias[p.codigo] || p.tema) + "</span><h3>" + titulo + "</h3><p>Semana " + p.semana + " · desde el " + U.corto(U.inicioSemana(p.semana)) + '</p><span class="chip ' + p.estado + '">' + et + "</span>";
+      var inner = '<span class="cod">' + (categorias[p.codigo] || p.tema) + "</span><h3>" + titulo + "</h3><p>Semana " + p.semana + " · desde el " + U.corto(U.inicioSemana(p.semana)) + '</p><span class="chip ' + claseEstado(p.estado) + '">' + et + "</span>";
       html += p.url ? '<a class="proto" href="../' + p.url + '">' + inner + "</a>" : '<div class="proto pendiente">' + inner + "</div>";
     });
     html += "</div>";
