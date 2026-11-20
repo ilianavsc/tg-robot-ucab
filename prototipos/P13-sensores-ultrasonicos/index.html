@@ -53,20 +53,17 @@
   border-radius: 999px;
   font-size: 12px;
 }
-.us-botones-barra { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-#btn-mover, #btn-toggle {
+.us-botones-barra { display: flex; align-items: center; }
+#btn-toggle {
   min-height: 44px;
-  padding: 8px 16px;
+  padding: 8px 18px;
   border-radius: 10px;
   font-size: 13.5px;
   font-weight: 700;
   white-space: nowrap;
   transition: transform 0.14s var(--p11-ease), background-color 0.18s ease-out, border-color 0.18s ease-out, box-shadow 0.18s ease-out;
 }
-#btn-mover:active, #btn-toggle:active { transform: scale(0.97); }
-#btn-mover.mover-inactivo { background: #334155; border-color: #475569; color: #e2e8f0; }
-#btn-mover.mover-inactivo:hover { background: #475569; }
-#btn-mover.mover-activo { background: #0284c7; border-color: #38bdf8; color: #fff; box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.22); }
+#btn-toggle:active { transform: scale(0.97); }
 #btn-toggle.apagado { background: var(--accent-primary); border-color: var(--accent-primary-hover); color: #fff; }
 #btn-toggle.encendido { background: #dc2626; border-color: #f87171; color: #fff; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.22); }
 
@@ -116,41 +113,79 @@
   background: radial-gradient(circle at 50% 50%, #12263f 0%, #0b1424 72%);
   border: 1.5px solid #334155; border-radius: 16px;
   box-shadow: inset 0 0 28px rgba(2, 6, 23, 0.65);
-  touch-action: none;
+  touch-action: pan-y;
   cursor: default;
   user-select: none;
 }
+#radar.con-obstaculo { touch-action: none; }
 #radar.sobre-obs { cursor: grab; }
 #radar.arrastrando { cursor: grabbing; }
-.us-btn-obstaculo {
+.us-obs-base {
   position: absolute;
   top: 10px;
   right: 10px;
   z-index: 2;
-  min-height: 44px;
-  padding: 8px 13px;
-  border-radius: 10px;
-  border: 1.5px solid rgba(248, 113, 113, 0.55);
-  background: rgba(15, 23, 42, 0.88);
+  min-width: 72px;
+  min-height: 54px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  border: 1.5px dashed rgba(248, 113, 113, 0.48);
+  background: rgba(11, 20, 36, 0.88);
   backdrop-filter: blur(6px);
-  color: #f8fafc;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
   box-shadow: 0 4px 12px rgba(2, 6, 23, 0.45);
   transition: transform 0.14s var(--p11-ease), background-color 0.18s ease-out, border-color 0.18s ease-out, box-shadow 0.18s ease-out;
 }
-.us-btn-obstaculo:hover { background: rgba(30, 41, 59, 0.96); border-color: #f87171; }
-.us-btn-obstaculo:active { transform: scale(0.97); }
-.us-btn-obstaculo:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
-.us-btn-obstaculo.activo {
-  background: rgba(185, 28, 28, 0.92);
-  border-color: #fca5a5;
-  color: #fff;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.24), 0 4px 12px rgba(2, 6, 23, 0.45);
+.us-obs-base:hover { background: rgba(30, 41, 59, 0.94); border-color: #f87171; }
+.us-obs-base:active { cursor: grabbing; transform: scale(0.97); }
+.us-obs-base:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+.us-obs-hueco {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px dashed rgba(148, 163, 184, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.us-obs-ficha {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.24);
+  transition: opacity 0.16s ease-out, transform 0.16s var(--p11-ease);
+}
+.us-obs-etiqueta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #cbd5e1;
+  line-height: 1;
+}
+.us-obs-base.fuera {
+  cursor: pointer;
+  border-color: rgba(148, 163, 184, 0.4);
+}
+.us-obs-base.fuera .us-obs-ficha {
+  opacity: 0;
+  transform: scale(0.5);
+}
+.us-obs-base.fuera:hover { border-color: #94a3b8; }
+.us-obs-base.zona-soltar {
+  border-color: #fbbf24;
+  background: rgba(120, 53, 15, 0.42);
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.25), 0 4px 12px rgba(2, 6, 23, 0.45);
 }
 .us-leyenda { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; font-size: 13px; color: #94a3b8; }
 .us-leyenda i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
@@ -248,7 +283,7 @@
 @media (max-width: 640px) {
   .us-controles-grid { grid-template-columns: 1fr; }
   .us-botones-barra { width: 100%; }
-  #btn-mover, #btn-toggle { flex: 1 1 0; min-height: 46px; }
+  #btn-toggle { width: 100%; min-height: 46px; }
   .us-lectura { width: 100%; text-align: center; }
   .us-alertas { padding: 10px 14px 0; }
 }
@@ -302,17 +337,15 @@
   </div>
 
   <div class="frase-explicativa">
-    <strong>En pocas palabras:</strong> el robot mide qué tan lejos está lo que tiene enfrente. Pulsa <strong>+ Obstáculo</strong> en el radar para colocar y arrastrar un objeto, o usa <strong>Mover solo</strong>.
-    Al pulsar <strong>Encender</strong>, la página publica las lecturas dos veces por segundo, como lo haría el ESP32.
+    <strong>En pocas palabras:</strong> pulsa <strong>Encender</strong> para iniciar el simulador y publicar por MQTT cada 0,5 s. Arrastra el círculo rojo desde la esquina hacia el radar para simular un obstáculo, y devuélvelo a su base para despejar el camino.
   </div>
 
   <section aria-label="Simulador de sensores ultrasónicos" style="margin-top:24px">
     <div class="consola-us">
       <div class="us-barra">
-        <div class="us-estado"><span class="led-us" id="led" aria-hidden="true"></span><span id="estado" role="status">DETENIDO · pulsa Encender para publicar</span></div>
+        <div class="us-estado"><span class="led-us" id="led" aria-hidden="true"></span><span id="estado" role="status">DETENIDO · pulsa Encender para iniciar</span></div>
         <div class="us-lectura" id="lectura">Adelante 160 · Atrás 150 cm · 0.60 m/s</div>
         <div class="us-botones-barra">
-          <button type="button" id="btn-mover" class="btn mover-inactivo" aria-pressed="false">▶ Mover solo</button>
           <button type="button" id="btn-toggle" class="btn apagado" aria-pressed="false">⚡ Encender</button>
         </div>
       </div>
@@ -323,14 +356,17 @@
       <div class="us-cuerpo">
         <div class="us-radar-caja">
           <div class="us-radar-escena">
-            <canvas id="radar" width="520" height="520" role="img" aria-label="Radar interactivo con distancias adelante y atrás; usa el botón de obstáculo para colocar y arrastrar un objeto"></canvas>
-            <button type="button" id="btn-obstaculo" class="us-btn-obstaculo" aria-pressed="false">+ Obstáculo</button>
+            <canvas id="radar" width="520" height="520" role="img" aria-label="Radar interactivo con distancias adelante y atrás; arrastra el círculo rojo desde la esquina hacia el radar para colocar un obstáculo"></canvas>
+            <div id="base-obstaculo" class="us-obs-base" role="button" tabindex="0" aria-label="Arrastra el obstáculo al radar o pulsa para devolverlo a su base">
+              <span class="us-obs-hueco" aria-hidden="true"><span class="us-obs-ficha"></span></span>
+              <span class="us-obs-etiqueta" id="etiqueta-base-obs">Obstáculo</span>
+            </div>
           </div>
           <div class="us-leyenda">
             <span><i style="background:#22c55e"></i>Libre (&gt; 50 cm)</span>
             <span><i style="background:#f59e0b"></i>Cerca (20–50 cm)</span>
             <span><i style="background:#ef4444"></i>Peligro (&le; 20 cm)</span>
-            <span><i style="background:#ef4444;border-radius:50%;border:1.5px solid #fff"></i>Obstáculo invocable</span>
+            <span><i style="background:#ef4444;border-radius:50%;border:1.5px solid #fff"></i>Arrastra desde la esquina</span>
           </div>
         </div>
       </div>
@@ -410,7 +446,7 @@
   var rango = {}, valor = {}, caja = {};
   ids.forEach(function (k) { rango[k] = $("r-" + k); valor[k] = $("v-" + k); caja[k] = $("s-" + k); });
   var ledEl = $("led"), estadoEl = $("estado"), lecturaEl = $("lectura"), brokerEl = $("broker"), jsonEl = $("json"), logEl = $("log");
-  var btnToggle = $("btn-toggle"), btnMover = $("btn-mover"), btnObstaculo = $("btn-obstaculo");
+  var btnToggle = $("btn-toggle"), baseObs = $("base-obstaculo"), etiquetaBaseObs = $("etiqueta-base-obs");
   var alertaObs = $("alerta-obstaculo"), valVelocidad = $("v-velocidad"), velFill = $("vel-fill"), cajaVelocidad = $("s-velocidad"), velBadge = $("vel-badge");
   var canvas = $("radar"), ctx = canvas.getContext("2d");
 
@@ -628,30 +664,34 @@
     });
   });
 
-  /* Botón en esquina del radar para invocar / quitar el obstáculo */
-  function actualizarBotonObstaculo() {
-    btnObstaculo.textContent = obstaculoActivo ? "✕ Quitar obstáculo" : "+ Obstáculo";
-    btnObstaculo.classList.toggle("activo", obstaculoActivo);
-    btnObstaculo.setAttribute("aria-pressed", String(obstaculoActivo));
+  /* Base en la esquina del radar: arrastra el círculo rojo al radar o devuélvelo a su base */
+  function actualizarBaseObstaculo() {
+    baseObs.classList.toggle("fuera", obstaculoActivo);
+    etiquetaBaseObs.textContent = obstaculoActivo ? "Devolver" : "Obstáculo";
+    canvas.classList.toggle("con-obstaculo", obstaculoActivo);
   }
-  function alternarObstaculo() {
-    obstaculoActivo = !obstaculoActivo;
-    if (obstaculoActivo) {
-      obstaculo.xCm = 0;
-      obstaculo.yCm = 75;
-      dist.frente = 75;
-      rango.frente.value = 75;
-    } else {
-      arrastrando = false;
-      sobreObstaculo = false;
-      canvas.classList.remove("arrastrando", "sobre-obs");
-      dist.frente = DIST_LIBRE_FRENTE;
-      rango.frente.value = DIST_LIBRE_FRENTE;
-    }
-    actualizarBotonObstaculo();
+  function devolverObstaculo() {
+    obstaculoActivo = false;
+    arrastrando = false;
+    sobreObstaculo = false;
+    canvas.classList.remove("arrastrando", "sobre-obs");
+    baseObs.classList.remove("zona-soltar");
+    dist.frente = DIST_LIBRE_FRENTE;
+    rango.frente.value = DIST_LIBRE_FRENTE;
+    actualizarBaseObstaculo();
     refrescar(true);
   }
-  btnObstaculo.addEventListener("click", alternarObstaculo);
+  function puntoSobreBase(clientX, clientY) {
+    var b = baseObs.getBoundingClientRect();
+    return clientX >= b.left - 8 && clientX <= b.right + 8 && clientY >= b.top - 8 && clientY <= b.bottom + 8;
+  }
+  function puntoFueraDelRadar(clientX, clientY) {
+    var rect = canvas.getBoundingClientRect();
+    var W = canvas.clientWidth || 520, H = canvas.clientHeight || W;
+    var ox = rect.left + W / 2, oy = rect.top + H / 2;
+    var R = Math.min(W, H) / 2 - 14;
+    return Math.hypot(clientX - ox, clientY - oy) > R + 12;
+  }
 
   /* Arrastre (Drag & Drop) del círculo rojo sobre el radar */
   function obstaculoEnPx() {
@@ -680,19 +720,53 @@
     obstaculo.xCm = (dx / R) * DIST_MAX;
     obstaculo.yCm = (dy / R) * DIST_MAX;
 
-    if (moviendo) {
-      moviendo = false;
-      actualizarBotonMover();
-    }
-    if (dy >= 0) {
-      dist.frente = cm;
-      rango.frente.value = cm;
-    } else {
-      dist.atras = cm;
-      rango.atras.value = cm;
+    var enZonaDevolver = puntoSobreBase(ev.clientX, ev.clientY) || puntoFueraDelRadar(ev.clientX, ev.clientY);
+    baseObs.classList.toggle("zona-soltar", enZonaDevolver);
+
+    if (!enZonaDevolver) {
+      if (dy >= 0) {
+        dist.frente = cm;
+        rango.frente.value = cm;
+      } else {
+        dist.atras = cm;
+        rango.atras.value = cm;
+      }
     }
     refrescar(true);
   }
+
+  var capturaEl = null;
+  baseObs.addEventListener("pointerdown", function (ev) {
+    if (ev.cancelable) ev.preventDefault();
+    if (obstaculoActivo) {
+      devolverObstaculo();
+      return;
+    }
+    obstaculoActivo = true;
+    arrastrando = true;
+    dragOffset.x = 0;
+    dragOffset.y = 0;
+    capturaEl = baseObs;
+    canvas.classList.add("arrastrando");
+    actualizarBaseObstaculo();
+    try { baseObs.setPointerCapture(ev.pointerId); } catch (_) {}
+    moverObstaculoDesdeEvento(ev);
+  });
+  baseObs.addEventListener("keydown", function (ev) {
+    if (ev.key !== "Enter" && ev.key !== " ") return;
+    ev.preventDefault();
+    if (obstaculoActivo) {
+      devolverObstaculo();
+    } else {
+      obstaculoActivo = true;
+      obstaculo.xCm = 0;
+      obstaculo.yCm = 75;
+      dist.frente = 75;
+      rango.frente.value = 75;
+      actualizarBaseObstaculo();
+      refrescar(true);
+    }
+  });
 
   canvas.addEventListener("pointerdown", function (ev) {
     /* Solo inicia el arrastre si el obstáculo está activo y el toque cae sobre él (hit-area 36 px). */
@@ -705,6 +779,7 @@
     arrastrando = true;
     dragOffset.x = px - o.x;
     dragOffset.y = py - o.y;
+    capturaEl = canvas;
     canvas.classList.add("arrastrando");
     try { canvas.setPointerCapture(ev.pointerId); } catch (_) {}
     if (ev.cancelable) ev.preventDefault();
@@ -737,46 +812,43 @@
   });
   function soltarObstaculo(ev) {
     if (!arrastrando) return;
+    var devolver = puntoSobreBase(ev.clientX, ev.clientY) || puntoFueraDelRadar(ev.clientX, ev.clientY);
     arrastrando = false;
     canvas.classList.remove("arrastrando");
-    try { canvas.releasePointerCapture(ev.pointerId); } catch (_) {}
-    dibujar();
+    baseObs.classList.remove("zona-soltar");
+    if (capturaEl) {
+      try { capturaEl.releasePointerCapture(ev.pointerId); } catch (_) {}
+      capturaEl = null;
+    }
+    if (devolver) {
+      devolverObstaculo();
+    } else {
+      dibujar();
+    }
   }
   window.addEventListener("pointerup", soltarObstaculo);
   window.addEventListener("pointercancel", soltarObstaculo);
   window.addEventListener("resize", ajustarCanvas);
 
   /* Bucle continuo de simulación: nunca se pausa (ni al detectar obstáculo ni en 0.00 m/s).
-     Gestiona la desaceleración/aceleración progresiva y el ciclo de "Mover solo". */
-  var t0 = 0, ultimoTs = 0, moviendo = false;
-  function actualizarBotonMover() {
-    btnMover.textContent = moviendo ? "⏸ Mover solo" : "▶ Mover solo";
-    btnMover.className = "btn " + (moviendo ? "mover-activo" : "mover-inactivo");
-    btnMover.setAttribute("aria-pressed", String(moviendo));
-    ids.forEach(function (k) { rango[k].disabled = moviendo; });
-  }
-  function alternarMover() {
-    moviendo = !moviendo;
-    if (moviendo) t0 = performance.now();
-    actualizarBotonMover();
-  }
+     Al pulsar Encender arranca automáticamente el movimiento continuo junto con MQTT. */
+  var t0 = 0, ultimoTs = 0;
   function bucleSimulacion(ts) {
     if (!ultimoTs) ultimoTs = ts;
     var dt = Math.min(Math.max((ts - ultimoTs) / 1000, 0), 0.1);
     ultimoTs = ts;
 
-    if (moviendo) {
+    if (encendido) {
       var s = (ts - t0) / 1000;
       var f = function (base, amp, vel, fase) { return Math.round(Math.max(DIST_MIN, Math.min(DIST_MAX, base + amp * Math.sin(s * vel + fase)))); };
-      if (obstaculoActivo) {
-        dist.frente = f(94, 82, 0.55, 1.4);
-        obstaculo.xCm = 0;
-        obstaculo.yCm = dist.frente;
-      } else {
-        dist.frente = f(145, 45, 0.45, 1.2);
+      if (!obstaculoActivo) {
+        dist.frente = f(150, 35, 0.45, 1.2);
+        rango.frente.value = dist.frente;
       }
-      dist.atras = f(115, 55, 0.65, 0);
-      ids.forEach(function (k) { rango[k].value = dist[k]; });
+      if (!obstaculoActivo || obstaculo.yCm >= 0) {
+        dist.atras = f(130, 40, 0.6, 0);
+        rango.atras.value = dist.atras;
+      }
     }
 
     var objetivo = calcularVelocidadObjetivo(dist.frente);
@@ -794,7 +866,6 @@
     refrescar(false);
     requestAnimationFrame(bucleSimulacion);
   }
-  btnMover.addEventListener("click", alternarMover);
 
   /* ---------------- MQTT con brokers de respaldo ---------------- */
   function limpiarCliente() {
@@ -870,27 +941,28 @@
   }
 
   function encender() {
-    encendido = true; enviados = 0; indice = 0; inicioMs = Date.now();
+    encendido = true; enviados = 0; indice = 0; inicioMs = Date.now(); t0 = performance.now();
+    ids.forEach(function (k) { rango[k].disabled = true; });
     actualizarBoton();
     conectar();
     timerPub = setInterval(publicar, PERIODO_MS);
   }
   function apagar() {
     encendido = false;
+    ids.forEach(function (k) { rango[k].disabled = false; });
     if (timerPub) { clearInterval(timerPub); timerPub = null; }
     limpiarCliente();
     actualizarBoton();
     brokerEl.textContent = "sin conexión";
-    estado("DETENIDO · pulsa Encender para publicar", "");
+    estado("DETENIDO · pulsa Encender para iniciar", "");
     log("Emisión detenida (" + enviados + " mensajes enviados).", "inf");
-    refrescar();
+    refrescar(true);
   }
   btnToggle.addEventListener("click", function () { encendido ? apagar() : encender(); });
 
   ajustarCanvas();
   actualizarBoton();
-  actualizarBotonMover();
-  actualizarBotonObstaculo();
+  actualizarBaseObstaculo();
   refrescar(true);
   requestAnimationFrame(bucleSimulacion);
 })();
