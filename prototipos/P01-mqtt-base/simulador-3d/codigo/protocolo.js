@@ -46,3 +46,28 @@ export const ESPERA_LWT_S = KEEPALIVE_S * 1.5;
 export const pedido = (n) => ({id: 'P-' + String(n).padStart(4, '0'), componente: 'Resistencia 1k', cantidad: 5, estante: 'A3'});
 export const confirmacion = (id, recibidas, t) => ({id, recibidas, t});
 export const alarma = (n, t) => ({n, tipo: 'antirrobo', prueba: true, t});
+
+// ---------- Telemetría constante (QoS 0) ----------
+// El robot publica su estado cada 1 a 1,5 s en .../estado con QoS 0: un solo PUBLISH por tramo, sin confirmación.
+export const TELEMETRIA = {minMs: 1000, maxMs: 1500, clave: 'estado', qos: 0};
+export const proximaTelemetriaMs = (rnd = Math.random) => TELEMETRIA.minMs + rnd() * (TELEMETRIA.maxMs - TELEMETRIA.minMs);
+export const estadoRobot = (n, recibidas = 0, t = 0) => ({estado: 'en línea', bateria_v: 11.4, recibidas, n, t});
+
+// ---------- Pérdida de red (interruptor del simulador) ----------
+// Con la red inestable, cada intento de un paquete se pierde con probabilidad PERDIDA.prob.
+// QoS 0: no hay confirmación ni reintento, así que se perdió. QoS 1 y 2: el que envía reintenta hasta completar la confirmación.
+export const PERDIDA = {prob: 0.4, maxSeguidas: 3}; // tras 3 pérdidas seguidas el siguiente intento pasa (para que la demo avance)
+export function decidePerdida(qos, fallosSeguidos, rnd = Math.random, activa = true) {
+  if (!activa) return false;
+  if (qos >= 1 && fallosSeguidos >= PERDIDA.maxSeguidas) return false;
+  return rnd() < PERDIDA.prob;
+}
+// Entrega de UN paquete por un tramo con la red en ese estado: cuántos intentos hicieron falta y si llegó.
+export function entregaConPerdida(qos, rnd = Math.random, activa = true) {
+  let fallos = 0;
+  for (;;) {
+    if (!decidePerdida(qos, fallos, rnd, activa)) return {entregado: true, intentos: fallos + 1};
+    if (qos === 0) return {entregado: false, intentos: 1};
+    fallos++;
+  }
+}

@@ -24,12 +24,14 @@ P = prototipo simulado. H = prueba con hardware real.
 - Lo técnico va al final, en "Para los curiosos".
 - Sin contraseñas y sin capturas con datos personales (recortar el escritorio).
 
-## Cómo recompilar los simuladores 3D (P01)
-Cada `codigo/` tiene todo el fuente: `main.js` (entrada), los módulos, `style.css` y `paneles.js` (paneles plegables, solo interfaz).
-1. Descarga el kit [teardown](https://github.com/elvarofficial/teardown) (licencia MIT).
-2. Copia la carpeta `codigo/` del prototipo a una carpeta nueva, por ejemplo `mi-sim/`.
-3. Desde la carpeta del kit: `node sims/build.mjs ../mi-sim`.
-4. El resultado sale en `teardown-out/dist/mi-sim.html`: cópialo como `simulador.html`.
+## Cómo recompilar los simuladores 3D (P01, P03 y P08)
+Los tres simuladores se empaquetan igual, con esbuild y `three` de npm (ya no se usa el kit teardown). Cada `codigo/` tiene todo el fuente: `main.js` (entrada), los módulos, `style.css`, `fuentes.css`, `plantilla.html` y `construir.mjs`.
+```bash
+cd prototipos/P01-mqtt-base/simulador-3d/codigo   # o P03-motores/avance-02-simulador-3d/codigo, o P08-seguidor-linea/avance-01-simulador-3d/codigo
+npm install --no-save three@0.187.0 esbuild      # una sola vez
+node construir.mjs                               # genera ../simulador.html (un solo archivo)
+```
+P01: `node pruebas.mjs` valida los pasos de cada QoS, la telemetría QoS 0 cada 1–1,5 s y la pérdida de red con reintentos.
 
 No edites `simulador.html` a mano: se pierde al recompilar. Cambia el fuente en `codigo/`.
 

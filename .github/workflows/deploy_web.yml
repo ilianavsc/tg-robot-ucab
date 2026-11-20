@@ -44,6 +44,9 @@ jobs:
       - name: Pruebas del Simulador 1 de aprendizaje progresivo (P08, pistas, lectura de línea y modos)
         run: node prototipos/P08-seguidor-linea/avance-01-simulador-3d/codigo/simulador1.test.js
 
+      - name: Pruebas del protocolo del simulador MQTT P01 (QoS, telemetría y pérdida de red)
+        run: node prototipos/P01-mqtt-base/simulador-3d/codigo/pruebas.mjs
+
       - name: Instalar Flutter (misma versión que en las pruebas)
         uses: subosito/flutter-action@v2
         with:

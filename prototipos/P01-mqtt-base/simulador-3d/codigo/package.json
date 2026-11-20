@@ -1,0 +1,6 @@
+{
+  "name": "p01-simulador-mqtt",
+  "private": true,
+  "type": "module",
+  "description": "Fuentes del simulador 3D de mensajes MQTT (P01). Para regenerar ../simulador.html: npm install --no-save three@0.187.0 esbuild && node construir.mjs"
+}

@@ -30,7 +30,8 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
   <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px">
     <span class="chip hecho">Simulador 3D Funcional</span>
     <span class="chip">Three.js + Protocolo MQTT</span>
-    <span class="chip">Telemetría + QoS 0/1/2 + LWT</span>
+    <span class="chip">Telemetría QoS 0 + QoS 1/2 + LWT</span>
+    <span class="chip">LEDs TX/RX + pérdida de red</span>
     <span class="chip">Validado en Software (0/50 perdidos)</span>
   </div>
 
@@ -59,7 +60,7 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
       </div>
       <iframe src="simulador.html" class="simulador-embed-frame" title="Simulador 3D interactivo de mensajes MQTT P01" loading="lazy" scrolling="no"></iframe>
       <div class="simulador-embed-footer">
-        <span style="color:#94a3b8;font-size:13.5px">Controles: Pulsa <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">Espacio</kbd> para enviar orden, <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">M</kbd> para manipulación o <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">L</kbd> para desconexión.</span>
+        <span style="color:#94a3b8;font-size:13.5px">Controles: <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">Espacio</kbd> envía la orden, <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">0</kbd> <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">1</kbd> <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">2</kbd> eligen el QoS, <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">M</kbd> manipulación y <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">L</kbd> desconexión. Abre «Controles» para la cámara lenta 0.5× y la pérdida de red.</span>
         <a href="simulador.html" target="_blank" rel="noopener" class="btn-link-dark">
           Ver simulador sin marcos ↗
         </a>
@@ -129,10 +130,12 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
     <h2 id="t-usar">Cómo interactuar con el simulador</h2>
     <p class="bajada">Observa el flujo de paquetes y paquetes de control entre los tres nodos del sistema.</p>
     <ol class="pasos">
-      <li><b>Selecciona el nivel QoS</b><span>QoS 0, 1 o 2 (teclas <kbd>0</kbd> <kbd>1</kbd> <kbd>2</kbd>). Observa cómo se multiplican los acuses de recibo.</span></li>
-      <li><b>Dispara un pedido</b><span>Una esfera viaja App → Broker → Robot. El robot procesa y envía confirmación por el tópico de retorno. Tecla <kbd>espacio</kbd>.</span></li>
-      <li><b>Simula manipulación</b><span>El robot activa la alarma antirrobo con QoS 2. La pantalla de la app cambia a rojo de emergencia. Tecla <kbd>M</kbd>.</span></li>
-      <li><b>Prueba de desconexión (LWT)</b><span>Corta la energía del robot: el broker detecta el silencio y avisa automáticamente a la app. Tecla <kbd>L</kbd>.</span></li>
+      <li><b>Mira la telemetría constante</b><span>Cada 1 a 1,5 s el robot publica su estado con <b>QoS 0</b>: un micro-paquete translúcido viaja Robot → Broker → App, sin confirmación. Los <b>LEDs TX/RX</b> del robot y de la app parpadean con cada envío (TX) o recepción (RX).</span></li>
+      <li><b>Selecciona el nivel QoS</b><span>QoS 0, 1 o 2 (teclas <kbd>0</kbd> <kbd>1</kbd> <kbd>2</kbd>). Una sola línea resume cada uno: sin confirmación, PUBACK, o 4 pasos.</span></li>
+      <li><b>Envía una orden</b><span>Botón principal «Enviar orden» (tecla <kbd>espacio</kbd>): un paquete <b>grande y llamativo</b> viaja App → Broker → Robot, en contraste con la telemetría rápida; el robot confirma por el tópico de retorno (QoS 1: 2 pasos, QoS 2: 4 pasos).</span></li>
+      <li><b>Activa la pérdida de red</b><span>Con el interruptor, los paquetes <b>QoS 0</b> (telemetría y órdenes) pueden perderse a mitad de camino, con una ✕ roja y sin reintento. En <b>QoS 1 y 2</b> el paquete se reenvía a la vista hasta completar la confirmación.</span></li>
+      <li><b>Simula eventos</b><span><b>Manipulación</b> (tecla <kbd>M</kbd>): alarma antirrobo con QoS 2 y pantalla roja. <b>Desconexión (LWT)</b> (tecla <kbd>L</kbd>): la telemetría QoS 0 se detiene de golpe, el LED del robot se pone rojo y, pasado 1,5 × keepalive, el broker publica la última voluntad a la app. Al reconectar, la telemetría vuelve.</span></li>
+      <li><b>Cámara lenta</b><span>El botón <b>0.5×</b> de la cabecera del panel «Controles» reduce la velocidad de la animación a la mitad.</span></li>
     </ol>
   </section>
 
@@ -195,6 +198,9 @@ dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
       <figure><img src="evidencias/02-qos2-cuatro-pasos.jpg" alt="Secuencia QoS 2"><figcaption><b>Handshake QoS 2:</b> Mensaje de cuatro pasos en tránsito (etapa PUBREL).</figcaption></figure>
       <figure><img src="evidencias/03-manipulacion-pantalla-roja.jpg" alt="Alarma en app"><figcaption><b>Alerta de manipulación:</b> Disparo de alarma inmediata con interfaz de alerta roja.</figcaption></figure>
       <figure><img src="evidencias/04-desconexion-lwt.jpg" alt="Desconexión por LWT"><figcaption><b>Última Voluntad (LWT):</b> Detección de caída de nodo y notificación de desconexión.</figcaption></figure>
+      <figure><img src="evidencias/05-telemetria-qos0-y-orden.jpg" alt="Telemetría QoS 0 y orden QoS 1 con LEDs TX/RX"><figcaption><b>Telemetría + orden:</b> el micro-paquete QoS 0 convive con el paquete grande de la orden; LEDs TX/RX en el robot y la app.</figcaption></figure>
+      <figure><img src="evidencias/06-perdida-de-red-qos0.jpg" alt="Pérdida de red: paquete QoS 0 perdido con una cruz roja"><figcaption><b>Pérdida de red:</b> un paquete QoS 0 se pierde a mitad de camino (✕ roja) y no se reintenta.</figcaption></figure>
+      <figure><img src="evidencias/07-lwt-telemetria-detenida.jpg" alt="LWT: telemetría detenida y LEDs del robot en rojo"><figcaption><b>LWT:</b> la telemetría QoS 0 se detiene, los LEDs del robot quedan rojos y el broker espera 1,5 × keepalive.</figcaption></figure>
     </div>
   </section>
 
@@ -232,9 +238,9 @@ const char* T_CONEXION = "robot/conexion";
   <section aria-labelledby="t-archivos">
     <h2 id="t-archivos">Arquitectura del Simulador</h2>
     <ul>
-      <li><a href="codigo/protocolo.js">protocolo.js</a>: Lógica de la máquina de estados MQTT y temporizadores de LWT.</li>
-      <li><a href="codigo/main.js">main.js</a>: Escena 3D, animación de partículas de paquetes y consola de depuración.</li>
-      <li><a href="codigo/pruebas.mjs">pruebas.mjs</a>: Validación en consola de los pasos de cada QoS.</li>
+      <li><a href="codigo/protocolo.js">protocolo.js</a>: Lógica MQTT: pasos de cada QoS, LWT, telemetría QoS 0 cada 1–1,5 s y probabilidad de pérdida de red con reintentos.</li>
+      <li><a href="codigo/main.js">main.js</a>: Escena 3D, paquetes (telemetría, órdenes, pérdidas y reintentos), LEDs TX/RX y consola. <a href="codigo/paneles.js">paneles.js</a>: paneles plegables.</li>
+      <li><a href="codigo/pruebas.mjs">pruebas.mjs</a>: Validación en consola de los pasos de cada QoS, la telemetría y la pérdida de red. <a href="codigo/construir.mjs">construir.mjs</a> genera <code>simulador.html</code>.</li>
     </ul>
     <p class="suave" style="font-size:15px">Registro histórico de pruebas anteriores disponible en el <a href="../../../archivo-fase-1.html">Archivo Fase I</a> y el <a href="../banco.html">Banco de Pruebas Web</a>.</p>
   </section>

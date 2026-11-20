@@ -46,6 +46,7 @@ El proyecto descompone el desarrollo del robot en prototipos medibles y modulare
   - **Función:** Comunicación bidireccional entre la aplicación móvil y el robot vía Wi-Fi usando un broker MQTT central.
   - **Protocolo:** Telemetría periódica (`robot/estado`), órdenes de despacho (`robot/ordenes`), confirmación obligatoria (`robot/ordenes/ack`), alertas de seguridad (`robot/alertas`) y última voluntad (`robot/conexion`).
   - **Simulación:** Simulador 3D interactivo en Three.js con animación de paquetes y consola de depuración en tiempo real.
+  - **Simulador MQTT (20 nov):** telemetría `estado` constante con QoS 0 cada 1–1,5 s (micro-paquetes translúcidos Robot → Broker → App, sin confirmación) y LEDs TX/RX parpadeando en el robot y la app; las órdenes manuales viajan como paquetes grandes (QoS 1: 2 pasos, QoS 2: 4 pasos). «Desconexión (LWT)» detiene de golpe la telemetría, pone el LED del robot en rojo y el broker publica la última voluntad; al reconectar el flujo vuelve. Interruptor «Pérdida de red»: QoS 0 (telemetría y órdenes) puede perderse a mitad de camino sin reintento; QoS 1 y 2 reintentan a la vista hasta confirmar. Panel Controles compacto (0.5× en la cabecera, «Enviar orden» principal, Manipulación y LWT en una fila). Fuente en `simulador-3d/codigo/` (esbuild, `construir.mjs`), `pruebas.mjs` en CI.
   - **Evidencia:** 0 órdenes perdidas en 50 pedidos; detección de desconexión por LWT en menos de 22 s.
 
 - **P03 (Tracción & Encoders):**

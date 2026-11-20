@@ -22,6 +22,13 @@ const CSS = `
 .pl-tg small{font:600 11px 'JetBrains Mono',monospace;color:#5b6b7a;letter-spacing:.06em;text-transform:none}
 .pl-tg::after{content:'+';font:700 18px 'JetBrains Mono',monospace;line-height:1;color:#0F9D84}
 .pl-abierto>.pl-tg::after,.pl-abierto>.cons-cab>.pl-tg::after{content:'−'}
+.pl-hd{display:flex;align-items:center;gap:8px}
+.pl-hd>.pl-tg{flex:1;width:auto;min-height:30px}
+.pl-hd>.pl-tg::after{content:none}
+.pl-sig{flex:none;width:30px;height:30px;border-radius:8px;border:1.5px solid #14213D;background:#fff;cursor:pointer;padding:0;font:700 18px 'JetBrains Mono',monospace;line-height:1;color:#0F9D84}
+.pl-sig::before{content:'+'}
+.pl-abierto .pl-sig::before{content:'−'}
+.pl-sig:focus-visible{outline:2.5px solid #6B4EE6;outline-offset:2px}
 .pl-cuerpo{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .25s cubic-bezier(.23,1,.32,1),opacity .2s ease-out}
 .pl-abierto>.pl-cuerpo{grid-template-rows:1fr;opacity:1}
 .pl-in{overflow:hidden;min-height:0}
@@ -29,6 +36,7 @@ const CSS = `
 .panel.pl-p,.leyenda.pl-p{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:rgba(255,255,255,.9)}
 .consola.pl-p{transition:height .25s cubic-bezier(.23,1,.32,1)}
 .consola.pl-p:not(.pl-abierto){height:auto!important;min-height:38px}
+.consola.pl-p:not(.pl-abierto) #log{flex:none;max-height:78px;overflow:hidden} /* cerrada solo muestra las últimas líneas: con la telemetría constante el log crece sin parar */
 .consola .pl-tg{width:auto;color:#e8eef5;font-size:13.5px}
 .consola .pl-tg::after{color:#9fb0c4}
 .consola .pl-tg small{color:#9fb0c4}
@@ -148,27 +156,42 @@ export function instalarPanelesEscenario(ui, {W = 1600, H = 900} = {}) {
 }
 
 function plegable(caja, titulo, sub) {
+  // Los elementos con data-pl-cab suben a la cabecera, entre el título y el botón +/− (por ejemplo "0.5×").
+  const extras = [...caja.querySelectorAll(':scope > [data-pl-cab]')];
   const b = document.createElement('button');
   b.type = 'button';
   b.className = 'pl-tg';
   b.innerHTML = `${titulo}${sub ? ` <small>${sub}</small>` : ''}`;
+  let cab = b;
+  let sig = null;
+  if (extras.length) {
+    cab = document.createElement('div');
+    cab.className = 'pl-hd';
+    sig = document.createElement('button');
+    sig.type = 'button';
+    sig.className = 'pl-sig';
+    sig.setAttribute('aria-label', `Abrir o cerrar ${titulo.toLowerCase()}`);
+    cab.append(b, ...extras, sig);
+  }
   const cuerpo = document.createElement('div');
   cuerpo.className = 'pl-cuerpo';
   const adentro = document.createElement('div');
   adentro.className = 'pl-in';
   while (caja.firstChild) adentro.appendChild(caja.firstChild); // se mueven los mismos nodos: los botones siguen funcionando
   cuerpo.appendChild(adentro);
-  caja.append(b, cuerpo);
+  caja.append(cab, cuerpo);
   caja.classList.add('pl-p');
   const poner = (a) => {
     caja.classList.toggle('pl-abierto', a);
-    b.setAttribute('aria-expanded', a);
+    for (const x of [b, sig]) x?.setAttribute('aria-expanded', a);
     adentro.inert = !a;
   };
-  b.addEventListener('click', () => {
+  const alternar = () => {
     poner(!caja.classList.contains('pl-abierto'));
     avisar();
-  });
+  };
+  b.addEventListener('click', alternar);
+  sig?.addEventListener('click', alternar);
   poner(false);
 }
 
@@ -177,7 +200,7 @@ export function instalarPanelesP01() {
   const panel = document.querySelector('#app > .panel');
   const ley = document.querySelector('#app > .leyenda');
   const cons = document.querySelector('#app > .consola');
-  if (panel) plegable(panel, 'Controles', 'QoS, orden, alarma, LWT');
+  if (panel) plegable(panel, 'Controles', '');
   if (ley && ley.children.length) plegable(ley, 'Buzones', '5 tópicos');
   if (cons) {
     const cab = cons.querySelector('.cons-cab');
