@@ -5,6 +5,7 @@ import 'sesion_local.dart';
 /// Cuenta del registro local (en memoria).
 class CuentaLocal {
   const CuentaLocal({
+    required this.codigo,
     required this.usuario,
     required this.nombre,
     required this.clave,
@@ -12,13 +13,16 @@ class CuentaLocal {
     this.demo = false,
   });
 
+  /// Código numérico de la cuenta (`00` Administrador, `01` Operador base, ...).
+  final String codigo;
+
   /// Nombre de usuario en minúsculas (único).
   final String usuario;
   final String nombre;
   final String clave;
   final RolUsuario rol;
 
-  /// `true` en las dos cuentas de demostración, que no se pueden eliminar.
+  /// `true` en las dos cuentas base (`00` y `01`), que no se pueden eliminar.
   final bool demo;
 }
 
@@ -39,8 +43,9 @@ enum ResultadoAlta {
 }
 
 /// **RBAC local (mock, sin backend).** Registro en memoria de las cuentas del
-/// laboratorio: las dos de demostración (`usuario` / `usuario` como Operador y
-/// `admin` / `admin` como Administrador) y los operadores que el Administrador
+/// laboratorio: las dos cuentas base (`00` `administrador` / `administrador`
+/// como Administrador y `01` `usuario` / `usuario` como Operador ya registrado
+/// bajo la gestión de la cuenta `00`) y los operadores que el Administrador
 /// da de alta durante la sesión.
 ///
 /// Modelo cerrado: no existe registro público; solo un Administrador crea o
@@ -51,17 +56,19 @@ class RegistroUsuarios extends ChangeNotifier {
   RegistroUsuarios() {
     _cuentas.addAll(const <CuentaLocal>[
       CuentaLocal(
-        usuario: 'usuario',
-        nombre: 'Operador demo',
-        clave: 'usuario',
-        rol: RolUsuario.operador,
+        codigo: '00',
+        usuario: 'administrador',
+        nombre: 'Administrador',
+        clave: 'administrador',
+        rol: RolUsuario.administrador,
         demo: true,
       ),
       CuentaLocal(
-        usuario: 'admin',
-        nombre: 'Administrador demo',
-        clave: 'admin',
-        rol: RolUsuario.administrador,
+        codigo: '01',
+        usuario: 'usuario',
+        nombre: 'Operador',
+        clave: 'usuario',
+        rol: RolUsuario.operador,
         demo: true,
       ),
     ]);
@@ -72,6 +79,7 @@ class RegistroUsuarios extends ChangeNotifier {
   static const int largoMinimoClave = 4;
 
   final List<CuentaLocal> _cuentas = <CuentaLocal>[];
+  int _siguienteNumero = 2;
 
   List<CuentaLocal> get cuentas => List<CuentaLocal>.unmodifiable(_cuentas);
 
@@ -90,10 +98,16 @@ class RegistroUsuarios extends ChangeNotifier {
     return null;
   }
 
-  /// La cuenta si usuario y contraseña coinciden; `null` si no.
-  CuentaLocal? autenticar(String usuario, String clave) {
+  /// La cuenta si usuario, contraseña y [rolEsperado] (si se indica) coinciden;
+  /// `null` si no.
+  CuentaLocal? autenticar(
+    String usuario,
+    String clave, {
+    RolUsuario? rolEsperado,
+  }) {
     final CuentaLocal? c = buscar(usuario);
     if (c == null || c.clave != clave) return null;
+    if (rolEsperado != null && c.rol != rolEsperado) return null;
     return c;
   }
 
@@ -112,8 +126,11 @@ class RegistroUsuarios extends ChangeNotifier {
     if (!_formatoUsuario.hasMatch(u)) return ResultadoAlta.usuarioInvalido;
     if (buscar(u) != null) return ResultadoAlta.usuarioRepetido;
     if (clave.length < largoMinimoClave) return ResultadoAlta.claveCorta;
+    final String codigo = _siguienteNumero.toString().padLeft(2, '0');
+    _siguienteNumero++;
     _cuentas.add(
       CuentaLocal(
+        codigo: codigo,
         usuario: u,
         nombre: n,
         clave: clave,

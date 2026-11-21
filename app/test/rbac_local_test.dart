@@ -83,7 +83,16 @@ Future<void> _tocar(WidgetTester t, Finder f) async {
   await t.pump(const Duration(milliseconds: 400));
 }
 
-Future<void> _entrarCon(WidgetTester t, String usuario, String clave) async {
+Future<void> _entrarCon(
+  WidgetTester t,
+  String usuario,
+  String clave, {
+  bool admin = false,
+}) async {
+  await _tocar(
+    t,
+    find.byKey(Key(admin ? 'rol-administrador' : 'rol-operador')),
+  );
   await t.enterText(find.byKey(const Key('login-usuario')), usuario);
   await t.enterText(find.byKey(const Key('login-clave')), clave);
   await _tocar(t, find.byKey(const Key('login-entrar')));
@@ -154,21 +163,39 @@ void main() {
   setUpAll(_cargarFuentes);
 
   group('RegistroUsuarios (RBAC local en memoria)', () {
-    test('trae solo las dos cuentas demo: usuario/usuario y admin/admin', () {
-      final RegistroUsuarios r = RegistroUsuarios();
-      expect(r.cuentas.map((CuentaLocal c) => c.usuario), <String>[
-        'usuario',
-        'admin',
-      ]);
-      expect(r.autenticar('usuario', 'usuario')!.rol, RolUsuario.operador);
-      expect(r.autenticar('admin', 'admin')!.rol, RolUsuario.administrador);
-      expect(r.autenticar('  ADMIN ', 'admin'), isNotNull);
-      expect(r.autenticar('admin', 'Admin'), isNull);
-      expect(r.autenticar('admin', 'usuario'), isNull);
-      expect(r.autenticar('x', 'x'), isNull);
-      expect(r.operadoresCreados, isEmpty);
-      expect(r.cuentas.every((CuentaLocal c) => c.demo), isTrue);
-    });
+    test(
+      'trae las dos cuentas base 00 (administrador/administrador) y 01 (usuario/usuario)',
+      () {
+        final RegistroUsuarios r = RegistroUsuarios();
+        expect(r.cuentas.map((CuentaLocal c) => c.codigo), <String>[
+          '00',
+          '01',
+        ]);
+        expect(r.cuentas.map((CuentaLocal c) => c.usuario), <String>[
+          'administrador',
+          'usuario',
+        ]);
+        expect(r.autenticar('usuario', 'usuario')!.rol, RolUsuario.operador);
+        expect(
+          r.autenticar('administrador', 'administrador')!.rol,
+          RolUsuario.administrador,
+        );
+        expect(r.autenticar('  ADMINISTRADOR ', 'administrador'), isNotNull);
+        expect(r.autenticar('administrador', 'Administrador'), isNull);
+        expect(r.autenticar('administrador', 'usuario'), isNull);
+        expect(
+          r.autenticar(
+            'administrador',
+            'administrador',
+            rolEsperado: RolUsuario.operador,
+          ),
+          isNull,
+        );
+        expect(r.autenticar('x', 'x'), isNull);
+        expect(r.operadoresCreados, isEmpty);
+        expect(r.cuentas.every((CuentaLocal c) => c.demo), isTrue);
+      },
+    );
 
     test(
       'solo un Administrador crea operadores, y siempre con rol Operador',
@@ -224,7 +251,7 @@ void main() {
       expect(alta('Ana', 'an', 'ana123'), ResultadoAlta.usuarioCorto);
       expect(alta('Ana', 'ana perez', 'ana123'), ResultadoAlta.usuarioInvalido);
       expect(alta('Ana', 'ana@ucab', 'ana123'), ResultadoAlta.usuarioInvalido);
-      expect(alta('Ana', 'admin', 'ana123'), ResultadoAlta.usuarioRepetido);
+      expect(alta('Ana', 'administrador', 'ana123'), ResultadoAlta.usuarioRepetido);
       expect(alta('Ana', 'USUARIO', 'ana123'), ResultadoAlta.usuarioRepetido);
       expect(alta('Ana', 'ana', '123'), ResultadoAlta.claveCorta);
       expect(alta('Ana', 'ana', 'ana123'), ResultadoAlta.creado);
@@ -249,7 +276,10 @@ void main() {
       );
       expect(r.eliminarOperador(actor: null, usuario: 'luis'), isFalse);
       expect(
-        r.eliminarOperador(actor: RolUsuario.administrador, usuario: 'admin'),
+        r.eliminarOperador(
+          actor: RolUsuario.administrador,
+          usuario: 'administrador',
+        ),
         isFalse,
       );
       expect(
@@ -276,11 +306,15 @@ void main() {
       'crear Operador desde Admin, cerrar sesión e ingresar con esa cuenta',
       (WidgetTester t) async {
         final _Entorno e = await _montar(t);
-        await _entrarCon(t, 'admin', 'admin');
+        await _entrarCon(t, 'administrador', 'administrador', admin: true);
         expect(e.sesion.rol, RolUsuario.administrador);
         await _abrirGestion(t);
         expect(find.byType(PantallaGestionUsuarios), findsOneWidget);
         expect(find.textContaining('No hay registro público'), findsOneWidget);
+        // Cuenta 00 (administrador) y 01 (usuario) ya registradas por defecto
+        await _bajarUsuarios(t, find.byKey(const Key('cuenta-usuario')));
+        expect(find.text('00 · @administrador'), findsOneWidget);
+        expect(find.text('01 · @usuario'), findsOneWidget);
 
         await _crear(t, nombre: 'Ana Pérez', usuario: 'Ana', clave: 'ana123');
         expect(
@@ -290,7 +324,7 @@ void main() {
         await _bajarUsuarios(t, find.byKey(const Key('cuenta-ana')));
         expect(find.byKey(const Key('cuenta-ana')), findsOneWidget);
         expect(find.text('Ana Pérez'), findsOneWidget);
-        expect(find.text('@ana'), findsOneWidget);
+        expect(find.text('02 · @ana'), findsOneWidget);
         expect(e.registro.buscar('ana'), isNotNull);
         // el formulario se limpia
         expect(
@@ -326,7 +360,7 @@ void main() {
       'el formulario rechaza datos inválidos y repetidos con un mensaje',
       (WidgetTester t) async {
         final _Entorno e = await _montar(t);
-        await _entrarCon(t, 'admin', 'admin');
+        await _entrarCon(t, 'administrador', 'administrador', admin: true);
         await _abrirGestion(t);
         String mensaje() =>
             t.widget<Text>(find.byKey(const Key('usuarios-mensaje'))).data!;
@@ -337,7 +371,7 @@ void main() {
         expect(mensaje(), ResultadoAlta.usuarioCorto.mensaje);
         await _crear(t, nombre: 'Ana', usuario: 'a b c', clave: 'ana123');
         expect(mensaje(), ResultadoAlta.usuarioInvalido.mensaje);
-        await _crear(t, nombre: 'Ana', usuario: 'admin', clave: 'ana123');
+        await _crear(t, nombre: 'Ana', usuario: 'administrador', clave: 'ana123');
         expect(mensaje(), ResultadoAlta.usuarioRepetido.mensaje);
         await _crear(t, nombre: 'Ana', usuario: 'ana', clave: 'abc');
         expect(mensaje(), ResultadoAlta.claveCorta.mensaje);
@@ -351,7 +385,7 @@ void main() {
       'eliminar un operador creado le quita el acceso; las cuentas demo no se pueden eliminar',
       (WidgetTester t) async {
         final _Entorno e = await _montar(t);
-        await _entrarCon(t, 'admin', 'admin');
+        await _entrarCon(t, 'administrador', 'administrador', admin: true);
         await _abrirGestion(t);
         await _crear(
           t,
@@ -360,12 +394,15 @@ void main() {
           clave: 'luis123',
         );
         await _bajarUsuarios(t, find.byKey(const Key('cuenta-luis')));
-        // Las cuentas demo no tienen botón de eliminar
+        // Las cuentas base no tienen botón de eliminar
         expect(
           find.byKey(const Key('usuarios-eliminar-usuario')),
           findsNothing,
         );
-        expect(find.byKey(const Key('usuarios-eliminar-admin')), findsNothing);
+        expect(
+          find.byKey(const Key('usuarios-eliminar-administrador')),
+          findsNothing,
+        );
         expect(find.byKey(const Key('usuarios-eliminar-luis')), findsOneWidget);
 
         await _tocar(t, find.byKey(const Key('usuarios-eliminar-luis')));
@@ -436,7 +473,7 @@ void main() {
         WidgetTester t,
       ) async {
         final _Entorno e = await _montar(t, ancho: w, alto: h);
-        await _entrarCon(t, 'admin', 'admin');
+        await _entrarCon(t, 'administrador', 'administrador', admin: true);
         await _abrirGestion(t);
         await _crear(
           t,

@@ -99,8 +99,17 @@ Future<void> _tocar(WidgetTester t, Finder f) async {
   await t.pump(const Duration(milliseconds: 400));
 }
 
-/// Escribe usuario y contraseña en el Login y pulsa "Iniciar Sesión".
-Future<void> _entrarCon(WidgetTester t, String usuario, String clave) async {
+/// Escribe usuario y contraseña en el Login, selecciona el rol y pulsa "Iniciar Sesión".
+Future<void> _entrarCon(
+  WidgetTester t,
+  String usuario,
+  String clave, {
+  bool admin = false,
+}) async {
+  await _tocar(
+    t,
+    find.byKey(Key(admin ? 'rol-administrador' : 'rol-operador')),
+  );
   await t.enterText(find.byKey(const Key('login-usuario')), usuario);
   await t.enterText(find.byKey(const Key('login-clave')), clave);
   await _tocar(t, find.byKey(const Key('login-entrar')));
@@ -173,42 +182,45 @@ void main() {
   });
 
   group('Login', () {
-    testWidgets('muestra marca, botón Demo en esquina, Acceso rápido modal y MQTT real', (
-      WidgetTester t,
-    ) async {
-      final _Entorno e = await _montar(t);
-      expect(find.text('Autonomous Laboratory AGV'), findsOneWidget);
-      expect(find.text('USUARIO'), findsOneWidget);
-      expect(find.text('CONTRASEÑA'), findsOneWidget);
-      expect(find.text('Iniciar Sesión'), findsOneWidget);
-      expect(find.byKey(const Key('login-demo')), findsOneWidget);
-      expect(find.text('Demo'), findsOneWidget);
-      expect(find.text('Modo Demo (Offline)'), findsNothing);
-      // Cuerpo limpio: sin botones grandes ni párrafo largo visibles por defecto
-      expect(find.byKey(const Key('acceso-operador')), findsNothing);
-      expect(find.byKey(const Key('acceso-admin')), findsNothing);
-      expect(find.byKey(const Key('login-aviso-local')), findsNothing);
-      // Abrir modal Acceso rápido muestra las credenciales demo y nota local
-      await _tocar(t, find.byKey(const Key('login-acceso-rapido')));
-      final String aviso = t
-          .widget<Text>(find.byKey(const Key('login-aviso-local')))
-          .data!;
-      expect(aviso, contains('Demo local sin backend'));
-      expect(aviso, contains('usuario / usuario'));
-      expect(aviso, contains('admin / admin'));
-      expect(aviso, contains('No hay registro público'));
-      await _tocar(t, find.text('Cerrar'));
-      // Sin registro público ni selector de rol
-      expect(find.textContaining('Registrarse'), findsNothing);
-      expect(find.textContaining('Crear cuenta'), findsNothing);
-      expect(find.text('ACCEDER COMO'), findsNothing);
-      expect(find.text('MQTT: Desconectado (--)'), findsOneWidget);
-      expect(find.byType(NavigationBar), findsNothing);
-      expect(t.takeException(), isNull);
-      await _cerrar(t, e);
-    });
+    testWidgets(
+      'muestra marca, selector deslizante de rol, botón Demo en esquina, sin Acceso rápido y MQTT real',
+      (WidgetTester t) async {
+        final _Entorno e = await _montar(t);
+        expect(find.text('Autonomous Laboratory AGV'), findsOneWidget);
+        expect(find.byKey(const Key('login-selector-rol')), findsOneWidget);
+        expect(find.byKey(const Key('rol-operador')), findsOneWidget);
+        expect(find.byKey(const Key('rol-administrador')), findsOneWidget);
+        expect(find.text('USUARIO'), findsOneWidget);
+        expect(find.text('CONTRASEÑA'), findsOneWidget);
+        expect(find.text('Iniciar Sesión'), findsOneWidget);
+        expect(find.byKey(const Key('login-demo')), findsOneWidget);
+        expect(find.text('Demo'), findsOneWidget);
+        expect(find.text('Modo Demo (Offline)'), findsNothing);
+        // Sin Acceso rápido ni modal
+        expect(find.byKey(const Key('login-acceso-rapido')), findsNothing);
+        expect(find.text('Acceso rápido'), findsNothing);
+        expect(find.byKey(const Key('acceso-operador')), findsNothing);
+        expect(find.byKey(const Key('acceso-admin')), findsNothing);
+        expect(find.byKey(const Key('login-aviso-local')), findsNothing);
+        // Placeholder dinámico según rol
+        TextField campoUsuario() =>
+            t.widget<TextField>(find.byKey(const Key('login-usuario')));
+        expect(campoUsuario().decoration!.hintText, 'usuario');
+        await _tocar(t, find.byKey(const Key('rol-administrador')));
+        expect(campoUsuario().decoration!.hintText, 'administrador');
+        await _tocar(t, find.byKey(const Key('rol-operador')));
+        expect(campoUsuario().decoration!.hintText, 'usuario');
+        // Sin registro público
+        expect(find.textContaining('Registrarse'), findsNothing);
+        expect(find.textContaining('Crear cuenta'), findsNothing);
+        expect(find.text('MQTT: Desconectado (--)'), findsOneWidget);
+        expect(find.byType(NavigationBar), findsNothing);
+        expect(t.takeException(), isNull);
+        await _cerrar(t, e);
+      },
+    );
 
-    testWidgets('usuario / usuario entra como Operador', (
+    testWidgets('usuario / usuario entra como Operador (cuenta 01)', (
       WidgetTester t,
     ) async {
       final _Entorno e = await _montar(t);
@@ -222,33 +234,38 @@ void main() {
     });
 
     testWidgets(
-      'admin / admin entra como Administrador (usuario sin distinguir mayúsculas)',
+      'administrador / administrador entra como Administrador (cuenta 00, sin distinguir mayúsculas)',
       (WidgetTester t) async {
         final _Entorno e = await _montar(t);
-        await _entrarCon(t, '  ADMIN ', 'admin');
+        await _entrarCon(
+          t,
+          '  ADMINISTRADOR ',
+          'administrador',
+          admin: true,
+        );
         expect(e.sesion.rol, RolUsuario.administrador);
-        expect(e.sesion.usuario, 'admin');
+        expect(e.sesion.usuario, 'administrador');
         await _cerrar(t, e);
       },
     );
 
-    testWidgets('el acceso rápido rellena las credenciales demo', (
+    testWidgets('el selector deslizante valida que el rol coincida con la cuenta', (
       WidgetTester t,
     ) async {
       final _Entorno e = await _montar(t);
-      await _tocar(t, find.byKey(const Key('login-acceso-rapido')));
-      await _tocar(t, find.byKey(const Key('acceso-admin')));
-      TextField campo(String k) => t.widget<TextField>(find.byKey(Key(k)));
-      expect(campo('login-usuario').controller!.text, 'admin');
-      expect(campo('login-clave').controller!.text, 'admin');
-      await _tocar(t, find.byKey(const Key('login-acceso-rapido')));
-      await _tocar(t, find.byKey(const Key('acceso-operador')));
-      expect(campo('login-usuario').controller!.text, 'usuario');
-      expect(campo('login-clave').controller!.text, 'usuario');
+      // Cuenta administrador con selector en Operador -> rechazada
+      await _entrarCon(t, 'administrador', 'administrador', admin: false);
+      expect(e.sesion.activa, isFalse);
       expect(
-        e.sesion.activa,
-        isFalse,
-        reason: 'solo rellena: no inicia sesión',
+        find.text('Esta cuenta corresponde al perfil Administrador.'),
+        findsOneWidget,
+      );
+      // Cuenta usuario con selector en Administrador -> rechazada
+      await _entrarCon(t, 'usuario', 'usuario', admin: true);
+      expect(e.sesion.activa, isFalse);
+      expect(
+        find.text('Esta cuenta corresponde al perfil Operador.'),
+        findsOneWidget,
       );
       await _cerrar(t, e);
     });
@@ -257,14 +274,14 @@ void main() {
       WidgetTester t,
     ) async {
       final _Entorno e = await _montar(t);
-      for (final (String u, String c) in <(String, String)>[
-        ('admin', 'Admin'), // la contraseña distingue mayúsculas
-        ('admin', ''),
-        ('admin', 'usuario'),
-        ('', ''),
-        ('nadie', 'nadie'),
+      for (final (String u, String c, bool adm) in <(String, String, bool)>[
+        ('administrador', 'Administrador', true), // distingue mayúsculas
+        ('administrador', '', true),
+        ('administrador', 'usuario', true),
+        ('', '', false),
+        ('nadie', 'nadie', false),
       ]) {
-        await _entrarCon(t, u, c);
+        await _entrarCon(t, u, c, admin: adm);
         expect(e.sesion.activa, isFalse, reason: '$u / $c');
         expect(find.text('Usuario o contraseña incorrectos.'), findsOneWidget);
       }
@@ -319,7 +336,7 @@ void main() {
       await _abrirPerfil(t);
       expect(find.text('PERFIL · OPERADOR'), findsOneWidget);
       expect(find.text('@usuario'), findsOneWidget);
-      expect(find.text('Operador demo'), findsOneWidget);
+      expect(find.text('Operador'), findsWidgets);
       expect(find.text('SESIÓN ACTUAL'), findsOneWidget);
       expect(find.text('ENLACE MQTT'), findsOneWidget);
       // Solo Admin: Fail-Safe, gestión de usuarios y CSV
@@ -368,7 +385,7 @@ void main() {
   group('Perfil · Administrador', () {
     Future<_Entorno> entrarAdmin(WidgetTester t, {double ancho = 390}) async {
       final _Entorno e = await _montar(t, ancho: ancho);
-      await _entrarCon(t, 'admin', 'admin');
+      await _entrarCon(t, 'administrador', 'administrador', admin: true);
       await _abrirPerfil(t);
       return e;
     }

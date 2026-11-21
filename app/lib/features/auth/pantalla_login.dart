@@ -22,6 +22,7 @@ class PantallaLogin extends StatefulWidget {
 class _PantallaLoginState extends State<PantallaLogin> {
   final TextEditingController _usuario = TextEditingController();
   final TextEditingController _clave = TextEditingController();
+  RolUsuario _rolSeleccionado = RolUsuario.operador;
   bool _verClave = false;
   String? _error;
 
@@ -32,11 +33,10 @@ class _PantallaLoginState extends State<PantallaLogin> {
     super.dispose();
   }
 
-  /// Acceso rápido: rellena las credenciales de una cuenta de demostración.
-  void _rellenar(String usuario, String clave) {
+  void _cambiarRol(RolUsuario rol) {
+    if (_rolSeleccionado == rol) return;
     setState(() {
-      _usuario.text = usuario;
-      _clave.text = clave;
+      _rolSeleccionado = rol;
       _error = null;
     });
   }
@@ -48,6 +48,13 @@ class _PantallaLoginState extends State<PantallaLogin> {
     );
     if (cuenta == null) {
       setState(() => _error = 'Usuario o contraseña incorrectos.');
+      return;
+    }
+    if (cuenta.rol != _rolSeleccionado) {
+      setState(
+        () => _error =
+            'Esta cuenta corresponde al perfil ${cuenta.rol.nombre}.',
+      );
       return;
     }
     context.read<SesionLocal>().iniciar(
@@ -106,53 +113,9 @@ class _PantallaLoginState extends State<PantallaLogin> {
     ),
   );
 
-  /// Despliega el modal compacto de Acceso rápido (autocompletado + nota local).
-  Future<void> _mostrarAccesoRapido() async {
-    await showDialog<void>(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          backgroundColor: CockpitColors.surfaceContainer,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(CockpitRadius.lg),
-            side: BorderSide(
-              color: CockpitColors.outlineVariant.withValues(alpha: 0.6),
-            ),
-          ),
-          title: Text(
-            'Acceso rápido',
-            style: CockpitText.titleMd.copyWith(color: CockpitColors.onSurface),
-          ),
-          content: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 360),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                _AccesoRapido(
-                  alElegir: (String u, String c) {
-                    Navigator.of(dialogContext).pop();
-                    _rellenar(u, c);
-                  },
-                ),
-                const SizedBox(height: 14),
-                const _AvisoLocal(),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cerrar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final bool esAdmin = _rolSeleccionado == RolUsuario.administrador;
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -167,7 +130,12 @@ class _PantallaLoginState extends State<PantallaLogin> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       const _Marca(),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 24),
+                      _SelectorRol(
+                        seleccionado: _rolSeleccionado,
+                        alCambiar: _cambiarRol,
+                      ),
+                      const SizedBox(height: 18),
                       _etiqueta('USUARIO'),
                       TextField(
                         key: const Key('login-usuario'),
@@ -184,7 +152,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                         },
                         decoration: _decoracion(
                           icono: Icons.person_outline,
-                          hint: 'usuario',
+                          hint: esAdmin ? 'administrador' : 'usuario',
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -223,7 +191,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 24),
                       Pressable(
                         child: FilledButton(
                           key: const Key('login-entrar'),
@@ -246,23 +214,7 @@ class _PantallaLoginState extends State<PantallaLogin> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Center(
-                        child: TextButton.icon(
-                          key: const Key('login-acceso-rapido'),
-                          style: TextButton.styleFrom(
-                            minimumSize: const Size(44, 44),
-                            foregroundColor: CockpitColors.onSurfaceVariant,
-                            textStyle: CockpitText.bodySm.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          onPressed: _mostrarAccesoRapido,
-                          icon: const Icon(Icons.info_outline, size: 16),
-                          label: const Text('Acceso rápido'),
-                        ),
-                      ),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 32),
                       const Center(child: PastillaMqtt()),
                       const SizedBox(height: 10),
                       Padding(
@@ -329,6 +281,122 @@ class _PantallaLoginState extends State<PantallaLogin> {
   }
 }
 
+/// Barra deslizadora (segmented toggle) para elegir el perfil de acceso.
+class _SelectorRol extends StatelessWidget {
+  const _SelectorRol({required this.seleccionado, required this.alCambiar});
+
+  final RolUsuario seleccionado;
+  final ValueChanged<RolUsuario> alCambiar;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool esAdmin = seleccionado == RolUsuario.administrador;
+    return Container(
+      key: const Key('login-selector-rol'),
+      height: 46,
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: CockpitColors.surfaceLow,
+        borderRadius: BorderRadius.circular(CockpitRadius.md),
+        border: Border.all(
+          color: CockpitColors.outlineVariant.withValues(alpha: 0.55),
+        ),
+      ),
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final double anchoOpcion = constraints.maxWidth / 2;
+          return Stack(
+            children: <Widget>[
+              AnimatedAlign(
+                alignment: esAdmin
+                    ? Alignment.centerRight
+                    : Alignment.centerLeft,
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOutCubic,
+                child: Container(
+                  width: anchoOpcion,
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    color: CockpitColors.primary.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(CockpitRadius.md - 2),
+                    border: Border.all(
+                      color: CockpitColors.primary.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ),
+              ),
+              Row(
+                children: <Widget>[
+                  _opcion(
+                    clave: const Key('rol-operador'),
+                    etiqueta: 'Operador',
+                    icono: Icons.engineering_outlined,
+                    activa: !esAdmin,
+                    alTocar: () => alCambiar(RolUsuario.operador),
+                  ),
+                  _opcion(
+                    clave: const Key('rol-administrador'),
+                    etiqueta: 'Administrador',
+                    icono: Icons.admin_panel_settings_outlined,
+                    activa: esAdmin,
+                    alTocar: () => alCambiar(RolUsuario.administrador),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _opcion({
+    required Key clave,
+    required String etiqueta,
+    required IconData icono,
+    required bool activa,
+    required VoidCallback alTocar,
+  }) {
+    final Color color = activa
+        ? CockpitColors.primary
+        : CockpitColors.onSurfaceVariant;
+    return Expanded(
+      child: Semantics(
+        button: true,
+        selected: activa,
+        label: etiqueta,
+        child: InkWell(
+          key: clave,
+          borderRadius: BorderRadius.circular(CockpitRadius.md - 2),
+          onTap: alTocar,
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Icon(icono, size: 16, color: color),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    etiqueta,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: CockpitText.labelMd.copyWith(
+                      fontSize: 12.5,
+                      fontWeight: activa ? FontWeight.w700 : FontWeight.w600,
+                      color: activa ? Colors.white : color,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Logotipo y nombre de la app.
 class _Marca extends StatelessWidget {
   const _Marca();
@@ -381,113 +449,6 @@ class _Marca extends StatelessWidget {
           'Autonomous Laboratory AGV',
           style: CockpitText.bodyMd.copyWith(
             color: CockpitColors.onSurfaceVariant,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Acceso rápido: rellena las credenciales de las cuentas de demostración.
-class _AccesoRapido extends StatelessWidget {
-  const _AccesoRapido({required this.alElegir});
-
-  final void Function(String usuario, String clave) alElegir;
-
-  @override
-  Widget build(BuildContext context) {
-    Widget ficha(Key k, IconData icono, String texto, String u, String c) {
-      return Expanded(
-        child: Material(
-          color: CockpitColors.surfaceContainer,
-          borderRadius: BorderRadius.circular(CockpitRadius.md),
-          child: InkWell(
-            key: k,
-            borderRadius: BorderRadius.circular(CockpitRadius.md),
-            onTap: () => alElegir(u, c),
-            child: Container(
-              constraints: const BoxConstraints(minHeight: 48),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(CockpitRadius.md),
-                border: Border.all(
-                  color: CockpitColors.outlineVariant.withValues(alpha: 0.55),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Icon(icono, size: 16, color: CockpitColors.primary),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      texto,
-                      softWrap: true,
-                      textAlign: TextAlign.center,
-                      style: CockpitText.labelMd.copyWith(
-                        fontSize: 11,
-                        color: CockpitColors.onSurface,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Row(
-      children: <Widget>[
-        ficha(
-          const Key('acceso-operador'),
-          Icons.engineering_outlined,
-          'OPERADOR DEMO',
-          'usuario',
-          'usuario',
-        ),
-        const SizedBox(width: 8),
-        ficha(
-          const Key('acceso-admin'),
-          Icons.admin_panel_settings_outlined,
-          'ADMIN DEMO',
-          'admin',
-          'admin',
-        ),
-      ],
-    );
-  }
-}
-
-/// Deja claro que es una demostración local, sin servidor ni registro público.
-class _AvisoLocal extends StatelessWidget {
-  const _AvisoLocal();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        const Padding(
-          padding: EdgeInsets.only(top: 1),
-          child: Icon(
-            Icons.info_outline,
-            size: 16,
-            color: CockpitColors.secondary,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            'Demo local sin backend. Cuentas de ejemplo: usuario / usuario '
-            '(Operador) y admin / admin (Administrador). No hay registro '
-            'público: solo un Administrador crea operadores, que viven en '
-            'memoria hasta cerrar la app.',
-            key: const Key('login-aviso-local'),
-            style: CockpitText.bodySm.copyWith(
-              color: CockpitColors.onSurfaceVariant,
-            ),
           ),
         ),
       ],

@@ -296,7 +296,7 @@ class _FilaCuenta extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '@${cuenta.usuario}',
+                  '${cuenta.codigo} · @${cuenta.usuario}',
                   style: CockpitText.telemetrySm.copyWith(
                     color: CockpitColors.onSurfaceVariant,
                   ),

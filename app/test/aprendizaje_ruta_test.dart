@@ -90,7 +90,16 @@ Future<void> _tocar(WidgetTester t, Finder f) async {
   await t.pump(const Duration(milliseconds: 400));
 }
 
-Future<void> _entrarCon(WidgetTester t, String u, String c) async {
+Future<void> _entrarCon(
+  WidgetTester t,
+  String u,
+  String c, {
+  bool admin = false,
+}) async {
+  await _tocar(
+    t,
+    find.byKey(Key(admin ? 'rol-administrador' : 'rol-operador')),
+  );
   await t.enterText(find.byKey(const Key('login-usuario')), u);
   await t.enterText(find.byKey(const Key('login-clave')), c);
   await _tocar(t, find.byKey(const Key('login-entrar')));
@@ -282,7 +291,7 @@ void main() {
       'el Administrador ve la tarjeta, la abre y recorre el flujo completo',
       (WidgetTester t) async {
         final _Entorno e = await _montar(t);
-        await _entrarCon(t, 'admin', 'admin');
+        await _entrarCon(t, 'administrador', 'administrador', admin: true);
         await _abrirAprendizaje(t);
         expect(find.byType(PantallaAprendizajeRuta), findsOneWidget);
         expect(find.byKey(const Key('aprendizaje-restringido')), findsNothing);
@@ -315,7 +324,7 @@ void main() {
 
     testWidgets('guardar sin puntos avisa y no guarda', (WidgetTester t) async {
       final _Entorno e = await _montar(t);
-      await _entrarCon(t, 'admin', 'admin');
+      await _entrarCon(t, 'administrador', 'administrador', admin: true);
       await _abrirAprendizaje(t);
       await _tocar(t, find.byKey(const Key('aprendizaje-iniciar')));
       await _tocar(t, find.byKey(const Key('aprendizaje-guardar')));
@@ -333,7 +342,7 @@ void main() {
       'la vista previa de reducción progresiva de cinta cambia con el control',
       (WidgetTester t) async {
         final _Entorno e = await _montar(t);
-        await _entrarCon(t, 'admin', 'admin');
+        await _entrarCon(t, 'administrador', 'administrador', admin: true);
         await _abrirAprendizaje(t);
         await _bajarRuta(t, find.byKey(const Key('reduccion-switch')));
         expect(
@@ -410,7 +419,7 @@ void main() {
     ]) {
       testWidgets('la pantalla no desborda ($n)', (WidgetTester t) async {
         final _Entorno e = await _montar(t, ancho: w, alto: h);
-        await _entrarCon(t, 'admin', 'admin');
+        await _entrarCon(t, 'administrador', 'administrador', admin: true);
         await _abrirAprendizaje(t);
         await _tocar(t, find.byKey(const Key('aprendizaje-iniciar')));
         await t.pump(const Duration(seconds: 3));
