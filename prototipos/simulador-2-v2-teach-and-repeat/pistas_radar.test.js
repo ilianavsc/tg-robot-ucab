@@ -349,4 +349,111 @@ module.exports = async function (ctx) {
     assert.strictEqual(ap.metaViajes, 5);
     assert.strictEqual(A.evaluarGemelo(ap).aprobado, false);
   });
+
+  /* ---- Etapa 3: Balizas BLE Torres de Control (B1/B2) y prueba sin cinta Pista B T2 ---- */
+  await prueba("Etapa 3: flujo Fase 1 en Pista B — PHASE1_READY → BEACONS_STARTING → BEACONS_ACTIVE (sin validar aún) → NO_TAPE_TEST (T2 sin cinta) → PHASE1_VALIDATED", () => {
+    const m = mundo("B");
+    const ap = A.crear({ pistaId: "B", metaViajes: 3, permiteSinCinta: true });
+    /* Captura lenta + normal + 3 ajustes + evaluación -> PHASE1_READY */
+    S.iniciarEnsenanza(m.sim, 1); m.sim.velObjetivoMs = A.C.VEL_LENTA_MS;
+    A.iniciarViaje(ap, "SLOW_READING", "B", m.sim.L, m.sim.cinta.length);
+    for (let i = 0; i < 4000 && !m.sim.llegadaCompleta; i++) { S.paso(m.sim, 20); A.muestrearTick(ap, m.sim, 20); }
+    A.finalizarViaje(ap, m.sim, true, "none");
+    S.nuevoViaje(m.sim, 1); m.sim.velObjetivoMs = A.C.VEL_NORMAL_MS;
+    A.iniciarViaje(ap, "NORMAL_READING", "B", m.sim.L, m.sim.cinta.length);
+    for (let i = 0; i < 2000 && !m.sim.llegadaCompleta; i++) { S.paso(m.sim, 20); A.muestrearTick(ap, m.sim, 20); }
+    A.finalizarViaje(ap, m.sim, true, "none");
+    A.completarNacimientoGemelo(ap);
+    for (let k = 0; k < 3; k++) {
+      S.nuevoViaje(m.sim, 1); m.sim.velObjetivoMs = A.C.VEL_NORMAL_MS;
+      A.iniciarViaje(ap, "ADJUSTING", "B", m.sim.L, m.sim.cinta.length);
+      for (let i = 0; i < 2000 && !m.sim.llegadaCompleta; i++) { S.paso(m.sim, 20); A.muestrearTick(ap, m.sim, 20); }
+      A.finalizarViaje(ap, m.sim, true, "none");
+    }
+    assert.strictEqual(A.evaluarGemelo(ap).aprobado, true);
+    assert.strictEqual(ap.estado, "PHASE1_READY");
+
+    /* Encender balizas: pasa por BEACONS_STARTING -> BEACONS_ACTIVE pero NO marca PHASE1_VALIDATED */
+    assert.strictEqual(A.activarFase1(ap), true);
+    assert.strictEqual(ap.estado, "BEACONS_STARTING");
+    assert.strictEqual(ap.balizasActivas, false);
+    assert.strictEqual(A.completarInicioBalizas(ap), true);
+    assert.strictEqual(ap.estado, "BEACONS_ACTIVE");
+    assert.strictEqual(ap.balizasActivas, true);
+    assert.strictEqual(ap.pruebaSinCintaOk, false);
+    assert.strictEqual(ap.mqttTorres.activo, true);
+    assert.strictEqual(ap.mqttTorres.descargas, 5);
+
+    /* Retirar cinta en T2 y ejecutar NO_TAPE_TEST */
+    const t2 = m.pista.tramos.find((t) => t.id === "T2");
+    S.setCinta(m.sim, t2.desdeM, t2.hastaM, false);
+    S.ensenar(m.sim);
+    S.nuevoViaje(m.sim, 1); m.sim.velObjetivoMs = null;
+    assert.ok(A.iniciarPruebaSinCinta(ap, "B", m.sim.L, m.sim.cinta.length));
+    assert.strictEqual(ap.estado, "NO_TAPE_TEST");
+    let entroHold = false;
+    for (let i = 0; i < 2000 && !m.sim.llegadaCompleta; i++) {
+      S.paso(m.sim, 20);
+      A.muestrearTick(ap, m.sim, 20);
+      if (m.sim.nav.estado === N.ESTADO.HEADING_HOLD) entroHold = true;
+    }
+    assert.ok(entroHold, "cruzó T2 sin cinta en HEADING_HOLD");
+    assert.ok(m.sim.llegadaCompleta, "llegó validado por BLE RSSI");
+    const reg = A.finalizarViaje(ap, m.sim, true, "none");
+    assert.strictEqual(reg.valid, true);
+    assert.strictEqual(reg.trip_type, "NO_TAPE_TEST");
+    assert.strictEqual(ap.estado, "PHASE1_VALIDATED");
+    assert.strictEqual(ap.pruebaSinCintaOk, true);
+    assert.strictEqual(ap.mqttTorres.descargas, 6);
+  });
+
+  await prueba("Etapa 3: 5 estados visuales de balizas B1/B2 (apagada, encendiendo, anunciando, detectada, rssi_valido)", () => {
+    const ap = A.crear({ pistaId: "B", permiteSinCinta: true });
+    assert.strictEqual(A.estadoBaliza(ap, "B2", { baliza: "B2", rssi: -55 }, -75, -60), "apagada");
+    ap.estado = "PHASE1_READY";
+    A.activarFase1(ap);
+    assert.strictEqual(A.estadoBaliza(ap, "B2", { baliza: "B2", rssi: -55 }, -75, -60), "encendiendo");
+    A.completarInicioBalizas(ap);
+    assert.strictEqual(A.estadoBaliza(ap, "B2", { baliza: "B1", rssi: -90 }, -75, -60), "anunciando");
+    assert.strictEqual(A.estadoBaliza(ap, "B2", { baliza: "B2", rssi: -68 }, -75, -60), "detectada");
+    assert.strictEqual(A.estadoBaliza(ap, "B2", { baliza: "B2", rssi: -58 }, -75, -60), "rssi_valido");
+  });
+
+  await prueba("Etapa 3: Pista A permite encender balizas B1/B2 pero bloquea NO_TAPE_TEST por geometría curva", () => {
+    const ap = A.crear({ pistaId: "A", permiteSinCinta: false });
+    ap.estado = "PHASE1_READY";
+    assert.strictEqual(A.activarFase1(ap), true);
+    assert.strictEqual(A.completarInicioBalizas(ap), true);
+    assert.strictEqual(ap.estado, "BEACONS_ACTIVE");
+    assert.strictEqual(A.iniciarPruebaSinCinta(ap, "A", 8.05, 161), null);
+    const btn = A.etiquetaBoton(ap, false, false);
+    assert.strictEqual(btn.disabled, true);
+    assert.ok(btn.texto.includes("Pista A"));
+  });
+
+  await prueba("Etapa 3: Freno Remoto durante NO_TAPE_TEST pasa a FAULT (nunca PHASE1_VALIDATED) y recupera a BEACONS_ACTIVE", () => {
+    const m = mundo("B");
+    const ap = A.crear({ pistaId: "B", permiteSinCinta: true });
+    ap.capturaLentaOk = true; ap.capturaNormalOk = true; ap.balizasActivas = true;
+    ap.estado = "BEACONS_ACTIVE";
+    S.nuevoViaje(m.sim, 1);
+    assert.ok(A.iniciarPruebaSinCinta(ap, "B", m.sim.L, m.sim.cinta.length));
+    for (let i = 0; i < 30; i++) { S.paso(m.sim, 20); A.muestrearTick(ap, m.sim, 20); }
+    S.frenoRemoto(m.sim);
+    const reg = A.finalizarViaje(ap, m.sim, false, "freno_remoto");
+    assert.strictEqual(reg.valid, false);
+    assert.strictEqual(ap.estado, "FAULT");
+    assert.strictEqual(ap.pruebaSinCintaOk, false);
+    assert.strictEqual(A.recuperarFallo(ap), "BEACONS_ACTIVE");
+  });
+
+  await prueba("Etapa 3: terminología BLE estricta (sin 'emparejada' ni 'conectada') y respaldo MQTT HiveMQ → EMQX → Mosquitto", () => {
+    for (const f of ["aprendizaje_gemelo.js", "index.html"]) {
+      const src = fs.readFileSync(path.join(__dirname, f), "utf8");
+      assert.ok(!/\bemparejad[ao]s?\b/i.test(src), f + " menciona emparejada");
+      assert.ok(!/\bconectad[ao]s?\b/i.test(src), f + " menciona conectada");
+    }
+    const html = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
+    assert.ok(html.includes("HiveMQ → EMQX → Mosquitto"), "falta cadena MQTT de respaldo");
+  });
 };

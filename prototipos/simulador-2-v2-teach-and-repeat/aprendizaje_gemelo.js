@@ -32,6 +32,7 @@
     VEL_LENTA_MS: 0.16,
     VEL_NORMAL_MS: 0.41,
     TRANSICION_GEMELO_MS: 600,
+    TRANSICION_BALIZAS_MS: 650,
     META_VIAJES_DEMO: 3,
     META_VIAJES_SIL: 5,
     UMBRAL_LAT_RMS_MM: 18.0,
@@ -46,25 +47,35 @@
   function crear(opciones) {
     opciones = opciones || {};
     var meta = opciones.metaViajes === 5 ? 5 : C.META_VIAJES_DEMO;
+    var pistaId = opciones.pistaId || "B";
     return {
       estado: "INITIAL",
       estadoPrevioFallo: "INITIAL",
-      pistaId: opciones.pistaId || "B",
+      pistaId: pistaId,
+      permiteSinCinta: opciones.permiteSinCinta !== undefined ? Boolean(opciones.permiteSinCinta) : (pistaId !== "A"),
       metaViajes: meta,
       capturaLentaOk: false,
       capturaNormalOk: false,
+      balizasActivas: false,
+      pruebaSinCintaOk: false,
       geometriaRef: null,          /* referencia fija congelada tras SLOW_READING */
       modeloDinamico: {
         wheel_tau_s: 0.22,         /* estimación inicial antes de ajustar hacia 0,18 s */
         factorDinamico: 1.0,
         rmsBaseMm: null
       },
+      mqttTorres: {
+        activo: false,
+        broker: "HiveMQ",
+        respaldo: "HiveMQ → EMQX → Mosquitto",
+        descargas: 0
+      },
       viajes: [],                  /* historial estructurado por viaje */
       viajesAjusteValidos: 0,
       viajeActivo: null,           /* acumulador en curso */
       ultimaEvaluacion: null,
       motivoFallo: null,
-      madurez: "En construcción"   /* En construcción | En ajuste | Validado Fase 1 */
+      madurez: "En construcción"   /* En construcción | En ajuste | Validado Fase 1 | Fase 1 validada */
     };
   }
 
@@ -87,6 +98,9 @@
     } else if (tipo === "NORMAL_READING") {
       ap.estado = "NORMAL_READING";
       ap.madurez = "En construcción";
+    } else if (tipo === "NO_TAPE_TEST") {
+      ap.estado = "NO_TAPE_TEST";
+      ap.madurez = "Validado Fase 1";
     } else {
       ap.estado = "ADJUSTING";
       ap.madurez = "En ajuste";
@@ -202,6 +216,11 @@
       } else {
         ap.estado = "ADJUSTING";
       }
+    } else if (va.trip_type === "NO_TAPE_TEST") {
+      ap.pruebaSinCintaOk = true;
+      ap.estado = "PHASE1_VALIDATED";
+      ap.madurez = "Fase 1 validada";
+      if (ap.mqttTorres.activo) ap.mqttTorres.descargas++;
     }
     return reg;
   }
@@ -212,6 +231,42 @@
     ap.estado = "TWIN_V1_READY";
     ap.madurez = "En ajuste";
     return true;
+  }
+
+  /* ---- Etapa 3: Balizas BLE (Torres de Control B1/B2) y prueba sin cinta ---- */
+  function activarFase1(ap) {
+    if (ap.estado !== "PHASE1_READY") return false;
+    ap.estado = "BEACONS_STARTING";
+    ap.balizasActivas = false;
+    ap.motivoFallo = null;
+    return true;
+  }
+
+  function completarInicioBalizas(ap) {
+    if (ap.estado !== "BEACONS_STARTING") return false;
+    ap.estado = "BEACONS_ACTIVE";
+    ap.balizasActivas = true;
+    ap.mqttTorres.activo = true;
+    ap.mqttTorres.descargas = ap.viajes.filter(function (v) { return v.valid; }).length;
+    return true;
+  }
+
+  function iniciarPruebaSinCinta(ap, pistaId, largoM, numCeldas) {
+    if (!ap.permiteSinCinta) return null;
+    if (ap.estado !== "BEACONS_ACTIVE" && ap.estado !== "PHASE1_VALIDATED") return null;
+    return iniciarViaje(ap, "NO_TAPE_TEST", pistaId, largoM, numCeldas);
+  }
+
+  /* 5 estados visuales de cada baliza BLE (sin terminología GATT):
+     apagada | encendiendo | anunciando | detectada | rssi_valido */
+  function estadoBaliza(ap, balizaId, rs, rssiDetecta, rssiLlegada) {
+    if (ap.estado === "BEACONS_STARTING") return "encendiendo";
+    if (!ap.balizasActivas) return "apagada";
+    if (rs && rs.baliza === balizaId) {
+      if (rs.rssi >= rssiLlegada) return "rssi_valido";
+      if (rs.rssi >= rssiDetecta) return "detectada";
+    }
+    return "anunciando";
   }
 
   /* Evalúa por CALIDAD REAL (RMS lateral, RMS angular, cobertura), nunca solo por contador */
@@ -270,7 +325,8 @@
   function recuperarFallo(ap) {
     if (ap.estado !== "FAULT") return ap.estado;
     ap.motivoFallo = null;
-    if (!ap.capturaLentaOk) ap.estado = "INITIAL";
+    if (ap.balizasActivas) ap.estado = "BEACONS_ACTIVE";
+    else if (!ap.capturaLentaOk) ap.estado = "INITIAL";
     else if (!ap.capturaNormalOk) ap.estado = "NORMAL_READING";
     else if (ap.viajesAjusteValidos >= ap.metaViajes) ap.estado = "EVALUATION_PENDING";
     else ap.estado = ap.viajesAjusteValidos === 0 ? "TWIN_V1_READY" : "ADJUSTING";
@@ -290,27 +346,36 @@
       rmsLatMm: ult ? ult.lateral_error_rms_mm : 0,
       rmsHeadDeg: ult ? ult.heading_error_rms_deg : 0,
       mejoraPct: ap.ultimaEvaluacion ? ap.ultimaEvaluacion.mejora_pct : mejora,
-      wheelTauS: ap.modeloDinamico.wheel_tau_s
+      wheelTauS: ap.modeloDinamico.wheel_tau_s,
+      balizasActivas: ap.balizasActivas,
+      mqttDescargas: ap.mqttTorres.descargas
     };
   }
 
   function etiquetaBoton(ap, corriendo, frenoRemoto) {
-    if (frenoRemoto) return { texto: "▶ Reanudar (auto)", clase: "btn-ctx ok", accion: "reanudar" };
-    if (ap.estado === "FAULT") return { texto: "↺ Reintentar etapa", clase: "btn-ctx aviso", accion: "recuperar" };
-    if (corriendo) return { texto: "⏸ Pausar", clase: "btn-ctx aviso", accion: "pausar" };
-    if (ap.estado === "INITIAL") return { texto: "🎓 Iniciar lectura lenta", clase: "btn-ctx", accion: "lenta" };
-    if (ap.estado === "SLOW_READING") return { texto: ap.viajeActivo ? "▶ Reanudar lectura lenta" : "🎓 Iniciar lectura lenta", clase: "btn-ctx", accion: ap.viajeActivo ? "continuar" : "lenta" };
-    if (ap.estado === "NORMAL_READING") return { texto: ap.viajeActivo ? "▶ Reanudar pasada normal" : "▶ Iniciar pasada normal", clase: "btn-ctx", accion: ap.viajeActivo ? "continuar" : "normal" };
-    if (ap.estado === "TWIN_CREATING") return { texto: "⏳ Gemelo V1 · creando…", clase: "btn-ctx ok", accion: "esperar" };
-    if (ap.estado === "TWIN_V1_READY") return { texto: "▶ Iniciar viaje 1/" + ap.metaViajes, clase: "btn-ctx ok", accion: "ajuste" };
+    if (frenoRemoto) return { texto: "▶ Reanudar (auto)", clase: "btn-ctx ok", accion: "reanudar", disabled: false };
+    if (ap.estado === "FAULT") return { texto: "↺ Reintentar etapa", clase: "btn-ctx aviso", accion: "recuperar", disabled: false };
+    if (corriendo) return { texto: "⏸ Pausar", clase: "btn-ctx aviso", accion: "pausar", disabled: false };
+    if (ap.estado === "INITIAL") return { texto: "🎓 Iniciar lectura lenta", clase: "btn-ctx", accion: "lenta", disabled: false };
+    if (ap.estado === "SLOW_READING") return { texto: ap.viajeActivo ? "▶ Reanudar lectura lenta" : "🎓 Iniciar lectura lenta", clase: "btn-ctx", accion: ap.viajeActivo ? "continuar" : "lenta", disabled: false };
+    if (ap.estado === "NORMAL_READING") return { texto: ap.viajeActivo ? "▶ Reanudar pasada normal" : "▶ Iniciar pasada normal", clase: "btn-ctx", accion: ap.viajeActivo ? "continuar" : "normal", disabled: false };
+    if (ap.estado === "TWIN_CREATING") return { texto: "⏳ Gemelo V1 · creando…", clase: "btn-ctx ok", accion: "esperar", disabled: true };
+    if (ap.estado === "TWIN_V1_READY") return { texto: "▶ Iniciar viaje 1/" + ap.metaViajes, clase: "btn-ctx ok", accion: "ajuste", disabled: false };
     if (ap.estado === "ADJUSTING") {
-      if (ap.viajeActivo) return { texto: "▶ Reanudar viaje " + (ap.viajesAjusteValidos + 1) + "/" + ap.metaViajes, clase: "btn-ctx ok", accion: "continuar" };
-      return { texto: "▶ Iniciar viaje " + (ap.viajesAjusteValidos + 1) + "/" + ap.metaViajes, clase: "btn-ctx ok", accion: "ajuste" };
+      if (ap.viajeActivo) return { texto: "▶ Reanudar viaje " + (ap.viajesAjusteValidos + 1) + "/" + ap.metaViajes, clase: "btn-ctx ok", accion: "continuar", disabled: false };
+      return { texto: "▶ Iniciar viaje " + (ap.viajesAjusteValidos + 1) + "/" + ap.metaViajes, clase: "btn-ctx ok", accion: "ajuste", disabled: false };
     }
-    if (ap.estado === "EVALUATION_PENDING") return { texto: "📊 Evaluar gemelo", clase: "btn-ctx ok", accion: "evaluar" };
-    if (ap.estado === "ADJUSTMENT_REQUIRED") return { texto: "🔧 Continuar ajustes", clase: "btn-ctx aviso", accion: "ajuste" };
-    if (ap.estado === "PHASE1_READY") return { texto: "✓ Fase 1 lista (Etapa 3)", clase: "btn-ctx ok", accion: "fase1_info" };
-    return { texto: "▶ Repetir ruta", clase: "btn-ctx ok", accion: "ajuste" };
+    if (ap.estado === "EVALUATION_PENDING") return { texto: "📊 Evaluar gemelo", clase: "btn-ctx ok", accion: "evaluar", disabled: false };
+    if (ap.estado === "ADJUSTMENT_REQUIRED") return { texto: "🔧 Continuar ajustes", clase: "btn-ctx aviso", accion: "ajuste", disabled: false };
+    if (ap.estado === "PHASE1_READY") return { texto: "📡 Activar Fase 1", clase: "btn-ctx ok", accion: "activar_fase1", disabled: false };
+    if (ap.estado === "BEACONS_STARTING") return { texto: "⏳ Inicializando balizas…", clase: "btn-ctx aviso", accion: "esperar", disabled: true };
+    if (ap.estado === "BEACONS_ACTIVE") {
+      if (!ap.permiteSinCinta) return { texto: "✓ Balizas activas (solo cinta en Pista A)", clase: "btn-ctx", accion: "fase1_info", disabled: true };
+      return { texto: "🛤️ Probar tramo sin cinta", clase: "btn-ctx ok", accion: "sin_cinta", disabled: false };
+    }
+    if (ap.estado === "NO_TAPE_TEST") return { texto: "▶ Reanudar sin cinta", clase: "btn-ctx ok", accion: "continuar", disabled: false };
+    if (ap.estado === "PHASE1_VALIDATED") return { texto: "🔁 Repetir prueba sin cinta", clase: "btn-ctx ok", accion: "sin_cinta", disabled: false };
+    return { texto: "▶ Repetir ruta", clase: "btn-ctx ok", accion: "ajuste", disabled: false };
   }
 
   return {
@@ -322,6 +387,10 @@
     muestrearTick: muestrearTick,
     finalizarViaje: finalizarViaje,
     completarNacimientoGemelo: completarNacimientoGemelo,
+    activarFase1: activarFase1,
+    completarInicioBalizas: completarInicioBalizas,
+    iniciarPruebaSinCinta: iniciarPruebaSinCinta,
+    estadoBaliza: estadoBaliza,
     evaluarGemelo: evaluarGemelo,
     recuperarFallo: recuperarFallo,
     resumenMetricas: resumenMetricas,

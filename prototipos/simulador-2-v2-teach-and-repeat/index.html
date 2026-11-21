@@ -257,7 +257,15 @@
   transition: transform 0.14s ease-out, background-color 0.15s ease-out, border-color 0.15s ease-out;
 }
 .btn-ctx:hover { background: #0369a1; }
+.btn-ctx:disabled { opacity: 0.55; cursor: not-allowed; }
 .btn-ctx.ok { background: #15803d; border-color: var(--s2-ok); }
+.torres-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 5px 0; font-family: var(--font-mono); font-size: 10.5px; }
+.torre-pill { padding: 2px 7px; border-radius: 6px; border: 1px solid var(--s2-borde); background: var(--s2-bg); color: var(--s2-muted); }
+.torre-pill.apagada { color: #94a3b8; border-color: #475569; }
+.torre-pill.encendiendo { color: #fde68a; border-color: var(--s2-warn); background: rgba(245, 158, 11, 0.14); }
+.torre-pill.anunciando { color: #67e8f9; border-color: #00f2fe; background: rgba(0, 242, 254, 0.12); }
+.torre-pill.detectada { color: #93c5fd; border-color: #38bdf8; background: rgba(56, 189, 248, 0.16); }
+.torre-pill.rssi_valido { color: #86efac; border-color: var(--s2-ok); background: rgba(34, 197, 94, 0.18); }
 .btn-ctx.ok:hover { background: #166534; }
 .btn-ctx.aviso { background: #b45309; border-color: var(--s2-warn); }
 .btn-ctx:active { transform: scale(0.98); }
@@ -513,7 +521,11 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
             </li>
             <li class="step-item" id="step-4">
               <div class="step-cab"><span class="step-num" id="flujo-4">4</span><span class="step-nom">Fase 1 (BLE + sin cinta)</span></div>
-              <p class="step-desc" id="step-4-desc">Se desbloquea al validar el Gemelo (Etapa 3).</p>
+              <p class="step-desc" id="step-4-desc">Se desbloquea al validar el Gemelo V1.</p>
+              <div class="step-sub" id="step-4-torres">
+                <span id="sub-b1" class="apagada">B1 apagada</span>
+                <span id="sub-b2" class="apagada">B2 apagada</span>
+              </div>
               <div class="step-accion-inline" id="step-4-acciones">
                 <button type="button" class="b b-sm aviso" id="btn-t2-rapido">Quitar cinta T2</button>
               </div>
@@ -605,10 +617,15 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
                 <div class="sub">Sin magnetómetro: 0° = inicio del viaje. Límite: 30°. <b>[PENDIENTE DE INTEGRACIÓN EN FIRMWARE]</b></div>
               </div>
               <div class="panel">
-                <h3>BLE RSSI (solo extremos)</h3>
+                <h3>BLE RSSI · Torres de Control (B1/B2)</h3>
                 <div class="val sin" id="ble-rssi">—</div>
                 <div class="barra"><i id="ble-barra"></i></div>
+                <div class="torres-pills">
+                  <span class="torre-pill apagada" id="torre-b1">B1 Cuarto Comp. · apagada</span>
+                  <span class="torre-pill apagada" id="torre-b2">B2 Lab 1 · apagada</span>
+                </div>
                 <div class="sub" id="ble-validacion">—</div>
+                <div class="sub" id="ble-torres-mqtt">Torres de Control MQTT: en espera (respaldo HiveMQ → EMQX → Mosquitto).</div>
               </div>
             </div>
 
@@ -697,8 +714,8 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
   var TICK_MS = 20;
   var modoColocarObs = false;
   var S = SimMovimiento, R = RadarUS, A = AprendizajeGemelo;
-  var ap = A.crear({ pistaId: "B", metaViajes: 3 });
-  var timerGemelo = null;
+  var ap = A.crear({ pistaId: "B", metaViajes: 3, permiteSinCinta: true });
+  var timerGemelo = null, timerBalizas = null;
 
   /* ---- 1) Carga el núcleo, la pista canónica y las pistas de SIM1 ---- */
   function cargarNucleo(texto) {
@@ -724,12 +741,14 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
   function cargarPista(id) {
     pistaId = id;
     if (timerGemelo) { clearTimeout(timerGemelo); timerGemelo = null; }
+    if (timerBalizas) { clearTimeout(timerBalizas); timerBalizas = null; }
     var p1 = sim1.crearPista(id);
     tr = PistasSim1.crearTrazado(p1, id, NOMBRES[id]);
     pistaObj = PistasSim1.pistaPara(id, canonica, p1.largo);
     sim = S.crear(nucleo, pistaObj, { trazado: tr, cintaCompleta: true, bleRadioM: BLE_RADIO_M, bleCercaM: BLE_CERCA_M });
     sim.sesgoDps = Number($("ctl-deriva").value);
-    ap = A.crear({ pistaId: id, metaViajes: ap ? ap.metaViajes : 3 });
+    var permiteSinCinta = tr.rectaMasLarga(10).largoM >= 1.5;
+    ap = A.crear({ pistaId: id, metaViajes: ap ? ap.metaViajes : 3, permiteSinCinta: permiteSinCinta });
     corriendo = false; acum = 0;
     modoColocarObs = false;
     $("btn-play").textContent = "▶ Iniciar"; $("btn-play").setAttribute("aria-pressed", "false");
@@ -847,6 +866,37 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
     reproducir();
     refrescarDom(true);
   }
+  function activarFase1() {
+    if (!A.activarFase1(ap)) return;
+    S.registrar(sim, "Fase 1 · inicializando balizas BLE B1 (Cuarto de Componentes) y B2 (Laboratorio 1)");
+    refrescarDom(true);
+    if (timerBalizas) clearTimeout(timerBalizas);
+    timerBalizas = setTimeout(function () {
+      timerBalizas = null;
+      if (A.completarInicioBalizas(ap)) {
+        S.registrar(sim, "Torres de Control B1/B2 anunciando · MQTT activo (" + ap.mqttTorres.respaldo + ") · descarga de viajes del gemelo");
+      }
+      refrescarDom(true);
+    }, A.C.TRANSICION_BALIZAS_MS);
+  }
+  function iniciarPruebaSinCinta() {
+    if (!ap.permiteSinCinta) {
+      S.registrar(sim, "Pista A sin tramo recto >= 1,5 m: prueba sin cinta bloqueada");
+      refrescarDom(true);
+      return;
+    }
+    pistaObj.tramos.forEach(function (t) {
+      S.setCinta(sim, t.desdeM, t.hastaM, t.id !== "T2");
+    });
+    resincronizar();
+    S.nuevoViaje(sim, 1);
+    sim.velObjetivoMs = null; /* velocidad calibrada del núcleo (0,41–0,46 m/s) para cruzar T2 sin cinta */
+    if (!A.iniciarPruebaSinCinta(ap, pistaId, sim.L, sim.cinta.length)) return;
+    S.registrar(sim, "Prueba sin cinta · T2 retirada · HEADING_HOLD + balizas BLE B1/B2");
+    ponerModo("auto");
+    reproducir();
+    refrescarDom(true);
+  }
   function accionEnsenar() { iniciarCapturaLenta(); }
   function accionRepetir() { iniciarViajeAjuste(); }
   function accionReanudar() {
@@ -868,6 +918,7 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
 
   function accionPrincipalContextual() {
     var b = A.etiquetaBoton(ap, corriendo, sim.frenoRemoto);
+    if (b.disabled) return;
     if (b.accion === "reanudar") { accionReanudar(); return; }
     if (b.accion === "recuperar") { A.recuperarFallo(ap); refrescarDom(true); return; }
     if (b.accion === "pausar") { detener(); refrescarDom(true); return; }
@@ -881,20 +932,37 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
       refrescarDom(true);
       return;
     }
+    if (b.accion === "activar_fase1") { activarFase1(); return; }
+    if (b.accion === "sin_cinta") { iniciarPruebaSinCinta(); return; }
     if (b.accion === "esperar" || b.accion === "fase1_info") { refrescarDom(true); return; }
   }
 
   /* Acción secundaria: ejecuta exactamente 1 viaje siguiente sin ocultar fallos */
   function ejecutarSiguienteViajeRapido() {
-    if (ap.estado === "TWIN_CREATING") { A.completarNacimientoGemelo(ap); refrescarDom(true); return; }
+    if (ap.estado === "TWIN_CREATING") {
+      if (timerGemelo) { clearTimeout(timerGemelo); timerGemelo = null; }
+      A.completarNacimientoGemelo(ap); refrescarDom(true); return;
+    }
+    if (ap.estado === "BEACONS_STARTING") {
+      if (timerBalizas) { clearTimeout(timerBalizas); timerBalizas = null; }
+      A.completarInicioBalizas(ap); refrescarDom(true); return;
+    }
     if (ap.estado === "FAULT") { A.recuperarFallo(ap); }
     if (ap.estado === "EVALUATION_PENDING") {
       A.evaluarGemelo(ap); refrescarDom(true); return;
     }
-    if (ap.estado === "PHASE1_READY") { refrescarDom(true); return; }
+    if (ap.estado === "PHASE1_READY") {
+      A.activarFase1(ap);
+      A.completarInicioBalizas(ap);
+      S.registrar(sim, "Torres de Control B1/B2 anunciando · MQTT activo (" + ap.mqttTorres.respaldo + ")");
+      refrescarDom(true);
+      return;
+    }
+    if (ap.estado === "BEACONS_ACTIVE" && !ap.permiteSinCinta) { refrescarDom(true); return; }
     if (!ap.viajeActivo) {
       if (!ap.capturaLentaOk) iniciarCapturaLenta();
       else if (!ap.capturaNormalOk) iniciarPasadaNormal();
+      else if (ap.estado === "BEACONS_ACTIVE" || ap.estado === "PHASE1_VALIDATED") iniciarPruebaSinCinta();
       else iniciarViajeAjuste();
     }
     detener();
@@ -919,6 +987,7 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
       var el = $(id);
       el.textContent = b.texto;
       el.className = b.clase;
+      el.disabled = Boolean(b.disabled);
     });
   }
 
@@ -1149,8 +1218,16 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
     if (zatras === "critica") return { n: "aviso", t: "OBSTÁCULO ATRÁS < 20 cm · retroceso bloqueado" };
     if (sim.frenoRemoto) return { n: "aviso", t: "FRENO REMOTO ACTIVO · orden frenar" };
     if (ap.estado === "ADJUSTMENT_REQUIRED" && ap.ultimaEvaluacion) return { n: "aviso", t: "AJUSTE REQUERIDO · " + ap.ultimaEvaluacion.motivo };
+    if (ap.estado === "BEACONS_STARTING") return { n: "aviso", t: "FASE 1 · inicializando balizas BLE B1 y B2…" };
+    if (ap.estado === "PHASE1_VALIDATED") return { n: "ok", t: "FASE 1 VALIDADA · T2 sin cinta superado + llegada RSSI por B2" };
+    if (ap.estado === "NO_TAPE_TEST") return { n: "aviso", t: "PRUEBA SIN CINTA (T2) · HEADING_HOLD + espera baliza BLE B2" };
+    if (ap.estado === "BEACONS_ACTIVE") {
+      return ap.permiteSinCinta
+        ? { n: "ok", t: "TORRES B1/B2 ANUNCIANDO · MQTT activo · listo para prueba sin cinta T2" }
+        : { n: "ok", t: "TORRES B1/B2 ANUNCIANDO · Pista A solo cinta (geometría curva)" };
+    }
     if (ap.estado === "TWIN_CREATING") return { n: "ok", t: "GEMELO V1 · BASE CREADA (captura lenta + normal validadas)" };
-    if (ap.estado === "PHASE1_READY") return { n: "ok", t: "GEMELO VALIDADO FASE 1 · listo para Etapa 3 (BLE + sin cinta)" };
+    if (ap.estado === "PHASE1_READY") return { n: "ok", t: "GEMELO VALIDADO · listo para activar Fase 1 (balizas BLE B1/B2)" };
     if (sim.llegadaCompleta) return { n: "ok", t: "LLEGADA VALIDADA POR BALIZA BLE · viaje registrado" };
     return null;
   }
@@ -1163,11 +1240,11 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
     if (est === "TWIN_CREATING" || est === "TWIN_V1_READY") etapaActiva = 2;
     else if (est === "ADJUSTING" || est === "EVALUATION_PENDING" || est === "ADJUSTMENT_REQUIRED") etapaActiva = 3;
     else if (est === "PHASE1_READY" || est === "BEACONS_STARTING" || est === "BEACONS_ACTIVE" || est === "NO_TAPE_TEST" || est === "PHASE1_VALIDATED") etapaActiva = 4;
-    else if (est === "FAULT") etapaActiva = !ap.capturaNormalOk ? 1 : 3;
+    else if (est === "FAULT") etapaActiva = ap.balizasActivas ? 4 : (!ap.capturaNormalOk ? 1 : 3);
 
     var h1 = ap.capturaLentaOk && ap.capturaNormalOk;
     var h2 = h1 && est !== "TWIN_CREATING";
-    var h3 = est === "PHASE1_READY" || est === "PHASE1_VALIDATED";
+    var h3 = est === "PHASE1_READY" || est === "BEACONS_STARTING" || est === "BEACONS_ACTIVE" || est === "NO_TAPE_TEST" || est === "PHASE1_VALIDATED" || (est === "FAULT" && ap.balizasActivas);
     var h4 = est === "PHASE1_VALIDATED";
 
     [1, 2, 3, 4].forEach(function (n) {
@@ -1178,7 +1255,7 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
         (hecho ? " hecho" : "") +
         (n === 2 && est === "TWIN_CREATING" ? " creando" : "") +
         (n === etapaActiva && est === "FAULT" ? " fallo" : "") +
-        (n === 4 && !puedeSinCinta ? " bloqueado" : "");
+        (n === 4 && !puedeSinCinta && !ap.balizasActivas ? " bloqueado" : "");
       $("flujo-" + n).textContent = hecho ? "✓" : String(n);
     });
 
@@ -1194,22 +1271,37 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
     var met = A.resumenMetricas(ap);
     var madEl = $("madurez-pill");
     madEl.textContent = met.madurez;
-    madEl.className = "madurez-pill" + (met.madurez === "Validado Fase 1" ? " validado" : (met.madurez === "En ajuste" ? " ajuste" : ""));
+    madEl.className = "madurez-pill" + ((met.madurez === "Validado Fase 1" || met.madurez === "Fase 1 validada") ? " validado" : (met.madurez === "En ajuste" ? " ajuste" : ""));
 
     $("step-3-desc").textContent = ap.viajesAjusteValidos + "/" + ap.metaViajes + " viajes válidos" +
       (met.rmsLatMm > 0 ? " · RMS " + fmt(met.rmsLatMm, 1) + " mm / " + fmt(met.rmsHeadDeg, 1) + "°" : "") +
       (est === "EVALUATION_PENDING" ? " · listo para evaluar" : (est === "ADJUSTMENT_REQUIRED" ? " · ajuste requerido" : ""));
 
+    var C = nucleo.CFG, rs = S.rssiActual(sim);
+    var stB1 = A.estadoBaliza(ap, "B1", rs, C.RSSI_DETECTA_DBM, C.RSSI_LLEGADA_DBM);
+    var stB2 = A.estadoBaliza(ap, "B2", rs, C.RSSI_DETECTA_DBM, C.RSSI_LLEGADA_DBM);
+    var txtEst = { apagada: "apagada", encendiendo: "encendiendo…", anunciando: "anunciando", detectada: "detectada", rssi_valido: "RSSI válido" };
+    $("sub-b1").className = stB1 === "rssi_valido" ? "ok" : "";
+    $("sub-b1").textContent = "B1 " + (stB1 === "rssi_valido" ? fmt(rs.rssi, 0) + " dBm" : txtEst[stB1]);
+    $("sub-b2").className = stB2 === "rssi_valido" ? "ok" : "";
+    $("sub-b2").textContent = "B2 " + (stB2 === "rssi_valido" ? fmt(rs.rssi, 0) + " dBm" : txtEst[stB2]);
+
     var btnT2 = $("btn-t2-rapido");
     if (!puedeSinCinta) {
-      $("step-4-desc").textContent = "Deshabilitada en Pista A por geometría curva (sin tramo recto ≥ 1,5 m).";
+      $("step-4-desc").textContent = ap.balizasActivas
+        ? "Balizas B1/B2 anunciando (MQTT activo). Sin cinta bloqueada en Pista A por geometría curva."
+        : "Balizas B1/B2 disponibles; sin cinta bloqueada en Pista A (sin recta ≥ 1,5 m).";
       btnT2.style.display = "none";
     } else {
       var t2 = pistaObj.tramos.filter(function (t) { return t.id === "T2"; })[0];
       var t2Con = t2 ? S.tramoConCinta(sim, t2.desdeM, t2.hastaM) : true;
-      $("step-4-desc").textContent = est === "PHASE1_READY"
-        ? "Gemelo validado · listo para balizas BLE y sin cinta (Etapa 3)."
-        : (t2Con ? "Se desbloquea al validar Fase 1 en Etapa 3." : "T2 sin cinta activo.");
+      $("step-4-desc").textContent = est === "PHASE1_VALIDATED"
+        ? "Fase 1 validada: T2 sin cinta superado con llegada RSSI por B2."
+        : (est === "NO_TAPE_TEST" ? "Ejecutando prueba sin cinta en T2 (HEADING_HOLD + BLE)…"
+        : (est === "BEACONS_ACTIVE" ? "Torres B1/B2 anunciando · MQTT " + ap.mqttTorres.broker + " · listo para probar T2 sin cinta."
+        : (est === "BEACONS_STARTING" ? "Inicializando Torres de Control B1/B2…"
+        : (est === "PHASE1_READY" ? "Gemelo validado · pulsa Activar Fase 1 para encender B1/B2."
+        : "Se desbloquea al validar el Gemelo en Etapa 3."))));
       btnT2.style.display = "inline-flex";
       btnT2.disabled = !(ap.capturaLentaOk && ap.capturaNormalOk);
       btnT2.textContent = t2Con ? "➖ Quitar cinta T2" : "♻️ Restaurar cinta T2";
@@ -1255,12 +1347,22 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
     $("us-atras").textContent = "Atrás: " + fmt(a, 0) + " cm · " + zonaTxt(za);
 
     var rs = S.rssiActual(sim);
-    var hay = rs.rssi >= C.RSSI_DETECTA_DBM;
+    var hay = ap.balizasActivas && rs.rssi >= C.RSSI_DETECTA_DBM;
+    var stB1 = A.estadoBaliza(ap, "B1", rs, C.RSSI_DETECTA_DBM, C.RSSI_LLEGADA_DBM);
+    var stB2 = A.estadoBaliza(ap, "B2", rs, C.RSSI_DETECTA_DBM, C.RSSI_LLEGADA_DBM);
+    var txtB = { apagada: "apagada", encendiendo: "encendiendo…", anunciando: "anunciando", detectada: "detectada", rssi_valido: "RSSI válido" };
     $("ble-rssi").className = "val" + (hay ? "" : " sin");
-    $("ble-rssi").textContent = hay ? (rs.baliza + " · " + fmt(rs.rssi, 1) + " dBm") : "sin señal";
+    $("ble-rssi").textContent = hay ? (rs.baliza + " · " + fmt(rs.rssi, 1) + " dBm") : (ap.balizasActivas ? "anunciando · fuera de rango" : (ap.estado === "BEACONS_STARTING" ? "inicializando balizas…" : "balizas apagadas"));
     $("ble-barra").style.width = hay ? Math.max(0, Math.min(100, Math.round((rs.rssi + 80) / 28 * 100))) + "%" : "0%";
-    var lleg = sim.llegadaCompleta ? "LLEGADA VALIDADA por baliza" : (sim.nav.estado === nucleo.ESTADO.WAIT_BEACON ? "WAIT_BEACON: esperando ≥ " + C.RSSI_LLEGADA_DBM + " dBm" : "A mitad de pista no hay baliza");
-    $("ble-validacion").textContent = "Extremos B1/B2 · detecta ≥ " + C.RSSI_DETECTA_DBM + " dBm · llegada ≥ " + C.RSSI_LLEGADA_DBM + " dBm. " + lleg + ".";
+    $("torre-b1").className = "torre-pill " + stB1;
+    $("torre-b1").textContent = "B1 Cuarto Comp. · " + (stB1 === "rssi_valido" ? fmt(rs.rssi, 0) + " dBm" : txtB[stB1]);
+    $("torre-b2").className = "torre-pill " + stB2;
+    $("torre-b2").textContent = "B2 Lab 1 · " + (stB2 === "rssi_valido" ? fmt(rs.rssi, 0) + " dBm" : txtB[stB2]);
+    var lleg = sim.llegadaCompleta ? "LLEGADA VALIDADA por RSSI" : (sim.nav.estado === nucleo.ESTADO.WAIT_BEACON ? "WAIT_BEACON: esperando ≥ " + C.RSSI_LLEGADA_DBM + " dBm" : "solo anuncios BLE sin GATT (circuito cerrado: B1/B2 coinciden en origen)");
+    $("ble-validacion").textContent = "Detecta ≥ " + C.RSSI_DETECTA_DBM + " dBm · llegada ≥ " + C.RSSI_LLEGADA_DBM + " dBm · " + lleg + ".";
+    $("ble-torres-mqtt").textContent = ap.mqttTorres.activo
+      ? "Torres de Control MQTT activo (" + ap.mqttTorres.respaldo + ") · descarga sincronizada del gemelo (" + ap.mqttTorres.descargas + " viajes)."
+      : "Torres de Control MQTT: en espera de Fase 1 (respaldo " + ap.mqttTorres.respaldo + ").";
 
     var vel = fmt(Math.abs(sim.vLineal), 2);
     $("mov-vel").textContent = vel + " m/s";
@@ -1273,7 +1375,7 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
     var barUs = $("bar-us");
     barUs.textContent = "F " + (f > 0 ? fmt(f, 0) : "—") + " · A " + fmt(a, 0) + " cm";
     barUs.className = zf === "critica" ? "critica" : (zf === "precaucion" ? "aviso" : "ok");
-    $("bar-mpu-ble").textContent = fmt(ym, 1) + "° · " + (hay ? rs.baliza + " " + fmt(rs.rssi, 0) + " dBm" : "BLE —");
+    $("bar-mpu-ble").textContent = fmt(ym, 1) + "° · " + (hay ? rs.baliza + " " + fmt(rs.rssi, 0) + " dBm" : (ap.balizasActivas ? "B1/B2 · MQTT " + ap.mqttTorres.broker : "BLE apagada"));
     var met = A.resumenMetricas(ap);
     $("bar-err").textContent = (met.rmsLatMm > 0 ? fmt(met.rmsLatMm, 1) + " mm · " + fmt(met.rmsHeadDeg, 1) + "°" : fmt(sim.y * 100, 1) + " cm · " + vel + " m/s");
 
@@ -1312,7 +1414,7 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
         : '<p class="nota">Aún no hay viajes registrados.</p>';
       if ($("det-contrato").open) {
         var e = GemeloEstado.estadoGemelo(sim, S);
-        $("contrato-json").textContent = JSON.stringify(e, null, 2) + "\n\n// aprendizaje (Etapa 2)\n" + JSON.stringify({ estado: ap.estado, madurez: ap.madurez, viajes: ap.viajes.length, validos_ajuste: ap.viajesAjusteValidos, meta: ap.metaViajes, evaluacion: ap.ultimaEvaluacion }, null, 2);
+        $("contrato-json").textContent = JSON.stringify(e, null, 2) + "\n\n// aprendizaje + Torres BLE (Etapa 3)\n" + JSON.stringify({ estado: ap.estado, madurez: ap.madurez, viajes: ap.viajes.length, validos_ajuste: ap.viajesAjusteValidos, meta: ap.metaViajes, balizas_activas: ap.balizasActivas, prueba_sin_cinta_ok: ap.pruebaSinCintaOk, mqtt_torres: ap.mqttTorres, evaluacion: ap.ultimaEvaluacion }, null, 2);
       }
       if ($("det-registro").open) {
         var log = $("log-eventos");
@@ -1383,46 +1485,211 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
     c.restore();
   }
 
+  function dibujarPisoYCotas(c, alfa) {
+    var b = tr.caja(), x0 = VX(b.x0), x1 = VX(b.x1), yTop = VY(b.y1), yBot = VY(b.y0);
+    var anchoM = Math.max(0.1, b.x1 - b.x0), altoM = Math.max(0.1, b.y1 - b.y0);
+    c.save();
+    c.globalAlpha = alfa;
+    /* Rejilla de piso cada 0,5 m */
+    c.strokeStyle = "rgba(148,163,184,0.14)";
+    c.lineWidth = 1;
+    var gx, gy;
+    for (gx = Math.ceil(b.x0 * 2) / 2; gx <= b.x1 + 1e-6; gx += 0.5) {
+      c.beginPath(); c.moveTo(VX(gx), yTop); c.lineTo(VX(gx), yBot); c.stroke();
+    }
+    for (gy = Math.ceil(b.y0 * 2) / 2; gy <= b.y1 + 1e-6; gy += 0.5) {
+      c.beginPath(); c.moveTo(x0, VY(gy)); c.lineTo(x1, VY(gy)); c.stroke();
+    }
+    /* Marco perimetral del espacio mapeado */
+    c.strokeStyle = "rgba(56,189,248,0.28)";
+    c.setLineDash([5, 4]);
+    c.strokeRect(x0, yTop, x1 - x0, yBot - yTop);
+    c.setLineDash([]);
+    /* Cotas en metros (ancho abajo, alto izquierda) */
+    c.strokeStyle = "rgba(125,211,252,0.6)";
+    c.fillStyle = "#7dd3fc";
+    c.font = "10px JetBrains Mono, monospace";
+    c.textAlign = "center";
+    var yc = Math.min(dimP.h - 10, yBot + 14);
+    c.beginPath(); c.moveTo(x0, yc); c.lineTo(x1, yc);
+    c.moveTo(x0, yc - 3); c.lineTo(x0, yc + 3);
+    c.moveTo(x1, yc - 3); c.lineTo(x1, yc + 3); c.stroke();
+    c.fillText(fmt(anchoM, 2) + " m", (x0 + x1) / 2, yc - 6);
+    var xc = Math.max(24, x0 - 14);
+    c.beginPath(); c.moveTo(xc, yTop); c.lineTo(xc, yBot);
+    c.moveTo(xc - 3, yTop); c.lineTo(xc + 3, yTop);
+    c.moveTo(xc - 3, yBot); c.lineTo(xc + 3, yBot); c.stroke();
+    c.save();
+    c.translate(xc - 7, (yTop + yBot) / 2);
+    c.rotate(-Math.PI / 2);
+    c.fillText(fmt(altoM, 2) + " m", 0, 0);
+    c.restore();
+    c.restore();
+  }
+
+  function dibujarTorresBLE(c, ahora, w) {
+    var C = nucleo.CFG, rs = S.rssiActual(sim);
+    var colores = {
+      apagada: { stroke: "rgba(100,116,139,0.45)", fill: "#64748b", txt: "#94a3b8" },
+      encendiendo: { stroke: "rgba(245,158,11,0.75)", fill: "#f59e0b", txt: "#fde68a" },
+      anunciando: { stroke: "rgba(0,242,254,0.65)", fill: "#00f2fe", txt: "#67e8f9" },
+      detectada: { stroke: "rgba(56,189,248,0.85)", fill: "#38bdf8", txt: "#bae6fd" },
+      rssi_valido: { stroke: "rgba(74,222,128,0.95)", fill: "#4ade80", txt: "#86efac" }
+    };
+    var nombres = { B1: "Cuarto Comp.", B2: "Lab 1" };
+    pistaObj.balizasBLE.forEach(function (bl, k) {
+      var st = A.estadoBaliza(ap, bl.id, rs, C.RSSI_DETECTA_DBM, C.RSSI_LLEGADA_DBM);
+      var col = colores[st] || colores.apagada;
+      var p = tr.puntoEn(bl.posicionM), px = VX(p.x), py = VY(p.y);
+      var x = px, y = py + (k ? 15 : -15);
+      var rad = BLE_RADIO_M * vista.sc;
+
+      /* Radio de alcance BLE */
+      c.strokeStyle = col.stroke;
+      c.lineWidth = st === "rssi_valido" ? 2 : 1;
+      c.setLineDash(st === "rssi_valido" ? [] : [3, 3]);
+      c.beginPath(); c.arc(px, py, rad, 0, 7); c.stroke();
+      c.setLineDash([]);
+
+      /* Ondas concéntricas animadas para encendiendo / anunciando / detectada / rssi_valido */
+      if (st === "anunciando" || st === "detectada" || st === "rssi_valido") {
+        var tOnda = (ahora / 1000) * 0.8;
+        for (var j = 0; j < 2; j++) {
+          var fOnda = (tOnda + j * 0.5) % 1;
+          c.save();
+          c.globalAlpha = (1 - fOnda) * 0.55;
+          c.strokeStyle = col.fill;
+          c.lineWidth = 1.5;
+          c.beginPath(); c.arc(px, py, Math.max(4, fOnda * rad), 0, 7); c.stroke();
+          c.restore();
+        }
+      } else if (st === "encendiendo") {
+        var pulso = 0.5 + 0.5 * Math.sin(ahora / 140);
+        c.save();
+        c.globalAlpha = 0.25 + 0.5 * pulso;
+        c.strokeStyle = col.fill;
+        c.lineWidth = 2;
+        c.beginPath(); c.arc(px, py, 9 + pulso * 5, 0, 7); c.stroke();
+        c.restore();
+      }
+
+      /* Punto de la Torre de Control */
+      c.fillStyle = col.fill;
+      c.beginPath(); c.arc(x, y, 5.5, 0, 7); c.fill();
+      c.strokeStyle = "#0b1220"; c.lineWidth = 1.5; c.stroke();
+
+      /* Etiqueta clara sin terminología GATT */
+      var eti;
+      if (st === "rssi_valido") eti = bl.id + " · " + fmt(rs.rssi, 0) + " dBm ✓";
+      else if (st === "detectada") eti = bl.id + " · detectada (" + fmt(rs.rssi, 0) + " dBm)";
+      else if (st === "anunciando") eti = w < 520 ? (bl.id + " · anunciando") : (bl.id + " (" + (nombres[bl.id] || bl.extremo) + ") · anunciando");
+      else if (st === "encendiendo") eti = bl.id + " · encendiendo…";
+      else eti = w < 520 ? (bl.id + " · apagada") : (bl.id + " (" + (nombres[bl.id] || bl.extremo) + ") · apagada");
+
+      c.fillStyle = col.txt;
+      c.textAlign = "left";
+      c.fillText(eti, x + 9, y);
+    });
+  }
+
   function dibujarPista(ahora) {
     var c = ctxP, w = dimP.w, h = dimP.h, P = S.P, L = sim.L;
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     c.clearRect(0, 0, w, h);
     c.font = "10.5px JetBrains Mono, monospace"; c.textBaseline = "middle";
 
+    var enInicial = !ap.capturaLentaOk && (ap.estado === "INITIAL" || (ap.estado === "FAULT" && sim.s < 0.05));
+    var enLenta = !ap.capturaLentaOk && !enInicial;
+    var enNormal = ap.capturaLentaOk && !ap.capturaNormalOk;
+    var mapaCompleto = ap.capturaLentaOk && ap.capturaNormalOk;
+
     var s0 = sim.dir > 0 ? 0 : L, lo = Math.min(s0, sim.s), hi = Math.max(s0, sim.s), n = sim.cinta.length, i, a, b, pa, pb, mid;
     c.lineCap = "round";
-    for (i = 0; i < n; i++) {
-      a = i * P.CELDA_M; b = a + P.CELDA_M; mid = (a + b) / 2;
-      pa = tr.puntoEn(a); pb = tr.puntoEn(b);
-      if (sim.cinta[i]) {
-        if (mid >= lo && mid <= hi) { c.strokeStyle = COL.fantasma; c.lineWidth = 2; c.setLineDash([2, 4]); }
-        else { c.strokeStyle = COL.cinta; c.lineWidth = 4; c.setLineDash([]); }
-      } else {
-        c.strokeStyle = S.tramoEnsenadoEn(sim, mid) ? COL.ens : COL.sinEns; c.lineWidth = 3; c.setLineDash([4, 4]);
-      }
-      c.beginPath(); c.moveTo(VX(pa.x), VY(pa.y)); c.lineTo(VX(pb.x), VY(pb.y)); c.stroke();
-    }
-    c.setLineDash([]);
 
-    c.textAlign = "center";
-    pistaObj.tramos.forEach(function (t) {
-      if (pistaObj.tramos.length < 2) return;
-      var p = tr.puntoEn((t.desdeM + t.hastaM) / 2), ang = tr.rumboPistaGrados((t.desdeM + t.hastaM) / 2) * Math.PI / 180;
-      c.fillStyle = "#94a3b8"; c.fillText(t.id, VX(p.x) + Math.sin(ang) * 18, VY(p.y) - Math.cos(ang) * 18);
-    });
-    pistaObj.puntosDeControl.forEach(function (pc) {
-      var p = tr.puntoEn(pc.posicionM), x = VX(p.x), y = VY(p.y);
-      c.fillStyle = "#0b1220"; c.strokeStyle = "#a78bfa"; c.lineWidth = 2;
-      c.beginPath(); c.moveTo(x, y - 8); c.lineTo(x + 6, y); c.lineTo(x, y + 8); c.lineTo(x - 6, y); c.closePath(); c.fill(); c.stroke();
-      c.fillStyle = "#c4b5fd"; c.fillText(pc.id, x, y + 18);
-    });
-    pistaObj.balizasBLE.forEach(function (bl, k) {
-      var p = tr.puntoEn(bl.posicionM), x = VX(p.x), y = VY(p.y) + (k ? 14 : -14);
-      c.strokeStyle = "rgba(56,189,248,0.4)"; c.lineWidth = 1; c.setLineDash([3, 3]);
-      c.beginPath(); c.arc(VX(p.x), VY(p.y), BLE_RADIO_M * vista.sc, 0, 7); c.stroke(); c.setLineDash([]);
-      c.fillStyle = "#38bdf8"; c.beginPath(); c.arc(x, y, 5, 0, 7); c.fill();
-      c.fillStyle = "#e0f2fe"; c.textAlign = "left"; c.fillText(w < 520 ? bl.id : bl.id + (bl.extremo === "inicio" ? " · inicio" : " · fin"), x + 9, y);
-    });
+    if (enInicial) {
+      /* Espacio aún sin mapear: sin rejilla, sin cotas ni pista detallada */
+      var pIni = tr.puntoEn(0);
+      var pulso = 0.5 + 0.5 * Math.sin(ahora / 350);
+      c.strokeStyle = "rgba(56,189,248," + (0.25 + 0.45 * pulso).toFixed(2) + ")";
+      c.lineWidth = 2;
+      c.beginPath(); c.arc(VX(pIni.x), VY(pIni.y), 12 + pulso * 5, 0, 7); c.stroke();
+      c.fillStyle = "#7dd3fc"; c.textAlign = "left";
+      c.fillText("Inicio (0,0 m)", VX(pIni.x) + 18, VY(pIni.y) - 14);
+      c.fillStyle = "rgba(148,163,184,0.85)"; c.textAlign = "center";
+      c.fillText("Espacio sin mapear · inicia lectura lenta (0,16 m/s)", w / 2, h - 14);
+    } else if (enLenta) {
+      /* 1er viaje (SLOW_READING): revela piso, marco, cotas en metros y trazo base recorrido */
+      var prog = Math.max(0.12, Math.min(1, sim.s / Math.max(0.1, L)));
+      dibujarPisoYCotas(c, 0.25 + 0.75 * prog);
+      c.strokeStyle = "rgba(125,211,252,0.75)";
+      c.lineWidth = 2.5;
+      c.setLineDash([4, 4]);
+      for (i = 0; i < n; i++) {
+        a = i * P.CELDA_M; b = a + P.CELDA_M; mid = (a + b) / 2;
+        if (mid > sim.s) continue;
+        pa = tr.puntoEn(a); pb = tr.puntoEn(b);
+        c.beginPath(); c.moveTo(VX(pa.x), VY(pa.y)); c.lineTo(VX(pb.x), VY(pb.y)); c.stroke();
+      }
+      c.setLineDash([]);
+    } else if (enNormal) {
+      /* 2do viaje (NORMAL_READING): piso acotado + trazo base + revela pista detallada, T1-T4 y PC */
+      dibujarPisoYCotas(c, 0.9);
+      for (i = 0; i < n; i++) {
+        a = i * P.CELDA_M; b = a + P.CELDA_M; mid = (a + b) / 2;
+        pa = tr.puntoEn(a); pb = tr.puntoEn(b);
+        if (mid <= sim.s) {
+          c.strokeStyle = COL.cinta; c.lineWidth = 4; c.setLineDash([]);
+        } else {
+          c.strokeStyle = "rgba(148,163,184,0.32)"; c.lineWidth = 2; c.setLineDash([3, 4]);
+        }
+        c.beginPath(); c.moveTo(VX(pa.x), VY(pa.y)); c.lineTo(VX(pb.x), VY(pb.y)); c.stroke();
+      }
+      c.setLineDash([]);
+      c.textAlign = "center";
+      pistaObj.tramos.forEach(function (t) {
+        if (pistaObj.tramos.length < 2) return;
+        var centro = (t.desdeM + t.hastaM) / 2;
+        if (centro > sim.s) return;
+        var p = tr.puntoEn(centro), ang = tr.rumboPistaGrados(centro) * Math.PI / 180;
+        c.fillStyle = "#94a3b8"; c.fillText(t.id, VX(p.x) + Math.sin(ang) * 18, VY(p.y) - Math.cos(ang) * 18);
+      });
+      pistaObj.puntosDeControl.forEach(function (pc) {
+        if (pc.posicionM > sim.s) return;
+        var p = tr.puntoEn(pc.posicionM), x = VX(p.x), y = VY(p.y);
+        c.fillStyle = "#0b1220"; c.strokeStyle = "#a78bfa"; c.lineWidth = 2;
+        c.beginPath(); c.moveTo(x, y - 8); c.lineTo(x + 6, y); c.lineTo(x, y + 8); c.lineTo(x - 6, y); c.closePath(); c.fill(); c.stroke();
+        c.fillStyle = "#c4b5fd"; c.fillText(pc.id, x, y + 18);
+      });
+    } else {
+      /* Mapa completo (Gemelo V1 creado en adelante) */
+      dibujarPisoYCotas(c, 0.75);
+      for (i = 0; i < n; i++) {
+        a = i * P.CELDA_M; b = a + P.CELDA_M; mid = (a + b) / 2;
+        pa = tr.puntoEn(a); pb = tr.puntoEn(b);
+        if (sim.cinta[i]) {
+          if (mid >= lo && mid <= hi) { c.strokeStyle = COL.fantasma; c.lineWidth = 2; c.setLineDash([2, 4]); }
+          else { c.strokeStyle = COL.cinta; c.lineWidth = 4; c.setLineDash([]); }
+        } else {
+          c.strokeStyle = S.tramoEnsenadoEn(sim, mid) ? COL.ens : COL.sinEns; c.lineWidth = 3; c.setLineDash([4, 4]);
+        }
+        c.beginPath(); c.moveTo(VX(pa.x), VY(pa.y)); c.lineTo(VX(pb.x), VY(pb.y)); c.stroke();
+      }
+      c.setLineDash([]);
+
+      c.textAlign = "center";
+      pistaObj.tramos.forEach(function (t) {
+        if (pistaObj.tramos.length < 2) return;
+        var p = tr.puntoEn((t.desdeM + t.hastaM) / 2), ang = tr.rumboPistaGrados((t.desdeM + t.hastaM) / 2) * Math.PI / 180;
+        c.fillStyle = "#94a3b8"; c.fillText(t.id, VX(p.x) + Math.sin(ang) * 18, VY(p.y) - Math.cos(ang) * 18);
+      });
+      pistaObj.puntosDeControl.forEach(function (pc) {
+        var p = tr.puntoEn(pc.posicionM), x = VX(p.x), y = VY(p.y);
+        c.fillStyle = "#0b1220"; c.strokeStyle = "#a78bfa"; c.lineWidth = 2;
+        c.beginPath(); c.moveTo(x, y - 8); c.lineTo(x + 6, y); c.lineTo(x, y + 8); c.lineTo(x - 6, y); c.closePath(); c.fill(); c.stroke();
+        c.fillStyle = "#c4b5fd"; c.fillText(pc.id, x, y + 18);
+      });
+      dibujarTorresBLE(c, ahora, w);
+    }
 
     var pose = S.poseMundo(sim), f = S.frenteActualCm(sim), at = S.atrasActualCm(sim);
     var zf = S.zonaFrente(sim, f), za = S.zonaFrente(sim, at);
@@ -1442,7 +1709,8 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
     });
 
     c.textAlign = "left"; c.fillStyle = "#94a3b8";
-    c.fillText(tr.id === "B" ? "Pista B · 9,00 m" : "Pista A · 8,05 m", 10, 14);
+    var tit = enInicial ? ("Sin mapear · Pista " + tr.id) : (enLenta ? ("Mapeo base · " + fmt(sim.s, 1) + "/" + fmt(L, 2) + " m") : (enNormal ? ("Trazado detallado · " + fmt(sim.s, 1) + "/" + fmt(L, 2) + " m") : (tr.id === "B" ? "Pista B · 9,00 m" : "Pista A · 8,05 m")));
+    c.fillText(tit, 10, 14);
   }
 
   function dibujarZoom() {
