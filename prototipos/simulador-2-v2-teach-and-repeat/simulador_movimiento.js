@@ -85,6 +85,7 @@
       ensenando: false, perfilTmp: null, rumboMedio: null, obstaculos: [], motivoParada: null,
       bleRadioM: opciones.bleRadioM || P.RADIO_BLE_M, bleCercaM: opciones.bleCercaM || P.CERCA_BLE_M,
       baseLim: null, rampaActiva: false, baseUlt: 0, limitadorActivo: false, cintaVersion: 0,
+      velObjetivoMs: null,
       s: 0, dir: 1, y: 0, yawVerdad: 0, yawAbs: 0, sesgoAcumGrados: 0, sesgoDps: 0,
       vIzqCmd: 0, vDerCmd: 0, vIzq: 0, vDer: 0, vLineal: 0,
       modo: "auto",          /* "auto" = teach-and-repeat · "manual" */
@@ -343,6 +344,16 @@
         sim.lmPrevio = lmAhora;
       } else { sim.lmPrevio = null; }
       var baseNuc = (pwmIzq + pwmDer) / 2, difNuc = (pwmDer - pwmIzq) / 2;
+      if (sim.velObjetivoMs > 0 && baseNuc > 0 && !salida.frenadoCritico) {
+        var pwmObj = clamp(sim.velObjetivoMs / P.V_MAX_MS, 0.1, 1.0);
+        if (pwmObj < baseNuc) {
+          var esc = pwmObj / baseNuc;
+          baseNuc = pwmObj;
+          difNuc = difNuc * Math.max(0.45, esc);
+          pwmIzq = baseNuc - difNuc;
+          pwmDer = baseNuc + difNuc;
+        }
+      }
       if (salida.frenadoCritico) {
         sim.baseLim = baseNuc; sim.rampaActiva = true;
       } else if (salida.precaucion || sim.rampaActiva) {

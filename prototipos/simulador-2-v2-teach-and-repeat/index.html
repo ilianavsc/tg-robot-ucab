@@ -231,7 +231,21 @@
 .step-desc { margin: 4px 0 0 32px; font-family: var(--font-mono); font-size: 11px; color: var(--s2-muted); line-height: 1.35; }
 .step-sub { display: flex; flex-wrap: wrap; gap: 4px 8px; margin: 5px 0 0 32px; font-family: var(--font-mono); font-size: 10.5px; color: #7dd3fc; }
 .step-sub span { padding: 2px 6px; border-radius: 6px; background: rgba(11, 18, 32, 0.7); border: 1px solid var(--s2-borde); }
-.step-accion-inline { margin: 6px 0 0 32px; display: flex; flex-wrap: wrap; gap: 6px; }
+.step-sub span.ok { border-color: var(--s2-ok); color: #86efac; background: rgba(34, 197, 94, 0.14); }
+.step-item.creando { border-color: var(--s2-ok); background: rgba(34, 197, 94, 0.16); box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3); }
+.step-item.fallo { border-color: var(--s2-err); background: rgba(239, 68, 68, 0.12); }
+.step-accion-inline { margin: 6px 0 0 32px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.meta-seg { display: inline-flex; background: var(--s2-bg); border: 1px solid var(--s2-borde); border-radius: 8px; overflow: hidden; }
+.meta-seg button { font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; min-height: 30px; padding: 2px 8px; border: none; border-right: 1px solid var(--s2-borde); background: transparent; color: var(--s2-muted); cursor: pointer; }
+.meta-seg button:last-child { border-right: none; }
+.meta-seg button.sel { background: rgba(56, 189, 248, 0.22); color: #e0f2fe; }
+.viajes-lista { display: grid; gap: 6px; font-family: var(--font-mono); font-size: 11px; font-variant-numeric: tabular-nums; }
+.viaje-row { background: var(--s2-bg); border: 1px solid var(--s2-borde); border-radius: 8px; padding: 7px 10px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; justify-content: space-between; }
+.viaje-row.invalido { border-color: rgba(239, 68, 68, 0.55); color: #fecaca; }
+.viaje-row.valido { border-color: rgba(34, 197, 94, 0.45); }
+.madurez-pill { display: inline-block; font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--s2-borde); color: var(--s2-muted); background: var(--s2-bg); }
+.madurez-pill.ajuste { border-color: var(--s2-warn); color: #fde68a; }
+.madurez-pill.validado { border-color: var(--s2-ok); color: #86efac; background: rgba(34, 197, 94, 0.14); }
 
 /* Botón contextual principal + Freno Remoto */
 .acciones-fijas { display: grid; gap: 8px; }
@@ -473,24 +487,33 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
 
         <!-- Columna derecha: Stepper 4 etapas + Botón contextual + Freno Remoto -->
         <aside class="cockpit-side" aria-label="Flujo de 4 etapas y control">
-          <p class="stepper-titulo">Progreso Teach &amp; Repeat</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <p class="stepper-titulo">Progreso Teach &amp; Repeat</p>
+            <span class="madurez-pill" id="madurez-pill">En construcción</span>
+          </div>
           <ol class="stepper" id="stepper-4">
             <li class="step-item activo" id="step-1">
               <div class="step-cab"><span class="step-num" id="flujo-1">1</span><span class="step-nom">Captura</span></div>
-              <div class="step-sub"><span>Lenta 0,16 m/s</span><span>Normal 0,41 m/s</span></div>
-              <p class="step-desc" id="ruta-ensenada">Ruta enseñada: todavía no</p>
+              <div class="step-sub"><span id="sub-lenta">Lenta 0,16 m/s</span><span id="sub-normal">Normal 0,41 m/s</span></div>
+              <p class="step-desc" id="ruta-ensenada">Sin captura aún</p>
             </li>
             <li class="step-item" id="step-2">
               <div class="step-cab"><span class="step-num" id="flujo-2">2</span><span class="step-nom">Nacimiento Gemelo V1</span></div>
-              <p class="step-desc" id="step-2-desc">Pendiente de captura de rumbo y perfil de pista.</p>
+              <p class="step-desc" id="step-2-desc">Pendiente de captura lenta y normal.</p>
             </li>
             <li class="step-item" id="step-3">
               <div class="step-cab"><span class="step-num" id="flujo-3">3</span><span class="step-nom">Viajes de ajuste</span></div>
-              <p class="step-desc" id="step-3-desc">Repite el recorrido con cinta completa o huecos rectos.</p>
+              <p class="step-desc" id="step-3-desc">0/3 viajes válidos · referencia geométrica fija.</p>
+              <div class="step-accion-inline">
+                <div class="meta-seg" role="group" aria-label="Cantidad de viajes de ajuste">
+                  <button type="button" class="sel" data-meta-viajes="3" aria-pressed="true">3 (Demo)</button>
+                  <button type="button" data-meta-viajes="5" aria-pressed="false">5 (SIL)</button>
+                </div>
+              </div>
             </li>
             <li class="step-item" id="step-4">
               <div class="step-cab"><span class="step-num" id="flujo-4">4</span><span class="step-nom">Fase 1 (BLE + sin cinta)</span></div>
-              <p class="step-desc" id="step-4-desc">Retira cinta en T2 y valida llegada con baliza BLE.</p>
+              <p class="step-desc" id="step-4-desc">Se desbloquea al validar el Gemelo (Etapa 3).</p>
               <div class="step-accion-inline" id="step-4-acciones">
                 <button type="button" class="b b-sm aviso" id="btn-t2-rapido">Quitar cinta T2</button>
               </div>
@@ -498,7 +521,7 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
           </ol>
 
           <div class="acciones-fijas">
-            <button type="button" class="btn-ctx" id="btn-principal-ctx">🎓 Enseñar ruta</button>
+            <button type="button" class="btn-ctx" id="btn-principal-ctx">🎓 Iniciar lectura lenta</button>
             <button type="button" class="btn-freno-perm" id="btn-freno">⛔ Freno Remoto</button>
           </div>
         </aside>
@@ -511,6 +534,7 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
           <summary>Control y ejecución <small>velocidad SIL · pasos · vuelta · cinta · manual D-Pad</small></summary>
           <div class="det-cuerpo">
             <div class="fila">
+              <button class="b info" id="btn-sig-viaje" type="button">⚡ Ejecutar siguiente viaje</button>
               <button class="b info" id="btn-ensenar" type="button">🎓 Enseñar la ruta</button>
               <button class="b ok" id="btn-viaje-ida" type="button">▶ Repetir la ruta</button>
               <button class="b" id="btn-play" type="button" aria-pressed="false">▶ Iniciar</button>
@@ -615,8 +639,14 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
 
         <!-- Panel 3: Datos y registro -->
         <details class="det" id="det-datos">
-          <summary>Datos y registro <small>contrato JSON del gemelo · eventos</small></summary>
+          <summary>Datos y registro <small>historial por viaje · RMS · contrato JSON · eventos</small></summary>
           <div class="det-cuerpo">
+            <div class="panel">
+              <h3>Historial de viajes y métricas RMS</h3>
+              <p class="nota" id="metricas-resumen">Estado aprendizaje: INITIAL · Madurez: En construcción</p>
+              <div class="viajes-lista" id="historial-viajes" style="margin-top:8px"></div>
+            </div>
+
             <details class="det" data-sub="1" id="det-contrato">
               <summary>Contrato del gemelo digital <small>JSON · puente con el mapa de la app</small></summary>
               <div class="det-cuerpo">
@@ -640,7 +670,7 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
 
 <!-- Dock inferior fijo en móvil (botones >= 48px) -->
 <div class="movil-dock" role="region" aria-label="Acciones principales móviles">
-  <button type="button" class="btn-ctx" id="btn-principal-dock">🎓 Enseñar ruta</button>
+  <button type="button" class="btn-ctx" id="btn-principal-dock">🎓 Iniciar lectura lenta</button>
   <button type="button" class="btn-freno-perm" id="btn-freno-dock">⛔ Freno Remoto</button>
 </div>
 
@@ -652,6 +682,7 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
 <script src="radar_us.js"></script>
 <script src="simulador_movimiento.js"></script>
 <script src="gemelo_estado.js"></script>
+<script src="aprendizaje_gemelo.js"></script>
 <script>
 (function () {
   "use strict";
@@ -665,7 +696,9 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
   var corriendo = false, velSim = 1, ultimoFrame = 0, acum = 0, ultimoDom = 0;
   var TICK_MS = 20;
   var modoColocarObs = false;
-  var S = SimMovimiento, R = RadarUS;
+  var S = SimMovimiento, R = RadarUS, A = AprendizajeGemelo;
+  var ap = A.crear({ pistaId: "B", metaViajes: 3 });
+  var timerGemelo = null;
 
   /* ---- 1) Carga el núcleo, la pista canónica y las pistas de SIM1 ---- */
   function cargarNucleo(texto) {
@@ -690,11 +723,13 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
 
   function cargarPista(id) {
     pistaId = id;
+    if (timerGemelo) { clearTimeout(timerGemelo); timerGemelo = null; }
     var p1 = sim1.crearPista(id);
     tr = PistasSim1.crearTrazado(p1, id, NOMBRES[id]);
     pistaObj = PistasSim1.pistaPara(id, canonica, p1.largo);
     sim = S.crear(nucleo, pistaObj, { trazado: tr, cintaCompleta: true, bleRadioM: BLE_RADIO_M, bleCercaM: BLE_CERCA_M });
     sim.sesgoDps = Number($("ctl-deriva").value);
+    ap = A.crear({ pistaId: id, metaViajes: ap ? ap.metaViajes : 3 });
     corriendo = false; acum = 0;
     modoColocarObs = false;
     $("btn-play").textContent = "▶ Iniciar"; $("btn-play").setAttribute("aria-pressed", "false");
@@ -727,14 +762,48 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
   }
 
   /* ---- 2) Bucle de simulación (nunca se pausa por un obstáculo: el robot frena y el tiempo sigue) ---- */
+  function procesarFinDeViaje() {
+    if (!ap.viajeActivo) return;
+    if (sim.nav.paradaSeguridad) {
+      A.finalizarViaje(ap, sim, false, sim.motivoParada || "parada_seguridad");
+      sim.velObjetivoMs = null;
+      detener();
+      refrescarDom(true);
+      return;
+    }
+    if (sim.llegadaCompleta) {
+      A.finalizarViaje(ap, sim, true, "none");
+      sim.velObjetivoMs = null;
+      detener();
+      if (ap.estado === "TWIN_CREATING") {
+        S.registrar(sim, "GEMELO V1 · BASE CREADA (captura lenta + normal validadas)");
+        if (timerGemelo) clearTimeout(timerGemelo);
+        timerGemelo = setTimeout(function () {
+          timerGemelo = null;
+          A.completarNacimientoGemelo(ap);
+          refrescarDom(true);
+        }, A.C.TRANSICION_GEMELO_MS);
+      }
+      refrescarDom(true);
+    }
+  }
+
   function bucle(ahora) {
     var dtReal = Math.min(100, ahora - ultimoFrame);
     ultimoFrame = ahora;
     if (corriendo) {
       acum += dtReal * velSim;
       var n = 0;
-      while (acum >= TICK_MS && n < 60) { S.paso(sim, TICK_MS); acum -= TICK_MS; n++; }
-      if (sim.llegadaCompleta || sim.nav.paradaSeguridad) detener();
+      while (acum >= TICK_MS && n < 60) {
+        S.paso(sim, TICK_MS);
+        if (ap.viajeActivo) A.muestrearTick(ap, sim, TICK_MS);
+        acum -= TICK_MS; n++;
+        if (sim.llegadaCompleta || sim.nav.paradaSeguridad) break;
+      }
+      if (sim.llegadaCompleta || sim.nav.paradaSeguridad) {
+        if (ap.viajeActivo) procesarFinDeViaje();
+        else { detener(); refrescarDom(true); }
+      }
     }
     dibujar(ahora);
     if (ahora - ultimoDom > 100) { refrescarDom(false); ultimoDom = ahora; }
@@ -743,61 +812,113 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
   function detener() { corriendo = false; $("btn-play").textContent = "▶ Reanudar"; $("btn-play").setAttribute("aria-pressed", "false"); }
   function reproducir() { corriendo = true; $("btn-play").textContent = "⏸ Pausar"; $("btn-play").setAttribute("aria-pressed", "true"); }
 
-  /* ---- 3) Controles y Botón Principal Contextual ---- */
+  /* ---- 3) Controles y Botón Principal Contextual (14 estados de aprendizaje) ---- */
   function todaLaCinta() {
     pistaObj.tramos.forEach(function (t) { S.setCinta(sim, t.desdeM, t.hastaM, true); });
     sim.tramosEnsenados = []; sim.huecosRechazados = [];
   }
   function resincronizar() { if (sim.perfiles[sim.dir]) S.ensenar(sim); construirBotonesCinta(); }
 
-  function accionEnsenar() {
+  function iniciarCapturaLenta() {
     todaLaCinta();
     S.iniciarEnsenanza(sim, 1);
+    sim.velObjetivoMs = A.C.VEL_LENTA_MS;
+    A.iniciarViaje(ap, "SLOW_READING", pistaId, sim.L, sim.cinta.length);
     ponerModo("auto");
     construirBotonesCinta();
     reproducir();
     refrescarDom(true);
   }
-  function accionRepetir() {
+  function iniciarPasadaNormal() {
+    todaLaCinta();
     S.nuevoViaje(sim, 1);
+    sim.velObjetivoMs = A.C.VEL_NORMAL_MS;
+    A.iniciarViaje(ap, "NORMAL_READING", pistaId, sim.L, sim.cinta.length);
+    ponerModo("auto");
+    construirBotonesCinta();
+    reproducir();
+    refrescarDom(true);
+  }
+  function iniciarViajeAjuste() {
+    S.nuevoViaje(sim, 1);
+    sim.velObjetivoMs = A.C.VEL_NORMAL_MS;
+    A.iniciarViaje(ap, "ADJUSTING", pistaId, sim.L, sim.cinta.length);
     ponerModo("auto");
     reproducir();
     refrescarDom(true);
   }
+  function accionEnsenar() { iniciarCapturaLenta(); }
+  function accionRepetir() { iniciarViajeAjuste(); }
   function accionReanudar() {
     ponerModo("auto");
     S.reanudar(sim);
-    if (!corriendo) reproducir();
+    if (ap.estado === "FAULT") A.recuperarFallo(ap);
+    if (!corriendo && !sim.llegadaCompleta && !sim.nav.paradaSeguridad) reproducir();
     refrescarDom(true);
   }
   function accionFreno() {
     S.frenoRemoto(sim);
+    if (ap.viajeActivo) {
+      A.finalizarViaje(ap, sim, false, "freno_remoto");
+      sim.velObjetivoMs = null;
+      detener();
+    }
     refrescarDom(true);
   }
 
   function accionPrincipalContextual() {
-    var ens = !!sim.perfiles[1] || !!sim.perfiles[-1];
-    if (sim.frenoRemoto) { accionReanudar(); return; }
-    if (corriendo) { detener(); refrescarDom(true); return; }
-    if (!ens) { accionEnsenar(); return; }
-    if (sim.llegadaCompleta || sim.nav.paradaSeguridad || sim.s <= 0.05) { accionRepetir(); return; }
-    reproducir();
-    refrescarDom(true);
+    var b = A.etiquetaBoton(ap, corriendo, sim.frenoRemoto);
+    if (b.accion === "reanudar") { accionReanudar(); return; }
+    if (b.accion === "recuperar") { A.recuperarFallo(ap); refrescarDom(true); return; }
+    if (b.accion === "pausar") { detener(); refrescarDom(true); return; }
+    if (b.accion === "continuar") { reproducir(); refrescarDom(true); return; }
+    if (b.accion === "lenta") { iniciarCapturaLenta(); return; }
+    if (b.accion === "normal") { iniciarPasadaNormal(); return; }
+    if (b.accion === "ajuste") { iniciarViajeAjuste(); return; }
+    if (b.accion === "evaluar") {
+      var ev = A.evaluarGemelo(ap);
+      S.registrar(sim, "Evaluación gemelo: " + (ev.aprobado ? "PHASE1_READY" : "ADJUSTMENT_REQUIRED") + " (" + ev.motivo + ")");
+      refrescarDom(true);
+      return;
+    }
+    if (b.accion === "esperar" || b.accion === "fase1_info") { refrescarDom(true); return; }
+  }
+
+  /* Acción secundaria: ejecuta exactamente 1 viaje siguiente sin ocultar fallos */
+  function ejecutarSiguienteViajeRapido() {
+    if (ap.estado === "TWIN_CREATING") { A.completarNacimientoGemelo(ap); refrescarDom(true); return; }
+    if (ap.estado === "FAULT") { A.recuperarFallo(ap); }
+    if (ap.estado === "EVALUATION_PENDING") {
+      A.evaluarGemelo(ap); refrescarDom(true); return;
+    }
+    if (ap.estado === "PHASE1_READY") { refrescarDom(true); return; }
+    if (!ap.viajeActivo) {
+      if (!ap.capturaLentaOk) iniciarCapturaLenta();
+      else if (!ap.capturaNormalOk) iniciarPasadaNormal();
+      else iniciarViajeAjuste();
+    }
+    detener();
+    var maxTicks = 5000, k = 0;
+    while (k < maxTicks && !sim.llegadaCompleta && !sim.nav.paradaSeguridad && !sim.frenoRemoto) {
+      S.paso(sim, TICK_MS);
+      if (ap.viajeActivo) A.muestrearTick(ap, sim, TICK_MS);
+      k++;
+    }
+    if (sim.llegadaCompleta || sim.nav.paradaSeguridad) {
+      procesarFinDeViaje();
+    } else if (ap.viajeActivo) {
+      A.finalizarViaje(ap, sim, false, "timeout_viaje");
+      sim.velObjetivoMs = null;
+      refrescarDom(true);
+    }
   }
 
   function actualizarBotonesContextuales() {
-    var ens = !!sim.perfiles[1] || !!sim.perfiles[-1];
-    var txt = "🎓 Enseñar ruta", cls = "btn-ctx";
-    if (sim.frenoRemoto) { txt = "▶ Reanudar (auto)"; cls = "btn-ctx ok"; }
-    else if (corriendo) { txt = "⏸ Pausar"; cls = "btn-ctx aviso"; }
-    else if (!ens) { txt = "🎓 Enseñar ruta"; cls = "btn-ctx"; }
-    else if (sim.llegadaCompleta || sim.nav.paradaSeguridad || sim.s <= 0.05) { txt = "▶ Repetir ruta"; cls = "btn-ctx ok"; }
-    else { txt = "▶ Reanudar"; cls = "btn-ctx ok"; }
-
+    var b = A.etiquetaBoton(ap, corriendo, sim.frenoRemoto);
     ["btn-principal-ctx", "btn-principal-dock"].forEach(function (id) {
       var el = $(id);
-      el.textContent = txt;
-      el.className = cls;
+      el.textContent = b.texto;
+      el.className = b.clase;
     });
   }
 
@@ -807,6 +928,19 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
     });
     $("btn-principal-ctx").addEventListener("click", accionPrincipalContextual);
     $("btn-principal-dock").addEventListener("click", accionPrincipalContextual);
+    $("btn-sig-viaje").addEventListener("click", ejecutarSiguienteViajeRapido);
+    Array.prototype.forEach.call(document.querySelectorAll("[data-meta-viajes]"), function (b) {
+      b.addEventListener("click", function () {
+        var n = Number(b.getAttribute("data-meta-viajes"));
+        A.setMetaViajes(ap, n);
+        Array.prototype.forEach.call(document.querySelectorAll("[data-meta-viajes]"), function (o) {
+          var on = Number(o.getAttribute("data-meta-viajes")) === ap.metaViajes;
+          o.classList.toggle("sel", on);
+          o.setAttribute("aria-pressed", String(on));
+        });
+        refrescarDom(true);
+      });
+    });
     $("btn-freno").addEventListener("click", accionFreno);
     $("btn-freno-dock").addEventListener("click", accionFreno);
     $("btn-ensenar").addEventListener("click", accionEnsenar);
@@ -1005,38 +1139,66 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
   function fmt(x, d) { return x.toFixed(d).replace(".", ","); }
   function zonaTxt(z) { return z === "critica" ? "PARADA CRÍTICA (< 20 cm)" : (z === "precaucion" ? "PRECAUCIÓN (20–50 cm)" : "LIBRE"); }
 
-  /* Prioridad visual: parada > obstáculo > fallo sensor > advertencia > llegada > normal */
+  /* Prioridad visual: parada > obstáculo > fallo sensor > advertencia > llegada/gemelo > normal */
   function alertaActual(vel, zf, zatras, f) {
     if (sim.nav.paradaSeguridad) return { n: "", t: "PARADA DE SEGURIDAD · " + (sim.motivoParada || "latch") + " · " + vel + " m/s" };
     if ((sim.ultimaSalida && sim.ultimaSalida.frenadoCritico && sim.modo === "auto") || zf === "critica") return { n: "", t: "FRENADO POR OBSTÁCULO (< 20 cm) · " + vel + " m/s" };
     if (f < 0) return { n: "", t: "FALLO SENSOR FRONTAL (sin eco) · parada" };
+    if (ap.estado === "FAULT") return { n: "", t: "PASADA INVÁLIDA (" + (ap.motivoFallo || "interrumpida") + ") · no cuenta, reintenta" };
     if (zf === "precaucion") return { n: "aviso", t: "OBSTÁCULO CERCA (20–50 cm) · " + vel + " m/s" };
     if (zatras === "critica") return { n: "aviso", t: "OBSTÁCULO ATRÁS < 20 cm · retroceso bloqueado" };
     if (sim.frenoRemoto) return { n: "aviso", t: "FRENO REMOTO ACTIVO · orden frenar" };
-    if (sim.llegadaCompleta) return { n: "ok", t: sim.rutaEnsenada && !sim.ensenando && sim.perfiles[sim.dir] ? "LLEGADA VALIDADA POR BALIZA BLE · ruta repetida" : "LLEGADA VALIDADA POR BALIZA BLE" };
+    if (ap.estado === "ADJUSTMENT_REQUIRED" && ap.ultimaEvaluacion) return { n: "aviso", t: "AJUSTE REQUERIDO · " + ap.ultimaEvaluacion.motivo };
+    if (ap.estado === "TWIN_CREATING") return { n: "ok", t: "GEMELO V1 · BASE CREADA (captura lenta + normal validadas)" };
+    if (ap.estado === "PHASE1_READY") return { n: "ok", t: "GEMELO VALIDADO FASE 1 · listo para Etapa 3 (BLE + sin cinta)" };
+    if (sim.llegadaCompleta) return { n: "ok", t: "LLEGADA VALIDADA POR BALIZA BLE · viaje registrado" };
     return null;
   }
 
-  function actualizarStepper(ens) {
-    var huecos = S.huecosDeCinta(sim);
+  function actualizarStepper() {
     var recta = tr.rectaMasLarga(10);
     var puedeSinCinta = recta.largoM >= 1.5;
+    var est = ap.estado;
     var etapaActiva = 1;
-    if (ens && !sim.ensenando) etapaActiva = 2;
-    if (ens && !sim.ensenando && (sim.s > 0.1 || sim.llegadaCompleta)) etapaActiva = 3;
-    if (ens && huecos.length > 0) etapaActiva = 4;
+    if (est === "TWIN_CREATING" || est === "TWIN_V1_READY") etapaActiva = 2;
+    else if (est === "ADJUSTING" || est === "EVALUATION_PENDING" || est === "ADJUSTMENT_REQUIRED") etapaActiva = 3;
+    else if (est === "PHASE1_READY" || est === "BEACONS_STARTING" || est === "BEACONS_ACTIVE" || est === "NO_TAPE_TEST" || est === "PHASE1_VALIDATED") etapaActiva = 4;
+    else if (est === "FAULT") etapaActiva = !ap.capturaNormalOk ? 1 : 3;
+
+    var h1 = ap.capturaLentaOk && ap.capturaNormalOk;
+    var h2 = h1 && est !== "TWIN_CREATING";
+    var h3 = est === "PHASE1_READY" || est === "PHASE1_VALIDATED";
+    var h4 = est === "PHASE1_VALIDATED";
 
     [1, 2, 3, 4].forEach(function (n) {
       var li = $("step-" + n);
-      var hecho = (n === 1 && ens) || (n === 2 && ens) || (n === 3 && ens && sim.llegadaCompleta && !sim.ensenando) || (n === 4 && ens && huecos.length > 0 && sim.llegadaCompleta);
-      li.className = "step-item" + (n === etapaActiva ? " activo" : "") + (hecho ? " hecho" : "") + (n === 4 && !puedeSinCinta ? " bloqueado" : "");
+      var hecho = (n === 1 && h1) || (n === 2 && h2) || (n === 3 && h3) || (n === 4 && h4);
+      li.className = "step-item" +
+        (n === etapaActiva ? " activo" : "") +
+        (hecho ? " hecho" : "") +
+        (n === 2 && est === "TWIN_CREATING" ? " creando" : "") +
+        (n === etapaActiva && est === "FAULT" ? " fallo" : "") +
+        (n === 4 && !puedeSinCinta ? " bloqueado" : "");
       $("flujo-" + n).textContent = hecho ? "✓" : String(n);
     });
 
-    $("step-2-desc").textContent = ens ? "Gemelo V1 activo: perfil de rumbo grabado (" + fmt(sim.L, 2) + " m)." : "Completa Captura para generar el Gemelo V1.";
-    $("step-3-desc").textContent = ens
-      ? (sim.llegadaCompleta && !sim.ensenando ? "Viaje completado y validado por baliza." : "Listo para repetir y verificar desvío lateral.")
-      : "Disponible tras generar el Gemelo V1.";
+    $("sub-lenta").className = ap.capturaLentaOk ? "ok" : "";
+    $("sub-lenta").textContent = (ap.capturaLentaOk ? "✓ " : "") + "Lenta 0,16 m/s";
+    $("sub-normal").className = ap.capturaNormalOk ? "ok" : "";
+    $("sub-normal").textContent = (ap.capturaNormalOk ? "✓ " : "") + "Normal 0,41 m/s";
+
+    $("step-2-desc").textContent = est === "TWIN_CREATING"
+      ? "GEMELO V1 · BASE CREADA"
+      : (h2 ? "Gemelo V1 activo · ref. geométrica fija (" + fmt(sim.L, 2) + " m)." : "Se crea automáticamente al validar lenta + normal.");
+
+    var met = A.resumenMetricas(ap);
+    var madEl = $("madurez-pill");
+    madEl.textContent = met.madurez;
+    madEl.className = "madurez-pill" + (met.madurez === "Validado Fase 1" ? " validado" : (met.madurez === "En ajuste" ? " ajuste" : ""));
+
+    $("step-3-desc").textContent = ap.viajesAjusteValidos + "/" + ap.metaViajes + " viajes válidos" +
+      (met.rmsLatMm > 0 ? " · RMS " + fmt(met.rmsLatMm, 1) + " mm / " + fmt(met.rmsHeadDeg, 1) + "°" : "") +
+      (est === "EVALUATION_PENDING" ? " · listo para evaluar" : (est === "ADJUSTMENT_REQUIRED" ? " · ajuste requerido" : ""));
 
     var btnT2 = $("btn-t2-rapido");
     if (!puedeSinCinta) {
@@ -1045,11 +1207,11 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
     } else {
       var t2 = pistaObj.tramos.filter(function (t) { return t.id === "T2"; })[0];
       var t2Con = t2 ? S.tramoConCinta(sim, t2.desdeM, t2.hastaM) : true;
-      $("step-4-desc").textContent = t2Con
-        ? "Pista B: retira cinta en T2 para probar HEADING_HOLD + baliza BLE."
-        : "T2 sin cinta activo: el núcleo usa HEADING_HOLD y confirma con BLE.";
+      $("step-4-desc").textContent = est === "PHASE1_READY"
+        ? "Gemelo validado · listo para balizas BLE y sin cinta (Etapa 3)."
+        : (t2Con ? "Se desbloquea al validar Fase 1 en Etapa 3." : "T2 sin cinta activo.");
       btnT2.style.display = "inline-flex";
-      btnT2.disabled = !ens;
+      btnT2.disabled = !(ap.capturaLentaOk && ap.capturaNormalOk);
       btnT2.textContent = t2Con ? "➖ Quitar cinta T2" : "♻️ Restaurar cinta T2";
     }
   }
@@ -1112,7 +1274,8 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
     barUs.textContent = "F " + (f > 0 ? fmt(f, 0) : "—") + " · A " + fmt(a, 0) + " cm";
     barUs.className = zf === "critica" ? "critica" : (zf === "precaucion" ? "aviso" : "ok");
     $("bar-mpu-ble").textContent = fmt(ym, 1) + "° · " + (hay ? rs.baliza + " " + fmt(rs.rssi, 0) + " dBm" : "BLE —");
-    $("bar-err").textContent = fmt(sim.y * 100, 1) + " cm · " + vel + " m/s";
+    var met = A.resumenMetricas(ap);
+    $("bar-err").textContent = (met.rmsLatMm > 0 ? fmt(met.rmsLatMm, 1) + " mm · " + fmt(met.rmsHeadDeg, 1) + "°" : fmt(sim.y * 100, 1) + " cm · " + vel + " m/s");
 
     /* Velocímetro SVG (0,00–0,46 m/s) */
     var v = R.velocimetro(sim.vLineal);
@@ -1127,21 +1290,34 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
     else { el.textContent = "Sin alertas"; el.className = "alerta vacia"; }
 
     /* Stepper 4 etapas + botón contextual + obstáculo */
-    var ens = !!sim.perfiles[1] || !!sim.perfiles[-1];
-    actualizarStepper(ens);
+    actualizarStepper();
     actualizarBotonesContextuales();
     actualizarControlesObstaculo();
 
-    var huecos = sim.tramosEnsenados.map(function (t) { return fmt(t.desdeM, 1) + "–" + fmt(t.hastaM, 1) + " m"; });
-    $("ruta-ensenada").textContent = (sim.ensenando ? "Capturando… " + Math.round(sim.s / sim.L * 100) + " %" : (ens ? "Captura lista ✔" : "Sin captura aún")) + (huecos.length ? " · huecos: " + huecos.join(", ") : "");
+    $("ruta-ensenada").textContent = ap.viajeActivo && (ap.estado === "SLOW_READING" || ap.estado === "NORMAL_READING")
+      ? (ap.estado === "SLOW_READING" ? "Lectura lenta… " : "Pasada normal… ") + Math.round(sim.s / sim.L * 100) + " %"
+      : (ap.capturaLentaOk && ap.capturaNormalOk ? "Lenta + Normal validadas ✔" : (ap.capturaLentaOk ? "Lenta ✔ · falta pasada normal" : "Sin captura aún"));
 
-    if ($("det-datos").open && $("det-contrato").open) {
-      var e = GemeloEstado.estadoGemelo(sim, S);
-      $("contrato-json").textContent = JSON.stringify(e, null, 2) + "\n\n// contrato app + posición del gemelo\n" + JSON.stringify(GemeloEstado.aContratoApp(e, sim, S), null, 2);
-    }
-    if ($("det-datos").open && $("det-registro").open) {
-      var log = $("log-eventos");
-      log.innerHTML = sim.eventos.slice(-8).reverse().map(function (e) { return "<div><b>" + fmt(e.t, 2) + " s</b> " + e.texto.replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }) + "</div>"; }).join("");
+    if ($("det-datos").open) {
+      $("metricas-resumen").textContent = "Estado: " + ap.estado + " · Madurez: " + met.madurez +
+        " · RMS lat: " + fmt(met.rmsLatMm, 2) + " mm · RMS ang: " + fmt(met.rmsHeadDeg, 2) + "° · Mejora: " + fmt(met.mejoraPct, 1) + " % · tau: " + fmt(met.wheelTauS, 3) + " s";
+      var hv = $("historial-viajes");
+      hv.innerHTML = ap.viajes.length
+        ? ap.viajes.slice().reverse().map(function (trp) {
+            return '<div class="viaje-row ' + (trp.valid ? "valido" : "invalido") + '">' +
+              '<span><b>#' + trp.trip_id + ' ' + trp.trip_type + '</b> (' + trp.track_id + ') · ' + fmt(trp.actual_speed_ms, 2) + '/' + fmt(trp.target_speed_ms, 2) + ' m/s</span>' +
+              '<span>RMS ' + fmt(trp.lateral_error_rms_mm, 1) + ' mm / ' + fmt(trp.heading_error_rms_deg, 1) + '° · cob ' + fmt(trp.coverage_pct, 0) + '% · ' + (trp.valid ? "✔ válido" : "✕ " + trp.stop_reason) + '</span>' +
+            '</div>';
+          }).join("")
+        : '<p class="nota">Aún no hay viajes registrados.</p>';
+      if ($("det-contrato").open) {
+        var e = GemeloEstado.estadoGemelo(sim, S);
+        $("contrato-json").textContent = JSON.stringify(e, null, 2) + "\n\n// aprendizaje (Etapa 2)\n" + JSON.stringify({ estado: ap.estado, madurez: ap.madurez, viajes: ap.viajes.length, validos_ajuste: ap.viajesAjusteValidos, meta: ap.metaViajes, evaluacion: ap.ultimaEvaluacion }, null, 2);
+      }
+      if ($("det-registro").open) {
+        var log = $("log-eventos");
+        log.innerHTML = sim.eventos.slice(-8).reverse().map(function (e) { return "<div><b>" + fmt(e.t, 2) + " s</b> " + e.texto.replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }) + "</div>"; }).join("");
+      }
     }
   }
 
@@ -1153,6 +1329,7 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
   var vista = { sc: 100, ox: 0, oy: 0 };
   function redimensionar() { dimP = ajustar(cvP); if ($("det-zoom").open) dimZ = ajustar(cvZ); }
   $("det-zoom").addEventListener("toggle", function () { if ($("det-zoom").open) dimZ = ajustar(cvZ); });
+  $("det-datos").addEventListener("toggle", function () { if ($("det-datos").open) refrescarDom(true); });
   $("det-contrato").addEventListener("toggle", function () { if ($("det-contrato").open) refrescarDom(true); });
   $("det-registro").addEventListener("toggle", function () { if ($("det-registro").open) refrescarDom(true); });
 
@@ -1298,7 +1475,7 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
     c.fillText("cinta de 19 mm a escala · avance →", 8, h - 8);
   }
 
-  window.__sim2 = { get sim() { return sim; }, get tr() { return tr; }, get vista() { return vista; }, cargarPista: cargarPista, refrescar: refrescarDom };
+  window.__sim2 = { get sim() { return sim; }, get ap() { return ap; }, get tr() { return tr; }, get vista() { return vista; }, cargarPista: cargarPista, refrescar: refrescarDom };
 })();
 </script>
 </body>

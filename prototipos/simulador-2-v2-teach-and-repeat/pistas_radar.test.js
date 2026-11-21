@@ -225,11 +225,128 @@ module.exports = async function (ctx) {
   });
 
   await prueba("los archivos nuevos no reimplementan la máquina de estados ni mencionan 'IA'", () => {
-    for (const f of ["pistas_sim1.js", "radar_us.js", "gemelo_estado.js", "simulador_movimiento.js", "index.html"]) {
+    for (const f of ["pistas_sim1.js", "radar_us.js", "gemelo_estado.js", "simulador_movimiento.js", "aprendizaje_gemelo.js", "index.html"]) {
       const src = fs.readFileSync(path.join(__dirname, f), "utf8");
       assert.ok(!/nav\.estado\s*=[^=]/.test(src), f + " asigna nav.estado");
       assert.ok(!/case\s+(ESTADO|nucleo\.ESTADO)\./.test(src), f + " reimplementa el switch");
       assert.ok(!new RegExp(["\\bI", "A\\b|inteligencia ", "artificial"].join(""), "i").test(src), f + " menciona IA");
     }
+  });
+
+  /* ---- Etapa 2: Máquina de 14 estados de aprendizaje + Gemelo V1 + Registro RMS ---- */
+  const A = require("./aprendizaje_gemelo.js");
+
+  await prueba("Etapa 2: máquina de 14 estados completa INITIAL → SLOW_READING → NORMAL_READING → TWIN_CREATING → TWIN_V1_READY → ADJUSTING (×3) → EVALUATION_PENDING → PHASE1_READY", () => {
+    assert.strictEqual(A.ESTADOS.length, 14);
+    const m = mundo("B");
+    const ap = A.crear({ pistaId: "B", metaViajes: 3 });
+    assert.strictEqual(ap.estado, "INITIAL");
+
+    /* 1) Lectura lenta (0,16 m/s) */
+    S.iniciarEnsenanza(m.sim, 1); m.sim.velObjetivoMs = A.C.VEL_LENTA_MS;
+    A.iniciarViaje(ap, "SLOW_READING", "B", m.sim.L, m.sim.cinta.length);
+    assert.strictEqual(ap.estado, "SLOW_READING");
+    for (let i = 0; i < 4000 && !m.sim.llegadaCompleta; i++) { S.paso(m.sim, 20); A.muestrearTick(ap, m.sim, 20); }
+    assert.ok(m.sim.llegadaCompleta, "lectura lenta llegó");
+    const regLenta = A.finalizarViaje(ap, m.sim, true, "none");
+    assert.strictEqual(regLenta.valid, true);
+    assert.ok(regLenta.actual_speed_ms >= 0.12 && regLenta.actual_speed_ms <= 0.22, "vel lenta " + regLenta.actual_speed_ms);
+    assert.strictEqual(ap.estado, "NORMAL_READING");
+
+    /* 2) Pasada normal (0,41 m/s) -> TWIN_CREATING automático -> TWIN_V1_READY */
+    S.nuevoViaje(m.sim, 1); m.sim.velObjetivoMs = A.C.VEL_NORMAL_MS;
+    A.iniciarViaje(ap, "NORMAL_READING", "B", m.sim.L, m.sim.cinta.length);
+    for (let i = 0; i < 2000 && !m.sim.llegadaCompleta; i++) { S.paso(m.sim, 20); A.muestrearTick(ap, m.sim, 20); }
+    const regNorm = A.finalizarViaje(ap, m.sim, true, "none");
+    assert.strictEqual(regNorm.valid, true);
+    assert.ok(regNorm.actual_speed_ms >= 0.35 && regNorm.actual_speed_ms <= 0.46, "vel normal " + regNorm.actual_speed_ms);
+    assert.strictEqual(ap.estado, "TWIN_CREATING");
+    assert.strictEqual(A.completarNacimientoGemelo(ap), true);
+    assert.strictEqual(ap.estado, "TWIN_V1_READY");
+
+    /* 3) 3 viajes de ajuste -> EVALUATION_PENDING -> PHASE1_READY */
+    for (let k = 0; k < 3; k++) {
+      S.nuevoViaje(m.sim, 1); m.sim.velObjetivoMs = A.C.VEL_NORMAL_MS;
+      A.iniciarViaje(ap, "ADJUSTING", "B", m.sim.L, m.sim.cinta.length);
+      for (let i = 0; i < 2000 && !m.sim.llegadaCompleta; i++) { S.paso(m.sim, 20); A.muestrearTick(ap, m.sim, 20); }
+      const r = A.finalizarViaje(ap, m.sim, true, "none");
+      assert.strictEqual(r.valid, true);
+    }
+    assert.strictEqual(ap.viajesAjusteValidos, 3);
+    assert.strictEqual(ap.estado, "EVALUATION_PENDING");
+    const ev = A.evaluarGemelo(ap);
+    assert.strictEqual(ev.aprobado, true, "evaluación: " + ev.motivo);
+    assert.strictEqual(ap.estado, "PHASE1_READY");
+    assert.strictEqual(ap.madurez, "Validado Fase 1");
+  });
+
+  await prueba("Etapa 2: registro estructurado por viaje incluye las 13 llaves exactas", () => {
+    const m = mundo("B");
+    const ap = A.crear({ pistaId: "B" });
+    S.iniciarEnsenanza(m.sim, 1); m.sim.velObjetivoMs = A.C.VEL_LENTA_MS;
+    A.iniciarViaje(ap, "SLOW_READING", "B", m.sim.L, m.sim.cinta.length);
+    for (let i = 0; i < 4000 && !m.sim.llegadaCompleta; i++) { S.paso(m.sim, 20); A.muestrearTick(ap, m.sim, 20); }
+    const reg = A.finalizarViaje(ap, m.sim, true, "none");
+    assert.deepStrictEqual(Object.keys(reg).sort(), [
+      "actual_speed_ms", "coverage_pct", "duration_s", "heading_error_rms_deg",
+      "lateral_error_rms_mm", "length_m", "stop_reason", "target_speed_ms",
+      "track_id", "trip_id", "trip_type", "valid", "wheel_tau_s"
+    ]);
+  });
+
+  await prueba("Etapa 2: interrupción con Freno Remoto o pasada incompleta pasa a FAULT y NO cuenta", () => {
+    const m = mundo("B");
+    const ap = A.crear({ pistaId: "B" });
+    S.iniciarEnsenanza(m.sim, 1); m.sim.velObjetivoMs = A.C.VEL_LENTA_MS;
+    A.iniciarViaje(ap, "SLOW_READING", "B", m.sim.L, m.sim.cinta.length);
+    for (let i = 0; i < 40; i++) { S.paso(m.sim, 20); A.muestrearTick(ap, m.sim, 20); }
+    S.frenoRemoto(m.sim);
+    const reg = A.finalizarViaje(ap, m.sim, false, "freno_remoto");
+    assert.strictEqual(reg.valid, false);
+    assert.strictEqual(reg.stop_reason, "freno_remoto");
+    assert.strictEqual(ap.estado, "FAULT");
+    assert.strictEqual(ap.capturaLentaOk, false);
+    assert.strictEqual(ap.geometriaRef, null);
+    assert.strictEqual(A.recuperarFallo(ap), "INITIAL");
+  });
+
+  await prueba("Etapa 2: regla de ingeniería — referencia geométrica congelada tras lectura lenta", () => {
+    const m = mundo("B");
+    const ap = A.crear({ pistaId: "B" });
+    S.iniciarEnsenanza(m.sim, 1); m.sim.velObjetivoMs = A.C.VEL_LENTA_MS;
+    A.iniciarViaje(ap, "SLOW_READING", "B", m.sim.L, m.sim.cinta.length);
+    for (let i = 0; i < 4000 && !m.sim.llegadaCompleta; i++) { S.paso(m.sim, 20); A.muestrearTick(ap, m.sim, 20); }
+    A.finalizarViaje(ap, m.sim, true, "none");
+    const refOriginal = ap.geometriaRef;
+    assert.ok(refOriginal && Object.isFrozen(refOriginal) && Object.isFrozen(refOriginal.celdas));
+    /* Pasada normal + ajuste NO cambian la referencia geométrica */
+    S.nuevoViaje(m.sim, 1); m.sim.velObjetivoMs = A.C.VEL_NORMAL_MS;
+    A.iniciarViaje(ap, "NORMAL_READING", "B", m.sim.L, m.sim.cinta.length);
+    for (let i = 0; i < 2000 && !m.sim.llegadaCompleta; i++) { S.paso(m.sim, 20); A.muestrearTick(ap, m.sim, 20); }
+    A.finalizarViaje(ap, m.sim, true, "none");
+    A.completarNacimientoGemelo(ap);
+    assert.strictEqual(ap.geometriaRef, refOriginal);
+  });
+
+  await prueba("Etapa 2: calidad > contador — viajes con RMS alto pasan a ADJUSTMENT_REQUIRED y selector 5 viajes exige 5", () => {
+    const ap = A.crear({ pistaId: "B", metaViajes: 3 });
+    ap.capturaLentaOk = true; ap.capturaNormalOk = true;
+    ap.geometriaRef = Object.freeze({ track_id: "B", length_m: 9.0, celdas: Object.freeze([]) });
+    ap.estado = "EVALUATION_PENDING";
+    ap.viajesAjusteValidos = 3;
+    for (let i = 1; i <= 3; i++) {
+      ap.viajes.push({
+        trip_id: i, trip_type: "ADJUSTING", track_id: "B", target_speed_ms: 0.41, actual_speed_ms: 0.41,
+        duration_s: 22, length_m: 9.0, coverage_pct: 100, lateral_error_rms_mm: 24.5, heading_error_rms_deg: 2.1,
+        wheel_tau_s: 0.18, valid: true, stop_reason: "none"
+      });
+    }
+    const ev = A.evaluarGemelo(ap);
+    assert.strictEqual(ev.aprobado, false);
+    assert.strictEqual(ap.estado, "ADJUSTMENT_REQUIRED");
+    /* Selector 5 viajes (SIL) exige 5 */
+    A.setMetaViajes(ap, 5);
+    assert.strictEqual(ap.metaViajes, 5);
+    assert.strictEqual(A.evaluarGemelo(ap).aprobado, false);
   });
 };
