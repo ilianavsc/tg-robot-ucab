@@ -1,0 +1,439 @@
+/*
+  DATOS DEL PROYECTO
+  Este es el único archivo que hay que editar para actualizar el sitio.
+  Fechas siempre en formato AAAA-MM-DD.
+*/
+window.TG = {
+  titulo: "Robot móvil de búsqueda y transporte",
+  autoras: "Iliana Semprun y Andrea Ferrer",
+  tutor: "Ing. Biagio Cante",
+  repo: "https://github.com/ilianavsc/tg-robot-ucab",
+  inicio: "2026-10-26",
+  fin: "2027-06-11",
+  totalSemanas: 32,
+
+  fases: [
+    { id: "I", nombre: "Revisión y levantamiento", inicio: "2026-10-26", fin: "2026-11-20", semanas: "1 a 4",
+      que: "Revisión documental, entrevistas al personal técnico y observación directa en el laboratorio para definir requerimientos y seleccionar el hardware.",
+      hito: "Documento de requerimientos y matriz de hardware" },
+    { id: "II", nombre: "Diseño del sistema", inicio: "2026-11-23", fin: "2026-12-18", semanas: "5 a 8",
+      que: "Arquitectura MQTT (tópicos y QoS), modelado CAD del chasis y esquema electrónico del ESP32.",
+      hito: "Planos del chasis, diagramas y arquitectura de red" },
+    { id: "III", nombre: "Construcción y firmware", inicio: "2026-12-21", fin: "2027-02-05", semanas: "9 a 14",
+      que: "Impresión 3D y montaje del chasis. Programación del PID, los sensores y el cliente MQTT en el ESP32.",
+      hito: "Plataforma armada y firmware funcional" },
+    { id: "IV", nombre: "Navegación progresiva", inicio: "2027-02-08", fin: "2027-03-12", semanas: "15 a 19",
+      que: "Mapeo relativo, pruebas híbridas, fusión de sensores (Kalman) y re-localización con QR o BLE.",
+      hito: "Navegación validada con medición de errores" },
+    { id: "V", nombre: "App y backend", inicio: "2027-03-15", fin: "2027-04-16", semanas: "20 a 24",
+      que: "App en Flutter, integración con Firebase, notificaciones y trazabilidad.",
+      hito: "Aplicación integrada y funcional" },
+    { id: "VI", nombre: "Integración y alertas", inicio: "2027-04-19", fin: "2027-05-07", semanas: "25 a 27",
+      que: "Unión de hardware y software. Calibración del acelerómetro y evaluación de falsas alarmas antirrobo.",
+      hito: "Prototipo integrado con alertas" },
+    { id: "VII", nombre: "Pruebas y redacción final", inicio: "2027-05-10", fin: "2027-06-11", semanas: "28 a 32",
+      que: "Ensayos en maqueta (mínimo 20 repeticiones), análisis estadístico, redacción del tomo y preparación de la defensa.",
+      hito: "Entrega del Trabajo de Grado" }
+  ],
+
+  eventos: [
+    { nombre: "Semana extra (parciales)", inicio: "2027-01-11", fin: "2027-01-16", tipo: "extra",
+      nota: "Era pausa por exámenes, pero seguimos trabajando: es una semana de ventaja para la Fase III." },
+    { nombre: "Ventana de oro", inicio: "2027-03-15", fin: "2027-04-09", tipo: "oro",
+      nota: "Sin clases: tiempo para el trabajo pesado." }
+  ],
+
+  /* estado: "listo" | "en_pruebas" | "pendiente"
+     categoria: "software" | "hardware" | "app"  (agrupación visual del portafolio) */
+  prototipos: [
+    { codigo: "P01", nombre: "Así se hablan el robot y la app", tema: "MQTT", semana: 3, estado: "listo", categoria: "software", etapa: 1, url: "prototipos/P01-mqtt-base/simulador-3d/", principal: true, simulador: "prototipos/P01-mqtt-base/simulador-3d/simulador.html", simuladorTexto: "Simulador 3D de los mensajes", ino: "prototipos/P01-mqtt-base/codigo-esp32/robot_mqtt/robot_mqtt.ino", historico: "prototipos/P01-mqtt-base/README.md", historicoTexto: "Registro de la Fase I: pruebas T1 a T7 y Wokwi" },
+    { codigo: "P02", nombre: "Los sentidos del robot", tema: "Sensores (TCRT5000 + HC-SR04P + MPU-6050)", semana: 5, estado: "en_pruebas", categoria: "hardware", etapa: 1, nota: "Consolida la línea (4× TCRT5000) y el radar ultrasónico (2× HC-SR04P, TRIG atrás GPIO 15); MPU-6050 reservada para heading hold." },
+    { codigo: "P03", nombre: "Motores que van parejo", tema: "PID", semana: 6, estado: "listo", categoria: "software", etapa: 1, url: "prototipos/P03-motores/avance-02-simulador-3d/", principal: true, simulador: "prototipos/P03-motores/avance-02-simulador-3d/simulador.html", simuladorTexto: "Vitrina 3D autónoma de los componentes del robot", ino: "prototipos/P03-motores/avance-02-simulador-3d/codigo-esp32/traccion_encoders/traccion_encoders.ino" },
+    { codigo: "P04", nombre: "Balizas BLE (Extremos)", tema: "BLE", semana: 7, estado: "pendiente", categoria: "hardware", etapa: 2 },
+    { codigo: "P05", nombre: "Robot virtual y puente", tema: "Firebase", semana: 9, estado: "en_pruebas", categoria: "app", etapa: 2 },
+    { codigo: "P07", nombre: "El cerebro completo", tema: "Firmware", semana: 12, estado: "en_pruebas", categoria: "hardware", etapa: 2 },
+    { codigo: "P08", nombre: "Seguir la línea", tema: "Simulador 3D", semana: 13, estado: "listo", categoria: "software", etapa: 2, url: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/", principal: true, simulador: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/simulador.html", simuladorTexto: "Simulador 1 de aprendizaje progresivo (2 pistas, manual y automático)", ino: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/codigo-esp32/seguidor_linea/seguidor_linea.ino" },
+    { codigo: "P09", nombre: "App Flutter (v1 · Modo Demo)", tema: "Flutter", semana: 15, estado: "listo", categoria: "app", etapa: 3, url: "app/", principal: true, simulador: "app/", simuladorTexto: "Abrir App Web (Modo Demo)" },
+    { codigo: "P10", nombre: "Prueba ESP32 ↔ App Web", tema: "MQTT Web", semana: 21, estado: "listo", categoria: "app", etapa: 1, url: "prototipos/P10-simulador-esp32/index.html", principal: true, simulador: "prototipos/P10-simulador-esp32/index.html", simuladorTexto: "Prueba en vivo la lógica del seguidor de línea y su comunicación directa con la App Web (Modo Demo)." },
+    { codigo: "P11", nombre: "La alarma llega al teléfono", tema: "Alertas", semana: 23, estado: "en_pruebas", categoria: "app", etapa: 3, url: "app/", simulador: "app/", simuladorTexto: "Abrir Centro de Alertas (App, Modo Demo o P10)", nota: "Validado en simulación (P10 + Modo Demo): obstáculo < 20 cm, sensor sin eco, proximidad 20–50 cm y batería ≤ 10,3 V. Pendiente de hardware físico (diciembre)." },
+    { codigo: "P12", nombre: "Pruebas y estadística", tema: "Análisis", semana: 27, estado: "en_pruebas", categoria: "app", etapa: 3, url: "app/", simulador: "app/", simuladorTexto: "Abrir Analítica de Sesión y CSV (App)", nota: "Validado en simulación: velocidad media/máxima, distancia frontal mínima, error medio de línea, paquetes y paradas de emergencia con exportación CSV. Pendiente de los 20+ ensayos con el robot físico." },
+    { codigo: "P13", nombre: "Radar Ultrasónico (Frente/Atrás)", tema: "Ultrasonido", semana: 5, estado: "listo", categoria: "hardware", etapa: 1, url: "prototipos/P13-sensores-ultrasonicos/index.html", principal: true, simulador: "prototipos/P13-sensores-ultrasonicos/index.html", simuladorTexto: "Los ojos de distancia del robot (2× HC-SR04P frente/atrás) para detección de obstáculos." },
+  ],
+
+  /* ---------- PORTADA Y CRONOGRAMA RESUMIDOS ---------- */
+  /* Frase corta de qué resuelve el robot (portada) */
+  queResuelve: "Un robot que lleva los componentes del laboratorio UCAB hasta tu puesto.",
+
+  /* Enlaces principales de la portada */
+  enlaces: {
+    app: "https://ilianavsc.github.io/tg-robot-ucab/app/",
+    simuladorEsp32: "prototipos/P10-simulador-esp32/index.html",
+    cronograma: "cronograma.html"
+  },
+
+  /* Las 7 fases agrupadas en 4 etapas fáciles de leer.
+     fases = ids de TG.fases · semanas = [primera, última] */
+  etapas: [
+    { n: 1, icono: "🔎", nombre: "Entender y diseñar", fases: ["I", "II"], semanas: [1, 8],
+      frase: "Hablar con el laboratorio, elegir piezas y diseñar el sistema." },
+    { n: 2, icono: "🛠️", nombre: "Construir y programar", fases: ["III", "IV"], semanas: [9, 19],
+      frase: "Armar el robot, programar el ESP32 y hacerlo navegar." },
+    { n: 3, icono: "📱", nombre: "App y alertas", fases: ["V", "VI"], semanas: [20, 27],
+      frase: "Crear la app, conectarla al robot y activar la alarma." },
+    { n: 4, icono: "🏁", nombre: "Pruebas y entrega", fases: ["VII"], semanas: [28, 32],
+      frase: "Probar 20+ veces, analizar datos y escribir el tomo." }
+  ],
+
+  /* Texto corto de cada prototipo para las tarjetas: nombre corto + qué hace en 1 línea */
+  protoResumen: {
+    P01: { corto: "App ↔ Robot (MQTT)", linea: "Mensajes que no se pierden entre la app y el robot." },
+    P02: { corto: "Sensores y Radar", linea: "4× TCRT5000 + 2× HC-SR04P (GPIO 15) y MPU-6050: los ojos y oídos del robot." },
+    P03: { corto: "Inspector 3D Hardware", linea: "Vitrina 3D interactiva de los componentes del robot: ESP32, puente H, encoders y sensores." },
+    P04: { corto: "Balizas BLE (Extremos)", linea: "2 balizas BLE en los extremos para validar inicio y fin del recorrido." },
+    P05: { corto: "Robot virtual", linea: "Un robot de prueba conectado a Firebase." },
+    P07: { corto: "Firmware ESP32", linea: "Todo el código del ESP32 trabajando junto." },
+    P08: { corto: "Sim 1 · 2 Pistas", linea: "El robot sigue la cinta negra sin salirse." },
+    P09: { corto: "App Flutter (v1 · Modo Demo)", linea: "Pide y mira el robot desde el celular, sin robot. Incluye acceso y Modo Demo." },
+    P10: { corto: "Prueba ESP32 ↔ App Web", linea: "Gemelo digital de movimiento con teach-and-repeat." },
+    P11: { corto: "Centro de Alertas", linea: "Obstáculo, sensor sin eco, proximidad o batería crítica: la alerta llega a la app." },
+    P12: { corto: "Analítica y CSV", linea: "Métricas de cada sesión y reporte CSV para las 20+ repeticiones." },
+    P13: { corto: "Radar Ultrasónico (Frente/Atrás)", linea: "El robot mide qué tan lejos está lo que tiene delante y detrás." }
+  },
+
+  /* Lo que hay que hacer ya. hecho: true cuando se cumpla
+     corto = texto de 1 línea para la portada (si falta, se usa "que") */
+  pendientes: [
+    { que: "Cerrar P01: alarma con QoS 2 y 50 órdenes seguidas", fecha: "2026-11-13", hecho: true },
+        { corto: "Pedir en Amazon motores, ESP32, BMS y sensores", que: "Pedido de Amazon: 2 kits de motor (<a href=\"https://www.amazon.com/dp/B0H2JP84J7\">Emoshayoga JGA25-371</a>, Speed 200), 3 ESP32 (<a href=\"https://www.amazon.com/dp/B0FBV7QGC4\">AITRIP</a>), el BMS (<a href=\"https://www.amazon.com/dp/B07JMY631D\">daier 3S 25 A</a>), el cargador (<a href=\"https://www.amazon.com/dp/B07P8DMSZ8\">TalentCell 12,6 V</a>) el puerto de carga (<a href=\"https://www.amazon.com/dp/B0DX1ZQ84K\">DC-022D</a>) y 2 ultrasónicos (<a href=\"https://www.amazon.com/dp/B0GL8NJCVT\">HC-SR04P</a>). Total ~US$ 106 + 7 % de impuesto de Florida + courier; revisar que pese menos de 1 kg", fecha: "2026-11-16", hecho: true },
+    { corto: "Ajustar y enviar el Capítulo II", que: "Ajustar el Capítulo II y enviarlo (<a href=\"docs/tomo/capitulo-ii-cambios.md\">lista de cambios</a>)", fecha: "2026-11-14", hecho: true },
+    { que: "Entrevista en el laboratorio", fecha: "2026-11-14", hecho: true },
+    { corto: "Llega el pedido de Amazon a Miami (15–28 dic)", que: "Llega el pedido de Amazon al casillero en Miami (estimado de Amazon: 15 al 28 dic). Luego falta el envío a Venezuela", fecha: "2026-12-28", hecho: false },
+    { corto: "Buscar el cargador de litio 12,6 V en casa", que: "Buscar el cargador en casa y revisar que diga 12,6 V (cargador de litio 3S), no una fuente de 12 V", fecha: "2026-11-23", hecho: false },
+    { corto: "Comprar en Mercado Libre: pilas, driver y sensores", que: "Comprar lo de Mercado Libre: pilas, porta pilas, L298N, LM2596, 4 TCRT5000, MPU6050, fusible e interruptor", fecha: "2026-11-27", hecho: false },
+    { que: "Observación en el laboratorio + prueba H0 (Wi-Fi)", fecha: "2026-11-18", hecho: false },
+    { que: "Documento de requerimientos y matriz de hardware v2", fecha: "2026-11-20", hecho: false }
+  ],
+
+  /* ---------- REQUERIMIENTOS ----------
+     estado: "validado" | "pendiente". Un "?" en el criterio = dato por definir en la visita al laboratorio */
+  requerimientos: [
+    { id: "RF-01", tipo: "RF", texto: "Recibir pedidos desde la app (componente, cantidad, ubicación) y confirmarlos", criterio: "Cada confirmación trae el número del pedido; 0 pedidos perdidos en 50", valida: ["P01"], estado: "validado", nota: "Validado en simulación (T3 y T4)" },
+    { id: "RF-02", tipo: "RF", texto: "Informar su estado de forma periódica", criterio: "Un mensaje cada 2 s", valida: ["P01"], estado: "validado", nota: "Validado en simulación (T2)" },
+    { id: "RF-03", tipo: "RF", texto: "Avisar si el robot se desconecta", criterio: "Aviso en menos de 30 s", valida: ["P01"], estado: "validado", nota: "Validado en simulación: 22 s (T6)" },
+    { id: "RF-04", tipo: "RF", texto: "Ir por la línea del mostrador al estante y volver", criterio: "Error de posición ≤ ? cm al llegar", valida: ["P08", "H4"], estado: "pendiente", nota: "Simulado en una pista provisional: da la vuelta a 0,41 m/s (P08 avance 1). Falta la pista real" },
+    { id: "RF-05", tipo: "RF", texto: "Detectar un obstáculo y detenerse", criterio: "Se detiene cuando el obstáculo frontal está a < 20 cm", valida: ["P02", "P13"], estado: "pendiente", nota: "Parada por obstáculo (< 20 cm), fallo de sensor sin eco y fail-safe de 5 s implementados en firmware (10 escenarios SIL en PC, T1–T10, que incluyen corte por batería y duplicados QoS 1) y con la misma regla en P10 y en el Modo Demo; falta validar con el hardware físico (diciembre) y medir la distancia final de parada [PENDIENTE DE MEDICIÓN FÍSICA]" },
+    { id: "RF-06", tipo: "RF", texto: "Re-localizarse en puntos de referencia", criterio: "Corrige su posición en cada punto (2 balizas BLE en los extremos)", valida: ["P04", "Fase IV"], estado: "pendiente" },
+        { id: "RF-07", tipo: "RF", texto: "Transportar los componentes pedidos", criterio: "Lleva 3 o 4 piezas pequeñas sin perder la línea", valida: ["H5"], estado: "pendiente", nota: "Entrevista: los pedidos son de 3 o 4 piezas muy livianas" },
+        { id: "RF-08", tipo: "RF", texto: "Alarmar si alguien lo levanta o lo mueve sin una orden", criterio: "La alarma llega a la app 1 sola vez y genera un reporte para el encargado y la Escuela; ≤ ? falsas alarmas en N recorridos", valida: ["P11", "H6"], estado: "pendiente", nota: "Entrevista: preocupan igual robo, pérdida y daño" },
+    { id: "RF-09", tipo: "RF", texto: "Permitir pedir, ver el estado y recibir avisos desde la app", criterio: "Notificación en ≤ 5 s", valida: ["P09", "P11"], estado: "pendiente" },
+        { id: "RF-10", tipo: "RF", texto: "Registrar cada pedido y cada entrega: quién pidió, qué, cuándo, salón y profesor", criterio: "Historial consultable en la app; el encargado ve salón y profesor antes de aprobar", valida: ["P05", "P09"], estado: "pendiente", nota: "Entrevista: hoy no hay ningún registro (uso libre). El sistema lo crea" },
+        { id: "RF-11", tipo: "RF", texto: "Pedir usuario para entrar a la app, con dos roles", criterio: "Solicitante (estudiante o profesor) pide; encargado aprueba o rechaza", valida: ["P09"], estado: "pendiente", nota: "Entrevista: Jesús aprueba todos los pedidos" },
+        { id: "RNF-01", tipo: "RNF", texto: "Bajo costo", criterio: "Total ≤ US$ ? (compras proyectadas: unos US$ 125 entre Amazon y Mercado Libre, sin impuesto ni courier)", valida: ["Lista v1"], estado: "pendiente" },
+        { id: "RNF-02", tipo: "RNF", texto: "Autonomía", criterio: "Cubrir la jornada de 7:00 a 18:00 cargando entre recorridos; ≥ ? min de trabajo continuo", valida: ["Entrevista"], estado: "pendiente", nota: "Entrevista: carga en los enchufes del cuarto de componentes" },
+    { id: "RNF-03", tipo: "RNF", texto: "Velocidad", criterio: "Entre 0,35 y 0,6 m/s", valida: ["P03"], estado: "pendiente", nota: "Motor elegido: Speed 200 (280 rpm sin carga). Estimado con L298N y peso: ~0,57 m/s. Siguiendo la línea (simulado): 0,36 m/s con 9,9 V y 0,47 m/s con 12,6 V. Ver P03 y P08" },
+    { id: "RNF-04", tipo: "RNF", texto: "Comunicación confiable", criterio: "0 pedidos perdidos; confirmación en ≤ ? s con el ESP32 real", valida: ["P01"], estado: "pendiente", nota: "SIL (banco P01, broker público de desarrollo): 0 perdidos de 50 y promedio de 4,1 s; no representa al sistema real. Criterio de latencia y medición con el ESP32 real: [PENDIENTE DE MEDICIÓN FÍSICA]" },
+    { id: "RNF-05", tipo: "RNF", texto: "Seguridad de la comunicación", criterio: "Broker privado con usuario, contraseña y TLS para las pruebas finales", valida: ["Fase VI"], estado: "pendiente" },
+        { id: "RNF-06", tipo: "RNF", texto: "Funcionar en la red del laboratorio", criterio: "El ESP32 llega al broker desde el Wi-Fi del laboratorio", valida: ["H0"], estado: "pendiente", nota: "Entrevista: la red UCAB pide usuario y clave; hay una red interna del laboratorio. Probar ambas en H0" },
+        { id: "RNF-07", tipo: "RNF", texto: "Convivir con las personas", criterio: "Circula solo por el pasillo, de 7:00 a 18:00, y se detiene ante obstáculos", valida: ["P02", "Entrevista"], estado: "pendiente", nota: "Entrevista: no hay otras reglas de seguridad. La detección de obstáculos ya está en firmware (umbrales 20/50 cm); falta prueba física" },
+    { id: "RNF-08", tipo: "RNF", texto: "Resultados confiables", criterio: "Mínimo 20 repeticiones por prueba", valida: ["Fase VII"], estado: "pendiente" }
+  ],
+
+  /* ---------- VISITA AL LABORATORIO ---------- */
+  entrevistaFecha: "14 nov 2026",
+  /* Lo más importante que salió de la entrevista */
+  entrevistaClaves: [
+    "Hoy el estudiante siempre tiene que ir al taller a buscar el componente: Jesús lo busca y lo entrega, pero nunca lo lleva. Ese es el hueco que llena el robot.",
+    "Pedidos pequeños: 3 o 4 piezas muy livianas. Hasta 16 estudiantes por laboratorio (2 por puesto).",
+    "Jesús aprueba cada pedido. La app debe mostrar el salón y el profesor para validarlo.",
+    "Hoy no existe ningún registro de quién se llevó qué ni para qué. Ese es otro hueco que llena el TG: la app registra cada pedido y cada entrega.",
+    "El robot puede circular por el pasillo de 7:00 a 18:00. Puede cargar en el cuarto de componentes.",
+    "Wi-Fi: la red de la UCAB pide usuario y clave; hay además una red interna del laboratorio.",
+    "Preocupan igual robo, pérdida y daño. La alarma avisa a la app y luego va un reporte a Jesús y a la Escuela de Telecomunicaciones."
+  ],
+  entrevista: [
+    { grupo: "El pedido de hoy", preguntas: [
+      ["¿Qué componentes piden más los estudiantes?", "Resistencias, condensadores, protoboards que sirvan, 555 y otros chips, Arduinos, cables, potenciómetros, pendrives para instalar programas, pinzas, LEDs, compuertas lógicas, llaves, sensores, diodos y fusibles."],
+      ["¿Cómo se pide un componente hoy y cuánto tarda la entrega?", "Se pide directo a Jesús, encargado del taller de Telecomunicaciones. Él lo busca y lo entrega, pero siempre hay que ir a buscarlo: nunca lo lleva."],
+      ["¿Cómo es un pedido típico?", "Pocas piezas, unas 3 o 4 como máximo, muy livianas. Hay hasta 16 estudiantes por laboratorio (2 por puesto)."],
+      ["¿A qué horas hay más pedidos?", "En horas de clase, sin una hora fija: depende del semestre. Desde las 7:00; después de las 18:00 no hay pedidos."] ] },
+    { grupo: "Dónde están las cosas", preguntas: [
+      ["¿Dónde se guardan? ¿Se pueden etiquetar?", "En estantes ya etiquetados, sobre todo los componentes pequeños (por ejemplo, una gaveta dice 100k para las resistencias de 100 kΩ)."],
+      ["¿Qué pasa cuando un componente se acabó?", "Jesús lo pide a la Escuela. No es inmediato: se hace un pedido grande cada semestre o cuando hace falta."] ] },
+    { grupo: "Quién y cómo", preguntas: [
+      ["¿Quién puede pedir y quién aprueba?", "Piden estudiantes y profesores. Jesús da el visto bueno; la app debe mostrar el salón y el profesor para validar que el pedido es para un laboratorio."],
+      ["¿Hay que registrar quién se llevó qué?", "No. Nunca se ha anotado; el material es de uso libre para los estudiantes."] ] },
+    { grupo: "El robot en el laboratorio", preguntas: [
+      ["¿Se permitiría un robot? ¿Horarios o reglas?", "Sí. De 7:00 a 18:00. No hay reglas de seguridad, solo que circule por el pasillo."],
+      ["¿Qué red Wi-Fi podría usar?", "La red de la UCAB, que pide usuario y clave, o una red interna del laboratorio."],
+      ["¿Dónde podría cargar su batería?", "En los enchufes del cuarto de componentes."],
+      ["¿Qué preocupa más y a quién avisar?", "Robo, pérdida y daño preocupan por igual. La alarma notifica a la app y después se envía un reporte al encargado y a la Escuela de Telecomunicaciones."] ] }
+  ],
+  observacion: [
+    ["Recorrido", "Distancia del mostrador a cada estante (m)"],
+    ["Pasillos", "Ancho más angosto (cm)"],
+    ["Piso", "Tipo y color, para elegir el color de la cinta"],
+    ["Luz", "Natural o artificial, reflejos en el piso"],
+    ["Obstáculos", "Sillas, mochilas, cables, escalones o rampas"],
+    ["Estantes", "Altura de la repisa más baja y más alta (cm)"],
+    ["Demanda", "Pedidos contados en 1 hora de mucho movimiento"],
+    ["Wi-Fi (H0)", "Nombre de la red y si el ESP32 o el teléfono llega al broker en cada punto"],
+    ["Carga", "Tomacorrientes cerca del punto de partida"],
+    ["Fotos", "Planta del laboratorio, estantes y pasillos"]
+  ],
+
+  /* ---------- HARDWARE (matriz v2) ----------
+     estado: "por pedir" | "pedido" | "por comprar" | "preguntar al lab" | "corregido" | "abierta" | "listo" */
+  materiales: [
+    { componente: "Microcontrolador", eleccion: "3 × ESP32-WROOM-32 DevKit de 30 pines, USB-C, CP2102 (AITRIP, con placa de borneras)", alternativa: "Pedirla prestada al laboratorio", porque: "Mismo chip que en Wokwi; 8 entradas analógicas ADC1. Una va en el robot y dos como balizas de inicio y fin para calibrar tiempo y distancia (P04). Con la placa de borneras ocupa 6,3 × 6,6 cm", estado: "pedido", cuando: "Pedido el 16 nov; llega a Miami entre el 15 y el 28 dic", link: "https://www.amazon.com/dp/B0FBV7QGC4" },
+    { componente: "Motores", eleccion: "2 kits Emoshayoga JGA25-371, 12 V, con encoder: Speed 200 (280 rpm sin carga, caja 1:21,3, 234 pulsos por vuelta de rueda)", alternativa: "Speed 130 (170 rpm sin carga, caja 1:35,5): más fuerza, pero con L298N queda justo en 0,35 m/s", porque: "Cada kit trae motor con encoder, soporte, rueda de 65 mm y acople. Con L298N y peso: ~0,57 m/s. En Mercado Libre no hay JGA25 de 12 V con encoder a buen precio", estado: "pedido", cuando: "Pedido el 16 nov; llega a Miami entre el 15 y el 28 dic", link: "https://www.amazon.com/dp/B0H2JP84J7" },
+    { componente: "Driver", eleccion: "L298N (módulo rojo con disipador)", alternativa: "TB6612FNG", porque: "Pierde cerca de 2 V, pero aguanta 2 A por motor; cada motor Speed 200 pide hasta 1,8 A trabado, más de lo que soporta el TB6612FNG (1,2 A). Un solo módulo mueve los dos motores. Respaldo en Mercado Libre si el laboratorio no tiene (INNOVTRONIKS, 5 estrellas, más de 100 vendidos)", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov; si no hay, ML US$ 4", link: "https://articulo.mercadolibre.com.ve/MLV-580141623-l298n-l298-modulo-driver-motor-dc-y-motor-de-pasos-bipolar-_JM" },
+    { componente: "Batería", eleccion: "3 × EVE INR18650-25P (2500 mAh, hasta 30 A), en serie (3S)", alternativa: "Samsung INR18650-35E (3500 mAh, US$ 10,50 c/u)", porque: "Marca real y aguanta de sobra el arranque de los motores (hasta 3,6 A los dos). Unas 3 h de autonomía estimada. Las de 9800 mAh son falsas", estado: "por comprar", cuando: "Antes de fin de noviembre (ML, US$ 4,80 c/u, vendedor TECNOPEPIN)", link: "https://articulo.mercadolibre.com.ve/MLV-1029451794-eve-inr18650-25p-2500mah-37v-pilas-recargables-cilindricas-_JM" },
+    { componente: "Porta pilas", eleccion: "Porta pilas para 3 × 18650 con cables (2 unidades)", alternativa: "\"Porta Bateria Pila 18650 3s 11.1v Serie\" (ML, US$ 5,70)", porque: "Las pilas se encajan sin soldar. Por detrás se sueldan B1 y B2 del BMS en las láminas entre pila y pila. Al llegar: medir entre el cable rojo y el negro, debe dar 11 a 12,6 V (serie)", estado: "por comprar", cuando: "Mercado Libre, GLAXIAL SUMINISTROS (US$ 3,90 los 2; tienda en Chacaíto)", link: "https://articulo.mercadolibre.com.ve/MLV-918553422-porta-bateria-18650-x3-2-unidades-_JM" },
+    { componente: "BMS", eleccion: "BMS 3S 12,6 V 25 A con balanceo (daier, 2 placas)", alternativa: "Mercado Libre: \"3s 25a Bms Carga Proteccion Balanceador\" (US$ 8,45), si se quiere armar la batería antes", porque: "Protege y equilibra las celdas. 25 A seguidos y 34-40 A de pico, de sobra para los 3,6 A de los motores. Corta cada pila entre 2,3 y 3,0 V: el ESP32 debe avisar antes, a 9,9 V en total. Después de conectarlo hay que cargarlo una vez para que dé salida", estado: "pedido", cuando: "Pedido el 16 nov; llega a Miami entre el 15 y el 28 dic", link: "https://www.amazon.com/dp/B07JMY631D" },
+    { componente: "Cargador", eleccion: "TalentCell 12,6 V / 2 A para baterías de litio 3S (punta 5,5 × 2,1 mm)", alternativa: "Módulo USB-C 3S de ERYTECH (Mercado Libre, US$ 3)", porque: "Cargador de litio de verdad (no una fuente de 12 V): luz roja al cargar y verde al terminar, carga en ~2 h. Necesita un jack DC hembra 5,5 × 2,1 mm en el chasis, conectado a P+ y P- del BMS; se carga con el robot apagado. La fuente de 12 V / 0,5 A que tenemos sirve solo para pruebas en la mesa (sin motores)", estado: "preguntar al lab", cuando: "No se compró: Andrea cree tener uno en casa. Falta buscarlo y revisar que sea de 12,6 V para litio 3S", link: "https://www.amazon.com/dp/B07P8DMSZ8" },
+    { componente: "Puerto de carga", eleccion: "Jack DC hembra 5,5 × 2,1 mm de panel, roscado, con cables y tapa (DC-022D)", alternativa: "", porque: "Para enchufar el cargador al robot como una laptop. Se atornilla al chasis; rojo (+) y negro (-) van a P+ y P- del BMS. En Mercado Libre solo hay paquetes al mayor (US$ 36 a 110)", estado: "pedido", cuando: "Pedido el 16 nov; llega a Miami entre el 15 y el 28 dic", link: "https://www.amazon.com/dp/B0DX1ZQ84K" },
+    { componente: "Regulador", eleccion: "LM2596 (step down) ajustado a 5 V antes de conectar", alternativa: "Versión con pantalla de voltaje (ML, US$ 7)", porque: "Alimenta el ESP32 y los ultrasónicos. Viene ajustado a cualquier voltaje: girar el potenciómetro midiendo la salida hasta 5,0 V antes de conectar el ESP32, o se quema. Respaldo en ML si el laboratorio no tiene (RAM15D, 4,9 estrellas, más de 100 vendidos)", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov; si no hay, ML US$ 2,45", link: "https://articulo.mercadolibre.com.ve/MLV-919789104-lm2596-modulo-reductor-convertidor-de-voltaje-dc-ajustable-_JM" },
+    { componente: "Medición de batería", eleccion: "Divisor de 100 kΩ y 22 kΩ", alternativa: "INA219", porque: "Deja unos 2,3 V en el pin con la batería llena (1 kΩ y 2 kΩ dañaba el pin)", estado: "corregido", cuando: "" },
+    { componente: "Protección", eleccion: "Portafusible aéreo con cables + fusible de 3 A de acción lenta (soplado lento / cerámica)", alternativa: "", porque: "Va justo después del BMS y protege también la carga. Aguanta el pico de arranque de los motores. El fusible debe ser del mismo tamaño que el portafusible (muchos aéreos blancos son de 6 × 30 mm, no de 5 × 20)", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov; si no hay: portafusible ML US$ 2,20 + fusible cerámica soplado lento ~US$ 2,94 (falta link)", link: "https://articulo.mercadolibre.com.ve/MLV-1027312578-portafusible-vidrio-1pz-_JM" },
+    { componente: "Interruptor", eleccion: "Interruptor basculante redondo con luz, 20 A / 12 V", alternativa: "", porque: "Enciende y apaga el robot; va después del BMS y el fusible. Tiene 3 patas: entrada (+ de la batería), salida (hacia el robot) y tierra, que solo prende la lucecita", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov; si no hay, ML US$ 3,20 (entrega a acordar, Baruta)", link: "https://articulo.mercadolibre.com.ve/MLV-573931152-switch-interruptor-basculante-de-colores-20a12v-_JM" },
+    { componente: "Sensores de línea", eleccion: "4 × módulo TCRT5000 azul de 4 pines (con salida A0) a 3,3 V en pines ADC1", alternativa: "QTR-8A", porque: "La salida A0 dice cuánto se salió de la línea (el PID sigue suave); los módulos negros de 3 pines solo dan sí/no. Los pines ADC2 no leen con el Wi-Fi encendido. Respaldo en ML si el laboratorio no tiene (SFV Security Factory, 5 estrellas; entrega a acordar, Naguanagua)", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov; si no hay, ML US$ 3,08 c/u (4 o 5)", link: "https://articulo.mercadolibre.com.ve/MLV-550874245-sensor-infrarrojo-tcrt5000-sensor-de-linea-_JM" },
+    { componente: "Obstáculos", eleccion: "2 × HC-SR04P (3 a 5,5 V)", alternativa: "HC-SR04 de 5 V con divisor de 1 kΩ y 2 kΩ en el pin Echo", porque: "Funciona a 3,3 V: va directo al ESP32, sin divisor. Se compra en Amazon para no depender del laboratorio (2 piezas con cables, 4,5 estrellas); en ML el mismo par cuesta US$ 22,88", estado: "pedido", cuando: "Pedido el 16 nov; llega a Miami entre el 15 y el 28 dic", link: "https://www.amazon.com/dp/B0GL8NJCVT" },
+    { componente: "Movimiento y alarma", eleccion: "MPU6050 (GY-521)", alternativa: "", porque: "Odometría y detección de levantamiento. Respaldo en ML si el laboratorio no tiene (INNOVTRONIKS, el mismo vendedor del L298N; 5 estrellas)", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov; si no hay, ML US$ 5,50", link: "https://articulo.mercadolibre.com.ve/MLV-701887425-giroscopio-gy-521-mpu-6050-modulo-acelerometro-_JM" },
+    { componente: "Cables y montaje", eleccion: "Resistencias 100 kΩ y 22 kΩ, condensadores 100 nF y 470 µF, cable 18 y 22 AWG, jumpers, placa perforada, tornillería M3, estaño y termoencogible", alternativa: "", porque: "El cable grueso lleva la corriente de los motores; el fino basta para el balanceo del BMS y las señales", estado: "preguntar al lab", cuando: "Visita del 16 al 18 nov" },
+    { componente: "Ruedas", eleccion: "65 mm con acople metálico de 4 mm, incluidas en el kit de motor", alternativa: "Cubo impreso en PLA", porque: "Las de Mercado Libre eran para eje TT y no encajaban en el eje D de 4 mm", estado: "corregido", cuando: "Llegan con los motores", link: "https://www.amazon.com/dp/B0H2JP84J7" },
+    { componente: "Rueda loca", eleccion: "Altura igual al eje de las ruedas", alternativa: "", porque: "Mantiene los TCRT5000 a pocos mm del piso", estado: "por comprar", cuando: "Inicio de diciembre" },
+    { componente: "Re-localización", eleccion: "ESP32-C3 SuperMini como balizas BLE", alternativa: "Lector de QR (GM65)", porque: "Se decide con la prueba P04", estado: "abierta", cuando: "Fase II (P04); compra en febrero" },
+    { componente: "Mecanismo de carga", eleccion: "? (bandeja o pinza)", alternativa: "", porque: "Depende del pedido típico (entrevista)", estado: "abierta", cuando: "Después de la entrevista" }
+  ],
+
+  /* ---------- LISTA DE COMPRA FINAL (11/11/2026) ----------
+     donde: "Amazon" | "Mercado Libre" | "Lab o ML" | "Lab" | "Después" ; precio en US$ */
+  compras: [
+    { que: "Kit de motor JGA25-371 Speed 200", cant: "2", donde: "Amazon", precio: 44.78, link: "https://www.amazon.com/dp/B0H2JP84J7", icono: "Motores" },
+    { que: "ESP32 AITRIP con borneras", cant: "3", donde: "Amazon", precio: 19.99, link: "https://www.amazon.com/dp/B0FBV7QGC4", icono: "Microcontrolador" },
+    { que: "BMS 3S 25 A con balanceo", cant: "2", donde: "Amazon", precio: 9.59, link: "https://www.amazon.com/dp/B07JMY631D", icono: "BMS" },
+    { que: "Cargador TalentCell 12,6 V (no se compró: buscar el de la casa)", cant: "1", donde: "Después", precio: 14.99, link: "https://www.amazon.com/dp/B07P8DMSZ8", icono: "Cargador" },
+    { que: "Jack DC de panel (puerto de carga)", cant: "1 paquete", donde: "Amazon", precio: 9.99, link: "https://www.amazon.com/dp/B0DX1ZQ84K", icono: "Puerto de carga" },
+    { que: "Ultrasónico HC-SR04P", cant: "2", donde: "Amazon", precio: 6.79, link: "https://www.amazon.com/dp/B0GL8NJCVT", icono: "Obstáculos" },
+    { que: "Pila EVE INR18650-25P", cant: "3", donde: "Mercado Libre", precio: 14.40, link: "https://articulo.mercadolibre.com.ve/MLV-1029451794-eve-inr18650-25p-2500mah-37v-pilas-recargables-cilindricas-_JM", icono: "Batería" },
+    { que: "Porta pilas 3 × 18650", cant: "2", donde: "Mercado Libre", precio: 3.90, link: "https://articulo.mercadolibre.com.ve/MLV-918553422-porta-bateria-18650-x3-2-unidades-_JM", icono: "Porta pilas" },
+    { que: "Driver L298N", cant: "1", donde: "Lab o ML", precio: 4.00, link: "https://articulo.mercadolibre.com.ve/MLV-580141623-l298n-l298-modulo-driver-motor-dc-y-motor-de-pasos-bipolar-_JM", icono: "Driver" },
+    { que: "Regulador LM2596", cant: "1", donde: "Lab o ML", precio: 2.45, link: "https://articulo.mercadolibre.com.ve/MLV-919789104-lm2596-modulo-reductor-convertidor-de-voltaje-dc-ajustable-_JM", icono: "Regulador" },
+    { que: "Sensor de línea TCRT5000 (azul, con A0)", cant: "4", donde: "Lab o ML", precio: 12.32, link: "https://articulo.mercadolibre.com.ve/MLV-550874245-sensor-infrarrojo-tcrt5000-sensor-de-linea-_JM", icono: "Sensores de línea" },
+    { que: "MPU6050 (GY-521)", cant: "1", donde: "Lab o ML", precio: 5.50, link: "https://articulo.mercadolibre.com.ve/MLV-701887425-giroscopio-gy-521-mpu-6050-modulo-acelerometro-_JM", icono: "Movimiento y alarma" },
+    { que: "Portafusible + fusible 3 A lento", cant: "1", donde: "Lab o ML", precio: 5.14, link: "https://articulo.mercadolibre.com.ve/MLV-1027312578-portafusible-vidrio-1pz-_JM", icono: "Protección" },
+    { que: "Interruptor 20 A / 12 V", cant: "1", donde: "Lab o ML", precio: 3.20, link: "https://articulo.mercadolibre.com.ve/MLV-573931152-switch-interruptor-basculante-de-colores-20a12v-_JM", icono: "Interruptor" },
+    { que: "Materiales de montaje", cant: "ver lista", donde: "Lab", precio: null, link: "", icono: "Cables y montaje",
+      detalle: [
+        ["Resistencias (1/4 W, película metálica, 1 %)", [
+          ["1", "100 kΩ", "Divisor de la batería: del + de la batería al GPIO 32"],
+          ["1", "22 kΩ", "Divisor de la batería: del GPIO 32 a GND (12,6 V quedan en 2,27 V)"],
+          ["4", "10 kΩ", "Pull-up de los encoders, solo si el kit no los trae"],
+          ["2 + 2", "1 kΩ y 2 kΩ", "Solo si el laboratorio da HC-SR04 de 5 V: divisor del pin Echo"]]],
+        ["Condensadores", [
+          ["4", "100 nF cerámico (marcado 104)", "Uno en las 2 patas de cada motor y uno en el divisor, contra el ruido"],
+          ["1", "470 µF electrolítico, 25 V", "En la entrada de 12 V del L298N: absorbe los picos de los motores"],
+          ["1", "100 µF electrolítico, 16 V", "En la salida de 5 V del LM2596 (VIN del ESP32)"]]],
+        ["Cables", [
+          ["1 m rojo + 1 m negro", "Cable 18 AWG flexible (silicona)", "Batería → BMS → fusible → interruptor → L298N"],
+          ["1 m rojo + 1 m negro", "Cable 22 AWG", "LM2596 → ESP32, B1 y B2 del BMS, divisor"],
+          ["40 + 40", "Jumpers Dupont de 20 cm, macho-hembra y hembra-hembra", "Señales: sensores, ultrasónicos, MPU6050 y L298N"]]],
+        ["Montaje", [
+          ["1", "Placa perforada 5 × 7 cm", "Divisor, condensadores y reparto de 5 V y GND"],
+          ["2", "Tira de pines header macho 1 × 40 (2,54 mm)", "Para la placa perforada"],
+          ["4", "Bornera de tornillo de 2 pines (5 mm)", "Reparto de 12 V y GND"],
+          ["12 / 20 / 20", "Separadores M3 × 10 mm / tornillos M3 × 8 mm / tuercas M3", "Fijar las placas al chasis"],
+          ["20", "Bridas pequeñas", "Ordenar los cables"],
+          ["1 rollo", "Cinta aislante negra de 19 mm", "La línea que sigue el robot"],
+          ["1 par", "Conector XT30 (opcional)", "Desconectar la batería sin cortar cables"]]],
+        ["Para soldar", [
+          ["1 tubo", "Estaño 0,8 mm, 60/40 con flux", ""],
+          ["1 surtido", "Termoencogible de 2 a 6 mm", "Aislar empalmes y los cables B1/B2"],
+          ["1", "Flux en pasta (opcional)", "Ayuda a soldar en las láminas del porta pilas"]]],
+        ["Herramientas", [
+          ["—", "Cautín de 40 a 60 W, multímetro, pelacables, alicate de corte, pistola de calor o encendedor", ""]]]
+      ] },
+    { que: "Rueda loca", cant: "1", donde: "Después", precio: null, link: "", icono: "Rueda loca" }
+  ],
+
+  /* ---------- PINES DEL ESP32 (DevKit de 30 pines, propuesta) ---------- */
+  pines: [
+    { gpio: "36 (VP)", uso: "Sensor de línea 1 (A0)", grupo: "sensor", nota: "ADC1, solo entrada" },
+    { gpio: "39 (VN)", uso: "Sensor de línea 2 (A0)", grupo: "sensor", nota: "ADC1, solo entrada" },
+    { gpio: "34", uso: "Sensor de línea 3 (A0)", grupo: "sensor", nota: "ADC1, solo entrada" },
+    { gpio: "35", uso: "Sensor de línea 4 (A0)", grupo: "sensor", nota: "ADC1, solo entrada" },
+    { gpio: "32", uso: "Batería (divisor 100 kΩ / 22 kΩ)", grupo: "energia", nota: "ADC1; 12,6 V → 2,27 V" },
+    { gpio: "33", uso: "Ultrasónico frontal: ECHO", grupo: "sensor", nota: "ADC1 usado como entrada digital" },
+    { gpio: "23", uso: "Ultrasónico frontal: TRIG", grupo: "sensor", nota: "Se leen alternados: frente en ciclos pares, atrás en impares (100 ms)" },
+    { gpio: "5", uso: "Ultrasónico trasero: ECHO", grupo: "sensor", nota: "Pin de arranque: como ECHO lee LOW en reposo, sin riesgo" },
+    { gpio: "15", uso: "Ultrasónico trasero: TRIG (separado)", grupo: "sensor", nota: "TRIG propio del HC-SR04P trasero (PIN_ULTRA_TRIG_ATRAS = 15): aísla acústicamente los 2 módulos. Pin de arranque: en bajo solo apaga los mensajes de arranque" },
+    { gpio: "25", uso: "Motor izq.: ENA (PWM)", grupo: "control", nota: "Quitar el puente ENA del L298N" },
+    { gpio: "26", uso: "Motor izq.: IN1", grupo: "control", nota: "" },
+    { gpio: "27", uso: "Motor izq.: IN2", grupo: "control", nota: "" },
+    { gpio: "14", uso: "Motor der.: ENB (PWM)", grupo: "control", nota: "Quitar el puente ENB del L298N" },
+    { gpio: "4", uso: "Motor der.: IN3", grupo: "control", nota: "" },
+    { gpio: "13", uso: "Motor der.: IN4", grupo: "control", nota: "" },
+    { gpio: "18", uso: "Encoder izq.: A", grupo: "mov", nota: "Contador de pulsos (PCNT)" },
+    { gpio: "19", uso: "Encoder izq.: B", grupo: "mov", nota: "" },
+    { gpio: "16", uso: "Encoder der.: A", grupo: "mov", nota: "Contador de pulsos (PCNT)" },
+    { gpio: "17", uso: "Encoder der.: B", grupo: "mov", nota: "" },
+    { gpio: "21", uso: "MPU6050: SDA", grupo: "sensor", nota: "I2C" },
+    { gpio: "22", uso: "MPU6050: SCL", grupo: "sensor", nota: "I2C" },
+    { gpio: "2", uso: "MPU6050: INT (opcional)", grupo: "sensor", nota: "Tiene el LED de la placa; parpadea con la alarma" },
+    { gpio: "12", uso: "Libre (evitar)", grupo: "libre", nota: "Si está en alto al encender, el ESP32 no arranca" },
+    { gpio: "1 y 3", uso: "Libres (USB serie)", grupo: "libre", nota: "Para programar y el monitor serie" }
+  ],
+
+  /* ---------- DECISIONES (la más nueva primero) ----------
+     estado: "tomada" | "abierta" */
+  decisiones: [
+    { fecha: "2026-11-19", titulo: "Arquitectura: 1 ESP32 móvil + 2 ESP32 fijos (balizas BLE)", estado: "tomada",
+      decision: "El robot es un solo ESP32 móvil; dos ESP32 fijos (Cuarto de Componentes y Laboratorio 1) anuncian por BLE como balizas de proximidad. En los tramos sin cinta, el robot mantendría el rumbo relativo con el giroscopio de la MPU-6050 (heading hold) hasta que la baliza del siguiente punto de control confirme proximidad por RSSI. Sin LiDAR ni magnetómetro.",
+      porque: "Acota la deriva sin localización absoluta y reutiliza los 3 ESP32 del pedido. Hoy solo existe en simulación (P10 y vista previa del Admin); la lectura de la MPU-6050 y el escaneo BLE están [PENDIENTE DE INTEGRACIÓN EN FIRMWARE]; umbrales de RSSI y deriva: [PENDIENTE DE MEDICIÓN FÍSICA].",
+      evidencia: "docs/arquitectura/balizas-ble.md · prototipos/P10-simulador-esp32/p10_hibrido_modelo.js" },
+    { fecha: "2026-11-19", titulo: "El botón de la app se llama «Freno Remoto», no E-STOP", estado: "tomada",
+      decision: "El botón siempre visible de la app se llama Freno Remoto y envía la orden 'frenar' por MQTT (QoS 1).",
+      porque: "Un comando por MQTT depende del teléfono, la red y el broker: no es una parada de emergencia cableada y no sustituye el interruptor físico del robot. El jurado distingue ambas cosas.",
+      evidencia: "app/lib/features/telemetria/cockpit_ui.dart · docs/guion_defensa.md" },
+    { fecha: "2026-11-19", titulo: "TRIG del HC-SR04P trasero separado en GPIO 15", estado: "tomada",
+      decision: "Frente: TRIG en GPIO 23. Atrás: TRIG en GPIO 15 (PIN_ULTRA_TRIG_ATRAS = 15). GPIO 15 es pin de arranque: en LOW solo apaga el log de arranque.",
+      porque: "Con TRIG común los dos módulos emitían en cada disparo; con TRIG propio solo emite el sensor de turno. los 10 escenarios SIL en PC siguen en verde; falta comprobarlo con los módulos reales.",
+      evidencia: "firmware/robot_integrado.ino · docs/sensores.md" },
+    { fecha: "2026-11-18", titulo: "Corte de seguridad por batería a 9,90 V con histéresis a 10,10 V", estado: "tomada",
+      decision: "Con ≤ 9,90 V (3 lecturas seguidas de 200 ms) el firmware ejecuta detener(), publica 'bateria_critica' y bloquea el movimiento hasta que la tensión supere 10,10 V y llegue una orden nueva. Con ≤ 10,30 V publica antes el aviso 'bateria_baja'. Con ≤ 1 V (alimentado por USB, sin batería) no corta.",
+      porque: "El BMS corta recién entre 2,3 y 3,0 V por celda: el ESP32 debe frenar antes (3,30 V/celda) para cuidar las 18650. Las 3 lecturas ignoran el bajón al arrancar los motores; la orden nueva evita que el rebote de tensión sin carga lo haga arrancar y frenar en bucle.",
+      evidencia: "firmware/robot_integrado.ino (revisarBateria) · firmware/pruebas_pc/ (T8)" },
+    { fecha: "2026-11-18", titulo: "Órdenes MQTT deduplicadas por id", estado: "tomada",
+      decision: "Si llega una orden con el mismo 'id' que la última, el robot no la ejecuta ni la cuenta; solo reenvía el ack con el mismo 'recibidas'.",
+      porque: "QoS 1 entrega 'al menos una vez': si se pierde el PUBACK, el broker reentrega la orden y se ejecutaría dos veces (además de renovar el timeout de 5 s).",
+      evidencia: "firmware/robot_integrado.ino (alRecibirMensaje) · firmware/pruebas_pc/ (T9)" },
+    { fecha: "2026-11-18", titulo: "Ultrasonidos leídos alternados (frente/atrás)", estado: "tomada",
+      decision: "Frente en ciclos pares y atrás en impares, 100 ms por ciclo; la ISR solo acepta el eco del sensor de turno. Cada módulo tiene su propio TRIG (frente GPIO 23, atrás GPIO 15, desde el 19/11/2026), así que solo emite el sensor de turno. El fallo de eco pasa a 3 lecturas propias (600 ms).",
+      porque: "Evita leer en un sensor el eco del otro. Costo: cada sensor se refresca cada 200 ms (≈ 10 cm a 0,5 m/s), a medir en la prueba física frente al margen de 20 cm de RF-05.",
+      evidencia: "firmware/robot_integrado.ino (gestionarUltrasonidos) · docs/sensores.md" },
+    { fecha: "2026-11-18", titulo: "Rigor de pruebas: SIL ahora, HIL con el hardware", estado: "tomada",
+      decision: "Todo lo validado sin hardware (P10, Modo Demo, firmware/pruebas_pc) se llama SIL (Software In the Loop). HIL (Hardware In the Loop) queda para el ESP32 y los sensores reales, con su plantilla en prototipos/P02-sensores/README.md. Las pruebas SIL corren en GitHub Actions antes de cada despliegue.",
+      porque: "Un jurado distingue simulación de prueba física: llamar HIL a una inyección de eventos en el navegador sería impreciso.",
+      evidencia: ".github/workflows/deploy_web.yml · prototipos/P10-simulador-esp32/" },
+    { fecha: "2026-11-18", titulo: "Fail-safe del modo manual: 5 s sin órdenes = frenar y quedarse en manual", estado: "tomada",
+      decision: "Si en MANUAL pasan 5 s sin órdenes, el firmware ejecuta detener(), se queda en MANUAL con parada 'timeout' y publica la alerta 'timeout_manual'. Nunca pasa solo a AUTÓNOMO: hace falta una orden nueva o 'auto'. El P10 y el Modo Demo aplican la misma regla.",
+      porque: "Antes volvía solo a autónomo: si se caía la app, el robot arrancaba por su cuenta en un pasillo con personas (RNF-07). Un robot detenido es el estado seguro.",
+      evidencia: "firmware/robot_integrado.ino · firmware/pruebas_pc/ (T1)" },
+    { fecha: "2026-11-18", titulo: "Ultrasonido sin eco = fallo de sensor, no camino despejado", estado: "tomada",
+      decision: "Sin ningún pulso de eco en 3 lecturas propias seguidas (600 ms con la lectura alternada; antes 5 disparos = 500 ms) el sensor se marca en fallo (sensorFrenteOk / sensorAtrasOk = false), se bloquea el movimiento en esa dirección y se publica 'fallo_sensor_frente' o 'fallo_sensor_atras'. Se rearma con 2 ecos válidos. El tópico ultrasonido suma frente_ok y atras_ok.",
+      porque: "Un HC-SR04P desconectado devuelve 0 cm, igual que 'nada en rango': el robot habría avanzado a ciegas. El pulso de timeout (~38 ms, nada en 4 m) sí cuenta como sensor vivo, para no frenar en pasillos largos. Falta confirmarlo con los módulos reales.",
+      evidencia: "firmware/robot_integrado.ino · docs/arquitectura/topicos-mqtt.md" },
+    { fecha: "2026-11-18", titulo: "Alertas en cola, fuera del lazo de control", estado: "tomada",
+      decision: "El firmware frena primero y encola la alerta; loop() la publica con QoS 2. Sin broker, la alerta espera y sale al reconectar.",
+      porque: "Un publish QoS 2 puede bloquear hasta 1 s esperando al broker: hacerlo dentro de controlar() retrasaba el frenado por obstáculo.",
+      evidencia: "firmware/robot_integrado.ino (procesarAlertas)" },
+    { fecha: "2026-11-18", titulo: "Umbrales de obstáculo: parada a 20 cm y aviso a 50 cm", estado: "tomada",
+      decision: "Si el eco frontal del HC-SR04P mide menos de 20 cm, el firmware detiene el robot (detener()) y publica la alerta 'obstaculo'; entre 20 y 50 cm es zona de aviso; más de 50 cm es despejado.",
+      porque: "Cumple RF-05 (se detiene cuando el obstáculo está a < 20 cm) y RNF-07, y coincide con las zonas verde/ámbar/rojo del radar P13.",
+      evidencia: "firmware/robot_integrado.ino" },
+    { fecha: "2026-11-14", titulo: "Seguidor de línea en el simulador 3D web", estado: "tomada",
+      decision: "El seguidor de línea (P08) se simula en el navegador, copiando el simulador de la tracción de P03, en lugar de Webots.",
+      porque: "Reutiliza el robot y el modelo del motor Speed 200 ya hechos y corre sin instalar nada. La pista es provisional hasta medir el laboratorio.",
+      evidencia: "prototipos/P08-seguidor-linea/avance-01-simulador-3d/" },
+    { fecha: "2026-11-11", titulo: "Ultrasónicos HC-SR04P en el pedido de Amazon", estado: "tomada",
+      decision: "Comprar 2 HC-SR04P (3,3 V) en Amazon en vez de esperar al laboratorio.",
+      porque: "Son necesarios para detectar obstáculos, la visita al laboratorio es después del pedido y cuestan US$ 6,79 el par. A 3,3 V van directo al ESP32, sin divisor.",
+      evidencia: "hardware.html" },
+    { fecha: "2026-11-11", titulo: "Asignación de pines del ESP32", estado: "tomada",
+      decision: "4 sensores de línea y la batería en ADC1 (36, 39, 34, 35, 32); motores en 25, 26, 27, 14, 4, 13; encoders en 18, 19, 16, 17; I2C en 21 y 22; ultrasónicos en 23/33 y 5/15.",
+      porque: "El ADC2 no lee con el Wi-Fi encendido. Se evita el GPIO 12 (impide el arranque) y se dejan libres 1 y 3 para programar.",
+      evidencia: "hardware.html#t-pines" },
+    { fecha: "2026-11-11", titulo: "Driver L298N", estado: "tomada",
+      decision: "Usar un módulo L298N para los dos motores.",
+      porque: "Según la tabla del kit, cada motor Speed 200 pide hasta 1,8 A trabado; el TB6612FNG aguanta 1,2 A seguidos por motor y el L298N 2 A. Se acepta la pérdida de ~2 V: con Speed 200 el robot igual llega a ~0,57 m/s.",
+      evidencia: "prototipos/P03-motores/avance-02-simulador-3d/" },
+    { fecha: "2026-11-11", titulo: "Motor Speed 200 (280 rpm sin carga)", estado: "tomada",
+      decision: "2 kits Emoshayoga JGA25-371 de 12 V con encoder, versión Speed 200 (caja 1:21,3).",
+      porque: "En el anuncio \"Speed\" es la velocidad con carga. Con L298N y el peso del robot da ~0,57 m/s, dentro de la meta de 0,35 a 0,6 m/s con cualquier driver, y se frena con PWM. Fuerza nominal 0,4 kg·cm contra ~0,2 kg·cm estimados en piso plano (se confirma en P03). Bloqueado pide 1,8 A por motor.",
+      evidencia: "prototipos/P03-motores/avance-02-simulador-3d/" },
+    { fecha: "2026-11-11", titulo: "Tres ESP32: robot y dos balizas", estado: "tomada",
+      decision: "Comprar un paquete de 3 ESP32-WROOM-32 de 30 pines: una en el robot, una baliza al inicio y otra al final del recorrido.",
+      porque: "Las balizas marcan el tiempo de cada recorrido (velocidad real, RNF-03), calibran la distancia de los encoders entre dos puntos medidos y permiten la prueba P04 sin comprar más. La orientación la miden el MPU6050 y los encoders, no las balizas. Si en P04 gana el QR, quedan de repuesto y para pruebas en la mesa.",
+      evidencia: "hardware.html" },
+    { fecha: "2026-11-11", titulo: "ESP32 de 30 pines", estado: "tomada",
+      decision: "DevKit de 30 pines con USB-C y CP2102.",
+      porque: "Alcanzan los pines ADC1 para los sensores de línea y es la versión del paquete con placa de borneras, que evita cables sueltos en el robot.",
+      evidencia: "hardware.html" },
+    { fecha: "2026-11-11", titulo: "Sesión persistente en MQTT", estado: "tomada",
+      decision: "El robot se conecta con clean session = false, keep alive 15 s y espera de 10 s.",
+      porque: "QoS 1 garantiza la entrega solo mientras la sesión existe; con sesión persistente los pedidos esperan al robot si se desconecta un momento. Resultado: 50 de 50.",
+      evidencia: "prototipos/P01-mqtt-base/#t-50" },
+    { fecha: "2026-11-11", titulo: "La semana de parciales es semana de trabajo", estado: "tomada",
+      decision: "Del 11 al 16 de enero seguimos trabajando: es una semana extra para la Fase III.",
+      porque: "Vamos bien en las materias y la Fase III es la más cargada.",
+      evidencia: "cronograma.html" },
+    { fecha: "2026-11-11", titulo: "Banco de pruebas en el navegador", estado: "tomada",
+      decision: "Las pruebas de comunicación se hacen con una página propia en vez de MQTTX.",
+      porque: "Mide tiempos, cuenta pérdidas y repetidos, y descarga los resultados en CSV para el tomo.",
+      evidencia: "prototipos/P01-mqtt-base/banco.html" },
+    { fecha: "2026-11-11", titulo: "Corregir el divisor de la batería", estado: "tomada",
+      decision: "Usar 100 kΩ y 22 kΩ en lugar de 1 kΩ y 2 kΩ.",
+      porque: "Con 1 kΩ y 2 kΩ llegarían entre 4,2 y 8,4 V al pin del ESP32, que aguanta 3,3 V.",
+      evidencia: "hardware.html" },
+    { fecha: "2026-11-10", titulo: "Librería MQTT de Joel Gaehwiler", estado: "tomada",
+      decision: "Usar la librería MQTT (lwmqtt) en lugar de PubSubClient.",
+      porque: "PubSubClient solo publica con QoS 0, y las alarmas necesitan QoS 2.",
+      evidencia: "prototipos/P01-mqtt-base/" },
+    { fecha: "2026-11-10", titulo: "Tópicos con prefijo propio y QoS según importancia", estado: "tomada",
+      decision: "Estado con QoS 0, pedidos y confirmaciones con QoS 1, alarmas con QoS 2, conexión retenida con LWT.",
+      porque: "Perder un estado no importa (llega otro en 2 s); un pedido sí; una alarma debe llegar una sola vez.",
+      evidencia: "arquitectura.html" },
+    { fecha: "2026-11-10", titulo: "Broker público solo para desarrollo", estado: "tomada",
+      decision: "broker.hivemq.com mientras se desarrolla; broker privado con clave y TLS para las pruebas finales.",
+      porque: "En el público cualquiera que adivine el tópico podría enviar órdenes o falsas alarmas.",
+      evidencia: "" },
+    { fecha: "2026-11-10", titulo: "ESP32 clásico y no S2, S3 ni C3", estado: "tomada",
+      decision: "ESP32-WROOM-32 para el robot.",
+      porque: "Es igual al de Wokwi, tiene Bluetooth (el S2 no) y suficientes pines (el C3 no).",
+      evidencia: "hardware.html" },
+        { fecha: "", titulo: "Bandeja o pinza", estado: "abierta", decision: "", porque: "Depende del pedido típico (entrevista en el laboratorio).", evidencia: "" }
+  ],
+
+  /* ---------- TESIS (página tesis.html) ----------
+     estado: "borrador" | "enviado" | "por redactar" | "por integrar"
+     etiqueta/tituloModal: solo para documentos que no son un capítulo numerado (por defecto "Cap" y "Capítulo <num> · <titulo>")
+     md: ruta del capítulo en Markdown (se abre en el visor modal) o null si aún no está en el repositorio
+     extra: enlaces secundarios [texto, ruta .md]
+     provisional: true = el título aún no está confirmado con la guía de la Escuela / el tutor */
+  tesis: [
+    { num: "I", titulo: "Planteamiento del proyecto", provisional: false, estado: "borrador", md: "tesis/capitulo_1.md",
+      resumen: "Planteamiento del problema, objetivos, justificación, alcance y limitaciones. Versión web del Word (última modificación: 28/10/2026); citas en IEEE." },
+    { num: "II", titulo: "Marco teórico", provisional: false, estado: "enviado", md: "tesis/capitulo_2.md",
+      resumen: "Antecedentes, bases teóricas (robótica móvil, sensores, control, localización, ESP32, Wi-Fi y MQTT), bases normativas y términos básicos. Ajustado y enviado en noviembre de 2026; quedan cambios pendientes. Citas en IEEE.",
+      extra: [["Cambios pendientes del Capítulo II", "docs/tomo/capitulo-ii-cambios.md"]] },
+    { num: "MT", etiqueta: "Doc", titulo: "Marco teórico: estructura y desarrollo de un tema", provisional: false, estado: "borrador", md: "tesis/marco_teorico.md", tituloModal: "Marco teórico: estructura y desarrollo de un tema",
+      resumen: "Entrega previa al Capítulo II: muestra cómo se organiza el marco teórico y desarrolla un tema completo, el protocolo MQTT (QoS, tópicos, sesión, LWT). Citas en IEEE." },
+    { num: "III", titulo: "Marco metodológico", provisional: false, estado: "borrador", md: "tesis/capitulo_3.md",
+      resumen: "Nivel de investigación (Proyecto Especial), diseño de prototipo, técnicas e instrumentos, plan de análisis y las 7 fases del trabajo." },
+    { num: "IV", titulo: "Desarrollo del prototipo", provisional: true, estado: "por redactar", md: null,
+      resumen: "Diseño y construcción del robot, el firmware, la aplicación y el protocolo, con la selección de hardware (Objetivo 2)." },
+    { num: "V", titulo: "Resultados y análisis", provisional: true, estado: "por redactar", md: null,
+      resumen: "Resultados de simulación (SIL) y de las pruebas con el robot físico (HIL), con al menos 20 repeticiones por prueba." },
+    { num: "VI", titulo: "Conclusiones y recomendaciones", provisional: true, estado: "por redactar", md: null,
+      resumen: "Cumplimiento de los objetivos, limitaciones y trabajo futuro." }
+  ],
+
+  /* Material de apoyo del tomo (se abre en el visor modal) */
+  tesisApoyo: [
+    { titulo: "Objetivo 2: selección de hardware", linea: "Tabla comparativa de componentes y cambios a la Figura 4.", md: "docs/tomo/objetivo-2-seleccion-hardware.md" },
+    { titulo: "Documento de requerimientos", linea: "Guía de entrevista, hoja de observación, requerimientos y matriz de hardware.", md: "docs/requerimientos/borrador-requerimientos.md" },
+    { titulo: "Ficha de sensores (P02)", linea: "Pines, umbrales y calibración de los TCRT5000 y HC-SR04P.", md: "docs/sensores.md" },
+    { titulo: "Registro de mediciones físicas (HIL)", linea: "Plantilla vacía para las pruebas con el hardware en diciembre.", md: "prototipos/P02-sensores/README.md" },
+    { titulo: "Tópicos MQTT", linea: "Contrato JSON de estado, ultrasonido, órdenes, ack y alertas.", md: "docs/arquitectura/topicos-mqtt.md" },
+    { titulo: "Arquitectura: 1 ESP32 móvil + 2 balizas BLE", linea: "Diseño de las balizas fijas, tramos sin cinta con heading hold y supuestos de P10 (SIL).", md: "docs/arquitectura/balizas-ble.md" },
+    { titulo: "Auditoría: tesis frente al sistema", linea: "Qué coincide con el hardware, la seguridad y la app, qué está marcado y qué falta medir.", md: "docs/tomo/auditoria-tesis-vs-sistema.md" }
+  ],
+
+  /* Una entrada por semana, la más nueva primero */
+  bitacora: [
+    { semana: 3, fechas: "9 al 13 nov 2026",
+      hicimos: ["Firmware integrado (P01 + P03 + P08): <a href=\"https://github.com/ilianavsc/tg-robot-ucab/blob/main/firmware/robot_integrado.ino\">un solo código para el ESP32</a>, compilado sin errores (71 % de flash y 15 % de RAM)", "Plan de prototipos ajustado al cronograma", "Repositorio y sitio en GitHub", "Banco de pruebas en el navegador", "P01 cerrado: 7 de 7 pruebas, 50 de 50 pedidos", "Primera simulación en Google Colab: <a href=\"archive/P03-motores/avance-01-colab/\">velocidad de los motores</a>", "Simulador 3D de la tracción: <a href=\"prototipos/P03-motores/avance-02-simulador-3d/\">ESP32, puente H, motor y encoder</a>", "Entrevista en el laboratorio", "Capítulo II ajustado y enviado", "Simulador del seguidor de línea: <a href=\"prototipos/P08-seguidor-linea/avance-01-simulador-3d/\">4 TCRT5000 y control PD</a>", "Simulador 3D de los mensajes de P01: <a href=\"prototipos/P01-mqtt-base/simulador-3d/\">QoS, manipulación y última voluntad</a>", "Código ESP32 (.ino) de P01, P03 y P08 con su botón de descarga", "Firmware C++ validado (13/13 tests): órdenes y ACK iguales a los del simulador P10", "Portada con los 3 prototipos y <a href=\"archivo-fase-1.html\">Archivo Fase I</a>"],
+      aprendimos: ["QoS 1 necesita sesión persistente para no perder pedidos", "PubSubClient solo publica con QoS 0", "Wokwi pausa la simulación si la pestaña queda oculta: el broker avisó \"desconectado\" (sirvió para probar el LWT)", "Las rpm de la caja son con 12 V y sin peso; en el robot el motor va cerca de 40 % más lento", "El puente H decide el sentido con 4 interruptores; el PWM decide la fuerza; el encoder da 1 496 cuentas por vuelta de rueda"],
+      sigue: ["Prueba física del ESP32 con la app: orden, ACK y latencia (<a href=\"docs/centro_de_pruebas.md\">flujo</a>)", "Cargar el firmware integrado al ESP32 y probarlo con los motores reales", "Observación y prueba de Wi-Fi en el laboratorio (18 nov)", "Pedir los motores", "Documento de requerimientos", "Cambiar la pista del simulador por la real"] }
+  ]
+};

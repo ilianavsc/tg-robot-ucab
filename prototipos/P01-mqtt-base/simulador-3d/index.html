@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P01 · Simulador 3D de los Mensajes MQTT · TG Robot UCAB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../../assets/css/style.css">
+<style>
+dialog{border:none;border-radius:16px;padding:12px;max-width:min(1400px,96vw);background:#ffffff;box-shadow:var(--shadow-hard)}
+dialog::backdrop{background:rgba(15,23,42,.75);backdrop-filter:blur(3px)}
+dialog img{max-width:100%;max-height:84vh;display:block;border-radius:8px}
+</style>
+</head>
+<body data-pagina="prototipos" data-base="../../../">
+<header id="menu"></header>
+
+<main>
+  <!-- Volver al catálogo -->
+  <a class="volver" href="../../index.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    Volver al catálogo de prototipos
+  </a>
+
+  <p class="ceja">Prototipo P01 · Protocolo de Comunicación · Avance 1</p>
+  <h1>P01: Así viajan <em>los mensajes</em> entre la <strong>app</strong> y el robot</h1>
+  
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px">
+    <span class="chip hecho">Simulador 3D Funcional</span>
+    <span class="chip">Three.js + Protocolo MQTT</span>
+    <span class="chip">Telemetría QoS 0 + QoS 1/2 + LWT</span>
+    <span class="chip">LEDs TX/RX + pérdida de red</span>
+    <span class="chip">Validado en Software (0/50 perdidos)</span>
+  </div>
+
+  <!-- Explicación muy simple -->
+  <div class="frase-explicativa">
+    <strong>En pocas palabras:</strong> La aplicación móvil y el robot nunca se comunican directamente. Ambos intercambian paquetes ligeros a través de un <strong>broker MQTT intermedio</strong> (servidor central). Cada mensaje tiene un nivel de garantía (QoS): los reportes de estado viajan sin confirmación para ahorrar ancho de banda, los pedidos confirman su recepción obligatoriamente, y las alertas de seguridad rebotan en 4 pasos para garantizar entrega exacta.
+  </div>
+
+  <!-- ====================================================================
+       SECCIÓN PRINCIPAL: SIMULADOR 3D INTERACTIVO
+       ==================================================================== -->
+  <section aria-labelledby="t-simulador">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px">
+      <h2 id="t-simulador" style="margin:0">Simulador 3D en Vivo (Mensajes, QoS y LWT)</h2>
+      <a href="simulador.html" target="_blank" rel="noopener" class="btn btn-secundario" style="padding:7px 14px;font-size:14px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        Abrir en Pantalla Completa
+      </a>
+    </div>
+
+    <!-- Contenedor del visor 3D embebido -->
+    <div class="simulador-embed-container">
+      <div class="simulador-embed-bar">
+        <span><i class="dot-live" aria-hidden="true"></i>BROKER MQTT & CANAL VIRTUAL ACTIVO</span>
+        <span>Three.js / WebGL</span>
+      </div>
+      <iframe src="simulador.html" class="simulador-embed-frame" title="Simulador 3D interactivo de mensajes MQTT P01" loading="lazy" scrolling="no"></iframe>
+      <div class="simulador-embed-footer">
+        <span style="color:#94a3b8;font-size:13.5px">Controles: <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">Espacio</kbd> envía la orden, <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">0</kbd> <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">1</kbd> <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">2</kbd> eligen el QoS, <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">M</kbd> manipulación y <kbd style="background:#334155;color:#fff;padding:2px 6px;border-radius:4px">L</kbd> desconexión. Abre «Controles» para la cámara lenta 0.5× y la pérdida de red.</span>
+        <a href="simulador.html" target="_blank" rel="noopener" class="btn-link-dark">
+          Ver simulador sin marcos ↗
+        </a>
+      </div>
+    </div>
+
+    <!-- Botón de descarga de código ESP32 -->
+    <div style="background:#ffffff;border:2px solid var(--border-dark);border-radius:var(--radius-md);padding:18px 24px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;box-shadow:var(--shadow-hard);margin-top:20px">
+      <div>
+        <h3 style="margin:0 0 4px">Código Fuente ESP32 (.ino)</h3>
+        <p style="margin:0;font-size:15px;color:var(--text-muted)">Cliente MQTT completo para ESP32 con manejo de suscripciones, LWT y telemetría de batería.</p>
+      </div>
+      <a href="../codigo-esp32/robot_mqtt/robot_mqtt.ino" download class="btn btn-principal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Descargar robot_mqtt.ino
+      </a>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN OBLIGATORIA: RESULTADOS DE PRUEBAS EN LABORATORIO
+       ==================================================================== -->
+  <section class="laboratorio-seccion" aria-labelledby="t-lab">
+    <div class="laboratorio-header">
+      <h2 id="t-lab">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-amber)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v7.31"></path><path d="M14 9.3V2"></path><path d="M8.5 2h7"></path><path d="M14 9.3a6.5 6.5 0 1 1-4 0"></path><path d="M5.52 16h12.96"></path></svg>
+        Resultados de Pruebas en Laboratorio
+      </h2>
+      <span class="badge-status-lab">Pendiente por llegada de componentes</span>
+    </div>
+
+    <div class="laboratorio-banner">
+      <p>
+        <strong>Plan de Validación Empírica:</strong> Los ensayos de radiopropagación y latencia de red se ejecutarán en el laboratorio de telecomunicaciones de la UCAB tan pronto concluya el aprovisionamiento de las placas ESP32 y el router local de pruebas. En esta sección se documentarán las curvas de RSSI vs distancia, paquetes perdidos en Wi-Fi institucional y retardo de respuesta.
+      </p>
+    </div>
+
+    <!-- Wireframes / Placeholders de Pruebas Futuras -->
+    <div class="laboratorio-grid-placeholders">
+      <div class="lab-box-placeholder">
+        <span class="lab-icon">📶</span>
+        <h4>Cobertura Wi-Fi UCAB y Nivel de Señal (RSSI)</h4>
+        <p>Mapeo de potencia recibida (dBm) desde el cuarto de componentes hasta el fondo del pasillo, evaluando zonas de sombra y desvanecimiento multicamino.</p>
+        <span class="chip pendiente" style="margin-top:10px">Esperando hardware</span>
+      </div>
+
+      <div class="lab-box-placeholder">
+        <span class="lab-icon">⚡</span>
+        <h4>Latencia de Envío y Confirmación (RTT)</h4>
+        <p>Cronometraje de ida y vuelta para 50 órdenes con QoS 1 en la red física del laboratorio frente al promedio de 4,1 s obtenido en simulación previa.</p>
+        <span class="chip pendiente" style="margin-top:10px">Esperando hardware</span>
+      </div>
+
+      <div class="lab-box-placeholder">
+        <span class="lab-icon">🚨</span>
+        <h4>Tiempo de Detección de Desconexión (LWT)</h4>
+        <p>Validación práctica del corte abrupto de energía y verificación de que el broker publique el testamento (Last Will) en menos de 25 segundos.</p>
+        <span class="chip pendiente" style="margin-top:10px">Esperando hardware</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN: CÓMO USAR EL SIMULADOR
+       ==================================================================== -->
+  <section aria-labelledby="t-usar">
+    <h2 id="t-usar">Cómo interactuar con el simulador</h2>
+    <p class="bajada">Observa el flujo de paquetes y paquetes de control entre los tres nodos del sistema.</p>
+    <ol class="pasos">
+      <li><b>Mira la telemetría constante</b><span>Cada 1 a 1,5 s el robot publica su estado con <b>QoS 0</b>: un micro-paquete translúcido viaja Robot → Broker → App, sin confirmación. Los <b>LEDs TX/RX</b> del robot y de la app parpadean con cada envío (TX) o recepción (RX).</span></li>
+      <li><b>Selecciona el nivel QoS</b><span>QoS 0, 1 o 2 (teclas <kbd>0</kbd> <kbd>1</kbd> <kbd>2</kbd>). Una sola línea resume cada uno: sin confirmación, PUBACK, o 4 pasos.</span></li>
+      <li><b>Envía una orden</b><span>Botón principal «Enviar orden» (tecla <kbd>espacio</kbd>): un paquete <b>grande y llamativo</b> viaja App → Broker → Robot, en contraste con la telemetría rápida; el robot confirma por el tópico de retorno (QoS 1: 2 pasos, QoS 2: 4 pasos).</span></li>
+      <li><b>Activa la pérdida de red</b><span>Con el interruptor, los paquetes <b>QoS 0</b> (telemetría y órdenes) pueden perderse a mitad de camino, con una ✕ roja y sin reintento. En <b>QoS 1 y 2</b> el paquete se reenvía a la vista hasta completar la confirmación.</span></li>
+      <li><b>Simula eventos</b><span><b>Manipulación</b> (tecla <kbd>M</kbd>): alarma antirrobo con QoS 2 y pantalla roja. <b>Desconexión (LWT)</b> (tecla <kbd>L</kbd>): la telemetría QoS 0 se detiene de golpe, el LED del robot se pone rojo y, pasado 1,5 × keepalive, el broker publica la última voluntad a la app. Al reconectar, la telemetría vuelve.</span></li>
+      <li><b>Cámara lenta</b><span>El botón <b>0.5×</b> de la cabecera del panel «Controles» reduce la velocidad de la animación a la mitad.</span></li>
+    </ol>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN: PRINCIPIOS DE INGENIERÍA
+       ==================================================================== -->
+  <section aria-labelledby="t-ideas">
+    <h2 id="t-ideas">Fundamentos del Protocolo MQTT</h2>
+    <div class="rejilla">
+      <div class="tarjeta" style="border-top:6px solid var(--accent-coral)">
+        <span class="ceja" style="color:var(--accent-coral)">01 · QoS 0</span>
+        <h3>Disparo sin Confirmación</h3>
+        <p style="font-size:15px;color:var(--text-muted);margin:0">Un solo paquete PUBLISH. Se emplea para el reporte periódico de telemetría (cada 2 s): si un paquete se pierde por ruido de radio, el siguiente lo actualizará.</p>
+      </div>
+      <div class="tarjeta" style="border-top:6px solid var(--accent-primary)">
+        <span class="ceja" style="color:var(--accent-primary)">02 · QoS 1</span>
+        <h3>Entrega Garantizada (Al Menos Una Vez)</h3>
+        <p style="font-size:15px;color:var(--text-muted);margin:0">Dos pasos: PUBLISH y confirmación PUBACK. Si el emisor no recibe el acuse, reintenta. Es el nivel empleado para las órdenes de búsqueda de componentes.</p>
+      </div>
+      <div class="tarjeta" style="border-top:6px solid var(--accent-purple)">
+        <span class="ceja" style="color:var(--accent-purple)">03 · QoS 2</span>
+        <h3>Entrega Exacta (Una Sola Vez)</h3>
+        <p style="font-size:15px;color:var(--text-muted);margin:0">Handshake de cuatro pasos (PUBLISH, PUBREC, PUBREL, PUBCOMP). Garantiza que ninguna alarma de seguridad se duplique ni se pierda.</p>
+      </div>
+      <div class="tarjeta" style="border-top:6px solid var(--accent-amber)">
+        <span class="ceja" style="color:var(--accent-amber)">04 · LWT</span>
+        <h3>Última Voluntad y Testamento</h3>
+        <p style="font-size:15px;color:var(--text-muted);margin:0">Mensaje preconfigurado en el broker durante el CONNECT. Si el robot sufre corte abrupto, el broker publica el aviso al expirar el keepalive.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN: TABLA DE MENSAJES Y TÓPICOS
+       ==================================================================== -->
+  <section aria-labelledby="t-tabla">
+    <h2 id="t-tabla">Estructura de Tópicos del Sistema</h2>
+    <table class="tabla">
+      <thead>
+        <tr><th>Tópico</th><th>Nivel QoS</th><th>Sentido</th><th>Propósito</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>robot/estado</code></td><td>QoS 0</td><td>Robot → Broker → App</td><td>Telemetría periódica cada 2 s (batería, modo, odometría)</td></tr>
+        <tr><td><code>robot/ordenes</code></td><td>QoS 1</td><td>App → Broker → Robot</td><td>Instrucciones de despacho (componente, cantidad, nodo destino)</td></tr>
+        <tr><td><code>robot/ordenes/ack</code></td><td>QoS 1</td><td>Robot → Broker → App</td><td>Confirmación de recepción con ID de pedido</td></tr>
+        <tr><td><code>robot/alertas</code></td><td>QoS 2</td><td>Robot → Broker → App</td><td>Alarma antirrobo por acelerómetro o choque frontal</td></tr>
+        <tr><td><code>robot/conexion</code></td><td>QoS 1</td><td>Broker → App</td><td>Estado de enlace y mensaje de Última Voluntad (LWT)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN: GALERÍA DE EVIDENCIAS
+       ==================================================================== -->
+  <section aria-labelledby="t-evid">
+    <h2 id="t-evid">Evidencias Fotográficas de la Simulación</h2>
+    <p class="bajada">Capturas del simulador y estados del protocolo. Haz clic para agrandar.</p>
+    <div class="galeria">
+      <figure><img src="evidencias/01-envia-una-orden.jpg" alt="Orden confirmada"><figcaption><b>Orden confirmada:</b> Recepción del pedido P-0002 con acuse de recibo en el broker.</figcaption></figure>
+      <figure><img src="evidencias/02-qos2-cuatro-pasos.jpg" alt="Secuencia QoS 2"><figcaption><b>Handshake QoS 2:</b> Mensaje de cuatro pasos en tránsito (etapa PUBREL).</figcaption></figure>
+      <figure><img src="evidencias/03-manipulacion-pantalla-roja.jpg" alt="Alarma en app"><figcaption><b>Alerta de manipulación:</b> Disparo de alarma inmediata con interfaz de alerta roja.</figcaption></figure>
+      <figure><img src="evidencias/04-desconexion-lwt.jpg" alt="Desconexión por LWT"><figcaption><b>Última Voluntad (LWT):</b> Detección de caída de nodo y notificación de desconexión.</figcaption></figure>
+      <figure><img src="evidencias/05-telemetria-qos0-y-orden.jpg" alt="Telemetría QoS 0 y orden QoS 1 con LEDs TX/RX"><figcaption><b>Telemetría + orden:</b> el micro-paquete QoS 0 convive con el paquete grande de la orden; LEDs TX/RX en el robot y la app.</figcaption></figure>
+      <figure><img src="evidencias/06-perdida-de-red-qos0.jpg" alt="Pérdida de red: paquete QoS 0 perdido con una cruz roja"><figcaption><b>Pérdida de red:</b> un paquete QoS 0 se pierde a mitad de camino (✕ roja) y no se reintenta.</figcaption></figure>
+      <figure><img src="evidencias/07-lwt-telemetria-detenida.jpg" alt="LWT: telemetría detenida y LEDs del robot en rojo"><figcaption><b>LWT:</b> la telemetría QoS 0 se detiene, los LEDs del robot quedan rojos y el broker espera 1,5 × keepalive.</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ====================================================================
+       SECCIÓN: CÓDIGO FUENTE ESP32
+       ==================================================================== -->
+  <section aria-labelledby="t-esp">
+    <h2 id="t-esp">Firmware de Comunicaciones (ESP32)</h2>
+    <p class="bajada">Implementación en C++ con la biblioteca PubSubClient para microcontrolador ESP32.</p>
+    
+    <div style="margin-bottom:16px">
+      <a href="../codigo-esp32/robot_mqtt/robot_mqtt.ino" download class="btn btn-principal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Descargar robot_mqtt.ino (.ino)
+      </a>
+    </div>
+
+    <details style="background:#ffffff;border:2px solid var(--border-dark);border-radius:var(--radius-md);padding:14px 18px">
+      <summary style="font-weight:700;cursor:pointer">Desplegar visor de código fuente en línea</summary>
+      <pre style="overflow:auto;font-family:var(--font-mono);font-size:13px;line-height:1.45;background:#f8fafc;padding:16px;border-radius:8px;margin-top:14px;border:1px solid #cbd5e1"><code>/* P01 · Cliente MQTT para ESP32 */
+#include &lt;WiFi.h&gt;
+#include &lt;PubSubClient.h&gt;
+
+const char* T_ESTADO   = "robot/estado";
+const char* T_ORDENES  = "robot/ordenes";
+const char* T_ACK      = "robot/ordenes/ack";
+const char* T_ALERTAS  = "robot/alertas";
+const char* T_CONEXION = "robot/conexion";
+
+// ... (Código completo disponible al descargar robot_mqtt.ino)</code></pre>
+    </details>
+  </section>
+
+  <!-- Módulos -->
+  <section aria-labelledby="t-archivos">
+    <h2 id="t-archivos">Arquitectura del Simulador</h2>
+    <ul>
+      <li><a href="codigo/protocolo.js">protocolo.js</a>: Lógica MQTT: pasos de cada QoS, LWT, telemetría QoS 0 cada 1–1,5 s y probabilidad de pérdida de red con reintentos.</li>
+      <li><a href="codigo/main.js">main.js</a>: Escena 3D, paquetes (telemetría, órdenes, pérdidas y reintentos), LEDs TX/RX y consola. <a href="codigo/paneles.js">paneles.js</a>: paneles plegables.</li>
+      <li><a href="codigo/pruebas.mjs">pruebas.mjs</a>: Validación en consola de los pasos de cada QoS, la telemetría y la pérdida de red. <a href="codigo/construir.mjs">construir.mjs</a> genera <code>simulador.html</code>.</li>
+    </ul>
+    <p class="suave" style="font-size:15px">Registro histórico de pruebas anteriores disponible en el <a href="../../../archivo-fase-1.html">Archivo Fase I</a> y el <a href="../banco.html">Banco de Pruebas Web</a>.</p>
+  </section>
+</main>
+
+<dialog id="grande">
+  <img alt="Evidencia ampliada">
+  <form method="dialog" style="text-align:right;margin-top:10px">
+    <button class="btn btn-secundario" style="padding:6px 16px">Cerrar</button>
+  </form>
+</dialog>
+
+<footer id="pie"></footer>
+
+<script>
+/* Movil: el iframe crece a la altura de su contenido para que baje toda la pagina con el scroll normal. */
+window.addEventListener('message', function (e) {
+  var d = e.data;
+  if (!d || d.tipo !== 'p01-altura') return;
+  var f = document.querySelector('.simulador-embed-frame');
+  if (!f || e.source !== f.contentWindow) return;
+  f.style.height = d.h ? d.h + 'px' : '';
+});
+</script>
+<script src="../../../datos/proyecto.js"></script>
+<script src="../../../assets/sitio.js"></script>
+<script>
+document.querySelectorAll('.galeria img').forEach(function(im){
+  im.addEventListener('click', function(){
+    var d = document.getElementById('grande');
+    d.querySelector('img').src = im.src;
+    d.querySelector('img').alt = im.alt;
+    d.showModal();
+  });
+});
+</script>
+</body>
+</html>

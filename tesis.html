@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TG Robot UCAB · Tesis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/estilo.css">
+<style>
+.capitulos{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));margin:0 0 8px}
+.cap{display:flex;flex-direction:column;gap:10px;background:var(--blanco);border:2px solid var(--tinta);border-radius:16px;padding:20px 22px;box-shadow:6px 6px 0 var(--tinta)}
+.cap.vacio{box-shadow:none;border-style:dashed;border-color:var(--suave)}
+.cap .cab{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px}
+.cap .num{font-family:var(--display);font-weight:700;font-size:30px;line-height:1}
+.cap .num small{font-family:var(--mono);font-weight:600;font-size:12.5px;color:var(--suave);letter-spacing:.04em;text-transform:uppercase;margin-right:6px}
+.cap h3{font-size:21px;margin:0}
+.cap .prov{font-family:var(--mono);font-size:12px;color:var(--suave);margin:-4px 0 0}
+.cap p.resumen{margin:0;font-size:16px;flex:1}
+.cap .acciones{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.cap .acciones .btn{padding:9px 14px;font-size:14.5px}
+.cap .sin{font-family:var(--mono);font-size:13px;color:var(--suave)}
+.seccion-apoyo{margin-top:36px}
+</style>
+</head>
+<body data-pagina="tesis" data-base="">
+<header id="menu"></header>
+<main>
+<p class="ceja">Tesis</p>
+<h1>El documento del <em>Trabajo de Grado</em></h1>
+<p class="bajada">Los capítulos del tomo, uno por uno. Pulsa <strong>Leer borrador</strong> para abrir el capítulo (o el documento) sin salir de la página.</p>
+
+<div class="frase-explicativa">
+  <strong>Cómo se actualiza:</strong> cada capítulo se escribe en Markdown dentro de <code>tesis/</code> y esta lista sale de <code>TG.tesis</code> en <code>datos/proyecto.js</code>. Los capítulos I y II y el Marco teórico vienen de los documentos de Word y todo el tomo usa citas <strong>IEEE</strong> (numéricas); los capítulos IV a VI tienen títulos <strong>provisionales</strong> hasta confirmar la estructura con el tutor.
+</div>
+
+<section aria-labelledby="t-capitulos">
+  <h2 id="t-capitulos">Capítulos</h2>
+  <div class="capitulos" id="capitulos"></div>
+</section>
+
+<section class="seccion-apoyo" aria-labelledby="t-apoyo">
+  <h2 id="t-apoyo">Material de apoyo del tomo</h2>
+  <p class="bajada linea-2" style="margin-bottom:16px">Documentos del repositorio que alimentan los capítulos.</p>
+  <div class="rejilla" id="apoyo"></div>
+</section>
+</main>
+<footer id="pie"></footer>
+<script src="datos/proyecto.js"></script>
+<script src="assets/sitio.js"></script>
+<script>
+(function(){
+  /* estado del capítulo -> variante de chip y texto */
+  var ESTADOS = {
+    "borrador":      { chip: "en-curso", texto: "Borrador" },
+    "enviado":       { chip: "hecho",    texto: "Enviado" },
+    "por redactar":  { chip: "pendiente", texto: "Por redactar" },
+    "por integrar":  { chip: "pendiente", texto: "Por integrar" }
+  };
+  function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+  document.getElementById("capitulos").innerHTML = TG.tesis.map(function(c){
+    var e = ESTADOS[c.estado] || { chip: "pendiente", texto: c.estado };
+    var tituloModal = c.tituloModal || ("Capítulo " + c.num + " · " + c.titulo);
+    var acciones = "";
+    if (c.md) {
+      acciones += '<a class="btn btn-principal" href="' + esc(c.md) + '" data-md="' + esc(c.md) + '" data-titulo="' + esc(tituloModal) + '">Leer borrador</a>';
+    } else {
+      acciones += '<span class="sin">Aún no está en el repositorio</span>';
+    }
+    (c.extra || []).forEach(function(x){
+      acciones += '<a class="btn btn-secundario" href="' + esc(x[1]) + '" data-md="' + esc(x[1]) + '" data-titulo="' + esc(x[0]) + '">' + esc(x[0]) + '</a>';
+    });
+    return '<article class="cap' + (c.md ? "" : " vacio") + '">' +
+      '<div class="cab"><span class="num"><small>' + esc(c.etiqueta || "Cap") + '</small>' + esc(c.num) + '</span><span class="chip ' + e.chip + '">' + esc(e.texto) + '</span></div>' +
+      '<h3>' + esc(c.titulo) + '</h3>' +
+      (c.provisional ? '<p class="prov">título provisional</p>' : "") +
+      '<p class="resumen">' + esc(c.resumen) + '</p>' +
+      '<div class="acciones">' + acciones + '</div></article>';
+  }).join("");
+
+  document.getElementById("apoyo").innerHTML = TG.tesisApoyo.map(function(a){
+    return '<a class="tarjeta sombra ir" href="' + esc(a.md) + '" data-md="' + esc(a.md) + '" data-titulo="' + esc(a.titulo) + '"><h3>' + esc(a.titulo) + '</h3><p class="linea-2">' + esc(a.linea) + '</p></a>';
+  }).join("");
+})();
+</script>
+</body>
+</html>

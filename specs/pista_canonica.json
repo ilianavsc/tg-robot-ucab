@@ -1,0 +1,55 @@
+{
+  "$schema": "https://example.com/schemas/pista-canonica-1.0.json",
+  "nombre": "Cuarto de Componentes ↔ Laboratorio 1",
+  "version": "1.0.0",
+  "estado": "canonica",
+  "unifica": [
+    { "origen": "P08", "longitudM": 8.05, "nota": "pista de simulación (perímetro)" },
+    { "origen": "P09", "longitudM": 10.0, "nota": "app Flutter" },
+    { "origen": "P10", "longitudM": 8.0, "nota": "simulador ESP32 web" }
+  ],
+  "longitudTotalM": 9.0,
+  "anchoCintaMm": 19,
+  "unidades": {
+    "distancia": "metros",
+    "angulo": "grados",
+    "rssi": "dBm"
+  },
+
+  "balizasBLE": [
+    { "id": "B1", "extremo": "inicio", "ubicacion": "Cuarto de Componentes", "posicionM": 0.0 },
+    { "id": "B2", "extremo": "fin", "ubicacion": "Laboratorio 1", "posicionM": 9.0 }
+  ],
+
+  "tramos": [
+    { "id": "T1", "tipo": "linea", "desdeM": 0.0, "hastaM": 3.0, "longitudM": 3.0, "rumboGrados": 0, "descripcion": "Salida del Cuarto de Componentes" },
+    { "id": "T2", "tipo": "sin_linea", "desdeM": 3.0, "hastaM": 4.5, "longitudM": 1.5, "rumboGrados": 0, "descripcion": "Cruza sin cinta: HEADING_HOLD por giroscopio" },
+    { "id": "T3", "tipo": "linea", "desdeM": 4.5, "hastaM": 7.5, "longitudM": 3.0, "rumboGrados": 0, "descripcion": "Pasillo con cinta" },
+    { "id": "T4", "tipo": "linea", "desdeM": 7.5, "hastaM": 9.0, "longitudM": 1.5, "rumboGrados": 0, "descripcion": "Entrada al Laboratorio 1" }
+  ],
+
+  "puntosDeControl": [
+    { "id": "PC1", "posicionM": 3.0, "tipo": "inicio_sin_linea", "nota": "Comienza HEADING_HOLD" },
+    { "id": "PC2", "posicionM": 4.5, "tipo": "fin_sin_linea", "nota": "Reenganche de línea (REACQUIRE_LINE)" },
+    { "id": "PC3", "posicionM": 7.5, "tipo": "deteccion_beacon", "nota": "RSSI B2 >= -80 dBm → WAIT_BEACON" }
+  ],
+
+  "umbrales": {
+    "paradaCriticaCm": 20,
+    "precaucionCm": 50,
+    "rssiDetecciondBm": -80,
+    "rssiLlegadadBm": -52,
+    "driftMaximoGrados": 30,
+    "separacionSensoresMm": 18,
+    "posicionesSensoresMm": [27, 9, -9, -27],
+    "tiempoLineaPerdidaMs": 500,
+    "tiempoMaxSinLineaMs": 4000
+  },
+
+  "estados": ["FOLLOW_LINE", "LINE_LOST_CHECK", "HEADING_HOLD", "WAIT_BEACON", "REACQUIRE_LINE"],
+
+  "notas": {
+    "tiempoMaxSinLineaMs": "Límite de seguridad de 4000 ms sin línea, ante la deriva del MPU-6050. NO se amplía para cruzar huecos de cinta mayores (~4,5 m a la velocidad base): esos huecos terminan en timeout_sin_linea.",
+    "headingHoldABeacon": "Estando en HEADING_HOLD, un RSSI >= rssiDetecciondBm de la baliza del extremo final pasa directo a WAIT_BEACON sin REACQUIRE_LINE (solo tras salir del inicio; la deriva excesiva manda primero)."
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "p03-vitrina-autonoma",
+  "private": true,
+  "type": "module",
+  "description": "Fuentes de la vitrina autónoma de P03. Para regenerar ../simulador.html: npm install --no-save three@0.187.0 esbuild && node construir.mjs"
+}

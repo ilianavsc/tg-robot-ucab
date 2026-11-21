@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P01 · Así se hablan el robot y la app</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/estilo.css">
+<style>
+:root{
+  --papel:#EEF3F1; --punto:#CBD8D3; --tinta:#14213D; --suave:#4A5A73;
+  --sale:#0F9D84; --llega:#F2603D; --qos:#6B4EE6; --pend:#F2B33D; --blanco:#FFFFFF;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;
+  --texto:"Atkinson Hyperlegible",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--papel);background-image:radial-gradient(var(--punto) 1.2px,transparent 1.2px);background-size:22px 22px;color:var(--tinta);font-family:var(--texto);font-size:18px;line-height:1.6}
+main{max-width:980px;margin:0 auto;padding:40px 20px 80px}
+a{color:var(--qos)}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--qos);outline-offset:3px;border-radius:6px}
+.volver{font-size:15px;text-decoration:none;color:var(--suave)}
+.ceja{font-family:var(--mono);font-size:13px;letter-spacing:.04em;color:var(--suave);margin:28px 0 8px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(38px,6vw,64px);line-height:1.02;margin:0 0 18px;letter-spacing:-.02em}
+h1 em{font-style:normal;color:var(--sale)}
+h1 strong{color:var(--llega);font-weight:700}
+h2{font-family:var(--display);font-weight:700;font-size:28px;margin:0 0 6px;letter-spacing:-.01em}
+.bajada{color:var(--suave);margin:0 0 18px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:30px}
+.chip{font-family:var(--mono);font-size:13px;padding:5px 11px;border-radius:999px;background:var(--blanco);border:1.5px solid var(--tinta)}
+.chip.pend{background:var(--pend);border-color:var(--pend)}
+.frase{font-family:var(--display);font-weight:500;font-size:clamp(22px,3vw,30px);line-height:1.3;background:var(--blanco);border:2px solid var(--tinta);border-radius:18px;padding:24px 28px;margin:0 0 48px;box-shadow:6px 6px 0 var(--tinta)}
+section{margin:0 0 52px}
+.mesa{background:var(--blanco);border:2px solid var(--tinta);border-radius:18px;padding:18px 18px 14px;box-shadow:6px 6px 0 var(--tinta)}
+.mesa svg{width:100%;height:auto;display:block}
+.botones{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 12px}
+button{font-family:var(--texto);font-weight:700;font-size:16px;padding:10px 16px;border-radius:12px;border:2px solid var(--tinta);background:var(--blanco);color:var(--tinta);cursor:pointer;transition:transform .12s}
+button:hover{transform:translateY(-2px)}
+button.llega{background:var(--llega);border-color:var(--llega);color:var(--blanco)}
+button.qos{background:var(--qos);border-color:var(--qos);color:var(--blanco)}
+.registro{font-family:var(--mono);font-size:14px;background:var(--papel);border-radius:10px;padding:10px 14px;min-height:46px;margin:0}
+.leyenda{display:flex;flex-wrap:wrap;gap:18px;font-size:15px;color:var(--suave);margin-top:10px}
+.leyenda span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+.envios{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.envio{background:var(--blanco);border:2px solid var(--tinta);border-radius:16px;padding:18px 20px}
+.envio .nivel{font-family:var(--mono);font-weight:600;font-size:14px;color:var(--qos)}
+.envio h3{font-family:var(--display);font-size:22px;margin:4px 0 6px}
+.envio p{margin:0;font-size:16px;color:var(--suave)}
+.envio .uso{display:inline-block;margin-top:10px;font-family:var(--mono);font-size:13px;background:var(--papel);padding:3px 8px;border-radius:6px;color:var(--tinta)}
+.buzones{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.buzones li{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:12px;align-items:center;background:var(--blanco);border-radius:12px;padding:12px 16px;border-left:6px solid var(--c)}
+.buzones code{font-family:var(--mono);font-size:14px;overflow-wrap:anywhere}
+.buzones small{display:block;color:var(--suave);font-size:14px}
+.pruebas{display:grid;gap:12px}
+.prueba{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;padding:12px 14px}
+.marca{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-weight:700;font-size:22px;color:var(--blanco);background:var(--sale)}
+.prueba.pend .marca{background:var(--pend);color:var(--tinta)}
+.prueba p{margin:0}
+.prueba small{color:var(--suave);font-size:15px}
+.mini{width:120px;height:72px;object-fit:cover;object-position:top left;border-radius:8px;border:1.5px solid var(--punto);cursor:zoom-in;display:block}
+.nota{background:var(--pend);border-radius:14px;padding:14px 18px;margin-top:16px;font-size:16px}
+.falta{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.falta div{background:var(--blanco);border-radius:14px;padding:16px 18px;border:2px dashed var(--suave)}
+.falta h3{font-family:var(--display);font-size:20px;margin:0 0 8px}
+.falta ul{margin:0;padding-left:20px;font-size:16px}
+details{background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;padding:14px 18px}
+summary{font-family:var(--display);font-weight:700;font-size:20px;cursor:pointer}
+details p,details li{font-size:16px}
+details code{font-family:var(--mono);font-size:14px;background:var(--papel);padding:1px 6px;border-radius:4px}
+dialog{border:none;border-radius:16px;padding:12px;max-width:min(1100px,94vw);background:var(--blanco)}
+dialog::backdrop{background:rgba(20,33,61,.7)}
+dialog img{max-width:100%;max-height:80vh;display:block;border-radius:8px}
+dialog p{margin:10px 4px 2px;font-size:16px}
+footer{border-top:2px solid var(--tinta);padding-top:18px;font-size:15px;color:var(--suave)}
+@media (max-width:768px){
+  main{padding:24px 16px calc(90px + env(safe-area-inset-bottom,0px))}
+  .buzones li{grid-template-columns:1fr}
+  .prueba{grid-template-columns:44px 1fr}
+  .prueba .mini{grid-column:2;width:100%;height:110px}
+  .envios{grid-template-columns:1fr}
+  .codigo{grid-template-columns:1fr}
+  .falta{grid-template-columns:1fr}
+  .botones button{min-height:46px}
+}
+@media (prefers-reduced-motion:reduce){button{transition:none}}
+.banco-link{display:block;text-decoration:none;color:var(--tinta);background:var(--tinta);color:var(--blanco);border-radius:18px;padding:22px 26px;box-shadow:6px 6px 0 var(--sale)}
+.banco-link .ceja{color:#B9C4D6}
+.banco-link h2{color:var(--blanco)}
+.banco-link:hover{transform:translate(-2px,-2px)}
+.codigo{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.pieza{background:var(--blanco);border:2px solid var(--tinta);border-radius:14px;padding:16px 18px}
+.pieza .nivel{font-family:var(--mono);font-weight:600;font-size:13px;color:var(--qos)}
+.pieza p{margin:6px 0 10px;font-size:16px}
+.pieza pre{margin:0;background:var(--tinta);color:#E2F4F0;border-radius:10px;padding:10px 12px;font-family:var(--mono);font-size:12.5px;overflow-x:auto}
+.prueba.pend .marca{font-size:14px;font-family:var(--mono)}
+.prueba .marca{font-size:15px;font-family:var(--mono)}
+details.v1{margin-top:16px}
+.galeria{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.archivos{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.archivos li{background:var(--blanco);border-radius:12px;padding:10px 16px;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline}
+.archivos a,.archivos span{font-family:var(--mono);font-size:14px}
+.archivos small{color:var(--suave);font-size:14px}
+.grafica{padding:14px}
+.grafica svg{width:100%;height:auto;display:block}
+.hallazgos{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:18px}
+.hallazgo{background:var(--blanco);border-radius:14px;padding:16px 18px;border-top:5px solid var(--qos)}
+.hallazgo .nivel{font-family:var(--mono);font-size:12.5px;color:var(--qos);font-weight:600}
+.hallazgo h3{font-size:19px;margin:4px 0 6px}
+.hallazgo p{margin:0;font-size:15.5px}
+.hallazgo code{font-family:var(--mono);font-size:13px}
+</style>
+</head>
+<body data-pagina="prototipos" data-base="../../">
+<header id="menu"></header>
+<main>
+<a class="volver" href="../index.html">← Todos los prototipos</a>
+<p class="ceja">TRABAJO DE GRADO · ROBOT UCAB · PROTOTIPO P01</p>
+<h1>Así se hablan <em>el robot</em> y <strong>la app</strong></h1>
+<div class="chips">
+  <span class="chip">Fase I</span>
+  <span class="chip">Simulado en Wokwi</span>
+  <span class="chip" style="background:#0F9D84;border-color:#0F9D84;color:#fff">Cerrado · 7 de 7</span>
+  <span class="chip">Versión 2.1 · 11 nov 2026</span>
+</div>
+
+<p class="suave" style="font-size:16px;margin:0 0 18px">Nuevo: el <a href="simulador-3d/">simulador 3D de los mensajes</a> muestra lo mismo en movimiento, y el <a href="simulador-3d/#t-esp">código para el ESP32 real</a> está listo para descargar. Esta página queda como registro de las pruebas de la Fase I.</p>
+
+<p class="frase">El robot y la app nunca se hablan directo: los dos le entregan sus mensajes a un cartero central (el broker), y él los reparte a quien los esté esperando.</p>
+
+<section aria-labelledby="t-mesa">
+  <h2 id="t-mesa">Míralo funcionar</h2>
+  <p class="bajada">Cada sobre es un mensaje. Toca los botones para ver qué pasa.</p>
+  <div class="mesa">
+    <svg id="escena" viewBox="0 0 800 230" role="img" aria-label="El robot, el broker y la app intercambiando mensajes">
+      <line x1="150" y1="120" x2="650" y2="120" stroke="#CBD8D3" stroke-width="4" stroke-dasharray="2 10" stroke-linecap="round"/>
+      <g id="est-robot">
+        <rect x="40" y="62" width="150" height="116" rx="18" fill="#E2F4F0" stroke="#14213D" stroke-width="2"/>
+        <rect x="78" y="84" width="74" height="44" rx="8" fill="#FFFFFF" stroke="#14213D" stroke-width="2"/>
+        <circle cx="100" cy="106" r="6" fill="#14213D"/><circle cx="130" cy="106" r="6" fill="#14213D"/>
+        <circle cx="72" cy="168" r="10" fill="#14213D"/><circle cx="158" cy="168" r="10" fill="#14213D"/>
+        <text x="115" y="152" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif" font-weight="700" font-size="18" fill="#14213D">Robot</text>
+        <text id="txt-robot" x="115" y="48" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#0F9D84">en línea</text>
+      </g>
+      <g>
+        <rect x="325" y="62" width="150" height="116" rx="18" fill="#FFFFFF" stroke="#14213D" stroke-width="2"/>
+        <rect x="355" y="86" width="90" height="40" rx="6" fill="#EEF3F1" stroke="#14213D" stroke-width="2"/>
+        <line x1="368" y1="96" x2="432" y2="96" stroke="#14213D" stroke-width="2"/>
+        <line x1="368" y1="106" x2="432" y2="106" stroke="#14213D" stroke-width="2"/>
+        <line x1="368" y1="116" x2="410" y2="116" stroke="#14213D" stroke-width="2"/>
+        <text x="400" y="152" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif" font-weight="700" font-size="18" fill="#14213D">Cartero</text>
+        <text x="400" y="170" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#4A5A73">broker HiveMQ</text>
+      </g>
+      <g id="est-app">
+        <rect x="610" y="62" width="150" height="116" rx="18" fill="#FDE8E2" stroke="#14213D" stroke-width="2"/>
+        <rect x="660" y="78" width="50" height="62" rx="8" fill="#FFFFFF" stroke="#14213D" stroke-width="2"/>
+        <line x1="675" y1="132" x2="695" y2="132" stroke="#14213D" stroke-width="2" stroke-linecap="round"/>
+        <text x="685" y="162" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif" font-weight="700" font-size="18" fill="#14213D">App</text>
+        <text id="txt-app" x="685" y="48" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="13" fill="#4A5A73">hoy: MQTTX</text>
+      </g>
+      <g id="sobres"></g>
+    </svg>
+    <div class="botones">
+      <button class="llega" id="b-orden" type="button">Enviar un pedido</button>
+      <button class="qos" id="b-alarma" type="button">Mover el robot sin permiso</button>
+      <button id="b-pausa" type="button">Apagar el robot</button>
+    </div>
+    <p class="registro" id="registro" aria-live="polite">El robot avisa cada 2 segundos cómo está. Ese es el sobre verde.</p>
+    <div class="leyenda">
+      <span style="--c:#0F9D84">Sale del robot</span>
+      <span style="--c:#F2603D">Llega al robot</span>
+      <span style="--c:#6B4EE6">Alarma</span>
+      <span style="--c:#F2B33D">Aviso del cartero</span>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="t-envios">
+  <h2 id="t-envios">Tres tipos de envío</h2>
+  <p class="bajada">En MQTT esto se llama QoS: qué tan seguro tiene que ser que el mensaje llegue.</p>
+  <div class="envios">
+    <div class="envio"><span class="nivel">QoS 0</span><h3>Carta normal</h3><p>Se envía y ya. Si una se pierde no importa, porque en 2 segundos llega otra.</p><span class="uso">estado del robot</span></div>
+    <div class="envio"><span class="nivel">QoS 1</span><h3>Certificada</h3><p>El cartero insiste hasta que llega. Puede llegar repetida, pero nunca se pierde.</p><span class="uso">pedidos y confirmación</span></div>
+    <div class="envio"><span class="nivel">QoS 2</span><h3>Entrega única</h3><p>Llega una vez y solo una. Es la más lenta, pero la más segura.</p><span class="uso">alarma antirrobo</span></div>
+  </div>
+</section>
+
+<section aria-labelledby="t-buzones">
+  <h2 id="t-buzones">Los buzones</h2>
+  <p class="bajada">Cada mensaje va a un buzón con nombre (un tópico). Quien está suscrito a ese buzón lo recibe.</p>
+  <ul class="buzones">
+    <li style="--c:#0F9D84"><code>ucab-tg-sf/robot/estado</code><small>Robot → app · QoS 0 · cómo está el robot</small></li>
+    <li style="--c:#F2603D"><code>ucab-tg-sf/robot/ordenes</code><small>App → robot · QoS 1 · pedidos de componentes</small></li>
+    <li style="--c:#0F9D84"><code>ucab-tg-sf/robot/ordenes/ack</code><small>Robot → app · QoS 1 · "recibí tu pedido"</small></li>
+    <li style="--c:#6B4EE6"><code>ucab-tg-sf/robot/alertas</code><small>Robot → app · QoS 2 · alarmas</small></li>
+    <li style="--c:#F2B33D"><code>ucab-tg-sf/robot/conexion</code><small>Robot y cartero · QoS 1 · "en línea" o "desconectado"</small></li>
+  </ul>
+</section>
+
+<section aria-labelledby="t-banco">
+  <a class="banco-link" href="banco.html">
+    <span class="ceja" style="margin:0">Herramienta</span>
+    <h2 id="t-banco" style="margin:2px 0 4px">Pruébalo tú: banco de pruebas →</h2>
+    <p style="margin:0">Una página que se conecta al mismo cartero, envía pedidos, cuenta las respuestas del robot y mide cuánto tardan. Ábrela al lado de Wokwi.</p>
+  </a>
+</section>
+
+<section aria-labelledby="t-codigo">
+  <h2 id="t-codigo">El código explicado</h2>
+  <p class="bajada">El programa del ESP32 tiene 6 partes. Cada tarjeta dice qué hace esa parte, en simple.</p>
+  <div class="codigo">
+    <div class="pieza"><span class="nivel">1 · Red y broker</span><p>Le dice al robot a qué Wi-Fi conectarse y dónde está el cartero.</p><pre><code>const char* BROKER = "broker.hivemq.com";</code></pre></div>
+    <div class="pieza"><span class="nivel">2 · Buzones</span><p>Los nombres de los 5 tópicos. Todos empiezan igual para que sean solo nuestros.</p><pre><code>const char* T_ORDENES = "ucab-tg-sf/robot/ordenes";</code></pre></div>
+    <div class="pieza"><span class="nivel">3 · Memoria</span><p>Contadores de pedidos, estados y alarmas, y una fila de pedidos que faltan por confirmar.</p><pre><code>String idsPendientes[60];</code></pre></div>
+    <div class="pieza"><span class="nivel">4 · Al llegar un pedido</span><p>Lee el número del pedido y lo anota en la fila. No responde ahí mismo: responde en el ciclo principal, que es más seguro.</p><pre><code>String id = leerId(mensaje);</code></pre></div>
+    <div class="pieza"><span class="nivel">5 · Conectarse</span><p>Se conecta, avisa "en línea" y deja su última voluntad: si desaparece, el cartero avisa "desconectado".</p><pre><code>mqtt.setWill(T_CONEXION, "desconectado", true, 1);</code></pre></div>
+    <div class="pieza"><span class="nivel">6 · Ciclo principal</span><p>Se repite sin parar: reconecta si hace falta, confirma pedidos, envía el estado cada 2 s y la alarma cuando escribes <b>a</b>.</p><pre><code>mqtt.publish(T_ALERTAS, alarma, false, 2);</code></pre></div>
+  </div>
+  <p class="nota" style="background:#E2F4F0">Cambios de las versiones 2 y 2.1: la confirmación ahora devuelve el número del pedido (por ejemplo <code>P-0007</code>) y cada mensaje lleva un contador. Así se puede medir el tiempo de cada respuesta y detectar si algo se pierde o se repite. En la 2.1 el robot espera hasta 10 s al cartero y usa sesión persistente.</p>
+</section>
+
+<section aria-labelledby="t-pruebas">
+  <h2 id="t-pruebas">Qué probamos</h2>
+  <p class="bajada">Siete pruebas, de la más simple a la más exigente, hechas el 11 nov 2026 con el banco de pruebas. Las 7 pasaron. Toca cada imagen para verla grande.</p>
+  <div class="pruebas">
+    <div class="prueba"><span class="marca" aria-label="Pasó">T1</span><p>El robot se conecta y avisa "en línea"<br><small>Llega al buzón conexión con QoS 1.</small></p><img class="mini" src="evidencias/01-T1-T2-en-linea-y-estado.png" alt="Banco conectado y robot en línea; 34 estados a un ritmo de uno cada 2,0 s." data-pie="Banco conectado y robot en línea; 34 estados a un ritmo de uno cada 2,0 s."></div>
+    <div class="prueba"><span class="marca" aria-label="Pasó">T2</span><p>Envía su estado cada 2 segundos (QoS 0)<br><small>34 mensajes, uno cada 2,0 s.</small></p><img class="mini" src="evidencias/01-T1-T2-en-linea-y-estado.png" alt="34 mensajes de estado, uno cada 2,0 s." data-pie="34 mensajes de estado, uno cada 2,0 s."></div>
+    <div class="prueba"><span class="marca" aria-label="Pasó">T3</span><p>Recibe un pedido y lo confirma con su número (QoS 1)<br><small>P-0001 confirmado en 899 ms (en la versión 1 tardó unos 8 s).</small></p><img class="mini" src="evidencias/02-T3-un-pedido.png" alt="Wokwi recibe P-0001 y el banco lo ve confirmado en 899 ms." data-pie="Wokwi recibe P-0001 y el banco lo ve confirmado en 899 ms."></div>
+    <div class="prueba"><span class="marca" aria-label="Pasó">T4</span><p>50 pedidos seguidos sin perder ninguno<br><small>50 de 50. Tiempo: mínimo 0,7 s, promedio 4,1 s, máximo 8,0 s.</small></p><img class="mini" src="evidencias/04-T4-v2.1-50-de-50.png" alt="Versión 2.1: 50 de 50 pedidos confirmados, ninguno perdido." data-pie="Versión 2.1: 50 de 50 pedidos confirmados, ninguno perdido."></div>
+    <div class="prueba"><span class="marca" aria-label="Pasó">T5</span><p>10 alarmas con entrega única (QoS 2)<br><small>10 recibidas, ninguna repetida.</small></p><img class="mini" src="evidencias/05-T5-10-alarmas.png" alt="Wokwi envía 10 alarmas y el banco recibe 10, ninguna repetida." data-pie="Wokwi envía 10 alarmas y el banco recibe 10, ninguna repetida."></div>
+    <div class="prueba"><span class="marca" aria-label="Pasó">T6</span><p>Si el robot se apaga, el cartero avisa "desconectado"<br><small>A los 22 s. Coincide con la teoría: 1,5 × 15 s de keep alive = 22,5 s.</small></p><img class="mini" src="evidencias/06-T6-desconectado-22s.png" alt="El cartero avisa desconectado 22 s después del último estado." data-pie="El cartero avisa desconectado 22 s después del último estado."></div>
+    <div class="prueba"><span class="marca" aria-label="Pasó">T7</span><p>El robot vuelve y se reconecta solo<br><small>Avisó "en línea" otra vez y el estado volvió a contar desde 1.</small></p><img class="mini" src="evidencias/07-T7-en-linea-otra-vez.png" alt="El robot vuelve y avisa en línea a las 17:02:26." data-pie="El robot vuelve y avisa en línea a las 17:02:26."></div>
+  </div>
+</section>
+
+<section aria-labelledby="t-50">
+  <h2 id="t-50">Los 50 pedidos</h2>
+  <p class="bajada">Cada barra es un pedido y su altura es lo que tardó la confirmación.</p>
+  <div class="tarjeta sombra grafica"><svg viewBox="0 0 900 220" role="img" aria-label="Tiempo de confirmación de 50 pedidos: 50 de 50 confirmados"><text x="64" y="22.0" font-family="Bricolage Grotesque, sans-serif" font-weight="700" font-size="15" fill="#14213D">50 de 50 confirmados, ninguno perdido</text><line x1="64" x2="884" y1="184.0" y2="184.0" stroke="#E2E8E6"/><text x="56" y="188.0" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#4A5A73">0 s</text><line x1="64" x2="884" y1="115.8" y2="115.8" stroke="#E2E8E6"/><text x="56" y="119.8" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#4A5A73">10 s</text><line x1="64" x2="884" y1="47.6" y2="47.6" stroke="#E2E8E6"/><text x="56" y="51.6" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#4A5A73">20 s</text><rect x="66.5" y="179.2" width="11.5" height="4.8" rx="1.5" fill="#0F9D84"><title>P-0001: 702 ms</title></rect><rect x="82.9" y="179.4" width="11.5" height="4.6" rx="1.5" fill="#0F9D84"><title>P-0002: 678 ms</title></rect><rect x="99.3" y="175.3" width="11.5" height="8.7" rx="1.5" fill="#0F9D84"><title>P-0003: 1280 ms</title></rect><rect x="115.7" y="169.2" width="11.5" height="14.8" rx="1.5" fill="#0F9D84"><title>P-0004: 2173 ms</title></rect><rect x="132.1" y="172.2" width="11.5" height="11.8" rx="1.5" fill="#0F9D84"><title>P-0005: 1735 ms</title></rect><rect x="148.5" y="176.0" width="11.5" height="8.0" rx="1.5" fill="#0F9D84"><title>P-0006: 1167 ms</title></rect><rect x="164.9" y="177.5" width="11.5" height="6.5" rx="1.5" fill="#0F9D84"><title>P-0007: 950 ms</title></rect><rect x="181.3" y="177.6" width="11.5" height="6.4" rx="1.5" fill="#0F9D84"><title>P-0008: 945 ms</title></rect><rect x="197.7" y="179.3" width="11.5" height="4.7" rx="1.5" fill="#0F9D84"><title>P-0009: 684 ms</title></rect><rect x="214.1" y="178.4" width="11.5" height="5.6" rx="1.5" fill="#0F9D84"><title>P-0010: 818 ms</title></rect><rect x="230.5" y="177.0" width="11.5" height="7.0" rx="1.5" fill="#0F9D84"><title>P-0011: 1033 ms</title></rect><rect x="246.9" y="175.1" width="11.5" height="8.9" rx="1.5" fill="#0F9D84"><title>P-0012: 1311 ms</title></rect><rect x="263.3" y="171.5" width="11.5" height="12.5" rx="1.5" fill="#0F9D84"><title>P-0013: 1827 ms</title></rect><rect x="279.7" y="170.9" width="11.5" height="13.1" rx="1.5" fill="#0F9D84"><title>P-0014: 1918 ms</title></rect><rect x="296.1" y="170.7" width="11.5" height="13.3" rx="1.5" fill="#0F9D84"><title>P-0015: 1953 ms</title></rect><rect x="312.5" y="169.1" width="11.5" height="14.9" rx="1.5" fill="#0F9D84"><title>P-0016: 2184 ms</title></rect><rect x="328.9" y="163.4" width="11.5" height="20.6" rx="1.5" fill="#0F9D84"><title>P-0017: 3014 ms</title></rect><rect x="345.3" y="163.1" width="11.5" height="20.9" rx="1.5" fill="#0F9D84"><title>P-0018: 3063 ms</title></rect><rect x="361.7" y="157.0" width="11.5" height="27.0" rx="1.5" fill="#0F9D84"><title>P-0019: 3963 ms</title></rect><rect x="378.1" y="157.8" width="11.5" height="26.2" rx="1.5" fill="#0F9D84"><title>P-0020: 3850 ms</title></rect><rect x="394.5" y="160.7" width="11.5" height="23.3" rx="1.5" fill="#0F9D84"><title>P-0021: 3421 ms</title></rect><rect x="410.9" y="163.4" width="11.5" height="20.6" rx="1.5" fill="#0F9D84"><title>P-0022: 3022 ms</title></rect><rect x="427.3" y="161.9" width="11.5" height="22.1" rx="1.5" fill="#0F9D84"><title>P-0023: 3246 ms</title></rect><rect x="443.7" y="157.2" width="11.5" height="26.8" rx="1.5" fill="#0F9D84"><title>P-0024: 3930 ms</title></rect><rect x="460.1" y="154.9" width="11.5" height="29.1" rx="1.5" fill="#0F9D84"><title>P-0025: 4263 ms</title></rect><rect x="476.5" y="154.5" width="11.5" height="29.5" rx="1.5" fill="#0F9D84"><title>P-0026: 4325 ms</title></rect><rect x="492.9" y="151.4" width="11.5" height="32.6" rx="1.5" fill="#0F9D84"><title>P-0027: 4778 ms</title></rect><rect x="509.3" y="151.0" width="11.5" height="33.0" rx="1.5" fill="#0F9D84"><title>P-0028: 4845 ms</title></rect><rect x="525.7" y="149.6" width="11.5" height="34.4" rx="1.5" fill="#0F9D84"><title>P-0029: 5041 ms</title></rect><rect x="542.1" y="147.1" width="11.5" height="36.9" rx="1.5" fill="#0F9D84"><title>P-0030: 5414 ms</title></rect><rect x="558.5" y="141.7" width="11.5" height="42.3" rx="1.5" fill="#0F9D84"><title>P-0031: 6204 ms</title></rect><rect x="574.9" y="129.7" width="11.5" height="54.3" rx="1.5" fill="#0F9D84"><title>P-0032: 7965 ms</title></rect><rect x="591.3" y="129.3" width="11.5" height="54.7" rx="1.5" fill="#0F9D84"><title>P-0033: 8023 ms</title></rect><rect x="607.7" y="130.2" width="11.5" height="53.8" rx="1.5" fill="#0F9D84"><title>P-0034: 7893 ms</title></rect><rect x="624.1" y="133.3" width="11.5" height="50.7" rx="1.5" fill="#0F9D84"><title>P-0035: 7430 ms</title></rect><rect x="640.5" y="134.0" width="11.5" height="50.0" rx="1.5" fill="#0F9D84"><title>P-0036: 7338 ms</title></rect><rect x="656.9" y="135.5" width="11.5" height="48.5" rx="1.5" fill="#0F9D84"><title>P-0037: 7114 ms</title></rect><rect x="673.3" y="137.5" width="11.5" height="46.5" rx="1.5" fill="#0F9D84"><title>P-0038: 6826 ms</title></rect><rect x="689.7" y="139.6" width="11.5" height="44.4" rx="1.5" fill="#0F9D84"><title>P-0039: 6505 ms</title></rect><rect x="706.1" y="142.1" width="11.5" height="41.9" rx="1.5" fill="#0F9D84"><title>P-0040: 6139 ms</title></rect><rect x="722.5" y="144.3" width="11.5" height="39.7" rx="1.5" fill="#0F9D84"><title>P-0041: 5819 ms</title></rect><rect x="738.9" y="143.5" width="11.5" height="40.5" rx="1.5" fill="#0F9D84"><title>P-0042: 5935 ms</title></rect><rect x="755.3" y="143.8" width="11.5" height="40.2" rx="1.5" fill="#0F9D84"><title>P-0043: 5892 ms</title></rect><rect x="771.7" y="146.3" width="11.5" height="37.7" rx="1.5" fill="#0F9D84"><title>P-0044: 5534 ms</title></rect><rect x="788.1" y="143.9" width="11.5" height="40.1" rx="1.5" fill="#0F9D84"><title>P-0045: 5877 ms</title></rect><rect x="804.5" y="146.2" width="11.5" height="37.8" rx="1.5" fill="#0F9D84"><title>P-0046: 5539 ms</title></rect><rect x="820.9" y="146.6" width="11.5" height="37.4" rx="1.5" fill="#0F9D84"><title>P-0047: 5487 ms</title></rect><rect x="837.3" y="144.2" width="11.5" height="39.8" rx="1.5" fill="#0F9D84"><title>P-0048: 5844 ms</title></rect><rect x="853.7" y="144.2" width="11.5" height="39.8" rx="1.5" fill="#0F9D84"><title>P-0049: 5842 ms</title></rect><rect x="870.1" y="143.6" width="11.5" height="40.4" rx="1.5" fill="#0F9D84"><title>P-0050: 5925 ms</title></rect><text x="64" y="210.0" font-family="JetBrains Mono, monospace" font-size="11" fill="#4A5A73">pedido 1</text><text x="884" y="210.0" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="#4A5A73">pedido 50</text></svg></div>
+  <div class="hallazgos">
+    <div class="hallazgo"><span class="nivel">La clave</span><h3>Una línea: <code>setOptions(15, false, 10000)</code></h3><p>El robot espera hasta 10 s la respuesta del cartero y le pide guardar la sesión: si se desconecta un momento, sus pedidos lo esperan.</p></div>
+    <div class="hallazgo"><span class="nivel">La lección</span><h3>QoS 1 y sesión persistente, juntos</h3><p>QoS 1 garantiza la entrega mientras la sesión exista. Con sesión persistente no se pierde ningún pedido.</p></div>
+    <div class="hallazgo"><span class="nivel">Ojo con los tiempos</span><h3>Las barras crecen por la fila</h3><p>Se envió un pedido por segundo, más rápido de lo que responde el robot simulado. En la vida real no habrá tantos pedidos seguidos.</p></div>
+  </div>
+  <p style="font-size:15px" class="suave">Datos: <a href="datos/T4-v2.1-50-de-50.csv">50 pedidos (CSV)</a> · <a href="datos/registro-mensajes-T4-a-T7.csv">registro de mensajes T4 a T7 (CSV)</a></p>
+  <details class="v1">
+    <summary>Primera versión (10 nov 2026)</summary>
+    <p>La primera prueba se hizo con MQTTX. Pasaron el estado, el aviso "en línea", el aviso "desconectado", la reconexión y un pedido con su confirmación (tardó unos 8 s por el simulador).</p>
+    <div class="galeria">
+      <img class="mini" src="evidencias/v1/01-estado-qos0-mqttx.png" alt="MQTTX recibiendo el estado del robot" data-pie="Versión 1: MQTTX recibe el estado del robot con QoS 0.">
+      <img class="mini" src="evidencias/v1/02-conexion-en-linea.jpg" alt="Mensaje en línea en MQTTX" data-pie="Versión 1: el robot avisa que está en línea.">
+      <img class="mini" src="evidencias/v1/03-lwt-desconectado.jpg" alt="Mensaje desconectado en MQTTX" data-pie="Versión 1: al pausar Wokwi, el broker avisó que el robot se desconectó.">
+      <img class="mini" src="evidencias/v1/04-wokwi-reconexion.png" alt="Monitor de Wokwi con reconexión" data-pie="Versión 1: el ESP32 se reconecta solo.">
+      <img class="mini" src="evidencias/v1/05-wokwi-orden-recibida.png" alt="Monitor de Wokwi con la orden recibida" data-pie="Versión 1: el robot recibe el pedido.">
+      <img class="mini" src="evidencias/v1/06-mqttx-orden-y-ack.png" alt="MQTTX con el pedido y la confirmación" data-pie="Versión 1: pedido y confirmación con QoS 1.">
+    </div>
+  </details>
+</section>
+
+<section aria-labelledby="t-falta">
+  <h2 id="t-falta">Lo que falta</h2>
+  <div class="falta">
+    <div><h3>En el simulador</h3><ul><li>Nada: las 7 pruebas pasaron. ✓</li><li>Opcional: un GIF corto del banco funcionando.</li></ul></div>
+    <div><h3>Con el robot real</h3><ul><li>Medir el tiempo real entre pedido y confirmación.</li><li>Conectarse desde el Wi-Fi del laboratorio.</li><li>Usar un cartero privado, con clave, para las pruebas finales.</li></ul></div>
+  </div>
+</section>
+
+<section aria-labelledby="t-archivos">
+  <h2 id="t-archivos">Archivos</h2>
+  <ul class="archivos">
+    <li><a href="codigo/sketch.ino">codigo/sketch.ino</a><small>El programa del ESP32, versión 2.1</small></li>
+    <li><a href="codigo/diagram.json">codigo/diagram.json</a><small>La placa en Wokwi</small></li>
+    <li><a href="codigo/libraries.txt">codigo/libraries.txt</a><small>Librería usada: MQTT de Joel Gaehwiler</small></li>
+    <li><a href="banco.html">banco.html</a><small>El banco de pruebas</small></li>
+    <li><a href="codigo/v1/sketch.ino">codigo/v1/sketch.ino</a><small>El programa de la versión 1</small></li>
+    <li><a href="https://wokwi.com/projects/480338785084042241">Proyecto en Wokwi</a><small>Para abrir y correr la simulación</small></li>
+    <li><a href="datos/T4-v2.1-50-de-50.csv">datos/</a><small>Resultados de las pruebas en CSV</small></li>
+  </ul>
+</section>
+
+<section>
+  <details>
+    <summary>Para los curiosos: lo técnico</summary>
+    <ul>
+      <li>Placa: ESP32 DevKit C v4 simulada en Wokwi, red <code>Wokwi-GUEST</code>.</li>
+      <li>Broker: <code>broker.hivemq.com</code>, puerto 1883 para el ESP32 y 8884 (WebSocket seguro) para el banco de pruebas. Es público: solo para desarrollo.</li>
+      <li>Librería: <code>MQTT</code> de Joel Gaehwiler. Se descartó PubSubClient porque solo publica con QoS 0.</li>
+      <li>Keep alive de 15 s, sesión persistente (clean session = false), espera de 10 s y última voluntad en <code>robot/conexion</code> con QoS 1 y retenido.</li>
+      <li>El tiempo de respuesta se mide en el banco: desde que sale el pedido hasta que llega su confirmación (ida y vuelta).</li>
+    </ul>
+    <p>Ficha completa: <a href="README.md">README.md</a></p>
+  </details>
+</section>
+
+</main>
+<footer id="pie"></footer>
+
+<script src="../../datos/proyecto.js"></script>
+<script src="../../assets/sitio.js"></script>
+<dialog id="visor"><img id="visor-img" alt=""><p id="visor-pie"></p><form method="dialog"><button type="submit">Cerrar</button></form></dialog>
+
+<script>
+(function(){
+  var NS="http://www.w3.org/2000/svg";
+  var capa=document.getElementById("sobres");
+  var registro=document.getElementById("registro");
+  var lento=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var X={robot:115,broker:400,app:685};
+  var encendido=true;
+
+  function sobre(color){
+    var g=document.createElementNS(NS,"g");
+    var r=document.createElementNS(NS,"rect");
+    r.setAttribute("x",-18);r.setAttribute("y",-12);r.setAttribute("width",36);r.setAttribute("height",24);r.setAttribute("rx",4);
+    r.setAttribute("fill",color);r.setAttribute("stroke","#14213D");r.setAttribute("stroke-width","1.5");
+    var p=document.createElementNS(NS,"path");
+    p.setAttribute("d","M-18 -12 L0 2 L18 -12");p.setAttribute("fill","none");p.setAttribute("stroke","#14213D");p.setAttribute("stroke-width","1.5");
+    g.appendChild(r);g.appendChild(p);capa.appendChild(g);return g;
+  }
+  function viajar(desde,hasta,color,listo){
+    if(lento){if(listo)listo();return;}
+    var g=sobre(color),a=X[desde],b=X[hasta],t0=null,dur=900;
+    function paso(t){
+      if(!t0)t0=t;var k=Math.min((t-t0)/dur,1);var e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+      var x=a+(b-a)*e,y=120-Math.sin(k*Math.PI)*26;
+      g.setAttribute("transform","translate("+x+","+y+")");
+      if(k<1)requestAnimationFrame(paso);else{capa.removeChild(g);if(listo)listo();}
+    }
+    requestAnimationFrame(paso);
+  }
+  function ruta(desde,hasta,color,listo){viajar(desde,"broker",color,function(){viajar("broker",hasta,color,listo);});}
+  function decir(t){registro.textContent=t;}
+
+  setInterval(function(){if(encendido)ruta("robot","app","#0F9D84");},2500);
+
+  document.getElementById("b-orden").addEventListener("click",function(){
+    if(!encendido){decir("El robot está apagado: el pedido no le llega. Primero enciéndelo.");return;}
+    decir("La app manda un pedido (sobre coral, carta certificada)...");
+    ruta("app","robot","#F2603D",function(){
+      decir("El robot recibió el pedido y responde \"recibido\" (sobre verde).");
+      ruta("robot","app","#0F9D84",function(){decir("Listo: la app sabe que el robot recibió el pedido.");});
+    });
+  });
+  document.getElementById("b-alarma").addEventListener("click",function(){
+    if(!encendido){decir("El robot está apagado: no puede mandar alarmas.");return;}
+    decir("Alguien movió el robot: sale una alarma con entrega única (sobre violeta).");
+    ruta("robot","app","#6B4EE6",function(){decir("La alarma llegó a la app una sola vez.");});
+  });
+  var bPausa=document.getElementById("b-pausa");
+  bPausa.addEventListener("click",function(){
+    encendido=!encendido;
+    document.getElementById("est-robot").style.opacity=encendido?1:.35;
+    var tr=document.getElementById("txt-robot");
+    if(!encendido){
+      bPausa.textContent="Encender el robot";tr.textContent="apagado";tr.setAttribute("fill","#4A5A73");
+      decir("El robot se apagó sin despedirse...");
+      setTimeout(function(){
+        decir("El cartero se da cuenta y avisa a la app: \"desconectado\" (sobre amarillo). Es la última voluntad del robot.");
+        viajar("broker","app","#F2B33D");
+      },1400);
+    }else{
+      bPausa.textContent="Apagar el robot";tr.textContent="en línea";tr.setAttribute("fill","#0F9D84");
+      decir("El robot volvió y avisa \"en línea\".");
+      ruta("robot","app","#F2B33D");
+    }
+  });
+
+  var visor=document.getElementById("visor");
+  document.querySelectorAll(".mini").forEach(function(img){
+    img.tabIndex=0;
+    function abrir(){document.getElementById("visor-img").src=img.src;document.getElementById("visor-img").alt=img.alt;document.getElementById("visor-pie").textContent=img.dataset.pie||"";visor.showModal();}
+    img.addEventListener("click",abrir);
+    img.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();abrir();}});
+  });
+})();
+</script>
+</body>
+</html>

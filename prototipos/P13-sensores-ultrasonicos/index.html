@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>P13 · Sensores ultrasónicos · TG Robot UCAB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/style.css">
+<style>
+/* ======================================================================
+   P13 · Sensores ultrasónicos: radar protagonista + paneles colapsables
+   ====================================================================== */
+:root { --p11-ease: cubic-bezier(0.23, 1, 0.32, 1); --verde: #22c55e; --ambar: #f59e0b; --rojo: #ef4444; }
+
+.consola-us {
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 2px solid var(--border-dark);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-hard), 0 10px 24px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+.us-barra {
+  background: #1e293b;
+  padding: 12px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+.us-estado { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.led-us {
+  display: inline-block; flex: 0 0 auto; width: 11px; height: 11px; border-radius: 50%;
+  background: #64748b; vertical-align: middle;
+  transition: background-color 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+.led-us.ok { background: var(--verde); box-shadow: 0 0 8px var(--verde); }
+.led-us.espera { background: var(--ambar); box-shadow: 0 0 8px var(--ambar); }
+.led-us.error { background: var(--rojo); box-shadow: 0 0 8px var(--rojo); }
+.us-lectura {
+  font-weight: 700; color: #e2e8f0; white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+.us-botones-barra { display: flex; align-items: center; }
+#btn-toggle {
+  min-height: 44px;
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: transform 0.14s var(--p11-ease), background-color 0.18s ease-out, border-color 0.18s ease-out, box-shadow 0.18s ease-out;
+}
+#btn-toggle:active { transform: scale(0.97); }
+#btn-toggle.apagado { background: var(--accent-primary); border-color: var(--accent-primary-hover); color: #fff; }
+#btn-toggle.encendido { background: #dc2626; border-color: #f87171; color: #fff; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.22); }
+
+/* Zona de alertas arriba del radar (espacio reservado fijo: 0 px de salto) */
+.us-alertas {
+  padding: 12px 20px 0;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.us-alerta {
+  width: 100%;
+  max-width: 520px;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(185, 28, 28, 0.92);
+  border: 1.5px solid #f87171;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.05em;
+  opacity: 1;
+  transition: opacity 0.18s ease-out, background-color 0.18s ease-out, border-color 0.18s ease-out;
+}
+.us-alerta.cerca { background: rgba(180, 83, 9, 0.92); border-color: #fbbf24; }
+.us-alerta[hidden] { display: flex; visibility: hidden; opacity: 0; pointer-events: none; }
+
+/* El radar es el protagonista: centrado y grande */
+.us-cuerpo { display: flex; justify-content: center; padding: 14px 22px 22px; }
+.us-radar-caja { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 12px; }
+.us-radar-escena {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+}
+#radar {
+  width: 100%; height: auto; aspect-ratio: 1 / 1; max-width: 520px; margin: 0 auto; display: block;
+  background: radial-gradient(circle at 50% 50%, #12263f 0%, #0b1424 72%);
+  border: 1.5px solid #334155; border-radius: 16px;
+  box-shadow: inset 0 0 28px rgba(2, 6, 23, 0.65);
+  touch-action: pan-y;
+  cursor: default;
+  user-select: none;
+}
+#radar.con-obstaculo { touch-action: none; }
+#radar.sobre-obs { cursor: grab; }
+#radar.arrastrando { cursor: grabbing; }
+.us-obs-base {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  min-width: 72px;
+  min-height: 54px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  border: 1.5px dashed rgba(248, 113, 113, 0.48);
+  background: rgba(11, 20, 36, 0.88);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  box-shadow: 0 4px 12px rgba(2, 6, 23, 0.45);
+  transition: transform 0.14s var(--p11-ease), background-color 0.18s ease-out, border-color 0.18s ease-out, box-shadow 0.18s ease-out;
+}
+.us-obs-base:hover { background: rgba(30, 41, 59, 0.94); border-color: #f87171; }
+.us-obs-base:active { cursor: grabbing; transform: scale(0.97); }
+.us-obs-base:focus-visible { outline: 2px solid #38bdf8; outline-offset: 2px; }
+.us-obs-hueco {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px dashed rgba(148, 163, 184, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.us-obs-ficha {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.24);
+  transition: opacity 0.16s ease-out, transform 0.16s var(--p11-ease);
+}
+.us-obs-etiqueta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #cbd5e1;
+  line-height: 1;
+}
+.us-obs-base.fuera {
+  cursor: pointer;
+  border-color: rgba(148, 163, 184, 0.4);
+}
+.us-obs-base.fuera .us-obs-ficha {
+  opacity: 0;
+  transform: scale(0.5);
+}
+.us-obs-base.fuera:hover { border-color: #94a3b8; }
+.us-obs-base.zona-soltar {
+  border-color: #fbbf24;
+  background: rgba(120, 53, 15, 0.42);
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.25), 0 4px 12px rgba(2, 6, 23, 0.45);
+}
+
+/* Mini velocímetro semicircular en la esquina superior izquierda del radar */
+.us-velo-widget {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  width: 94px;
+  padding: 6px 8px 5px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(148, 163, 184, 0.26);
+  background: rgba(11, 20, 36, 0.88);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  pointer-events: none;
+  user-select: none;
+  box-shadow: 0 4px 12px rgba(2, 6, 23, 0.45);
+  transition: border-color 0.2s ease-out;
+}
+.us-velo-widget svg { width: 76px; height: 42px; display: block; overflow: visible; }
+.us-velo-pista { fill: none; stroke: #1e293b; stroke-width: 6; stroke-linecap: round; }
+.us-velo-arco { fill: none; stroke: #22c55e; stroke-width: 6; stroke-linecap: round; transition: stroke 0.2s ease-out; }
+.us-velo-aguja { stroke: #f8fafc; stroke-width: 2.2; stroke-linecap: round; }
+.us-velo-pivote { fill: #f8fafc; }
+.us-velo-val {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #22c55e;
+  line-height: 1.1;
+  white-space: nowrap;
+  transition: color 0.2s ease-out;
+}
+.us-velo-val small { font-size: 9.5px; font-weight: 600; color: #94a3b8; margin-left: 2px; }
+.us-leyenda { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; font-size: 13px; color: #94a3b8; }
+.us-leyenda i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+/* Panel colapsable Telemetría (patrón <details> estilo P01, adaptado al cockpit) */
+.us-detalle { border-top: 1.5px solid #1e293b; }
+.us-detalle summary {
+  cursor: pointer; list-style: none;
+  display: flex; align-items: center; gap: 10px;
+  min-height: 48px; padding: 12px 20px;
+  font-family: var(--font-display); font-weight: 700; font-size: 15.5px; color: #e2e8f0;
+  transition: background-color 0.15s ease-out;
+}
+.us-detalle summary:hover { background: rgba(255, 255, 255, 0.03); }
+.us-detalle summary:focus-visible { outline: 2px solid #38bdf8; outline-offset: -2px; }
+.us-detalle summary::-webkit-details-marker { display: none; }
+.us-detalle summary::after { content: "▾"; color: #94a3b8; font-size: 14px; transition: transform 0.2s ease-out; }
+.us-detalle[open] summary::after { transform: rotate(180deg); }
+.us-detalle-hint { margin-left: auto; font-family: var(--font-mono); font-weight: 600; font-size: 11.5px; color: #64748b; }
+.us-detalle-cuerpo { padding: 4px 20px 20px; }
+
+@media (max-width: 640px) {
+  .us-botones-barra { width: 100%; }
+  #btn-toggle { width: 100%; min-height: 46px; }
+  .us-lectura { width: 100%; text-align: center; }
+  .us-alertas { padding: 10px 14px 0; }
+  .us-velo-widget { width: 78px; padding: 5px 6px 4px; top: 8px; left: 8px; }
+  .us-velo-widget svg { width: 64px; height: 35px; }
+  .us-velo-val { font-size: 10.5px; }
+  .us-obs-base { top: 8px; right: 8px; }
+}
+
+.us-broker { font-family: var(--font-mono); font-size: 12.5px; color: #94a3b8; }
+.us-broker b { color: #e2e8f0; }
+.us-json {
+  background: #0b1424; border: 1.5px solid #334155; border-radius: 10px; padding: 10px 12px; margin-top: 10px;
+  font-family: var(--font-mono); font-size: 12.5px; color: #7dd3fc; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%;
+}
+.us-log {
+  background: #0b1424; border: 1.5px solid #1e293b; border-radius: 10px; padding: 10px 12px; margin-top: 10px; height: 150px; overflow-y: auto;
+  font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; color: #94a3b8; overflow-wrap: anywhere; word-break: break-word;
+}
+.us-log .ok { color: #86efac; } .us-log .err { color: #fca5a5; } .us-log .inf { color: #7dd3fc; }
+.us-log div { animation: us-ln 0.18s var(--p11-ease); }
+@keyframes us-ln { from { opacity: 0; transform: translateY(4px); } }
+
+.us-nota { background: #fff7e6; border: 2px solid var(--accent-amber); border-radius: 14px; padding: 14px 18px; font-size: 15.5px; line-height: 1.5; overflow-wrap: anywhere; word-break: break-word; }
+.us-nota code { overflow-wrap: anywhere; word-break: break-all; }
+.us-nota ul { margin: 6px 0 0; padding-left: 20px; }
+
+@media (max-width: 820px) {
+  .us-cuerpo { padding: 16px 14px; }
+  .us-barra { padding: 12px 14px; font-size: 12px; overflow-wrap: anywhere; word-break: break-word; }
+  .us-detalle summary { padding: 12px 14px; }
+  .us-detalle-cuerpo { padding: 4px 14px 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body data-pagina="prototipos" data-base="../../">
+<header id="menu"></header>
+
+<main>
+  <a class="volver" href="../index.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    Volver al catálogo de prototipos
+  </a>
+
+  <p class="ceja">Prototipo P13 · Obstáculos · 2× HC-SR04P (Frente y Atrás) · MQTT WebSockets</p>
+  <h1>P13: Los <em>ojos de distancia</em> del robot</h1>
+
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px">
+    <span class="chip pruebas">En pruebas · Simulador</span>
+    <span class="chip">2 sensores: Adelante y Atrás</span>
+    <span class="chip">HiveMQ → EMQX → Mosquitto</span>
+    <span class="chip">ucab-tg-sf/robot/ultrasonido</span>
+  </div>
+
+  <div class="frase-explicativa">
+    <strong>En pocas palabras:</strong> pulsa <strong>Encender</strong> para iniciar el simulador y publicar por MQTT cada 0,5 s. Arrastra el círculo rojo desde la esquina hacia el radar para simular un obstáculo, y devuélvelo a su base para despejar el camino.
+  </div>
+
+  <section aria-label="Simulador de sensores ultrasónicos" style="margin-top:24px">
+    <div class="consola-us">
+      <div class="us-barra">
+        <div class="us-estado"><span class="led-us" id="led" aria-hidden="true"></span><span id="estado" role="status">DETENIDO · pulsa Encender para iniciar</span></div>
+        <div class="us-lectura" id="lectura">Adelante 160 · Atrás 150 cm · 0.41 m/s</div>
+        <div class="us-botones-barra">
+          <button type="button" id="btn-toggle" class="btn apagado" aria-pressed="false">⚡ Encender</button>
+        </div>
+      </div>
+      <div class="us-alertas" aria-live="polite">
+        <div class="us-alerta" id="alerta-obstaculo" hidden>FRENADO POR OBSTÁCULO</div>
+      </div>
+
+      <div class="us-cuerpo">
+        <div class="us-radar-caja">
+          <div class="us-radar-escena">
+            <canvas id="radar" width="520" height="520" role="img" aria-label="Radar interactivo con distancias adelante y atrás; arrastra el círculo rojo desde la esquina hacia el radar para colocar un obstáculo"></canvas>
+            <div id="velocimetro" class="us-velo-widget" aria-label="Velocímetro del robot (escala SIM1 hasta 0.46 m/s)">
+              <svg viewBox="0 0 80 46" aria-hidden="true">
+                <path class="us-velo-pista" d="M 10 40 A 30 30 0 0 1 70 40"/>
+                <path id="velo-arco" class="us-velo-arco" d="M 10 40 A 30 30 0 0 1 70 40" stroke-dasharray="94.25" stroke-dashoffset="10.24"/>
+                <line id="velo-aguja" class="us-velo-aguja" x1="40" y1="40" x2="40" y2="15" transform="rotate(70.4 40 40)"/>
+                <circle class="us-velo-pivote" cx="40" cy="40" r="3"/>
+              </svg>
+              <div class="us-velo-val" id="velo-val">0.41<small>m/s</small></div>
+            </div>
+            <div id="base-obstaculo" class="us-obs-base" role="button" tabindex="0" aria-label="Arrastra el obstáculo al radar o pulsa para devolverlo a su base">
+              <span class="us-obs-hueco" aria-hidden="true"><span class="us-obs-ficha"></span></span>
+              <span class="us-obs-etiqueta" id="etiqueta-base-obs">Obstáculo</span>
+            </div>
+          </div>
+          <div class="us-leyenda">
+            <span><i style="background:#22c55e"></i>Libre (&gt; 50 cm)</span>
+            <span><i style="background:#f59e0b"></i>Cerca (20–50 cm)</span>
+            <span><i style="background:#ef4444"></i>Peligro (&le; 20 cm)</span>
+            <span><i style="background:#ef4444;border-radius:50%;border:1.5px solid #fff"></i>Arrastra desde la esquina</span>
+          </div>
+        </div>
+      </div>
+
+      <details class="us-detalle" id="panel-telemetria">
+        <summary>Telemetría <span class="us-detalle-hint">Broker · JSON · Registro</span></summary>
+        <div class="us-detalle-cuerpo">
+          <div class="us-broker" aria-live="polite">Broker: <b id="broker">sin conexión</b></div>
+          <div class="us-json" id="json" aria-label="Mensaje que se publica">{ }</div>
+          <div class="us-log" id="log" role="log" aria-live="polite"><div class="inf">[listo] Pulsa Encender para conectar al broker.</div></div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <div class="us-nota">
+    <strong>Antes de pasar a la prueba física:</strong>
+    <ul>
+      <li>El robot lleva <strong>2× HC-SR04P</strong> (uno mira adelante y otro atrás, TRIG frontal en GPIO 23 y trasero en GPIO 15, ECHO en GPIO 33 y 5) y, para seguir la línea, <strong>4× TCRT5000</strong> en <code>[27, 9, -9, -27] mm</code>. Este simulador usa esa disposición.</li>
+      <li>Mensaje: <code>{"frente_cm","atras_cm","frente_ok","atras_ok","t"}</code> en <code>ucab-tg-sf/robot/ultrasonido</code>, el mismo contrato de <code>firmware/robot_integrado.ino</code> y del P10 (ver <a href="../../docs/arquitectura/topicos-mqtt.md">tópicos MQTT</a>). <code>frente_ok:false</code> = sensor sin eco 600 ms (fallo): el firmware bloquea el avance. Los 2 sensores se leen alternados (frente en ciclos pares, atrás en impares, 100 ms cada ciclo) para no escuchar el eco del otro.</li>
+      <li>Regla de seguridad del firmware: con <strong>frente &lt; 20 cm</strong> el robot se detiene y publica la alerta <code>obstaculo</code>; solo deja retroceder si atrás hay ≥ 20 cm con el sensor válido. Entre 20 y 50 cm es zona de aviso.</li>
+      <li>Las distancias son manuales: no hay lectura real hasta que lleguen los sensores.</li>
+    </ul>
+  </div>
+</main>
+
+<footer id="pie"></footer>
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script src="../../datos/proyecto.js"></script>
+<script src="../../assets/sitio.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var TOPICO = "ucab-tg-sf/robot/ultrasonido";
+  var PERIODO_MS = 500;
+  var TIMEOUT_MS = 5000;
+  var DIST_MIN = 2, DIST_MAX = 200;
+  var LIMITE_PELIGRO = 20, LIMITE_CERCA = 50;
+
+  /* Misma lista de brokers de respaldo que la App Flutter y el P10 */
+  var BROKERS = [
+    { nombre: "HiveMQ", host: "broker.hivemq.com", puerto: 8884, url: "wss://broker.hivemq.com:8884/mqtt" },
+    { nombre: "EMQX", host: "broker.emqx.io", puerto: 8084, url: "wss://broker.emqx.io:8084/mqtt" },
+    { nombre: "Mosquitto", host: "test.mosquitto.org", puerto: 8081, url: "wss://test.mosquitto.org:8081/mqtt" }
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var ids = ["frente", "atras"];
+  var ledEl = $("led"), estadoEl = $("estado"), lecturaEl = $("lectura"), brokerEl = $("broker"), jsonEl = $("json"), logEl = $("log");
+  var btnToggle = $("btn-toggle"), baseObs = $("base-obstaculo"), etiquetaBaseObs = $("etiqueta-base-obs");
+  var alertaObs = $("alerta-obstaculo");
+  var veloWidget = $("velocimetro"), veloArco = $("velo-arco"), veloAguja = $("velo-aguja"), veloVal = $("velo-val");
+  var canvas = $("radar"), ctx = canvas.getContext("2d");
+
+  /* Velocidades reales de SIM1 (prototipos/P08-seguidor-linea/avance-01-simulador-3d/codigo/model.js + sim.js):
+     Motor JGA25-371 Speed 200 @ 11,1 V nominal y 80% PWM -> 0,46 m/s máx en recta, 0,41 m/s crucero medio (0,38–0,45 m/s). */
+  var VEL_MAX = 0.46;
+  var VEL_CRUCERO = 0.41;
+  var VEL_VAR_CRUCERO = 0.035;
+  var ARCO_LEN = 94.25;
+  var DIST_LIBRE_FRENTE = 160, DIST_LIBRE_ATRAS = 150;
+  var ANG_DETECCION = 35;                       /* semiamplitud (°) para detectar obstáculo en cada sensor */
+  var dist = { frente: DIST_LIBRE_FRENTE, atras: DIST_LIBRE_ATRAS };
+  var obstaculoActivo = false;
+  var obstaculo = { xCm: 0, yCm: 75 };
+  var prevDet = { frente: false, atras: false };
+  var velActual = VEL_CRUCERO;
+  var tDeteccionFrente = 0;                     /* tiempo sostenido (s) con obstáculo detectado adelante */
+  var arrastrando = false;
+  var sobreObstaculo = false;
+  var dragOffset = { x: 0, y: 0 };
+  var HIT_R = 36;                               /* radio de agarre del obstáculo (px CSS) */
+  var encendido = false, conectado = false;
+  var cliente = null, indice = 0, timerPub = null, timerFallo = null, timerReintento = null;
+  var inicioMs = 0, enviados = 0;
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function deteccionObstaculo() {
+    if (!obstaculoActivo) return { frente: false, atras: false, cm: 0 };
+    var cm = Math.round(Math.max(DIST_MIN, Math.min(DIST_MAX, Math.hypot(obstaculo.xCm, obstaculo.yCm))));
+    var angFrente = Math.abs(Math.atan2(obstaculo.xCm, obstaculo.yCm) * 180 / Math.PI);
+    var angAtras = Math.abs(Math.atan2(obstaculo.xCm, -obstaculo.yCm) * 180 / Math.PI);
+    return {
+      frente: obstaculo.yCm >= 0 && angFrente <= ANG_DETECCION,
+      atras: obstaculo.yCm < 0 && angAtras <= ANG_DETECCION,
+      cm: cm
+    };
+  }
+
+  function zona(cm) { return cm <= LIMITE_PELIGRO ? "rojo" : (cm <= LIMITE_CERCA ? "ambar" : "verde"); }
+  function velocidadCrucero(ts) {
+    if (!encendido) return VEL_CRUCERO;
+    var s = ((ts || performance.now()) - t0) / 1000;
+    return VEL_CRUCERO + VEL_VAR_CRUCERO * Math.sin(s * 0.55);
+  }
+  function calcularVelocidadObjetivo(cm, detFrente, velBase) {
+    if (!detFrente && cm > LIMITE_CERCA) return velBase;
+    /* Factor 1: distancia (0 en <= 20 cm, lineal 20..50 cm, atenuación leve > 50 cm si hay obstáculo en el cono) */
+    var fDist = cm <= LIMITE_PELIGRO
+      ? 0.0
+      : (cm <= LIMITE_CERCA
+        ? (cm - LIMITE_PELIGRO) / (LIMITE_CERCA - LIMITE_PELIGRO)
+        : 0.75 + 0.25 * Math.min(1, (cm - LIMITE_CERCA) / 100));
+    /* Factor 2: tiempo sostenido de detección (acumula frenado progresivo hasta 0.00 m/s si persiste adelante) */
+    var tUmbral = cm <= LIMITE_PELIGRO ? 0.65 : (cm <= LIMITE_CERCA ? 2.2 : 3.5);
+    var fTiempo = Math.max(0, 1 - (tDeteccionFrente / tUmbral));
+    return velBase * fDist * fTiempo;
+  }
+  var COLOR = { verde: "#22c55e", ambar: "#f59e0b", rojo: "#ef4444" };
+
+  /* ---------------- registro en pantalla ---------------- */
+  function log(txt, tipo) {
+    var d = document.createElement("div");
+    if (tipo) d.className = tipo;
+    var h = new Date(); var p = function (n) { return (n < 10 ? "0" : "") + n; };
+    d.textContent = "[" + p(h.getHours()) + ":" + p(h.getMinutes()) + ":" + p(h.getSeconds()) + "] " + txt;
+    logEl.appendChild(d);
+    while (logEl.children.length > 60) logEl.removeChild(logEl.firstChild);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function estado(txt, led) {
+    estadoEl.textContent = txt;
+    ledEl.className = "led-us" + (led ? " " + led : "");
+  }
+
+  /* Botón único Encender/Detener: texto y color según el estado */
+  function actualizarBoton() {
+    btnToggle.textContent = encendido ? "⏹ Detener" : "⚡ Encender";
+    btnToggle.className = "btn " + (encendido ? "encendido" : "apagado");
+    btnToggle.setAttribute("aria-pressed", String(encendido));
+  }
+
+  /* ---------------- radar ---------------- */
+  var ANG = { frente: 0, atras: 180 };           /* grados desde la vertical (0 = adelante) */
+  var MEDIO_CONO = 13;                          /* media abertura del cono, en grados */
+
+  function ajustarCanvas() {
+    var ratio = Math.min(window.devicePixelRatio || 1, 2);
+    var w = canvas.clientWidth || 520;
+    var h = canvas.clientHeight || w;
+    canvas.width = Math.round(w * ratio);
+    canvas.height = Math.round(h * ratio);
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    dibujar();
+  }
+
+  function rad(g) { return g * Math.PI / 180; }
+
+  function dibujar(ts) {
+    var W = canvas.clientWidth || 520, H = canvas.clientHeight || W;
+    var ox = W / 2, oy = H / 2;                    /* el robot va en el centro */
+    var R = Math.min(W, H) / 2 - 14;
+    var tSeg = reduceMotion ? 0.4 : ((ts || performance.now()) / 1000);
+    var det = deteccionObstaculo();
+    ctx.clearRect(0, 0, W, H);
+
+    /* anillos de distancia (etiquetas abajo-derecha para dejar ambas esquinas superiores libres) */
+    var esMovil = W < 400;
+    ctx.lineWidth = 1;
+    ctx.font = (esMovil ? "9.5px" : "11px") + " 'JetBrains Mono', monospace";
+    ctx.fillStyle = "#64748b";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    var angEtiqueta = Math.PI / 4;
+    [50, 100, 150, 200].forEach(function (cm) {
+      var r = R * cm / DIST_MAX;
+      ctx.strokeStyle = "rgba(148,163,184,0.25)";
+      ctx.beginPath(); ctx.arc(ox, oy, r, 0, 2 * Math.PI); ctx.stroke();
+      var etiqueta = (esMovil && cm < 200) ? String(cm) : (cm + " cm");
+      ctx.fillText(etiqueta, ox + r * Math.cos(angEtiqueta), oy + r * Math.sin(angEtiqueta) + 2);
+    });
+    ctx.textBaseline = "alphabetic";
+    /* líneas guía */
+    ctx.strokeStyle = "rgba(148,163,184,0.18)";
+    [0, 90].forEach(function (g) {
+      ctx.beginPath();
+      ctx.moveTo(ox - R * Math.sin(rad(g)), oy + R * Math.cos(rad(g)));
+      ctx.lineTo(ox + R * Math.sin(rad(g)), oy - R * Math.cos(rad(g))); ctx.stroke();
+    });
+
+    /* conos y ondas ultrasónicas simultáneas en ambos sensores (delantero y trasero) */
+    var rMin = 15;
+    ids.forEach(function (k) {
+      var cm = dist[k], r = R * cm / DIST_MAX, z = zona(cm), c = COLOR[z];
+      var a0 = rad(ANG[k] - MEDIO_CONO) - Math.PI / 2, a1 = rad(ANG[k] + MEDIO_CONO) - Math.PI / 2;
+      /* alcance máximo, solo contorno */
+      ctx.strokeStyle = "rgba(148,163,184,0.2)"; ctx.setLineDash([4, 5]);
+      ctx.beginPath(); ctx.arc(ox, oy, R, a0, a1); ctx.stroke(); ctx.setLineDash([]);
+      /* zona libre hasta el obstáculo */
+      ctx.fillStyle = c + "33";
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.arc(ox, oy, r, a0, a1); ctx.closePath(); ctx.fill();
+
+      /* ondas emitidas salientes (siempre activas en ambos sensores a la vez) */
+      var rLimite = Math.max(rMin + 4, r);
+      var desfase = k === "atras" ? 0.17 : 0;
+      ctx.lineCap = "round";
+      for (var i = 0; i < 3; i++) {
+        var p = (tSeg * 0.58 + i / 3 + desfase) % 1;
+        var rOnda = rMin + p * (rLimite - rMin);
+        var alpha = (1 - p) * 0.62;
+        ctx.strokeStyle = "rgba(125, 211, 252, " + alpha.toFixed(3) + ")";
+        ctx.lineWidth = 1.75;
+        ctx.beginPath(); ctx.arc(ox, oy, rOnda, a0 + 0.03, a1 - 0.03); ctx.stroke();
+      }
+
+      /* ondas de eco rebotando desde el obstáculo de vuelta hacia el sensor */
+      if (det[k]) {
+        var ecoRgb = z === "rojo" ? "252, 165, 165" : (z === "ambar" ? "253, 230, 138" : "134, 239, 172");
+        ctx.setLineDash([6, 4]);
+        for (var j = 0; j < 2; j++) {
+          var pEco = (tSeg * 0.72 + j * 0.5) % 1;
+          var rEco = rLimite - pEco * (rLimite - rMin);
+          var alphaEco = Math.sin(pEco * Math.PI) * 0.92;
+          ctx.strokeStyle = "rgba(" + ecoRgb + ", " + alphaEco.toFixed(3) + ")";
+          ctx.lineWidth = 2.2;
+          ctx.beginPath(); ctx.arc(ox, oy, rEco, a0 + 0.02, a1 - 0.02); ctx.stroke();
+        }
+        ctx.setLineDash([]);
+      }
+
+      /* borde del obstáculo / alcance actual */
+      ctx.strokeStyle = c; ctx.lineWidth = 4; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.arc(ox, oy, r, a0, a1); ctx.stroke();
+      ctx.lineWidth = 1;
+    });
+
+    /* robot */
+    ctx.fillStyle = "#38bdf8";
+    ctx.beginPath();
+    ctx.moveTo(ox, oy - 14); ctx.lineTo(ox + 11, oy + 8); ctx.lineTo(ox - 11, oy + 8); ctx.closePath(); ctx.fill();
+
+    /* círculo rojo arrastrable (solo cuando el obstáculo está invocado) */
+    var obsX = ox + (obstaculo.xCm / DIST_MAX) * R;
+    var obsY = oy - (obstaculo.yCm / DIST_MAX) * R;
+    if (obstaculoActivo) {
+      ctx.strokeStyle = "rgba(239, 68, 68, 0.45)";
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 4]);
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(obsX, obsY); ctx.stroke();
+      ctx.setLineDash([]);
+
+      /* ondas de impacto/rebote en el objeto cuando alguno de los sensores lo detecta */
+      if (det.frente || det.atras) {
+        var pImp = (tSeg * 0.72) % 1;
+        var rImp = 11 + pImp * 18;
+        ctx.strokeStyle = "rgba(252, 165, 165, " + ((1 - pImp) * 0.85).toFixed(3) + ")";
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(obsX, obsY, rImp, 0, 2 * Math.PI); ctx.stroke();
+        ctx.lineWidth = 1;
+      }
+
+      ctx.fillStyle = arrastrando ? "rgba(239, 68, 68, 0.38)" : (sobreObstaculo ? "rgba(239, 68, 68, 0.30)" : "rgba(239, 68, 68, 0.22)");
+      ctx.beginPath(); ctx.arc(obsX, obsY, arrastrando ? 21 : (sobreObstaculo ? 19 : 17), 0, 2 * Math.PI); ctx.fill();
+      ctx.fillStyle = "#ef4444";
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = arrastrando ? 2.5 : 2;
+      ctx.beginPath(); ctx.arc(obsX, obsY, 10, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
+      ctx.lineWidth = 1;
+    }
+
+    /* etiquetas de distancia sobre los conos (siempre legibles, sin solaparse con el obstáculo) */
+    ctx.textAlign = "center";
+    ctx.font = "700 13px 'JetBrains Mono', monospace";
+    ids.forEach(function (k) {
+      var cm = dist[k], r = R * cm / DIST_MAX;
+      var am = rad(ANG[k]) - Math.PI / 2;
+      var rl = Math.max(r - 18, 28);
+      var lx = ox + rl * Math.cos(am), ly = oy + rl * Math.sin(am);
+      if (obstaculoActivo && Math.hypot(lx - obsX, ly - obsY) < 28) {
+        var rAlt = r + 26 <= R - 12 ? r + 26 : Math.max(r - 28, 26);
+        lx = ox + rAlt * Math.cos(am);
+        ly = oy + rAlt * Math.sin(am);
+      }
+      var txt = String(cm);
+      var tw = ctx.measureText(txt).width + 10;
+      ctx.fillStyle = "rgba(11, 20, 36, 0.82)";
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(lx - tw / 2, ly - 9, tw, 18, 5);
+      } else {
+        ctx.rect(lx - tw / 2, ly - 9, tw, 18);
+      }
+      ctx.fill();
+      ctx.fillStyle = "#f1f5f9";
+      ctx.fillText(txt, lx, ly + 4);
+    });
+  }
+
+  /* ---------------- lectura y mensaje ---------------- */
+  function mensaje() {
+    var vel = Number(velActual.toFixed(2));
+    return { frente_cm: dist.frente, atras_cm: dist.atras, velocidad_ms: vel, frente_ok: true, atras_ok: true, t: encendido ? Date.now() - inicioMs : 0 };
+  }
+
+  var ultimoRender = "";
+  function refrescar(forzar) {
+    var vel = velActual;
+    var det = deteccionObstaculo();
+    var clave = dist.frente + "|" + dist.atras + "|" + vel.toFixed(2) + "|" + (det.frente ? 1 : 0) + "|" + (obstaculoActivo ? 1 : 0) + "|" + (encendido ? 1 : 0);
+    if (!forzar && clave === ultimoRender) return;
+    ultimoRender = clave;
+
+    var zFrente = zona(dist.frente);
+    var velTxt = vel.toFixed(2);
+    lecturaEl.textContent = "Adelante " + dist.frente + " · Atrás " + dist.atras + " cm · " + velTxt + " m/s";
+    lecturaEl.style.color = (vel <= 0.005 || zFrente === "rojo") ? "#fca5a5" : ((det.frente || zFrente === "ambar") ? "#fcd34d" : "#e2e8f0");
+
+    /* Mini velocímetro SVG (escala SIM1 hasta 0.46 m/s; solo el sensor delantero frena) */
+    var ratioVel = Math.max(0, Math.min(1, vel / VEL_MAX));
+    var frenando = det.frente || dist.frente <= LIMITE_CERCA || vel < (VEL_CRUCERO - VEL_VAR_CRUCERO - 0.01);
+    var colorVel = vel <= 0.005 ? COLOR.rojo : (frenando ? COLOR.ambar : COLOR.verde);
+    veloArco.setAttribute("stroke-dashoffset", (ARCO_LEN * (1 - ratioVel)).toFixed(2));
+    veloArco.style.stroke = colorVel;
+    veloAguja.setAttribute("transform", "rotate(" + (-90 + ratioVel * 180).toFixed(1) + " 40 40)");
+    veloVal.innerHTML = velTxt + "<small>m/s</small>";
+    veloVal.style.color = colorVel;
+    veloWidget.style.borderColor = vel <= 0.005 ? "rgba(239, 68, 68, 0.6)" : (frenando ? "rgba(245, 158, 11, 0.55)" : "rgba(148, 163, 184, 0.26)");
+
+    if (dist.frente <= LIMITE_PELIGRO || (det.frente && vel <= 0.005)) {
+      alertaObs.textContent = (vel <= 0.005 ? "FRENADO POR OBSTÁCULO · 0.00 m/s" : "FRENANDO POR OBSTÁCULO · " + velTxt + " m/s");
+      alertaObs.className = "us-alerta";
+      alertaObs.hidden = false;
+    } else if (dist.frente <= LIMITE_CERCA || det.frente) {
+      alertaObs.textContent = "OBSTÁCULO CERCA · " + velTxt + " m/s";
+      alertaObs.className = "us-alerta cerca";
+      alertaObs.hidden = false;
+    } else {
+      alertaObs.hidden = true;
+    }
+    jsonEl.textContent = JSON.stringify(mensaje(), null, 2);
+    dibujar();
+  }
+
+  /* Base en la esquina del radar: arrastra el círculo rojo al radar o devuélvelo a su base */
+  function actualizarBaseObstaculo() {
+    baseObs.classList.toggle("fuera", obstaculoActivo);
+    etiquetaBaseObs.textContent = obstaculoActivo ? "Devolver" : "Obstáculo";
+    canvas.classList.toggle("con-obstaculo", obstaculoActivo);
+  }
+  function devolverObstaculo() {
+    obstaculoActivo = false;
+    arrastrando = false;
+    sobreObstaculo = false;
+    prevDet.frente = false;
+    prevDet.atras = false;
+    canvas.classList.remove("arrastrando", "sobre-obs");
+    baseObs.classList.remove("zona-soltar");
+    dist.frente = DIST_LIBRE_FRENTE;
+    dist.atras = DIST_LIBRE_ATRAS;
+    actualizarBaseObstaculo();
+    refrescar(true);
+  }
+  function puntoSobreBase(clientX, clientY) {
+    var b = baseObs.getBoundingClientRect();
+    return clientX >= b.left - 8 && clientX <= b.right + 8 && clientY >= b.top - 8 && clientY <= b.bottom + 8;
+  }
+  function puntoFueraDelRadar(clientX, clientY) {
+    var rect = canvas.getBoundingClientRect();
+    var W = canvas.clientWidth || 520, H = canvas.clientHeight || W;
+    var ox = rect.left + W / 2, oy = rect.top + H / 2;
+    var R = Math.min(W, H) / 2 - 14;
+    return Math.hypot(clientX - ox, clientY - oy) > R + 12;
+  }
+
+  /* Arrastre (Drag & Drop) del círculo rojo sobre el radar */
+  function obstaculoEnPx() {
+    var W = canvas.clientWidth || 520, H = canvas.clientHeight || W;
+    var ox = W / 2, oy = H / 2;
+    var R = Math.min(W, H) / 2 - 14;
+    return { x: ox + (obstaculo.xCm / DIST_MAX) * R, y: oy - (obstaculo.yCm / DIST_MAX) * R };
+  }
+  function sincronizarSensoresConObstaculo() {
+    var det = deteccionObstaculo();
+    if (det.frente) {
+      dist.frente = det.cm;
+    } else if (prevDet.frente && !encendido) {
+      dist.frente = DIST_LIBRE_FRENTE;
+    }
+    if (det.atras) {
+      dist.atras = det.cm;
+    } else if (prevDet.atras && !encendido) {
+      dist.atras = DIST_LIBRE_ATRAS;
+    }
+    prevDet.frente = det.frente;
+    prevDet.atras = det.atras;
+  }
+  function moverObstaculoDesdeEvento(ev) {
+    if (!obstaculoActivo) return;
+    var rect = canvas.getBoundingClientRect();
+    var W = canvas.clientWidth || 520, H = canvas.clientHeight || W;
+    var ox = W / 2, oy = H / 2;
+    var R = Math.min(W, H) / 2 - 14;
+    var px = ev.clientX - rect.left - dragOffset.x;
+    var py = ev.clientY - rect.top - dragOffset.y;
+    var dx = px - ox;
+    var dy = oy - py; /* positivo = adelante */
+    var rPx = Math.hypot(dx, dy);
+    if (rPx > R) {
+      dx = dx * R / rPx;
+      dy = dy * R / rPx;
+      rPx = R;
+    }
+    obstaculo.xCm = (dx / R) * DIST_MAX;
+    obstaculo.yCm = (dy / R) * DIST_MAX;
+
+    var enZonaDevolver = puntoSobreBase(ev.clientX, ev.clientY) || puntoFueraDelRadar(ev.clientX, ev.clientY);
+    baseObs.classList.toggle("zona-soltar", enZonaDevolver);
+
+    if (!enZonaDevolver) {
+      sincronizarSensoresConObstaculo();
+    }
+    refrescar(true);
+  }
+
+  var capturaEl = null;
+  baseObs.addEventListener("pointerdown", function (ev) {
+    if (ev.cancelable) ev.preventDefault();
+    if (obstaculoActivo) {
+      devolverObstaculo();
+      return;
+    }
+    obstaculoActivo = true;
+    arrastrando = true;
+    dragOffset.x = 0;
+    dragOffset.y = 0;
+    capturaEl = baseObs;
+    canvas.classList.add("arrastrando");
+    actualizarBaseObstaculo();
+    try { baseObs.setPointerCapture(ev.pointerId); } catch (_) {}
+    moverObstaculoDesdeEvento(ev);
+  });
+  baseObs.addEventListener("keydown", function (ev) {
+    if (ev.key !== "Enter" && ev.key !== " ") return;
+    ev.preventDefault();
+    if (obstaculoActivo) {
+      devolverObstaculo();
+    } else {
+      obstaculoActivo = true;
+      obstaculo.xCm = 0;
+      obstaculo.yCm = 75;
+      dist.frente = 75;
+      actualizarBaseObstaculo();
+      refrescar(true);
+    }
+  });
+
+  canvas.addEventListener("pointerdown", function (ev) {
+    /* Solo inicia el arrastre si el obstáculo está activo y el toque cae sobre él (hit-area 36 px). */
+    if (!obstaculoActivo) return;
+    var rect = canvas.getBoundingClientRect();
+    var px = ev.clientX - rect.left;
+    var py = ev.clientY - rect.top;
+    var o = obstaculoEnPx();
+    if (Math.hypot(px - o.x, py - o.y) > HIT_R) return;
+    arrastrando = true;
+    dragOffset.x = px - o.x;
+    dragOffset.y = py - o.y;
+    capturaEl = canvas;
+    canvas.classList.add("arrastrando");
+    try { canvas.setPointerCapture(ev.pointerId); } catch (_) {}
+    if (ev.cancelable) ev.preventDefault();
+    moverObstaculoDesdeEvento(ev);
+  });
+  canvas.addEventListener("pointermove", function (ev) {
+    if (arrastrando || !obstaculoActivo) return;
+    var rect = canvas.getBoundingClientRect();
+    var px = ev.clientX - rect.left;
+    var py = ev.clientY - rect.top;
+    var o = obstaculoEnPx();
+    var cerca = Math.hypot(px - o.x, py - o.y) <= HIT_R;
+    if (cerca !== sobreObstaculo) {
+      sobreObstaculo = cerca;
+      canvas.classList.toggle("sobre-obs", cerca);
+      dibujar();
+    }
+  });
+  canvas.addEventListener("pointerleave", function () {
+    if (sobreObstaculo) {
+      sobreObstaculo = false;
+      canvas.classList.remove("sobre-obs");
+      dibujar();
+    }
+  });
+  window.addEventListener("pointermove", function (ev) {
+    if (!arrastrando) return;
+    if (ev.cancelable) ev.preventDefault();
+    moverObstaculoDesdeEvento(ev);
+  });
+  function soltarObstaculo(ev) {
+    if (!arrastrando) return;
+    var devolver = puntoSobreBase(ev.clientX, ev.clientY) || puntoFueraDelRadar(ev.clientX, ev.clientY);
+    arrastrando = false;
+    canvas.classList.remove("arrastrando");
+    baseObs.classList.remove("zona-soltar");
+    if (capturaEl) {
+      try { capturaEl.releasePointerCapture(ev.pointerId); } catch (_) {}
+      capturaEl = null;
+    }
+    if (devolver) {
+      devolverObstaculo();
+    } else {
+      dibujar();
+    }
+  }
+  window.addEventListener("pointerup", soltarObstaculo);
+  window.addEventListener("pointercancel", soltarObstaculo);
+  window.addEventListener("resize", ajustarCanvas);
+
+  /* Bucle continuo de simulación: nunca se pausa (ni al detectar obstáculo ni en 0.00 m/s).
+     Ambos sensores (delantero y trasero) operan siempre en simultáneo e independientemente. */
+  var t0 = 0, ultimoTs = 0;
+  function bucleSimulacion(ts) {
+    if (!ultimoTs) ultimoTs = ts;
+    var dt = Math.min(Math.max((ts - ultimoTs) / 1000, 0), 0.1);
+    ultimoTs = ts;
+
+    var det = deteccionObstaculo();
+    if (encendido) {
+      var s = (ts - t0) / 1000;
+      var f = function (base, amp, vel, fase) { return Math.round(Math.max(DIST_MIN, Math.min(DIST_MAX, base + amp * Math.sin(s * vel + fase)))); };
+      if (!det.frente) {
+        dist.frente = f(150, 35, 0.45, 1.2);
+      }
+      if (!det.atras) {
+        dist.atras = f(130, 40, 0.6, 0);
+      }
+    }
+
+    /* Acumulación / decaimiento del tiempo sostenido de detección frontal */
+    if (det.frente || dist.frente <= LIMITE_CERCA) {
+      tDeteccionFrente = Math.min(4.0, tDeteccionFrente + dt);
+    } else {
+      tDeteccionFrente = Math.max(0, tDeteccionFrente - dt * 2.2);
+    }
+
+    var velBase = velocidadCrucero(ts);
+    var objetivo = calcularVelocidadObjetivo(dist.frente, det.frente, velBase);
+    if (Math.abs(velActual - objetivo) > 0.0005) {
+      var tasa = objetivo < velActual ? 0.55 : 0.42;
+      var paso = tasa * dt;
+      if (Math.abs(objetivo - velActual) <= paso) {
+        velActual = objetivo;
+      } else {
+        velActual += (objetivo > velActual ? paso : -paso);
+      }
+      velActual = Math.max(0, Math.min(VEL_MAX, velActual));
+    }
+
+    refrescar(false);
+    if (!reduceMotion) dibujar(ts);
+    requestAnimationFrame(bucleSimulacion);
+  }
+
+  /* ---------------- MQTT con brokers de respaldo ---------------- */
+  function limpiarCliente() {
+    if (timerFallo) { clearTimeout(timerFallo); timerFallo = null; }
+    if (timerReintento) { clearTimeout(timerReintento); timerReintento = null; }
+    if (cliente) {
+      try { cliente.removeAllListeners(); cliente.end(true); } catch (e) {}
+      cliente = null;
+    }
+    conectado = false;
+  }
+
+  function siguienteBroker(motivo) {
+    if (!encendido) return;
+    var b = BROKERS[indice];
+    log(b.nombre + " no respondió (" + motivo + ").", "err");
+    limpiarCliente();
+    indice = (indice + 1) % BROKERS.length;
+    var espera = indice === 0 ? 3000 : 300;   /* si ya probó los 3, espera 3 s y vuelve a empezar */
+    if (indice === 0) log("Ningún broker respondió. Reintento en 3 s.", "err");
+    estado("SIN CONEXIÓN · reintentando", "error");
+    timerReintento = setTimeout(conectar, espera);
+  }
+
+  function conectar() {
+    if (!encendido) return;
+    if (!window.mqtt) {
+      estado("ERROR · no se cargó la librería MQTT (revisa internet)", "error");
+      log("No se cargó mqtt.js desde unpkg.com.", "err");
+      return;
+    }
+    var b = BROKERS[indice];
+    brokerEl.textContent = b.nombre + " (" + b.host + ":" + b.puerto + ")";
+    estado("CONECTANDO A " + b.nombre.toUpperCase() + " ...", "espera");
+    log("Conectando a " + b.url, "inf");
+    try {
+      cliente = window.mqtt.connect(b.url, {
+        clientId: "p11-us-" + Math.random().toString(16).slice(2, 10),
+        keepalive: 20, connectTimeout: TIMEOUT_MS, reconnectPeriod: 0
+      });
+    } catch (e) { siguienteBroker("no se pudo abrir el WebSocket"); return; }
+
+    timerFallo = setTimeout(function () { if (!conectado) siguienteBroker("tiempo de espera de 5 s"); }, TIMEOUT_MS + 500);
+
+    cliente.on("connect", function () {
+      if (timerFallo) { clearTimeout(timerFallo); timerFallo = null; }
+      conectado = true;
+      estado("CONECTADO EN VIVO · " + b.nombre, "ok");
+      log("Conectado a " + b.nombre + ". Publicando en " + TOPICO + " cada 0,5 s.", "ok");
+    });
+    cliente.on("error", function (e) { if (!conectado) siguienteBroker((e && e.message) || "error"); });
+    cliente.on("close", function () {
+      if (!encendido) return;
+      if (conectado) {
+        conectado = false;
+        log("Se cayó la conexión con " + b.nombre + ". Pruebo el siguiente broker.", "err");
+        limpiarCliente(); indice = (indice + 1) % BROKERS.length;
+        estado("SIN CONEXIÓN · reintentando", "error");
+        timerReintento = setTimeout(conectar, 500);
+      }
+    });
+  }
+
+  function publicar() {
+    var m = mensaje();
+    jsonEl.textContent = JSON.stringify(m, null, 2);
+    if (!cliente || !conectado) return;
+    cliente.publish(TOPICO, JSON.stringify(m), { qos: 0 }, function (err) {
+      if (err) { log("Error al publicar: " + err.message, "err"); return; }
+      enviados++;
+      if (enviados % 10 === 1) log("#" + enviados + " publicado: " + dist.frente + " / " + dist.atras + " cm", "ok");
+    });
+  }
+
+  function encender() {
+    encendido = true; enviados = 0; indice = 0; inicioMs = Date.now(); t0 = performance.now();
+    actualizarBoton();
+    conectar();
+    timerPub = setInterval(publicar, PERIODO_MS);
+  }
+  function apagar() {
+    encendido = false;
+    if (timerPub) { clearInterval(timerPub); timerPub = null; }
+    limpiarCliente();
+    actualizarBoton();
+    brokerEl.textContent = "sin conexión";
+    estado("DETENIDO · pulsa Encender para iniciar", "");
+    log("Emisión detenida (" + enviados + " mensajes enviados).", "inf");
+    refrescar(true);
+  }
+  btnToggle.addEventListener("click", function () { encendido ? apagar() : encender(); });
+
+  ajustarCanvas();
+  actualizarBoton();
+  actualizarBaseObstaculo();
+  refrescar(true);
+  requestAnimationFrame(bucleSimulacion);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+# Prototipos
+
+Cada prototipo tiene su propia carpeta y SIEMPRE la misma estructura:
+
+```
+P0X-nombre/
+├── index.html    página visual: se entiende en 30 segundos
+├── README.md     ficha técnica: todos los detalles
+├── codigo/       código del simulador (sketch.ino, diagram.json, libraries.txt...)
+└── evidencias/   capturas numeradas: 01-algo.png, 02-algo.png...
+```
+
+P = prototipo simulado. H = prueba con hardware real.
+
+## Para crear uno nuevo
+1. Copiar `plantilla-pagina.html` como `index.html` dentro de la carpeta nueva.
+2. Copiar `plantilla-ficha.md` como `README.md`.
+3. Agregarlo (o cambiar su estado) en `datos/proyecto.js`, en la lista `prototipos`. La portada, el cronograma y la lista de prototipos se actualizan solos.
+
+## Reglas de la página visual
+- Arriba: título simple y una frase que lo explique para alguien que no es ingeniero.
+- Una comparación con algo de la vida diaria y un dibujo.
+- Colores con un solo significado en todo el sitio: verde = sale del robot, coral = llega al robot, violeta = alarmas o conceptos, amarillo = avisos y pendientes.
+- Lo técnico va al final, en "Para los curiosos".
+- Sin contraseñas y sin capturas con datos personales (recortar el escritorio).
+
+## Cómo recompilar los simuladores 3D (P01, P03 y P08)
+Los tres simuladores se empaquetan igual, con esbuild y `three` de npm (ya no se usa el kit teardown). Cada `codigo/` tiene todo el fuente: `main.js` (entrada), los módulos, `style.css`, `fuentes.css`, `plantilla.html` y `construir.mjs`.
+```bash
+cd prototipos/P01-mqtt-base/simulador-3d/codigo   # o P03-motores/avance-02-simulador-3d/codigo, o P08-seguidor-linea/avance-01-simulador-3d/codigo
+npm install --no-save three@0.187.0 esbuild      # una sola vez
+node construir.mjs                               # genera ../simulador.html (un solo archivo)
+```
+P01: `node pruebas.mjs` valida los pasos de cada QoS, la telemetría QoS 0 cada 1–1,5 s y la pérdida de red con reintentos.
+
+No edites `simulador.html` a mano: se pierde al recompilar. Cambia el fuente en `codigo/`.
+
+### P03 · vitrina autónoma (esbuild, sin el kit teardown)
+`P03-motores/avance-02-simulador-3d/codigo/` ya no usa el kit: la vitrina autónoma (ruta cerrada, sensores y fichas de componentes) se empaqueta con esbuild y `three` de npm.
+```bash
+cd prototipos/P03-motores/avance-02-simulador-3d/codigo
+npm install --no-save three@0.187.0 esbuild   # una sola vez
+node construir.mjs                            # genera ../simulador.html (un solo archivo)
+node vitrina.test.js                          # pruebas del núcleo, sin navegador
+```
+El movimiento es automático (sin teclado) y **no** reimplementa teach-and-repeat: esa máquina de estados es solo del Simulador 2 V2.
+
+### P08 · Simulador 1 de aprendizaje progresivo (esbuild)
+Igual que P03: `P08-seguidor-linea/avance-01-simulador-3d/codigo/` se empaqueta con esbuild (`npm install --no-save three@0.187.0 esbuild && node construir.mjs`). Pruebas: `node codigo/simulador1.test.js` (16). Dos pistas (A 8,05 m histórica y B 9,0 m canónica), modo manual (teclado y D-Pad táctil) o seguidor automático; `pista.js`, `linea.js` y `model.js` están separados para que los simuladores futuros retiren cinta con `ocultarTramo()`.
+
+## Simulador 2 V2 · teach-and-repeat
+`simulador-2-v2-teach-and-repeat/` no es un prototipo P0X: es un gemelo digital de **movimiento** (SIL). Carga tal cual `specs/pista_canonica.json` (9,0 m) y `specs/navegacion/teach_and_repeat.js`; la planta física (cinta, sensores, cinemática, giroscopio, RSSI de las 2 balizas BLE en los extremos) está en `simulador_movimiento.js`. Pruebas: `node prototipos/simulador-2-v2-teach-and-repeat/simulador_movimiento.test.js` (22). Se abre por http (no por `file://`).

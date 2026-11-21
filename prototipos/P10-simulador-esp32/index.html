@@ -1,0 +1,1811 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>P10 · Simulador Web de Telemetría ESP32 · TG Robot UCAB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/style.css">
+<style>
+/* ======================================================================
+   P10 · Simulador ESP32 · tarjetas técnicas oscuras (coherente con portafolio y App M3)
+   ====================================================================== */
+.consola-esp32 {
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 2px solid var(--border-dark);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-hard);
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+.consola-barra {
+  background: #1e293b;
+  padding: 12px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+.consola-estado { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1 1 240px; }
+.consola-barra strong { overflow-wrap: anywhere; }
+.led-estado {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #64748b;
+  transition: background-color 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+.led-estado.activo { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+.led-estado.conectando { background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
+.led-estado.error { background: #f43f5e; box-shadow: 0 0 10px #f43f5e; }
+.consola-cuerpo { padding: 20px; }
+
+/* ---- Botón principal en la barra superior ---- */
+.esp-botones { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn-esp {
+  min-height: 44px;
+  padding: 8px 18px;
+  border-radius: 10px;
+  border: 2px solid #059669;
+  background: #0f9d84;
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.16s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.15s ease-out, border-color 0.15s ease-out, box-shadow 0.16s ease-out;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-esp:hover:not(:disabled) { background: #0d8a74; box-shadow: 0 6px 18px rgba(15, 157, 132, 0.28); }
+.btn-esp.conectando {
+  background: #d97706;
+  border-color: #f59e0b;
+  cursor: wait;
+  opacity: 0.92;
+}
+.btn-esp.emitiendo {
+  background: #16a34a;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-esp.emitiendo:hover {
+    background: #e11d48;
+    border-color: #f43f5e;
+    box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.22);
+  }
+}
+
+/* ---- Brokers (dentro del panel colapsable técnico) ---- */
+.broker-panel {
+  background: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 0 0 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.broker-actual-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 240px; }
+.broker-actual-titulo { font-family: var(--font-display); font-weight: 800; font-size: 15px; color: #fff; overflow-wrap: anywhere; }
+.broker-actual-sub { font-family: var(--font-mono); font-size: 12px; color: #94a3b8; overflow-wrap: anywhere; }
+.broker-segmentado {
+  display: inline-flex;
+  align-items: stretch;
+  background: #0f172a;
+  border: 1.5px solid #334155;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.broker-seg {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: none;
+  border-right: 1px solid #334155;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease-out, color 0.15s ease-out;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.broker-seg:last-child { border-right: none; }
+.broker-seg:hover:not(:disabled):not(.activo) { background: rgba(56, 189, 248, 0.10); color: #e2e8f0; }
+.broker-seg.activo { background: #1e293b; color: #fde68a; font-weight: 700; box-shadow: inset 0 -2px 0 #f59e0b; }
+.broker-seg.activo.conectado { background: rgba(34, 197, 94, 0.18); color: #86efac; box-shadow: inset 0 -2px 0 #22c55e; }
+.broker-seg:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ---- Rejilla placa + telemetría ---- */
+.esp-grid {
+  display: grid;
+  grid-template-columns: minmax(250px, 320px) 1fr;
+  gap: 14px;
+  margin-bottom: 0;
+}
+.tarjeta {
+  background: #1e293b;
+  border: 1.5px solid #334155;
+  border-radius: 14px;
+  padding: 14px 16px;
+  min-width: 0;
+}
+.tarjeta-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin: 0 0 10px;
+}
+.tarjeta-titulo b { color: #e2e8f0; font-weight: 700; }
+
+/* ---- Placa ESP32 virtual ---- */
+.placa {
+  position: relative;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(250, 204, 21, 0.10) 0 2px, transparent 3px) 0 0 / 22px 22px,
+    linear-gradient(160deg, #0d4a38 0%, #083226 100%);
+  border: 2px solid #14705a;
+  border-radius: 14px;
+  padding: 14px 14px 16px;
+  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.25);
+  opacity: 0.78;
+  transition: opacity 0.3s ease-out, box-shadow 0.3s ease-out;
+}
+.placa.encendida { opacity: 1; box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.25), 0 0 22px rgba(34, 197, 94, 0.28); }
+.placa-cabecera { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-family: var(--font-mono); font-size: 11px; color: #a7f3d0; letter-spacing: 0.06em; }
+.placa-cabecera .usb { width: 34px; height: 14px; border-radius: 3px; background: #cbd5e1; border: 2px solid #64748b; }
+.placa-cuerpo { display: grid; grid-template-columns: 1fr 86px; gap: 12px; align-items: stretch; }
+.placa-chip {
+  background: #0b1220;
+  border: 2px solid #334155;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  color: #cbd5e1;
+  min-height: 96px;
+}
+.placa-chip b { font-size: 15px; color: #fff; letter-spacing: 0.04em; }
+.placa-chip small { font-size: 10.5px; color: #94a3b8; }
+.placa-chip .antena { height: 6px; border-radius: 3px; background: repeating-linear-gradient(90deg, #facc15 0 6px, transparent 6px 10px); opacity: 0.8; margin-top: 4px; }
+.placa-pines { display: flex; flex-direction: column; justify-content: space-between; gap: 6px; }
+.placa-pines i { display: block; height: 6px; border-radius: 2px; background: #facc15; opacity: 0.75; }
+.leds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+.led-item { display: flex; flex-direction: column; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; color: #d1fae5; letter-spacing: 0.04em; text-align: center; }
+.led-item small { color: #6ee7b7; font-size: 10px; letter-spacing: 0; }
+.esp-led {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #334155;
+  border: 2px solid rgba(0, 0, 0, 0.45);
+  transition: background-color 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+.esp-led.ok { background: #22c55e; box-shadow: 0 0 12px #22c55e; }
+.esp-led.warn { background: #f59e0b; box-shadow: 0 0 12px #f59e0b; }
+.esp-led.err { background: #f43f5e; box-shadow: 0 0 12px #f43f5e; }
+.esp-led.parpadeo { animation: parpadeo 1.2s ease-in-out infinite; }
+.esp-led.tx.cola { background: #f59e0b; box-shadow: 0 0 12px #f59e0b; }
+.esp-led.tx.pulso { animation: pulso-tx 0.7s ease-out 1; }
+@keyframes parpadeo { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@keyframes pulso-tx {
+  0%   { background: #38bdf8; box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.85), 0 0 16px #38bdf8; transform: scale(1.25); }
+  100% { background: #1e3a5f; box-shadow: 0 0 0 14px rgba(56, 189, 248, 0), 0 0 0 #38bdf8; transform: scale(1); }
+}
+
+/* ---- Tarjetas de telemetría ---- */
+.tele-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-content: start; }
+.tele-grid .ancha { grid-column: 1 / -1; }
+.valor-grande { font-family: var(--font-display); font-weight: 800; font-size: 26px; font-variant-numeric: tabular-nums; color: #fff; line-height: 1.1; }
+.valor-grande small { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: #94a3b8; margin-left: 6px; }
+.bat-barra { height: 16px; border-radius: 8px; background: #0f172a; border: 1.5px solid #334155; overflow: hidden; margin-top: 10px; }
+.bat-fill { height: 100%; width: 0; border-radius: 6px; background: #22c55e; transition: width 0.4s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.3s ease-out; }
+.bat-fill.media { background: #f59e0b; }
+.bat-fill.baja { background: #f43f5e; }
+.modo-pill {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1.5px solid #475569;
+  color: #94a3b8;
+}
+.modo-pill.autonomo { border-color: #22c55e; background: rgba(34, 197, 94, 0.15); color: #86efac; }
+.modo-pill.manual { border-color: #38bdf8; background: rgba(56, 189, 248, 0.15); color: #7dd3fc; }
+.sensores { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 6px 0 10px; }
+.sensor {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 11px; color: #64748b;
+}
+.sensor i { width: 22px; height: 22px; border-radius: 50%; background: #0f172a; border: 2px solid #334155; transition: background-color 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out; }
+.sensor.on { color: #fde68a; }
+.sensor.on i { background: #facc15; border-color: #facc15; box-shadow: 0 0 12px rgba(250, 204, 21, 0.8); }
+.linea-txt { font-family: var(--font-mono); font-size: 12.5px; color: #cbd5e1; }
+.linea-txt.perdida { color: #fda4af; }
+.motor-fila { display: grid; grid-template-columns: 54px 1fr 74px; gap: 10px; align-items: center; margin-top: 8px; font-family: var(--font-mono); font-size: 12px; color: #94a3b8; }
+.motor-fila:first-of-type { margin-top: 0; }
+.motor-fila output { color: #e2e8f0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.motor-pista { position: relative; height: 14px; border-radius: 7px; background: #0f172a; border: 1.5px solid #334155; overflow: hidden; }
+.motor-pista::after { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #475569; }
+.motor-fill { position: absolute; top: 0; bottom: 0; width: 0; left: 50%; background: #22c55e; transition: width 0.3s cubic-bezier(0.23, 1, 0.32, 1), left 0.3s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.2s ease-out; }
+.motor-fill.atras { background: #f59e0b; }
+
+/* ---- Tarjeta de Ultrasónicos (Frente y Atrás) ---- */
+.ultra-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 6px; }
+.ultra-item { background: #0f172a; border: 1.5px solid #334155; border-radius: 10px; padding: 10px 12px; }
+.ultra-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-family: var(--font-mono); font-size: 12px; color: #cbd5e1; margin-bottom: 6px; }
+.ultra-cab output { font-family: var(--font-display); font-weight: 800; font-size: 18px; font-variant-numeric: tabular-nums; color: #22c55e; }
+.ultra-cab output.precaucion { color: #f59e0b; }
+.ultra-cab output.peligro { color: #f43f5e; }
+.ultra-cab output.pausado { color: #64748b; }
+.ultra-barra { height: 10px; border-radius: 6px; background: #1e293b; border: 1px solid #334155; overflow: hidden; margin-bottom: 8px; }
+.ultra-fill { height: 100%; width: 0; border-radius: 5px; background: #22c55e; transition: width 0.28s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.2s ease-out; }
+.ultra-fill.precaucion { background: #f59e0b; }
+.ultra-fill.peligro { background: #f43f5e; }
+.ultra-fill.pausado { background: #64748b; }
+.ultra-slider { width: 100%; accent-color: #38bdf8; cursor: pointer; margin: 0; height: 20px; }
+.ultra-acciones { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
+.btn-ultra {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1.5px solid #475569;
+  background: #0f172a;
+  color: #e2e8f0;
+  cursor: pointer;
+  transition: transform 0.16s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.15s ease-out, border-color 0.15s ease-out;
+}
+.btn-ultra:hover:not(:disabled) { border-color: #38bdf8; color: #fff; }
+.btn-ultra:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-ultra.pausado { border-color: #f59e0b; background: rgba(245, 158, 11, 0.16); color: #fde68a; }
+.ultra-badge { font-family: var(--font-mono); font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(34, 197, 94, 0.16); color: #86efac; border: 1px solid #22c55e; }
+.ultra-badge.pausado { background: rgba(148, 163, 184, 0.16); color: #cbd5e1; border-color: #64748b; }
+.ultra-badge.manual { background: rgba(56, 189, 248, 0.16); color: #7dd3fc; border-color: #38bdf8; }
+
+/* ---- Seguridad RF-05 (paridad con el firmware) ---- */
+.seg-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.seg-item { background: #0f172a; border: 1.5px solid #334155; border-radius: 10px; padding: 8px 10px; min-width: 0; }
+.seg-item small { display: block; font-family: var(--font-mono); font-size: 10.5px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; }
+.seg-item strong { display: block; font-family: var(--font-mono); font-size: 13px; color: #86efac; overflow-wrap: anywhere; }
+.seg-item strong.peligro { color: #fda4af; }
+.seg-item strong.aviso { color: #fde68a; }
+.seg-badge { font-family: var(--font-mono); font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid #22c55e; background: rgba(34, 197, 94, 0.16); color: #86efac; }
+.seg-badge.peligro { border-color: #f43f5e; background: rgba(244, 63, 94, 0.18); color: #fda4af; }
+.seg-badge.aviso { border-color: #f59e0b; background: rgba(245, 158, 11, 0.16); color: #fde68a; }
+
+/* ---- Inyección de eventos / Pruebas SIL ---- */
+.sil-panel { background: #1e293b; border: 1.5px dashed #f59e0b; border-radius: 14px; padding: 12px 14px; margin: 0 0 20px; }
+.sil-cab { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; margin-bottom: 10px; }
+.sil-cab strong { font-family: var(--font-display); font-size: 15px; color: #fde68a; }
+.sil-cab span { font-family: var(--font-mono); font-size: 11.5px; color: #94a3b8; }
+.sil-botones { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; }
+.btn-sil {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700; text-align: left;
+  min-height: 44px; padding: 8px 12px; border-radius: 10px;
+  border: 1.5px solid #475569; background: #0f172a; color: #e2e8f0; cursor: pointer;
+  transition: transform 0.16s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.15s ease-out, border-color 0.15s ease-out;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.btn-sil.peligro { border-color: #f43f5e; color: #fda4af; }
+.btn-sil.aviso { border-color: #f59e0b; color: #fde68a; }
+.btn-sil.ok { border-color: #22c55e; color: #86efac; }
+.btn-sil.activo { background: rgba(245, 158, 11, 0.18); box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.35); }
+@media (hover: hover) and (pointer: fine) { .btn-sil:hover { background: #1e293b; } }
+
+/* ---- Escenario híbrido (SIL): tramo sin cinta + BLE ---- */
+.hib-panel { border-color: #38bdf8; }
+.hib-panel .sil-cab strong { color: #7dd3fc; }
+.hib-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 10px; }
+.hib-grid .seg-item strong { color: #7dd3fc; }
+.hib-grid .seg-item strong.aviso { color: #fde68a; }
+.hib-grid .seg-item strong.ok { color: #86efac; }
+.hib-nota { margin: 10px 0 0; font-family: var(--font-mono); font-size: 11.5px; color: #94a3b8; overflow-wrap: anywhere; }
+.btn-sil.activo-hib { background: rgba(56, 189, 248, 0.18); box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35); }
+
+/* ---- Perfiles ---- */
+.perfiles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 0 0 20px; }
+.perfil-item {
+  background: #1e293b;
+  border: 1.5px solid #334155;
+  border-radius: 14px;
+  padding: 14px 16px;
+  min-height: 44px;
+  cursor: pointer;
+  transition: transform 0.16s cubic-bezier(0.23, 1, 0.32, 1), background-color 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out, box-shadow 0.16s ease-out;
+  text-align: left;
+  color: #e2e8f0;
+  font-family: var(--font-body);
+  touch-action: manipulation;
+}
+.perfil-item:hover { border-color: #38bdf8; }
+.perfil-item.activo { border-color: #22c55e; background: rgba(34, 197, 94, 0.12); box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25); }
+.perfil-item .num { font-family: var(--font-mono); font-size: 12px; color: #38bdf8; font-weight: 700; display: block; margin-bottom: 4px; }
+.perfil-item strong { display: block; font-size: 15px; margin-bottom: 4px; }
+.perfil-item span { font-family: var(--font-mono); font-size: 12px; color: #94a3b8; }
+
+/* ---- Consola JSON ---- */
+.log-cab { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; margin-bottom: 8px; }
+.log-cab .t { font-family: var(--font-mono); font-size: 12px; color: #94a3b8; text-transform: uppercase; overflow-wrap: anywhere; }
+.log-cab .c { font-family: var(--font-mono); font-size: 12px; color: #38bdf8; }
+.log-mqtt {
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  height: 220px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  color: #a7f3d0;
+  line-height: 1.55;
+}
+.log-mqtt div { margin-bottom: 4px; overflow-wrap: anywhere; word-break: break-word; }
+.log-mqtt .ts { color: #64748b; }
+
+/* ---- Paneles colapsables (patrón <details> estilo P01/P13) ---- */
+.p10-detalle { border-top: 1.5px solid #1e293b; }
+.p10-detalle summary {
+  cursor: pointer; list-style: none;
+  display: flex; align-items: center; gap: 10px;
+  min-height: 48px; padding: 12px 20px;
+  font-family: var(--font-display); font-weight: 700; font-size: 15.5px; color: #e2e8f0;
+  transition: background-color 0.15s ease-out;
+}
+.p10-detalle summary:hover { background: rgba(255, 255, 255, 0.03); }
+.p10-detalle summary:focus-visible { outline: 2px solid #38bdf8; outline-offset: -2px; }
+.p10-detalle summary::-webkit-details-marker { display: none; }
+.p10-detalle summary::after { content: "▾"; color: #94a3b8; font-size: 14px; transition: transform 0.2s ease-out; }
+.p10-detalle[open] summary::after { transform: rotate(180deg); }
+.p10-detalle-hint { margin-left: auto; font-family: var(--font-mono); font-weight: 600; font-size: 11.5px; color: #64748b; text-align: right; }
+.p10-detalle-cuerpo { padding: 4px 20px 20px; }
+
+.p10-guia {
+  background: var(--bg-card);
+  border: 2px solid var(--border-dark);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.p10-guia summary {
+  cursor: pointer; list-style: none;
+  display: flex; align-items: center; gap: 10px;
+  min-height: 48px; padding: 14px 20px;
+  font-family: var(--font-display); font-weight: 800; font-size: 16px; color: var(--ink-main);
+}
+.p10-guia summary::-webkit-details-marker { display: none; }
+.p10-guia summary::after { content: "▾"; margin-left: auto; color: var(--ink-muted); font-size: 14px; transition: transform 0.2s ease-out; }
+.p10-guia[open] summary::after { transform: rotate(180deg); }
+.p10-guia .pasos { margin: 0; padding: 0 20px 20px; }
+
+/* ---- Móvil ---- */
+@media (max-width: 768px) {
+  .consola-cuerpo { padding: 14px; }
+  .consola-barra { padding: 12px 14px; font-size: 12px; }
+  .esp-botones { width: 100%; }
+  .btn-esp { flex: 1 1 100%; min-height: 46px; }
+  .broker-panel { padding: 12px; margin-bottom: 14px; }
+  .broker-segmentado { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; }
+  .broker-seg { padding: 8px 6px; font-size: 11.5px; min-height: 46px; white-space: normal; text-align: center; }
+  .esp-grid { grid-template-columns: 1fr; }
+  .tele-grid { grid-template-columns: 1fr; }
+  .ultra-grid { grid-template-columns: 1fr; }
+  .seg-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sil-botones { grid-template-columns: 1fr; }
+  .perfiles-grid { grid-template-columns: 1fr; margin-bottom: 0; }
+  .log-mqtt { height: 200px; font-size: 12px; }
+  .p10-detalle summary { padding: 12px 14px; font-size: 14.5px; }
+  .p10-detalle-cuerpo { padding: 4px 14px 16px; }
+}
+@media (min-width: 769px) and (max-width: 1000px) {
+  .esp-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .esp-led.parpadeo, .esp-led.tx.pulso { animation: none; }
+}
+
+/* Pulido: respuesta al pulsar y hover solo con puntero */
+button:not(:disabled):active, .perfil-item:active { transform: scale(0.97); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }
+</style>
+</head>
+<body data-pagina="prototipos" data-base="../../">
+<header id="menu"></header>
+
+<main>
+  <a class="volver" href="../index.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    Volver al catálogo de prototipos
+  </a>
+
+  <p class="ceja">Prototipo P10 · Emulador de Hardware en la Nube · MQTT WebSockets</p>
+  <h1>P10: Simulador Web del <em>ESP32 Virtual</em></h1>
+
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px">
+    <span class="chip hecho">Simulador Activo</span>
+    <span class="chip">MQTT WebSockets · Respaldo automático</span>
+    <span class="chip">Pruebas SIL</span>
+  </div>
+
+  <div class="frase-explicativa">
+    <strong>En pocas palabras:</strong> ESP32 virtual en el navegador que publica telemetría en vivo por MQTT (HiveMQ → EMQX → Mosquitto) con la misma lógica de seguridad del firmware.
+  </div>
+
+  <section aria-label="Simulador web del ESP32 virtual" style="margin-top:20px">
+    <div class="consola-esp32">
+      <div class="consola-barra">
+        <div class="consola-estado">
+          <span class="led-estado" id="led-mqtt" aria-hidden="true"></span>
+          <span id="estado-mqtt" role="status">DESCONECTADO · En espera de arranque</span>
+        </div>
+        <div class="esp-botones">
+          <button type="button" id="btn-esp-toggle" class="btn-esp">
+            ⚡ Encender ESP32 Virtual
+          </button>
+        </div>
+      </div>
+
+      <div class="consola-cuerpo">
+        <!-- Placa virtual + tarjetas de telemetría en tiempo real -->
+        <div class="esp-grid">
+          <div class="tarjeta">
+            <p class="tarjeta-titulo"><span>Placa ESP32 Virtual</span><b id="placa-estado">APAGADA</b></p>
+            <div class="placa" id="placa">
+              <div class="placa-cabecera"><span>ESP32-WROOM-32 · DevKit</span><span class="usb" aria-hidden="true"></span></div>
+              <div class="placa-cuerpo">
+                <div class="placa-chip">
+                  <b>ESP32</b>
+                  <small>240 MHz · Wi-Fi + BT</small>
+                  <small id="placa-clientid">clientId: ucab-esp32-sim-…</small>
+                  <span class="antena" aria-hidden="true"></span>
+                </div>
+                <div class="placa-pines" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="leds" role="group" aria-label="Indicadores LED de la placa">
+                <div class="led-item"><span class="esp-led" id="led-wifi"></span>WI-FI<small id="txt-wifi">apagado</small></div>
+                <div class="led-item"><span class="esp-led" id="led-broker"></span>BROKER<small id="txt-broker">sin enlace</small></div>
+                <div class="led-item"><span class="esp-led tx" id="led-tx"></span>TX<small id="txt-tx">cada 2 s</small></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tele-grid" aria-live="off">
+            <div class="tarjeta ancha">
+              <p class="tarjeta-titulo"><span>Batería</span><b id="bat-v">— V</b></p>
+              <div class="valor-grande"><span id="bat-pct">—</span></div>
+              <div class="bat-barra" role="progressbar" aria-label="Nivel de batería" aria-valuemin="0" aria-valuemax="100"><div class="bat-fill" id="bat-fill"></div></div>
+            </div>
+            <div class="tarjeta">
+              <p class="tarjeta-titulo"><span>Modo actual</span></p>
+              <span class="modo-pill" id="modo-pill">—</span>
+            </div>
+            <div class="tarjeta">
+              <p class="tarjeta-titulo"><span>Sensores de línea</span><b>4 × TCRT5000</b></p>
+              <div class="sensores" id="sensores">
+                <div class="sensor"><i></i>S1</div>
+                <div class="sensor"><i></i>S2</div>
+                <div class="sensor"><i></i>S3</div>
+                <div class="sensor"><i></i>S4</div>
+              </div>
+              <div class="linea-txt" id="linea-txt">Sin datos</div>
+            </div>
+            <div class="tarjeta ancha">
+              <p class="tarjeta-titulo"><span>Velocidad de motores</span><b>SIM1 −0.46 … +0.46 m/s</b></p>
+              <div class="motor-fila"><span>Izq.</span><div class="motor-pista"><div class="motor-fill" id="m-izq"></div></div><output id="m-izq-v">0.00 ■</output></div>
+              <div class="motor-fila"><span>Der.</span><div class="motor-pista"><div class="motor-fill" id="m-der"></div></div><output id="m-der-v">0.00 ■</output></div>
+            </div>
+            <div class="tarjeta ancha" id="tarjeta-ultra">
+              <p class="tarjeta-titulo">
+                <span>Ultrasónicos · 2 × HC-SR04P</span>
+                <span class="ultra-badge" id="ultra-badge">PERFIL AUTO</span>
+              </p>
+              <div class="ultra-grid">
+                <div class="ultra-item">
+                  <div class="ultra-cab">
+                    <label for="slider-frente">↑ Frente</label>
+                    <output id="u-frente-v" for="slider-frente">— cm</output>
+                  </div>
+                  <div class="ultra-barra"><div class="ultra-fill" id="u-frente-fill"></div></div>
+                  <input type="range" id="slider-frente" class="ultra-slider" min="2" max="200" step="1" value="150" aria-label="Distancia ultrasónico frente en cm">
+                </div>
+                <div class="ultra-item">
+                  <div class="ultra-cab">
+                    <label for="slider-atras">↓ Atrás</label>
+                    <output id="u-atras-v" for="slider-atras">— cm</output>
+                  </div>
+                  <div class="ultra-barra"><div class="ultra-fill" id="u-atras-fill"></div></div>
+                  <input type="range" id="slider-atras" class="ultra-slider" min="2" max="200" step="1" value="160" aria-label="Distancia ultrasónico atrás en cm">
+                </div>
+              </div>
+              <div class="ultra-acciones">
+                <button type="button" id="btn-ultra-pausa" class="btn-ultra">⏸ Pausar envío (&gt; 3 s)</button>
+                <button type="button" id="btn-ultra-perfil" class="btn-ultra" disabled>🔄 Seguir perfil</button>
+              </div>
+            </div>
+            <div class="tarjeta ancha" id="tarjeta-seguridad">
+              <p class="tarjeta-titulo">
+                <span>Seguridad RF-05</span>
+                <span class="seg-badge" id="seg-badge">LIBRE</span>
+              </p>
+              <div class="seg-grid">
+                <div class="seg-item"><small>Parada activa</small><strong id="seg-parada">ninguna</strong></div>
+                <div class="seg-item"><small>Sensor frente</small><strong id="seg-sf">OK</strong></div>
+                <div class="seg-item"><small>Sensor atrás</small><strong id="seg-sa">OK</strong></div>
+                <div class="seg-item"><small>Timeout manual 5 s</small><strong id="seg-to">— (autónomo)</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paneles técnicos colapsables por defecto (patrón P01/P13) -->
+      <details class="p10-detalle" id="detalle-sil">
+        <summary>Pruebas SIL y Escenario Híbrido <span class="p10-detalle-hint">Eventos · Tramo sin cinta + BLE</span></summary>
+        <div class="p10-detalle-cuerpo">
+          <div class="sil-panel" role="group" aria-labelledby="t-sil">
+            <div class="sil-cab">
+              <strong id="t-sil">Inyección de Eventos Virtuales (SIL)</strong>
+              <span>Emula obstáculos, fallos de sensor y batería crítica sin hardware.</span>
+            </div>
+            <div class="sil-botones">
+              <button type="button" class="btn-sil peligro" data-sil="frontal">🧱 Obstáculo Frontal (14 cm)</button>
+              <button type="button" class="btn-sil peligro" data-sil="bloqueo">⛔ Bloqueo Total (Frente + Atrás)</button>
+              <button type="button" class="btn-sil aviso" data-sil="sin-eco">📡 Fallo Sensor Frontal (sin eco)</button>
+              <button type="button" class="btn-sil aviso" data-sil="bateria">🪫 Batería Crítica (10.05 V)</button>
+              <button type="button" class="btn-sil peligro" data-sil="corte">🔌 Corte por Batería (9.85 V)</button>
+              <button type="button" class="btn-sil ok" data-sil="normal">♻️ Restaurar Ciclo Normal</button>
+            </div>
+          </div>
+
+          <div class="sil-panel hib-panel" id="panel-hibrido" role="group" aria-labelledby="t-hibrido" style="margin-bottom:0">
+            <div class="sil-cab">
+              <strong id="t-hibrido">Simulación Híbrida (SIL): tramo sin cinta + balizas BLE</strong>
+              <span>1 ESP32 móvil + 2 balizas BLE (Cuarto de Componentes y Laboratorio 1).</span>
+            </div>
+            <div class="sil-botones">
+              <button type="button" class="btn-sil aviso" id="btn-hibrido" aria-pressed="false">🛤️ Activar tramo sin cinta (heading hold + BLE)</button>
+              <button type="button" class="btn-sil ok" id="btn-hibrido-reiniciar" disabled>♻️ Reiniciar escenario híbrido</button>
+            </div>
+            <div class="hib-grid" aria-live="polite">
+              <div class="seg-item"><small>Fase</small><strong id="hib-fase">Inactivo</strong></div>
+              <div class="seg-item"><small>TCRT5000 (S1…S4)</small><strong id="hib-tcrt">—</strong></div>
+              <div class="seg-item"><small>Heading hold (MPU-6050 virtual)</small><strong id="hib-heading">—</strong></div>
+              <div class="seg-item"><small>Deriva lateral con / sin hold</small><strong id="hib-deriva">—</strong></div>
+              <div class="seg-item"><small>RSSI baliza Cuarto de Componentes</small><strong id="hib-rssi-cuarto">— dBm</strong></div>
+              <div class="seg-item"><small>RSSI baliza Laboratorio 1</small><strong id="hib-rssi-lab">— dBm</strong></div>
+              <div class="seg-item"><small>Confirmación BLE</small><strong id="hib-confirma">—</strong></div>
+              <div class="seg-item"><small>Avance del recorrido</small><strong id="hib-avance">—</strong></div>
+            </div>
+            <p class="hib-nota">SIL, no HIL: la lectura de la MPU-6050 y el escaneo BLE <b>[PENDIENTE DE INTEGRACIÓN EN FIRMWARE]</b>. El heading hold mantiene el rumbo <i>relativo</i> con el giroscopio (sin magnetómetro ni brújula).</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="p10-detalle" id="detalle-perfiles">
+        <summary>Perfiles de Telemetría <span class="p10-detalle-hint">6 perfiles automáticos</span></summary>
+        <div class="p10-detalle-cuerpo">
+          <div class="perfiles-grid" id="grid-perfiles" style="margin-bottom:0"></div>
+        </div>
+      </details>
+
+      <details class="p10-detalle" id="detalle-mqtt">
+        <summary>Broker y Consola MQTT <span class="p10-detalle-hint">HiveMQ · EMQX · Mosquitto · Registro</span></summary>
+        <div class="p10-detalle-cuerpo">
+          <div class="broker-panel" aria-live="polite">
+            <div class="broker-actual-info">
+              <span class="broker-actual-titulo" id="broker-titulo">Enlace MQTT · HiveMQ (Listo para conectar)</span>
+              <span class="broker-actual-sub" id="broker-sub">broker.hivemq.com:8884 · Respaldo automático: HiveMQ → EMQX → Mosquitto</span>
+            </div>
+            <div class="broker-segmentado" id="brokers-pills" role="group" aria-label="Selector de broker MQTT"></div>
+          </div>
+
+          <div class="log-cab">
+            <span class="t">Monitor Serie · estado, ultrasonido (QoS 0) y alertas (QoS 2)</span>
+            <span class="c" id="contador-enviados">0 paquetes enviados</span>
+          </div>
+          <div class="log-mqtt" id="log-mqtt">
+            <div class="ts">[Sistema listo] Pulsa "Encender ESP32 Virtual" para conectar (HiveMQ → EMQX → Mosquitto) y transmitir telemetría...</div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <details class="p10-guia">
+    <summary>Cómo probar junto con la App Flutter (P09)</summary>
+    <ol class="pasos">
+      <li><b>1. Enciende el ESP32 Virtual</b><span>Pulsa <strong>"Encender ESP32 Virtual"</strong> arriba para conectar y publicar cada 2 s.</span></li>
+      <li><b>2. Abre la App Flutter</b><span>Comprueba en <a href="../../app/" target="_blank" rel="noopener">la Interfaz Flutter</a> que ambos usen el mismo broker (HiveMQ, EMQX o Mosquitto).</span></li>
+      <li><b>3. Envía órdenes o prueba SIL</b><span>Desde la App o el <a href="../P01-mqtt-base/banco.html" target="_blank" rel="noopener">banco P01</a> puedes enviar órdenes (<code>ordenes</code> / <code>ordenes/ack</code>) o abrir <strong>Pruebas SIL</strong> para validar alertas QoS 2 y el tramo sin cinta.</span></li>
+    </ol>
+  </details>
+</main>
+
+<footer id="pie"></footer>
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script src="../../datos/proyecto.js"></script>
+<script src="../../assets/sitio.js"></script>
+<script src="p10_hibrido_modelo.js"></script>
+<script>
+(function () {
+  var TOPICO = "ucab-tg-sf/robot/estado";
+  var T_ULTRASONIDO = "ucab-tg-sf/robot/ultrasonido"; /* 2 × HC-SR04P: {"frente_cm","atras_cm","t"} (QoS 0) */
+  var T_ORDENES = "ucab-tg-sf/robot/ordenes";      /* lo escucha con QoS 1, igual que el robot real */
+  var T_ACK = "ucab-tg-sf/robot/ordenes/ack";      /* responde con QoS 1: {"id","recibidas","t"} */
+  var T_ALERTAS = "ucab-tg-sf/robot/alertas";      /* QoS 2: {"n","tipo","prueba","valor","t"} igual que el firmware */
+
+  /* Constantes de seguridad: copiadas de firmware/robot_integrado.ino */
+  var UMBRAL_PARADA_CM = 20.0;
+  var UMBRAL_AVISO_CM = 50.0;
+  var TIMEOUT_MANUAL_MS = 5000;
+  var VOLTAJE_CORTE_V = 9.90;   /* <= : frena y bloquea, alerta bateria_critica */
+  var VOLTAJE_REARME_V = 10.10; /* >  : histéresis, se puede volver a mover con una orden */
+  var VOLTAJE_AVISO_V = 10.30;  /* <= : aviso preventivo, alerta bateria_baja */
+  var BAT_LLENA_V = 12.6;
+  var INTENTOS_POR_BROKER = 2;
+
+  /* Lista de brokers sincronizada con la App Flutter */
+  var BROKERS = [
+    { nombre: "HiveMQ", host: "broker.hivemq.com", puerto: 8884, url: "wss://broker.hivemq.com:8884/mqtt" },
+    { nombre: "EMQX", host: "broker.emqx.io", puerto: 8084, url: "wss://broker.emqx.io:8084/mqtt" },
+    { nombre: "Mosquitto", host: "test.mosquitto.org", puerto: 8081, url: "wss://test.mosquitto.org:8081/mqtt" }
+  ];
+
+  /* 4 sensores TCRT5000 separados 18 mm (igual que firmware/robot_integrado.ino):
+     S1 = +27 mm (izq), S2 = +9 mm, S3 = -9 mm, S4 = -27 mm (der) */
+  var SEP_MM = 18;
+  var POS_SENSORES = [1.5 * SEP_MM, 0.5 * SEP_MM, -0.5 * SEP_MM, -1.5 * SEP_MM];
+
+  function calcularLineaMm(sensores, ladoPerdida) {
+    var suma = 0;
+    var acum = 0;
+    for (var i = 0; i < POS_SENSORES.length; i++) {
+      var lectura = Number(sensores[i]) || 0;
+      suma += lectura;
+      acum += lectura * POS_SENSORES[i];
+    }
+    if (suma > 0.3) {
+      return Math.round((acum / suma) * 10) / 10;
+    }
+    var lado = (ladoPerdida < 0) ? -1 : 1;
+    return Math.round(lado * POS_SENSORES[0] * 1.2 * 10) / 10;
+  }
+
+  /* Parámetros físicos reales de SIM1 (prototipos/P08-seguidor-linea/avance-01-simulador-3d/codigo/model.js + sim.js + linea.js):
+     Motor JGA25-371 Speed 200 (280 rpm @ 12V, carga 0.8, rueda 65 mm), L298N (drop 2.1V), LiPo 3S (12.6/11.1/9.9V),
+     PD.base = 0.80 -> 0.46 m/s máx en recta, 0.41 m/s crucero medio (rango libre 0.38–0.45 m/s), tau = 0.18 s. */
+  var SIM1_VEL_CRUCERO = 0.41;
+  var SIM1_VEL_MAX = 0.46;
+  var SIM1_BAT_INICIAL = 11.85;
+  var SIM1_DESCARGA_MOV_VS = 0.008;  /* descarga gradual bajo carga de motores (V/s) */
+  var SIM1_DESCARGA_BASE_VS = 0.001; /* consumo base ESP32 + sensores en reposo (V/s) */
+
+  var PERFILES = [
+    { titulo: "Crucero nominal SIM1 · Autónomo centrado", estado: "autonomo", bateria: 72, bateria_v: 11.85, sensores: [0, 1, 1, 0], frente_cm: 155, atras_cm: 160, v_izq: 0.41, v_der: 0.41 },
+    { titulo: "Curva suave izq. · Seguimiento PD", estado: "autonomo", bateria: 70, bateria_v: 11.79, sensores: [1, 1, 0, 0], frente_cm: 122, atras_cm: 148, v_izq: 0.38, v_der: 0.44 },
+    { titulo: "Recta larga · Velocidad máx. SIM1", estado: "autonomo", bateria: 68, bateria_v: 11.73, sensores: [0, 1, 1, 0], frente_cm: 142, atras_cm: 135, v_izq: 0.45, v_der: 0.45 },
+    { titulo: "Curva cerrada der. · Corrección PD", estado: "autonomo", bateria: 65, bateria_v: 11.66, sensores: [0, 0, 1, 1], frente_cm: 98, atras_cm: 126, v_izq: 0.44, v_der: 0.38 },
+    { titulo: "Aviso 20–50 cm · Desaceleración progresiva", estado: "autonomo", bateria: 63, bateria_v: 11.60, sensores: [0, 1, 1, 0], frente_cm: 35, atras_cm: 115, v_izq: 0.21, v_der: 0.21 },
+    { titulo: "Batería baja (10.25 V) · Crucero reducido SIM1", estado: "autonomo", bateria: 13, bateria_v: 10.25, sensores: [0, 1, 1, 0], frente_cm: 132, atras_cm: 140, v_izq: 0.36, v_der: 0.36 }
+  ].map(function (p) {
+    p.linea_mm = calcularLineaMm(p.sensores, p.ladoPerdida || -1);
+    return p;
+  });
+
+  var grid = document.getElementById("grid-perfiles");
+  var logEl = document.getElementById("log-mqtt");
+  var ledEl = document.getElementById("led-mqtt");
+  var estadoEl = document.getElementById("estado-mqtt");
+  var contEl = document.getElementById("contador-enviados");
+  var brokerTituloEl = document.getElementById("broker-titulo");
+  var brokerSubEl = document.getElementById("broker-sub");
+  var brokersPillsEl = document.getElementById("brokers-pills");
+  var btnEspToggle = document.getElementById("btn-esp-toggle");
+  var hoverBtnEsp = false;
+
+  /* Elementos visuales nuevos (placa virtual + tarjetas) */
+  var placaEl = document.getElementById("placa");
+  var placaEstadoEl = document.getElementById("placa-estado");
+  var placaClientEl = document.getElementById("placa-clientid");
+  var ledWifi = document.getElementById("led-wifi");
+  var ledBroker = document.getElementById("led-broker");
+  var ledTx = document.getElementById("led-tx");
+  var txtWifi = document.getElementById("txt-wifi");
+  var txtBroker = document.getElementById("txt-broker");
+  var txtTx = document.getElementById("txt-tx");
+  var batPctEl = document.getElementById("bat-pct");
+  var batVEl = document.getElementById("bat-v");
+  var batFillEl = document.getElementById("bat-fill");
+  var modoPillEl = document.getElementById("modo-pill");
+  var sensoresEls = document.querySelectorAll("#sensores .sensor");
+  var lineaTxtEl = document.getElementById("linea-txt");
+  var mIzqEl = document.getElementById("m-izq");
+  var mDerEl = document.getElementById("m-der");
+  var mIzqVEl = document.getElementById("m-izq-v");
+  var mDerVEl = document.getElementById("m-der-v");
+  var ultraBadgeEl = document.getElementById("ultra-badge");
+  var segBadgeEl = document.getElementById("seg-badge");
+  var segParadaEl = document.getElementById("seg-parada");
+  var segSfEl = document.getElementById("seg-sf");
+  var segSaEl = document.getElementById("seg-sa");
+  var segToEl = document.getElementById("seg-to");
+  var uFrenteVEl = document.getElementById("u-frente-v");
+  var uFrenteFillEl = document.getElementById("u-frente-fill");
+  var sliderFrenteEl = document.getElementById("slider-frente");
+  var uAtrasVEl = document.getElementById("u-atras-v");
+  var uAtrasFillEl = document.getElementById("u-atras-fill");
+  var sliderAtrasEl = document.getElementById("slider-atras");
+  var btnUltraPausaEl = document.getElementById("btn-ultra-pausa");
+  var btnUltraPerfilEl = document.getElementById("btn-ultra-perfil");
+
+  var ultraPausado = false;
+  var ultraManual = false;
+  /* Validez de cada HC-SR04P (false = sin eco persistente, como sensorFrenteOk/sensorAtrasOk) */
+  var ultraFrenteOk = true;
+  var ultraAtrasOk = true;
+  /* Inyección SIL: batería forzada (null = la del perfil) */
+  var silBateriaV = null;
+  /* Estado de seguridad (latches y alertas, igual que el firmware) */
+  var seg = {
+    parada: "ninguna",
+    obstaculo: false,
+    alertaObstaculoAtras: false,
+    alertaFalloFrente: false,
+    alertaFalloAtras: false,
+    alertaAvisoBateria: false,
+    bateriaEnCorte: false,
+    paroBateria: false,
+    paroTimeout: false
+  };
+  var cmdManual = "frenar";
+  var ultimaOrdenMs = Date.now();
+  var numeroAlarma = 0;
+  var colaAlertas = [];
+  var timerSeguridad = null;
+  var ultraFrente = PERFILES[0].frente_cm;
+  var ultraAtras = PERFILES[0].atras_cm;
+
+  var indiceBroker = 0;
+  var intentosEnBroker = 0;
+  var conectado = false;
+  var encendido = false;
+  var cliente = null;
+  var timer = null;
+  var timerTimeout = null;
+  var paso = 0;
+  /* Modo del robot virtual, como en firmware/robot_integrado.ino:
+     "auto"   = AUTÓNOMO: recorre los 6 perfiles en bucle (así arranca al encender)
+     "manual" = lo maneja la app: adelante, atras, izquierda, derecha o frenar */
+  var modoP10 = "auto";
+  var ultimoPerfil = PERFILES[0];
+  var batSimV = SIM1_BAT_INICIAL;
+  var velActualSim = { izq: 0, der: 0 };
+  var ultimoTickFisicaMs = Date.now();
+  var velManual = { izq: 0, der: 0 };
+  var VEL_MANUAL = SIM1_VEL_CRUCERO; /* 0.41 m/s: crucero nominal SIM1 */
+  var CMDS = {
+    adelante: { izq: VEL_MANUAL, der: VEL_MANUAL },
+    atras: { izq: -VEL_MANUAL, der: -VEL_MANUAL },
+    izquierda: { izq: -VEL_MANUAL, der: VEL_MANUAL },
+    derecha: { izq: VEL_MANUAL, der: -VEL_MANUAL },
+    frenar: { izq: 0, der: 0 }
+  };
+  var secuencia = 5000;
+  var enviados = 0;
+  var ordenesRecibidas = 0;  /* pedidos recibidos por ordenes (no los mensajes de estado) */
+  var inicioMs = Date.now();
+
+  function brokerActual() {
+    return BROKERS[indiceBroker];
+  }
+
+  function renderBotonPrincipal() {
+    if (!encendido) {
+      btnEspToggle.className = "btn-esp";
+      btnEspToggle.disabled = false;
+      btnEspToggle.textContent = "⚡ Encender ESP32 Virtual";
+      return;
+    }
+    if (!conectado) {
+      btnEspToggle.className = "btn-esp conectando";
+      btnEspToggle.disabled = true;
+      btnEspToggle.textContent = "⏳ Conectando...";
+      return;
+    }
+    btnEspToggle.className = "btn-esp emitiendo";
+    btnEspToggle.disabled = false;
+    btnEspToggle.textContent = hoverBtnEsp ? "■ Detener Emisión" : "● Emitiendo · Conectado";
+  }
+
+  function renderBrokers() {
+    var b = brokerActual();
+    if (conectado) {
+      brokerTituloEl.textContent = "Conectado a Broker: " + b.nombre + " (" + b.host + ":" + b.puerto + ")";
+      brokerSubEl.textContent = "URL activa: " + b.url + " · Publicando en " + TOPICO;
+    } else if (encendido) {
+      brokerTituloEl.textContent = "Enlace MQTT · Probando " + b.nombre + " (intento " + (intentosEnBroker + 1) + " de " + INTENTOS_POR_BROKER + ")";
+      brokerSubEl.textContent = b.url + " · Respaldo automático: HiveMQ → EMQX → Mosquitto";
+    } else {
+      brokerTituloEl.textContent = "Enlace MQTT · " + b.nombre + " (Listo para conectar)";
+      brokerSubEl.textContent = b.host + ":" + b.puerto + " · Respaldo automático: HiveMQ → EMQX → Mosquitto";
+    }
+
+    var bloqueado = encendido;
+    brokersPillsEl.innerHTML = BROKERS.map(function (br, i) {
+      var cls = "broker-seg";
+      if (i === indiceBroker) {
+        cls += " activo" + (conectado ? " conectado" : "");
+      }
+      var disAttr = bloqueado ? ' disabled title="Detén la emisión para cambiar de broker"' : "";
+      return '<button type="button" class="' + cls + '" data-bidx="' + i + '" aria-pressed="' + (i === indiceBroker) + '"' + disAttr + '>' +
+        br.nombre + " (:" + br.puerto + ")" +
+      "</button>";
+    }).join("");
+
+    brokersPillsEl.querySelectorAll(".broker-seg").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        if (encendido) return;
+        var nuevoIdx = parseInt(btn.getAttribute("data-bidx"), 10);
+        if (nuevoIdx === indiceBroker) return;
+        indiceBroker = nuevoIdx;
+        intentosEnBroker = 0;
+        escribirLog("🔀 Broker seleccionado: <b>" + brokerActual().nombre + "</b> (" + brokerActual().url + ")");
+        renderBrokers();
+      });
+    });
+  }
+
+  function renderPerfiles(activoIdx) {
+    grid.innerHTML = PERFILES.map(function (p, i) {
+      return '<button type="button" class="perfil-item' + (i === activoIdx ? ' activo' : '') + '" data-idx="' + i + '">' +
+        '<span class="num">PERFIL 0' + (i + 1) + ' · ' + p.estado.toUpperCase() + '</span>' +
+        '<strong>' + p.titulo + '</strong>' +
+        '<span>Bat: ' + p.bateria + '% (' + p.bateria_v.toFixed(2) + 'V) · Línea: ' + p.linea_mm.toFixed(1) + 'mm · Ultra: ' + p.frente_cm + '/' + p.atras_cm + 'cm</span>' +
+      '</button>';
+    }).join("");
+
+    grid.querySelectorAll(".perfil-item").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var idx = parseInt(btn.getAttribute("data-idx"), 10);
+        paso = idx;
+        batSimV = PERFILES[idx].bateria_v;
+        publicarPaso();
+      });
+    });
+  }
+
+  function escaparHtml(t) {
+    return String(t).replace(/[&<>"]/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;"}[c]; });
+  }
+
+  function escribirLog(texto) {
+    var ahora = new Date().toLocaleTimeString();
+    var div = document.createElement("div");
+    div.innerHTML = '<span class="ts">[' + ahora + ']</span> ' + texto;
+    logEl.appendChild(div);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  /* ---- Placa virtual: LEDs Wi-Fi / Broker / TX ---- */
+  function actualizarPlaca(clase) {
+    placaEl.classList.toggle("encendida", encendido);
+    placaEstadoEl.textContent = encendido ? "ENCENDIDA" : "APAGADA";
+
+    ledWifi.className = "esp-led" + (encendido ? " ok parpadeo" : "");
+    txtWifi.textContent = encendido ? "enlazado" : "apagado";
+
+    var cls = "", txt = "sin enlace";
+    if (clase === "activo") { cls = " ok"; txt = brokerActual().nombre; }
+    else if (clase === "conectando") { cls = " warn parpadeo"; txt = "conectando…"; }
+    else if (clase === "error") { cls = " err"; txt = "falló · reintento"; }
+    ledBroker.className = "esp-led" + cls;
+    txtBroker.textContent = txt;
+
+    if (!encendido) {
+      ledTx.className = "esp-led tx";
+      txtTx.textContent = "cada 2 s";
+    }
+  }
+
+  function pulsoTx(enviado) {
+    ledTx.className = "esp-led tx";
+    void ledTx.offsetWidth; /* reinicia la animación */
+    ledTx.className = "esp-led tx " + (enviado ? "pulso" : "cola");
+    txtTx.textContent = enviado ? "enviado #" + enviados : "en cola";
+  }
+
+  /* ---- Tarjetas de telemetría en tiempo real ---- */
+  function pintarMotor(barEl, txtEl, v) {
+    var pct = Math.min(1, Math.abs(v) / SIM1_VEL_MAX) * 50;
+    barEl.style.width = pct + "%";
+    barEl.style.left = (v >= 0 ? 50 : 50 - pct) + "%";
+    barEl.className = "motor-fill" + (v < 0 ? " atras" : "");
+    txtEl.textContent = (v > 0 ? "+" : "") + v.toFixed(2) + (v > 0 ? " ▲" : v < 0 ? " ▼" : " ■");
+  }
+
+  function claseUltrasonido(cm, ok) {
+    if (ultraPausado) return "pausado";
+    if (ok === false) return "peligro";
+    if (cm < UMBRAL_PARADA_CM) return "peligro";
+    if (cm < UMBRAL_AVISO_CM) return "precaucion";
+    return "";
+  }
+
+  function pintarUnUltra(valEl, fillEl, sliderEl, cm, ok) {
+    var v = Math.max(2, Math.min(200, Math.round(Number(cm) || 0)));
+    var cls = claseUltrasonido(v, ok);
+    valEl.textContent = ok ? v + " cm" : "sin eco";
+    valEl.className = cls;
+    fillEl.style.width = (ok ? v / 200 * 100 : 0) + "%";
+    fillEl.className = "ultra-fill" + (cls ? " " + cls : "");
+    sliderEl.value = String(v);
+  }
+
+  function pintarUltrasonido(frenteCm, atrasCm) {
+    pintarUnUltra(uFrenteVEl, uFrenteFillEl, sliderFrenteEl, frenteCm, ultraFrenteOk);
+    pintarUnUltra(uAtrasVEl, uAtrasFillEl, sliderAtrasEl, atrasCm, ultraAtrasOk);
+
+    if (ultraPausado) {
+      ultraBadgeEl.textContent = "ENVÍO PAUSADO";
+      ultraBadgeEl.className = "ultra-badge pausado";
+    } else if (ultraManual) {
+      ultraBadgeEl.textContent = "SLIDER / SIL";
+      ultraBadgeEl.className = "ultra-badge manual";
+    } else {
+      ultraBadgeEl.textContent = "PERFIL AUTO";
+      ultraBadgeEl.className = "ultra-badge";
+    }
+  }
+
+  function publicarUltrasonido() {
+    var b = brokerActual();
+    /* Mismo contrato que publicarUltrasonido() del firmware:
+       con *_ok = false la distancia va en 0.0 y NO significa despejado */
+    var payloadUltra = {
+      frente_cm: ultraFrenteOk ? Number(ultraFrente) : 0,
+      atras_cm: ultraAtrasOk ? Number(ultraAtras) : 0,
+      frente_ok: ultraFrenteOk,
+      atras_ok: ultraAtrasOk,
+      t: Date.now() - inicioMs
+    };
+    var jsonUltra = JSON.stringify(payloadUltra);
+    pintarUltrasonido(ultraFrente, ultraAtras);
+
+    if (ultraPausado) {
+      escribirLog("⏸ [Ultrasónicos en pausa] No se publica en <b>" + T_ULTRASONIDO + "</b> (la App mostrará 'Sin señal' tras 3 s).");
+      return;
+    }
+
+    enviados++;
+    contEl.textContent = enviados + " paquetes enviados";
+
+    if (cliente && conectado) {
+      cliente.publish(T_ULTRASONIDO, jsonUltra, { qos: 0 });
+      escribirLog("[" + b.nombre + "] PUB <b>" + T_ULTRASONIDO + "</b> ← <code>" + jsonUltra + "</code>");
+    } else {
+      escribirLog("(En cola ultrasonido...) <code>" + jsonUltra + "</code>");
+    }
+  }
+
+  /* ---- Alertas QoS 2: mismo JSON que encolarAlerta() del firmware ---- */
+  function publicarAlerta(tipo, valor) {
+    numeroAlarma++;
+    var a = { n: numeroAlarma, tipo: tipo, prueba: false };
+    if (typeof valor === "number" && isFinite(valor)) a.valor = Math.round(valor * 100) / 100;
+    a.t = Date.now() - inicioMs;
+    var json = JSON.stringify(a);
+    if (cliente && conectado) {
+      cliente.publish(T_ALERTAS, json, { qos: 2 });
+      escribirLog("🚨 [" + brokerActual().nombre + "] PUB <b>" + T_ALERTAS + "</b> (QoS 2) ← <code>" + json + "</code>");
+    } else {
+      colaAlertas.push(json);
+      if (colaAlertas.length > 8) colaAlertas.shift();
+      escribirLog("🚨 (Alerta en cola hasta conectar) <code>" + json + "</code>");
+    }
+  }
+
+  function vaciarColaAlertas() {
+    while (cliente && conectado && colaAlertas.length) {
+      var json = colaAlertas.shift();
+      cliente.publish(T_ALERTAS, json, { qos: 2 });
+      escribirLog("🚨 [" + brokerActual().nombre + "] PUB <b>" + T_ALERTAS + "</b> (cola) ← <code>" + json + "</code>");
+    }
+  }
+
+  function bateriaPorcentaje(v) {
+    var pct = (v - VOLTAJE_CORTE_V) / (BAT_LLENA_V - VOLTAJE_CORTE_V) * 100;
+    return Math.round(Math.max(0, Math.min(100, pct)));
+  }
+
+  /* Batería = revisarBateria() del firmware.
+     <= 9.90 V: corte (frena, bloquea, alerta bateria_critica). Se rearma por
+     encima de 10.10 V, pero solo se mueve con una orden nueva.
+     <= 10.30 V: aviso preventivo bateria_baja (histéresis 0,3 V).
+     0 V = sin batería medida (USB): ni corta ni alerta.
+     (El firmware además exige 3 lecturas seguidas de 200 ms; aquí la tensión
+     inyectada no tiene ruido, así que basta una.) */
+  function revisarBateria(v) {
+    var hay = v > 1.0;
+    if (!seg.bateriaEnCorte && hay && v <= VOLTAJE_CORTE_V) {
+      seg.bateriaEnCorte = true;
+      seg.paroBateria = true;
+      velManual = { izq: 0, der: 0 };
+      cmdManual = "frenar";
+      publicarAlerta("bateria_critica", v);
+    } else if (seg.bateriaEnCorte && (!hay || v > VOLTAJE_REARME_V)) {
+      seg.bateriaEnCorte = false;
+      escribirLog("🔋 Batería rearmada (&gt; 10.10 V): el robot espera una orden nueva para moverse.");
+    }
+    var aviso = hay && v <= VOLTAJE_AVISO_V;
+    if (aviso && !seg.alertaAvisoBateria) { seg.alertaAvisoBateria = true; publicarAlerta("bateria_baja", v); }
+    else if (!aviso && v > VOLTAJE_AVISO_V + 0.3) { seg.alertaAvisoBateria = false; }
+  }
+
+  /* Diagnóstico de sensores: alerta una vez por episodio (actualizarDistancias()) */
+  function revisarSensores() {
+    if (!ultraFrenteOk && !seg.alertaFalloFrente) { seg.alertaFalloFrente = true; publicarAlerta("fallo_sensor_frente"); }
+    else if (ultraFrenteOk) { seg.alertaFalloFrente = false; }
+    if (!ultraAtrasOk && !seg.alertaFalloAtras) { seg.alertaFalloAtras = true; publicarAlerta("fallo_sensor_atras"); }
+    else if (ultraAtrasOk) { seg.alertaFalloAtras = false; }
+  }
+
+  /* REGLA DE SEGURIDAD = bloques 3b/3c de controlar() en el firmware.
+     Recibe la velocidad deseada y devuelve la que realmente se aplica. */
+  function aplicarSeguridad(deseada) {
+    var parar = function (motivo) { seg.parada = motivo; return { izq: 0, der: 0 }; };
+
+    /* 3a') Corte por batería: latch hasta > 10.10 V + orden nueva */
+    if (seg.paroBateria) return parar("corte_bateria");
+
+    /* 3b) Fail-safe por inactividad del modo MANUAL */
+    if (modoP10 === "manual" && seg.paroTimeout) return parar("timeout");
+
+    /* 3c) Obstáculos y diagnóstico de ultrasonidos */
+    var obstF = ultraFrenteOk && ultraFrente > 0 && ultraFrente < UMBRAL_PARADA_CM;
+    if (obstF && !seg.obstaculo) { seg.obstaculo = true; publicarAlerta("obstaculo", ultraFrente); }
+    else if (!obstF) { seg.obstaculo = false; }
+
+    var pideAtras = modoP10 === "manual" && cmdManual === "atras";
+    var pideMov = modoP10 === "auto" || deseada.izq !== 0 || deseada.der !== 0;
+    var usaFrente = pideMov && !pideAtras;
+
+    if (usaFrente && !ultraFrenteOk) return parar("fallo_sensor_frente");
+    if (usaFrente && seg.obstaculo) return parar("obstaculo_frente");
+    if (pideAtras) {
+      if (!ultraAtrasOk) return parar("fallo_sensor_atras");
+      if (ultraAtras > 0 && ultraAtras < UMBRAL_PARADA_CM) {
+        if (!seg.alertaObstaculoAtras) { seg.alertaObstaculoAtras = true; publicarAlerta("obstaculo_atras", ultraAtras); }
+        return parar("obstaculo_atras");
+      }
+      seg.alertaObstaculoAtras = false;
+    }
+    seg.parada = "ninguna";
+    /* Desaceleración progresiva en zona de aviso 20–50 cm (coherente con SIM1 y P13) */
+    if (usaFrente && ultraFrenteOk && ultraFrente >= UMBRAL_PARADA_CM && ultraFrente < UMBRAL_AVISO_CM) {
+      var factorAviso = (ultraFrente - UMBRAL_PARADA_CM) / (UMBRAL_AVISO_CM - UMBRAL_PARADA_CM);
+      return {
+        izq: Math.round(deseada.izq * factorAviso * 100) / 100,
+        der: Math.round(deseada.der * factorAviso * 100) / 100
+      };
+    }
+    return { izq: deseada.izq, der: deseada.der };
+  }
+
+  var TEXTO_PARADA = {
+    ninguna: "ninguna",
+    timeout: "timeout manual (5 s)",
+    corte_bateria: "corte por batería (≤ 9.90 V)",
+    obstaculo_frente: "obstáculo frontal < 20 cm",
+    obstaculo_atras: "obstáculo trasero < 20 cm",
+    fallo_sensor_frente: "fallo sensor frente (sin eco)",
+    fallo_sensor_atras: "fallo sensor atrás (sin eco)"
+  };
+
+  function pintarSeguridad() {
+    var libre = seg.parada === "ninguna";
+    var aviso = libre && ultraFrenteOk && ultraFrente < UMBRAL_AVISO_CM;
+    segBadgeEl.textContent = libre ? (aviso ? "AVISO 20–50 cm" : "LIBRE") : "PARADA";
+    segBadgeEl.className = "seg-badge" + (libre ? (aviso ? " aviso" : "") : " peligro");
+    segParadaEl.textContent = TEXTO_PARADA[seg.parada] || seg.parada;
+    segParadaEl.className = libre ? "" : "peligro";
+    segSfEl.textContent = ultraFrenteOk ? "OK" : "FALLO (sin eco)";
+    segSfEl.className = ultraFrenteOk ? "" : "peligro";
+    segSaEl.textContent = ultraAtrasOk ? "OK" : "FALLO (sin eco)";
+    segSaEl.className = ultraAtrasOk ? "" : "peligro";
+    if (modoP10 !== "manual") {
+      segToEl.textContent = "— (autónomo)";
+      segToEl.className = "";
+    } else if (seg.paroTimeout) {
+      segToEl.textContent = "DETENIDO (esperando orden)";
+      segToEl.className = "peligro";
+    } else {
+      var resta = Math.max(0, TIMEOUT_MANUAL_MS - (Date.now() - ultimaOrdenMs));
+      segToEl.textContent = (resta / 1000).toFixed(1) + " s";
+      segToEl.className = resta < 2000 ? "aviso" : "";
+    }
+  }
+
+  function pintarTelemetria(p) {
+    var bat = Math.max(0, Math.min(100, p.bateria));
+    batFillEl.style.width = bat + "%";
+    batFillEl.className = "bat-fill" + (bat > 50 ? "" : bat > 20 ? " media" : " baja");
+    batFillEl.parentNode.setAttribute("aria-valuenow", String(bat));
+    batPctEl.textContent = bat + "%";
+    batVEl.textContent = p.bateria_v.toFixed(2) + " V";
+
+    modoPillEl.textContent = p.estado === "autonomo" ? "AUTÓNOMO" : "MANUAL";
+    modoPillEl.className = "modo-pill " + p.estado;
+
+    var arrSensores = Array.isArray(p.sensores) && p.sensores.length === 4
+      ? p.sensores
+      : POS_SENSORES.map(function (pos) {
+          return Math.abs(p.linea_mm) < 32 && Math.abs(p.linea_mm - pos) <= (SEP_MM / 2 + 0.5) ? 1 : 0;
+        });
+    var activos = 0;
+    sensoresEls.forEach(function (s, i) {
+      var on = Boolean(arrSensores[i]);
+      s.classList.toggle("on", on);
+      if (on) activos++;
+    });
+    lineaTxtEl.textContent = activos ? "Línea detectada · " + p.linea_mm.toFixed(1) + " mm" : "Línea perdida · " + p.linea_mm.toFixed(1) + " mm";
+    lineaTxtEl.classList.toggle("perdida", !activos);
+
+    pintarMotor(mIzqEl, mIzqVEl, p.v_izq);
+    pintarMotor(mDerEl, mDerVEl, p.v_der);
+  }
+
+  function actualizarLed(clase, texto) {
+    ledEl.className = "led-estado " + clase;
+    estadoEl.textContent = texto;
+    actualizarPlaca(clase);
+  }
+
+  /* Igual que aplicarCmd() del firmware: "auto" vuelve a AUTÓNOMO; lo demás pasa a MANUAL.
+     Un comando desconocido frena, por seguridad. */
+  function aplicarCmd(cmd) {
+    ultimaOrdenMs = Date.now();
+    seg.paroTimeout = false;   /* cualquier orden nueva libera el paro por inactividad */
+    if (!seg.bateriaEnCorte) seg.paroBateria = false;   /* y el de batería, si ya se rearmó */
+    if (cmd === "auto") {
+      modoP10 = "auto";
+      cmdManual = "frenar";
+      escribirLog("🤖 Orden <b>auto</b>: modo <b>AUTÓNOMO</b>. Vuelve a recorrer los 6 perfiles en bucle.");
+      return;
+    }
+    var v = CMDS[cmd];
+    if (!v) {
+      v = CMDS.frenar;
+      escribirLog("⚠️ Comando desconocido <b>" + escaparHtml(cmd) + "</b>: el robot frena por seguridad.");
+    }
+    modoP10 = "manual";
+    cmdManual = CMDS[cmd] ? cmd : "frenar";
+    velManual = { izq: v.izq, der: v.der };
+    escribirLog(cmd === "frenar"
+      ? "🛑 Orden <b>frenar</b>: modo <b>MANUAL</b>, ruedas en 0 m/s. Sigue mandando su estado cada 2 s."
+      : "🕹️ Orden <b>" + escaparHtml(cmd) + "</b>: modo <b>MANUAL</b>, ruedas " + v.izq.toFixed(2) + " / " + v.der.toFixed(2) + " m/s.");
+  }
+
+  /* Arma y publica el estado con la regla de seguridad y dinámica SIM1 aplicada.
+     Se llama cada 2 s y, además, en cuanto cambia algo que afecta la seguridad
+     (orden, slider, inyección SIL, timeout): el firmware reacciona a 100 Hz. */
+  function publicarEstado() {
+    var b = brokerActual();
+    var ahoraMs = Date.now();
+    var dt = Math.min(2.5, Math.max(0.05, (ahoraMs - ultimoTickFisicaMs) / 1000));
+    ultimoTickFisicaMs = ahoraMs;
+
+    var p = hib.activo ? perfilHibrido(ultimoPerfil) : ultimoPerfil;
+
+    /* Descarga gradual realista de LiPo 3S (salvo inyección SIL explícita) */
+    var enMov = Math.abs(velActualSim.izq) > 0.02 || Math.abs(velActualSim.der) > 0.02;
+    if (silBateriaV === null && encendido) {
+      var tasaDescarga = SIM1_DESCARGA_BASE_VS + (enMov ? SIM1_DESCARGA_MOV_VS : 0);
+      batSimV = Math.max(10.15, batSimV - tasaDescarga * dt);
+    }
+    var rippleV = encendido ? Math.sin(ahoraMs / 1700) * 0.01 : 0;
+    var bateriaV = Math.round((silBateriaV !== null ? silBateriaV : (batSimV + rippleV)) * 100) / 100;
+    var bateria = bateriaPorcentaje(bateriaV);
+    revisarBateria(bateriaV);
+    revisarSensores();
+
+    /* Velocidad objetivo calibrada al rango libre real de SIM1 (0.38–0.45 m/s, máx 0.46 m/s) */
+    var deseada;
+    if (!encendido) {
+      deseada = { izq: 0, der: 0 };
+    } else if (modoP10 === "auto") {
+      var osc = Math.sin((ahoraMs - inicioMs) / 2600) * 0.025;
+      var vI = Math.max(-SIM1_VEL_MAX, Math.min(SIM1_VEL_MAX, p.v_izq + (p.v_izq > 0.30 ? osc : 0)));
+      var vD = Math.max(-SIM1_VEL_MAX, Math.min(SIM1_VEL_MAX, p.v_der + (p.v_der > 0.30 ? osc : 0)));
+      deseada = { izq: Math.round(vI * 100) / 100, der: Math.round(vD * 100) / 100 };
+    } else {
+      deseada = velManual;
+    }
+
+    var segura = aplicarSeguridad(deseada);
+    /* Inercia de 1er orden (SIM1 R.tau = 0.18 s); en parada de seguridad frena de inmediato */
+    if (seg.parada !== "ninguna" || !encendido) {
+      velActualSim.izq = 0;
+      velActualSim.der = 0;
+    } else {
+      var kTau = 1 - Math.exp(-dt / 0.18);
+      velActualSim.izq = Math.round((velActualSim.izq + (segura.izq - velActualSim.izq) * kTau) * 100) / 100;
+      velActualSim.der = Math.round((velActualSim.der + (segura.der - velActualSim.der) * kTau) * 100) / 100;
+    }
+    var real = { izq: velActualSim.izq, der: velActualSim.der };
+
+    secuencia++;
+    enviados++;
+    var sensoresActivos = p.sensores.slice(0, 4);
+    var ruidoLinea = encendido && (Math.abs(real.izq) > 0.01 || Math.abs(real.der) > 0.01)
+      ? Math.round(Math.sin(ahoraMs / 900) * 4) / 10
+      : 0;
+    var lineaVal = Math.round((calcularLineaMm(sensoresActivos, p.ladoPerdida || -1) + ruidoLinea) * 10) / 10;
+    var payload = {
+      n: secuencia,
+      estado: modoP10 === "auto" ? "autonomo" : "manual",
+      bateria: bateria,
+      bateria_v: bateriaV,
+      ordenes: ordenesRecibidas,
+      sensores: sensoresActivos,
+      linea_mm: lineaVal,
+      v_izq: real.izq,
+      v_der: real.der,
+      parada: seg.parada,
+      t: Date.now() - inicioMs
+    };
+
+    var jsonStr = JSON.stringify(payload);
+    contEl.textContent = enviados + " paquetes enviados";
+    pintarTelemetria(payload);
+    pintarSeguridad();
+
+    if (cliente && conectado) {
+      cliente.publish(TOPICO, jsonStr, { qos: 0 });
+      pulsoTx(true);
+      escribirLog("[" + b.nombre + "] PUB <b>" + TOPICO + "</b> ← <code>" + jsonStr + "</code>");
+    } else {
+      pulsoTx(false);
+      escribirLog("(En cola mientras conecta a " + b.nombre + "...) <code>" + jsonStr + "</code>");
+    }
+  }
+
+  function publicarPaso() {
+    var idx = -1;
+    if (modoP10 === "auto") {
+      /* AUTÓNOMO: siguiente perfil del bucle */
+      idx = paso % PERFILES.length;
+      ultimoPerfil = PERFILES[idx];
+      paso++;
+    }
+    /* MANUAL: misma batería y línea del último perfil, con las velocidades de la orden */
+    if (!ultraManual) {
+      var jitterU = Math.round(Math.sin(Date.now() / 1300));
+      ultraFrente = Math.max(2, Math.min(200, ultimoPerfil.frente_cm + jitterU));
+      ultraAtras = Math.max(2, Math.min(200, ultimoPerfil.atras_cm - jitterU));
+    }
+    renderPerfiles(idx);
+    publicarEstado();
+    publicarUltrasonido();
+  }
+
+  /* Reacción inmediata (sin esperar el tick de 2 s) */
+  function reaccionar() {
+    if (!encendido) {
+      pintarUltrasonido(ultraFrente, ultraAtras);
+      pintarSeguridad();
+      return;
+    }
+    publicarEstado();
+    publicarUltrasonido();
+  }
+
+  /* Vigila el timeout de 5 s del modo MANUAL (bloque 3b del firmware) */
+  function vigilarSeguridad() {
+    if (encendido && modoP10 === "manual" && !seg.paroTimeout &&
+        Date.now() - ultimaOrdenMs > TIMEOUT_MANUAL_MS) {
+      seg.paroTimeout = true;
+      velManual = { izq: 0, der: 0 };
+      cmdManual = "frenar";
+      escribirLog("⏱️ <b>5 s sin órdenes en MANUAL</b>: el robot FRENA y se queda en MANUAL (fail-safe). No pasa solo a autónomo.");
+      publicarAlerta("timeout_manual", TIMEOUT_MANUAL_MS / 1000);
+      publicarEstado();
+      return;
+    }
+    pintarSeguridad();
+  }
+
+  function limpiarCliente() {
+    if (timerTimeout) {
+      clearTimeout(timerTimeout);
+      timerTimeout = null;
+    }
+    if (cliente) {
+      try {
+        cliente.removeAllListeners();
+        cliente.end(true);
+      } catch (_) {}
+      cliente = null;
+    }
+    conectado = false;
+  }
+
+  function registrarFalloBroker(motivo) {
+    if (!encendido) return;
+    limpiarCliente();
+    var fallido = brokerActual();
+    intentosEnBroker++;
+
+    if (intentosEnBroker >= INTENTOS_POR_BROKER) {
+      indiceBroker = (indiceBroker + 1) % BROKERS.length;
+      intentosEnBroker = 0;
+      var sig = brokerActual();
+      actualizarLed("error", "SIN RESPUESTA EN " + fallido.nombre.toUpperCase() + " · Saltando a " + sig.nombre + " (" + sig.url + ")");
+      escribirLog("⚠️ <b>" + fallido.nombre + "</b> falló tras " + INTENTOS_POR_BROKER + " intentos (" + motivo + "). Cambiando a broker de respaldo: <b>" + sig.nombre + "</b> (" + sig.url + ")");
+    } else {
+      actualizarLed("conectando", "REINTENTANDO " + fallido.nombre.toUpperCase() + " (intento " + (intentosEnBroker + 1) + "/" + INTENTOS_POR_BROKER + ")");
+      escribirLog("⚠️ Fallo en " + fallido.nombre + " (" + motivo + "). Reintentando...");
+    }
+
+    renderBrokers();
+    renderBotonPrincipal();
+    setTimeout(function () {
+      if (encendido) conectarBrokerActual();
+    }, 1500);
+  }
+
+  function conectarBrokerActual() {
+    if (!encendido) return;
+    limpiarCliente();
+
+    var b = brokerActual();
+    actualizarLed("conectando", "CONECTANDO A " + b.nombre.toUpperCase() + " · " + b.url + " ...");
+    escribirLog("Conectando a <b>" + b.nombre + "</b> (" + b.url + ")...");
+    renderBrokers();
+    renderBotonPrincipal();
+
+    if (!window.mqtt) {
+      escribirLog("❌ Librería mqtt.js no disponible.");
+      return;
+    }
+
+    var clientId = "ucab-esp32-sim-" + Math.random().toString(16).slice(2, 10);
+    placaClientEl.textContent = "clientId: " + clientId;
+
+    try {
+      cliente = window.mqtt.connect(b.url, {
+        clientId: clientId,
+        keepalive: 20,
+        connectTimeout: 5000,
+        reconnectPeriod: 0
+      });
+    } catch (e) {
+      registrarFalloBroker("error al crear WebSocket (" + (e && e.message ? e.message : e) + ")");
+      return;
+    }
+
+    timerTimeout = setTimeout(function () {
+      if (!conectado && encendido) {
+        registrarFalloBroker("tiempo de espera agotado 5 s");
+      }
+    }, 5500);
+
+    cliente.on("connect", function () {
+      if (timerTimeout) {
+        clearTimeout(timerTimeout);
+        timerTimeout = null;
+      }
+      conectado = true;
+      intentosEnBroker = 0;
+      actualizarLed("activo", "CONECTADO EN VIVO · " + b.nombre + " (" + b.host + ":" + b.puerto + ")");
+      escribirLog("✅ <b>Conectado exitosamente a " + b.nombre + "</b> (" + b.url + "). Transmitiendo en <code>" + TOPICO + "</code>");
+      cliente.subscribe(T_ORDENES, { qos: 1 }, function (err) {
+        if (err) escribirLog("❌ No pude suscribirme a <b>" + T_ORDENES + "</b>: " + escaparHtml(err.message || err));
+        else escribirLog("👂 Escuchando pedidos en <b>" + T_ORDENES + "</b> (QoS 1)");
+      });
+      vaciarColaAlertas();
+      renderBrokers();
+      renderBotonPrincipal();
+    });
+
+    /* Pedido recibido: lo cuenta y confirma por ordenes/ack, como el sketch del robot real */
+    cliente.on("message", function (topico, carga) {
+      if (topico !== T_ORDENES) return;
+      var texto = carga.toString();
+      var pedido = null;
+      try { pedido = JSON.parse(texto); } catch (_) {}
+      var id = pedido && pedido.id ? String(pedido.id) : "sin-id";
+      var cmd = pedido && typeof pedido.cmd === "string" ? pedido.cmd : null;
+      ordenesRecibidas++;
+      escribirLog("📥 [" + b.nombre + "] SUB <b>" + T_ORDENES + "</b> → pedido <b>" + escaparHtml(id) + "</b> <code>" + escaparHtml(texto) + "</code>");
+      var ack = JSON.stringify({ id: id, recibidas: ordenesRecibidas, t: Date.now() - inicioMs });
+      if (!cliente) return;
+      cliente.publish(T_ACK, ack, { qos: 1 }, function (err) {
+        if (err) escribirLog("❌ No se pudo confirmar " + escaparHtml(id) + ": " + escaparHtml(err.message || err));
+        else escribirLog("📤 [" + b.nombre + "] PUB <b>" + T_ACK + "</b> ← <code>" + escaparHtml(ack) + "</code>");
+      });
+      /* Una orden con "cmd" maneja el robot; sin "cmd" es un pedido de componente: solo se confirma */
+      if (cmd !== null) {
+        aplicarCmd(cmd);
+        reaccionar(); /* el estado nuevo sale de inmediato, sin esperar los 2 s */
+      }
+    });
+
+    cliente.on("error", function (err) {
+      if (!conectado) {
+        registrarFalloBroker(err && err.message ? err.message : "error de WebSocket");
+      }
+    });
+
+    cliente.on("close", function () {
+      if (conectado && encendido) {
+        conectado = false;
+        registrarFalloBroker("conexión cerrada");
+      }
+    });
+  }
+
+  function encender() {
+    encendido = true;
+    modoP10 = "auto";
+    inicioMs = Date.now();
+    ultimoTickFisicaMs = inicioMs;
+    if (silBateriaV === null && batSimV <= 10.20) batSimV = SIM1_BAT_INICIAL;
+    intentosEnBroker = 0;
+
+    renderBotonPrincipal();
+    conectarBrokerActual();
+
+    if (!timer) {
+      publicarPaso();
+      timer = setInterval(publicarPaso, 2000);
+    }
+    if (!timerSeguridad) timerSeguridad = setInterval(vigilarSeguridad, 250);
+  }
+
+  function apagar() {
+    encendido = false;
+    hoverBtnEsp = false;
+    velActualSim = { izq: 0, der: 0 };
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+    if (timerSeguridad) {
+      clearInterval(timerSeguridad);
+      timerSeguridad = null;
+    }
+    limpiarCliente();
+    actualizarLed("", "DETENIDO · En espera de arranque");
+    var bvReposo = Math.round((silBateriaV !== null ? silBateriaV : batSimV) * 100) / 100;
+    pintarTelemetria({
+      bateria: bateriaPorcentaje(bvReposo),
+      bateria_v: bvReposo,
+      estado: modoP10 === "auto" ? "autonomo" : "manual",
+      sensores: ultimoPerfil.sensores,
+      linea_mm: calcularLineaMm(ultimoPerfil.sensores, ultimoPerfil.ladoPerdida || -1),
+      v_izq: 0,
+      v_der: 0
+    });
+    renderBrokers();
+    renderBotonPrincipal();
+    escribirLog("⏹ Emisión del ESP32 Virtual detenida (motores en 0.00 m/s).");
+  }
+
+  function manejarSliderUltra() {
+    ultraManual = true;
+    ultraFrente = Number(sliderFrenteEl.value);
+    ultraAtras = Number(sliderAtrasEl.value);
+    btnUltraPerfilEl.disabled = false;
+    reaccionar(); /* la regla de seguridad se reevalúa con la nueva distancia */
+  }
+
+  sliderFrenteEl.addEventListener("input", manejarSliderUltra);
+  sliderAtrasEl.addEventListener("input", manejarSliderUltra);
+
+  btnUltraPerfilEl.addEventListener("click", function () {
+    ultraManual = false;
+    btnUltraPerfilEl.disabled = true;
+    ultraFrente = ultimoPerfil.frente_cm;
+    ultraAtras = ultimoPerfil.atras_cm;
+    pintarUltrasonido(ultraFrente, ultraAtras);
+    escribirLog("🔄 Ultrasónicos sincronizados de nuevo con el ciclo de perfiles.");
+    reaccionar();
+  });
+
+  /* ---- Inyección de eventos / Pruebas SIL ---- */
+  var silBotones = document.querySelectorAll(".btn-sil[data-sil]");
+  function marcarSil(nombre) {
+    silBotones.forEach(function (bt) {
+      bt.classList.toggle("activo", bt.getAttribute("data-sil") === nombre && nombre !== "normal");
+    });
+  }
+  var ESCENARIOS_SIL = {
+    frontal: function () {
+      ultraManual = true; ultraFrenteOk = true; ultraAtrasOk = true;
+      ultraFrente = 14; ultraAtras = Math.max(ultraAtras, 60);
+      return "🧱 SIL: obstáculo frontal a <b>14 cm</b>. Esperado: 0.00 m/s, alerta <code>obstaculo</code>; 'atras' sigue permitido (atrás " + ultraAtras + " cm).";
+    },
+    bloqueo: function () {
+      ultraManual = true; ultraFrenteOk = true; ultraAtrasOk = true;
+      ultraFrente = 14; ultraAtras = 12;
+      return "⛔ SIL: <b>bloqueo total</b> (frente 14 cm, atrás 12 cm). Esperado: ninguna dirección permitida; 'atras' publica <code>obstaculo_atras</code>.";
+    },
+    "sin-eco": function () {
+      ultraManual = true; ultraFrenteOk = false; ultraAtrasOk = true;
+      return "📡 SIL: el HC-SR04P frontal deja de responder (equivale a 3 lecturas propias sin eco = 600 ms, lectura alternada). Esperado: <code>frente_ok:false</code>, alerta <code>fallo_sensor_frente</code>, avance/giros/autónomo bloqueados.";
+    },
+    bateria: function () {
+      silBateriaV = 10.05;
+      return "🪫 SIL: batería forzada a <b>10.05 V</b> (" + bateriaPorcentaje(10.05) + " %). Esperado: aviso preventivo <code>bateria_baja</code> (≤ 10.30 V) y banner de batería crítica en la App. No hay corte (corte ≤ 9.90 V).";
+    },
+    corte: function () {
+      silBateriaV = 9.85;
+      return "🔌 SIL: batería forzada a <b>9.85 V</b>. Esperado: corte de seguridad (0.00 m/s, <code>parada:corte_bateria</code>), alerta <code>bateria_critica</code>; no se mueve hasta &gt; 10.10 V y una orden nueva.";
+    },
+    normal: function () {
+      ultraManual = false; ultraFrenteOk = true; ultraAtrasOk = true; silBateriaV = null;
+      modoP10 = "auto"; cmdManual = "frenar"; velManual = { izq: 0, der: 0 };
+      seg.paroTimeout = false; seg.obstaculo = false; seg.alertaObstaculoAtras = false;
+      seg.bateriaEnCorte = false; seg.paroBateria = false;
+      ultraFrente = ultimoPerfil.frente_cm; ultraAtras = ultimoPerfil.atras_cm;
+      btnUltraPerfilEl.disabled = true;
+      return "♻️ SIL: <b>ciclo normal restaurado</b> (perfiles automáticos, sensores válidos, batería del perfil, modo AUTÓNOMO).";
+    }
+  };
+  silBotones.forEach(function (bt) {
+    bt.addEventListener("click", function () {
+      var nombre = bt.getAttribute("data-sil");
+      var texto = ESCENARIOS_SIL[nombre]();
+      if (nombre !== "normal" && nombre !== "bateria" && nombre !== "corte") btnUltraPerfilEl.disabled = false;
+      marcarSil(nombre);
+      escribirLog(texto + (encendido ? "" : " <i>(Enciende el ESP32 virtual para publicarlo.)</i>"));
+      reaccionar();
+    });
+  });
+
+  btnUltraPausaEl.addEventListener("click", function () {
+    ultraPausado = !ultraPausado;
+    btnUltraPausaEl.classList.toggle("pausado", ultraPausado);
+    btnUltraPausaEl.textContent = ultraPausado
+      ? "▶ Reanudar envío ultrasónico"
+      : "⏸ Pausar envío (Probar 'Sin señal' > 3 s)";
+    pintarUltrasonido(ultraFrente, ultraAtras);
+    if (ultraPausado) {
+      escribirLog("⏸ Envío en <b>" + T_ULTRASONIDO + "</b> pausado manualmente. Verifica el estado 'Sin señal' en la App tras 3 s.");
+    } else {
+      escribirLog("▶ Envío en <b>" + T_ULTRASONIDO + "</b> reanudado.");
+      if (encendido) publicarUltrasonido();
+    }
+  });
+
+  btnEspToggle.addEventListener("mouseenter", function () {
+    hoverBtnEsp = true;
+    if (encendido && conectado) renderBotonPrincipal();
+  });
+  btnEspToggle.addEventListener("mouseleave", function () {
+    hoverBtnEsp = false;
+    if (encendido && conectado) renderBotonPrincipal();
+  });
+  btnEspToggle.addEventListener("click", function () {
+    if (encendido) apagar();
+    else encender();
+  });
+  /* ---- Escenario híbrido (SIL): tramo sin cinta + RSSI BLE ----
+     El modelo vive en p10_hibrido_modelo.js (puro, con pruebas en Node). */
+  var T_BLE = "ucab-tg-sf/robot/ble_sim"; /* SOLO simulación: {"baliza","rssi_dbm","simulado":true,"t"} (QoS 0); no existe en el firmware */
+  var hib = P10Hibrido.crear();
+  var timerHib = null;
+  var ultimaLecturaLog = 0;
+  var faseHibPrevia = "inactivo";
+  var btnHibEl = document.getElementById("btn-hibrido");
+  var btnHibRstEl = document.getElementById("btn-hibrido-reiniciar");
+  var HE = {
+    fase: document.getElementById("hib-fase"),
+    tcrt: document.getElementById("hib-tcrt"),
+    heading: document.getElementById("hib-heading"),
+    deriva: document.getElementById("hib-deriva"),
+    rc: document.getElementById("hib-rssi-cuarto"),
+    rl: document.getElementById("hib-rssi-lab"),
+    confirma: document.getElementById("hib-confirma"),
+    avance: document.getElementById("hib-avance")
+  };
+
+  /* Telemetría del robot virtual durante el escenario: sin cinta, el robot sigue
+     recto por heading hold (en el firmware real la línea perdida lo detendría). */
+  function perfilHibrido(base) {
+    var v = 0;
+    if (hib.fase === "con-cinta" || hib.fase === "sin-cinta") v = P10Hibrido.C.V_MS;
+    else if (hib.fase === "confirmado") v = P10Hibrido.C.V_MS / 2;
+    var copia = {};
+    for (var k in base) copia[k] = base[k];
+    copia.estado = "autonomo";
+    copia.sensores = P10Hibrido.tcrt(hib);
+    copia.ladoPerdida = -1;
+    copia.v_izq = v;
+    copia.v_der = v;
+    copia.linea_mm = calcularLineaMm(copia.sensores, -1);
+    return copia;
+  }
+
+  function pintarHibrido() {
+    var C = P10Hibrido.C;
+    var sin = P10Hibrido.sinCinta(hib);
+    HE.fase.textContent = P10Hibrido.ETIQUETAS[hib.fase];
+    HE.fase.className = hib.fase === "sin-cinta" ? "aviso" : (hib.fase === "inactivo" ? "" : "ok");
+    if (!hib.activo) {
+      HE.tcrt.textContent = "—"; HE.heading.textContent = "—"; HE.deriva.textContent = "—";
+      HE.rc.textContent = "— dBm"; HE.rl.textContent = "— dBm"; HE.confirma.textContent = "—"; HE.avance.textContent = "—";
+      return;
+    }
+    var s = P10Hibrido.tcrt(hib);
+    HE.tcrt.textContent = "[" + s.join(", ") + "]" + (sin ? " · sin cinta" : " · con cinta");
+    HE.tcrt.className = sin ? "aviso" : "ok";
+    HE.heading.textContent = sin
+      ? "hold " + (hib.headingErrDeg >= 0 ? "+" : "") + hib.headingErrDeg.toFixed(2) + "° (relativo)"
+      : "inactivo (hay cinta)";
+    HE.deriva.textContent = hib.derivaHoldCm.toFixed(1) + " cm / " + hib.derivaSinHoldCm.toFixed(1) + " cm";
+    HE.rc.textContent = hib.rssiCuarto.toFixed(1) + " dBm";
+    HE.rl.textContent = hib.rssiLab.toFixed(1) + " dBm";
+    HE.confirma.textContent = hib.confirmada
+      ? "CONFIRMADA (≥ " + C.CONFIRMA_DBM + " dBm × " + C.LECTURAS_CONFIRMACION + ")"
+      : hib.confirmaciones + " / " + C.LECTURAS_CONFIRMACION + " lecturas ≥ " + C.CONFIRMA_DBM + " dBm";
+    HE.avance.textContent = hib.s.toFixed(1) + " / " + C.LONGITUD_M + " m";
+    /* Con el ESP32 apagado la telemetría no sale por MQTT: se refleja en las tarjetas locales */
+    var p = perfilHibrido(ultimoPerfil);
+    var bv = silBateriaV !== null ? silBateriaV : p.bateria_v;
+    pintarTelemetria({
+      bateria: silBateriaV !== null ? bateriaPorcentaje(silBateriaV) : p.bateria,
+      bateria_v: bv, estado: "autonomo", sensores: p.sensores, linea_mm: p.linea_mm,
+      v_izq: p.v_izq, v_der: p.v_der
+    });
+  }
+
+  function emitirBle() {
+    if (hib.lecturas === ultimaLecturaLog || hib.lecturas % 5 !== 0) return; /* 1 aviso por segundo */
+    ultimaLecturaLog = hib.lecturas;
+    var t = Date.now() - inicioMs;
+    var lecturas = [["cuarto", hib.rssiCuarto, "Cuarto de Componentes"], ["lab1", hib.rssiLab, "Laboratorio 1"]];
+    lecturas.forEach(function (l) {
+      var j = JSON.stringify({ baliza: l[0], rssi_dbm: l[1], simulado: true, t: t });
+      if (cliente && conectado) {
+        cliente.publish(T_BLE, j, { qos: 0 });
+        escribirLog("📶 BLE (simulado) <b>" + l[2] + "</b>: <code>" + l[1].toFixed(1) + " dBm</code> → <b>" + T_BLE + "</b>");
+      } else {
+        escribirLog("📶 BLE (simulado) <b>" + l[2] + "</b>: <code>" + l[1].toFixed(1) + " dBm</code>");
+      }
+    });
+  }
+
+  function tickHibrido() {
+    P10Hibrido.avanzar(hib, 0.2);
+    pintarHibrido();
+    emitirBle();
+    if (hib.fase !== faseHibPrevia) {
+      var nueva = hib.fase;
+      faseHibPrevia = nueva;
+      escribirLog("🛤️ Escenario híbrido: <b>" + P10Hibrido.ETIQUETAS[nueva] + "</b> (" + hib.s.toFixed(1) + " m).");
+      reaccionar();
+    }
+    if (hib.fase === "completo" && timerHib) {
+      clearInterval(timerHib);
+      timerHib = null;
+    }
+  }
+
+  function detenerHibrido(texto) {
+    if (timerHib) { clearInterval(timerHib); timerHib = null; }
+    hib = P10Hibrido.crear();
+    faseHibPrevia = "inactivo";
+    ultimaLecturaLog = 0;
+    ESCENARIOS_SIL.normal();
+    marcarSil("normal");
+    btnHibEl.classList.remove("activo-hib");
+    btnHibEl.setAttribute("aria-pressed", "false");
+    btnHibEl.textContent = "🛤️ Activar tramo sin cinta (heading hold + BLE)";
+    btnHibRstEl.disabled = true;
+    pintarHibrido();
+    if (texto) escribirLog(texto);
+    reaccionar();
+  }
+
+  function arrancarHibrido() {
+    ESCENARIOS_SIL.normal();
+    marcarSil("normal");
+    /* ultrasonidos despejados: el escenario aísla el efecto de la cinta */
+    ultraManual = true; ultraFrente = 150; ultraAtras = 160;
+    btnUltraPerfilEl.disabled = false;
+    modoP10 = "auto";
+    hib = P10Hibrido.iniciar(P10Hibrido.crear());
+    faseHibPrevia = hib.fase;
+    ultimaLecturaLog = 0;
+    btnHibEl.classList.add("activo-hib");
+    btnHibEl.setAttribute("aria-pressed", "true");
+    btnHibEl.textContent = "⏹ Detener escenario híbrido";
+    btnHibRstEl.disabled = false;
+    if (timerHib) clearInterval(timerHib);
+    timerHib = setInterval(tickHibrido, 200);
+    escribirLog("🛤️ SIL híbrido: salida del <b>Cuarto de Componentes</b> hacia el <b>Laboratorio 1</b>. Tras " +
+      P10Hibrido.C.INICIO_SIN_CINTA_M.toFixed(0) + " m se acaba la cinta (<code>TCRT5000 = [0,0,0,0]</code>): el robot sigue con heading hold simulado de la MPU-6050 hasta que la baliza BLE del Laboratorio 1 confirme proximidad (RSSI " +
+      P10Hibrido.C.RSSI_LEJOS + " → " + P10Hibrido.C.RSSI_CERCA + " dBm al acercarse)." +
+      (encendido ? "" : " <i>(Enciende el ESP32 virtual para publicar la telemetría.)</i>"));
+    pintarHibrido();
+    reaccionar();
+  }
+
+  btnHibEl.addEventListener("click", function () {
+    if (hib.activo) detenerHibrido("⏹ Escenario híbrido detenido: ciclo normal restaurado.");
+    else arrancarHibrido();
+  });
+  btnHibRstEl.addEventListener("click", function () {
+    detenerHibrido();
+    arrancarHibrido();
+  });
+  /* Un escenario SIL normal (botones de arriba) cancela el híbrido */
+  silBotones.forEach(function (bt) {
+    bt.addEventListener("click", function () {
+      if (hib.activo) {
+        if (timerHib) { clearInterval(timerHib); timerHib = null; }
+        hib = P10Hibrido.crear();
+        faseHibPrevia = "inactivo";
+        btnHibEl.classList.remove("activo-hib");
+        btnHibEl.setAttribute("aria-pressed", "false");
+        btnHibEl.textContent = "🛤️ Activar tramo sin cinta (heading hold + BLE)";
+        btnHibRstEl.disabled = true;
+        pintarHibrido();
+      }
+    });
+  });
+
+  renderBrokers();
+  renderBotonPrincipal();
+  renderPerfiles(-1);
+  pintarTelemetria({
+    bateria: bateriaPorcentaje(batSimV),
+    bateria_v: batSimV,
+    estado: "autonomo",
+    sensores: ultimoPerfil.sensores,
+    linea_mm: calcularLineaMm(ultimoPerfil.sensores, -1),
+    v_izq: 0,
+    v_der: 0
+  });
+  pintarUltrasonido(ultraFrente, ultraAtras);
+  pintarSeguridad();
+  actualizarPlaca("");
+})();
+</script>
+</body>
+</html>
