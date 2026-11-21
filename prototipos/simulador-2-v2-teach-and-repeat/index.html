@@ -543,7 +543,7 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
       </div>
 
       <details class="det" id="det-control">
-        <summary>Editor de cinta y comandos <small>tramos · ida/vuelta · pausa</small></summary>
+        <summary>Editor de cinta <small>T1–T4 · retirar 0,5 m · restaurar</small></summary>
         <div class="det-cuerpo">
           <div class="fila" id="cinta-tramos" aria-label="Tramos de cinta"></div>
           <div class="fila">
@@ -551,29 +551,21 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
             <button class="b ok" id="btn-restaurar-cinta" type="button">♻️ Restaurar cinta</button>
           </div>
           <p class="nota" id="nota-cinta">Solo se pueden retirar tramos RECTOS recorridos en enseñanza.</p>
-          <div class="fila">
-            <button class="b info" id="btn-ensenar" type="button">🎓 Enseñar ruta</button>
-            <button class="b ok" id="btn-viaje-ida" type="button">▶ Repetir ruta</button>
-            <button class="b info" id="btn-viaje-vuelta" type="button">🔙 Viaje de vuelta</button>
-            <button class="b" id="btn-play" type="button" aria-pressed="false">▶ Iniciar</button>
-            <button class="b ok" id="btn-reanudar" type="button">▶ Reanudar (auto)</button>
+          <div hidden aria-hidden="true">
+            <button id="btn-ensenar" type="button">Enseñar</button>
+            <button id="btn-viaje-ida" type="button">Repetir</button>
+            <button id="btn-viaje-vuelta" type="button">Vuelta</button>
+            <button id="btn-play" type="button" aria-pressed="false">Iniciar</button>
+            <button id="btn-reanudar" type="button">Reanudar</button>
           </div>
         </div>
       </details>
 
-      <details class="det" id="det-manual">
-        <summary>Modo manual y D-Pad <small>pruebas fail-safe</small></summary>
+      <details class="det" id="det-manual" hidden aria-hidden="true">
+        <summary>Compatibilidad SIL</summary>
         <div class="det-cuerpo">
-          <div class="fila" role="group" aria-label="Modo de control">
-            <button class="b sel" id="modo-auto" type="button" aria-pressed="true">🤖 Teach-and-repeat</button>
-            <button class="b" id="modo-manual" type="button" aria-pressed="false">🎮 Manual</button>
-          </div>
-          <div class="dpad" id="dpad" aria-label="Controles manuales">
-            <span class="vacio b"></span><button class="b" type="button" data-cmd="adelante">▲ Adelante</button><span class="vacio b"></span>
-            <button class="b" type="button" data-cmd="izquierda">◀ Izq.</button><button class="b peligro" type="button" data-cmd="frenar">■ Frenar</button><button class="b" type="button" data-cmd="derecha">Der. ▶</button>
-            <span class="vacio b"></span><button class="b" type="button" data-cmd="atras">▼ Atrás</button><span class="vacio b"></span>
-          </div>
-          <p class="nota">En manual el núcleo queda en pausa; siguen activos los fail-safe frontal y trasero (&lt; 20 cm).</p>
+          <button id="modo-auto" type="button" aria-pressed="true">auto</button>
+          <button id="modo-manual" type="button" aria-pressed="false">manual</button>
         </div>
       </details>
     </section>
