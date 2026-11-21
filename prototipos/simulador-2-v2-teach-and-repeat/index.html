@@ -499,7 +499,7 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
     <!-- 5. Barra/Dock inferior único: 1 botón principal contextual + Freno Remoto -->
     <div class="acciones-barra" role="region" aria-label="Acciones principales">
       <button type="button" class="btn-ctx" id="btn-principal-ctx">🎓 Iniciar lectura lenta</button>
-      <button type="button" class="btn-ctx" id="btn-secundario" hidden>📡 Activar Torres de Control (opcional)</button>
+      <button type="button" class="btn-ctx" id="btn-secundario" hidden>📡 Instalar Torre B1 (inicio)</button>
       <button type="button" class="btn-freno-perm" id="btn-freno">⛔ Freno Remoto</button>
     </div>
   </section>
@@ -984,7 +984,7 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
     el.className = b.clase;
     el.disabled = Boolean(b.disabled);
 
-    /* Secundaria: solo en PHASE1_READY, "Activar Torres de Control (opcional)". */
+    /* Secundaria: solo en PHASE1_READY, "Instalar Torre B1 (inicio)" (desbloquea BEACONS_ACTIVE). */
     var sec = $("btn-secundario");
     sec.hidden = !(!corriendo && !sim.frenoRemoto && ap.estado === "PHASE1_READY");
   }
