@@ -191,6 +191,7 @@
 .obs-base:focus-visible { outline: 2px solid var(--s2-prim); outline-offset: 2px; }
 .obs-base.colocando { background: rgba(239, 68, 68, 0.92); border-style: solid; border-color: #fff; color: #fff; }
 .obs-base.usado { border-style: solid; background: rgba(127, 29, 29, 0.86); }
+.obs-base.oculto { visibility: hidden; pointer-events: none; }
 .obs-ficha { width: 22px; height: 22px; border-radius: 50%; background: var(--s2-err); border: 2px solid #fff; flex: none; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25); }
 .obs-base.usado .obs-ficha { opacity: 0.45; }
 
@@ -462,7 +463,7 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
         <li class="step-item activo" id="step-1"><span class="step-num" id="flujo-1">1</span><span class="step-nom">Captura</span></li>
         <li class="step-item" id="step-2"><span class="step-num" id="flujo-2">2</span><span class="step-nom">Gemelo V1</span></li>
         <li class="step-item" id="step-3"><span class="step-num" id="flujo-3">3</span><span class="step-nom">Ajuste</span></li>
-        <li class="step-item" id="step-4"><span class="step-num" id="flujo-4">4</span><span class="step-nom">Fase 1</span></li>
+        <li class="step-item" id="step-4"><span class="step-num" id="flujo-4">4</span><span class="step-nom">Torres<span class="tit-largo"> de Control (adicional)</span></span></li>
       </ol>
     </div>
 
@@ -963,7 +964,7 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
   function actualizarBotonesContextuales() {
     var b = A.etiquetaBoton(ap, corriendo, sim.frenoRemoto);
     var el = $("btn-principal-ctx");
-    el.textContent = b.texto;
+    el.textContent = b.accion === "activar_fase1" ? "📡 Activar Torres de Control (opcional)" : b.texto;
     el.className = b.clase;
     el.disabled = Boolean(b.disabled);
   }
@@ -1129,9 +1130,20 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
     var r = cvP.getBoundingClientRect();
     return { x: (cx - r.left - vista.ox) / vista.sc, y: (vista.oy - (cy - r.top)) / vista.sc, dentro: cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom };
   }
+  function obstaculoPermitido() {
+    return Boolean(ap && ap.capturaLentaOk);
+  }
   function actualizarControlesObstaculo() {
+    var permitido = obstaculoPermitido();
+    if (!permitido) {
+      modoColocarObs = false;
+      if (sim.obstaculos.length) S.quitarObstaculo(sim);
+    }
     var hay = sim.obstaculos.length > 0;
     var base = $("base-obstaculo");
+    base.classList.toggle("oculto", !permitido);
+    base.setAttribute("aria-hidden", String(!permitido));
+    base.tabIndex = permitido ? 0 : -1;
     base.classList.toggle("usado", hay);
     base.classList.toggle("colocando", modoColocarObs);
     base.setAttribute("aria-pressed", String(modoColocarObs || hay));
@@ -1141,6 +1153,7 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
   function enlazarObstaculo() {
     var base = $("base-obstaculo");
     function empezarDesdeBase(ev) {
+      if (!obstaculoPermitido()) return;
       arrastre = "base"; obsInicio = { x: ev.clientX, y: ev.clientY }; obsArrastro = false;
       ev.preventDefault();
       if (base.setPointerCapture && ev.pointerId !== undefined) { try { base.setPointerCapture(ev.pointerId); } catch (e) { /* ignora */ } }
@@ -1177,6 +1190,7 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
     }
     base.addEventListener("pointerdown", empezarDesdeBase);
     cvP.addEventListener("pointerdown", function (ev) {
+      if (!obstaculoPermitido()) return;
       if (modoColocarObs) {
         var m = aMundo(ev.clientX, ev.clientY);
         if (m.dentro) {
@@ -1199,6 +1213,7 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
       cvP.style.cursor = Math.hypot(ev.clientX - r.left - (vista.ox + o.x * vista.sc), ev.clientY - r.top - (vista.oy - o.y * vista.sc)) <= 28 ? "grab" : "";
     });
     base.addEventListener("keydown", function (ev) {
+      if (!obstaculoPermitido()) return;
       if (ev.key === "Enter" || ev.key === " ") {
         ev.preventDefault();
         var p = S.poseMundo(sim), a = p.angulo * Math.PI / 180, d = 0.9;
@@ -1232,8 +1247,8 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
         : { n: "ok", t: "TORRES B1/B2 ANUNCIANDO · Pista A solo cinta (geometría curva)" };
     }
     if (ap.estado === "TWIN_CREATING") return { n: "ok", t: "GEMELO V1 · BASE CREADA (captura lenta + normal validadas)" };
-    if (ap.estado === "PHASE1_READY") return { n: "ok", t: "GEMELO VALIDADO · listo para activar Fase 1 (balizas BLE B1/B2)" };
-    if (sim.llegadaCompleta) return { n: "ok", t: "LLEGADA VALIDADA POR BALIZA BLE · viaje registrado" };
+    if (ap.estado === "PHASE1_READY") return { n: "ok", t: "FUNCIONAMIENTO MÍNIMO COMPLETADO · ruta validada con seguidor de línea · Torres de Control (adicional) disponibles" };
+    if (sim.llegadaCompleta) return { n: "ok", t: ap.balizasActivas ? "LLEGADA VALIDADA POR BALIZA BLE · viaje registrado" : "VUELTA COMPLETADA · viaje registrado (seguidor de línea)" };
     return null;
   }
 
@@ -1271,7 +1286,7 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
     $("step-1").title = (ap.capturaLentaOk ? "✓ " : "") + "Lenta 0,16 m/s · " + (ap.capturaNormalOk ? "✓ " : "") + "Normal 0,41 m/s";
     $("step-2").title = h2 ? "Gemelo V1 activo (" + fmt(sim.L, 2) + " m)" : "Pendiente de captura lenta y normal";
     $("step-3").title = ap.viajesAjusteValidos + "/" + ap.metaViajes + " viajes válidos" + (met.rmsLatMm > 0 ? " · RMS " + fmt(met.rmsLatMm, 1) + " mm" : "");
-    $("step-4").title = !puedeSinCinta ? "Balizas B1/B2 · Pista A solo cinta" : ("Fase 1 · " + est);
+    $("step-4").title = "Módulo adicional opcional · Torres de Control B1/B2" + (!puedeSinCinta ? " (Pista A solo cinta)" : " + prueba sin cinta T2");
   }
 
   function refrescarDom() {
@@ -1657,7 +1672,8 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
         c.beginPath(); c.moveTo(x, y - 8); c.lineTo(x + 6, y); c.lineTo(x, y + 8); c.lineTo(x - 6, y); c.closePath(); c.fill(); c.stroke();
         c.fillStyle = "#c4b5fd"; c.fillText(pc.id, x, y + 18);
       });
-      dibujarTorresBLE(c, ahora, w);
+      var mostrarTorres = ap.estado === "PHASE1_READY" || ap.estado === "BEACONS_STARTING" || ap.estado === "BEACONS_ACTIVE" || ap.estado === "NO_TAPE_TEST" || ap.estado === "PHASE1_VALIDATED" || ap.balizasActivas;
+      if (mostrarTorres) dibujarTorresBLE(c, ahora, w);
     }
 
     var pose = S.poseMundo(sim), f = S.frenteActualCm(sim), at = S.atrasActualCm(sim);
