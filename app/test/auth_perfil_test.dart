@@ -173,7 +173,7 @@ void main() {
   });
 
   group('Login', () {
-    testWidgets('muestra marca, credenciales demo documentadas y MQTT real', (
+    testWidgets('muestra marca, botón Demo en esquina, Acceso rápido modal y MQTT real', (
       WidgetTester t,
     ) async {
       final _Entorno e = await _montar(t);
@@ -181,7 +181,15 @@ void main() {
       expect(find.text('USUARIO'), findsOneWidget);
       expect(find.text('CONTRASEÑA'), findsOneWidget);
       expect(find.text('Iniciar Sesión'), findsOneWidget);
-      expect(find.text('Modo Demo (Offline)'), findsOneWidget);
+      expect(find.byKey(const Key('login-demo')), findsOneWidget);
+      expect(find.text('Demo'), findsOneWidget);
+      expect(find.text('Modo Demo (Offline)'), findsNothing);
+      // Cuerpo limpio: sin botones grandes ni párrafo largo visibles por defecto
+      expect(find.byKey(const Key('acceso-operador')), findsNothing);
+      expect(find.byKey(const Key('acceso-admin')), findsNothing);
+      expect(find.byKey(const Key('login-aviso-local')), findsNothing);
+      // Abrir modal Acceso rápido muestra las credenciales demo y nota local
+      await _tocar(t, find.byKey(const Key('login-acceso-rapido')));
       final String aviso = t
           .widget<Text>(find.byKey(const Key('login-aviso-local')))
           .data!;
@@ -189,6 +197,7 @@ void main() {
       expect(aviso, contains('usuario / usuario'));
       expect(aviso, contains('admin / admin'));
       expect(aviso, contains('No hay registro público'));
+      await _tocar(t, find.text('Cerrar'));
       // Sin registro público ni selector de rol
       expect(find.textContaining('Registrarse'), findsNothing);
       expect(find.textContaining('Crear cuenta'), findsNothing);
@@ -227,10 +236,12 @@ void main() {
       WidgetTester t,
     ) async {
       final _Entorno e = await _montar(t);
+      await _tocar(t, find.byKey(const Key('login-acceso-rapido')));
       await _tocar(t, find.byKey(const Key('acceso-admin')));
       TextField campo(String k) => t.widget<TextField>(find.byKey(Key(k)));
       expect(campo('login-usuario').controller!.text, 'admin');
       expect(campo('login-clave').controller!.text, 'admin');
+      await _tocar(t, find.byKey(const Key('login-acceso-rapido')));
       await _tocar(t, find.byKey(const Key('acceso-operador')));
       expect(campo('login-usuario').controller!.text, 'usuario');
       expect(campo('login-clave').controller!.text, 'usuario');
@@ -349,7 +360,7 @@ void main() {
       await _tocar(t, find.byKey(const Key('perfil-cerrar')));
       expect(e.servicio.simulando, isFalse);
       expect(e.sesion.activa, isFalse);
-      expect(find.text('Modo Demo (Offline)'), findsOneWidget);
+      expect(find.byKey(const Key('login-demo')), findsOneWidget);
       await _cerrar(t, e);
     });
   });

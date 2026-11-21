@@ -106,145 +106,223 @@ class _PantallaLoginState extends State<PantallaLogin> {
     ),
   );
 
+  /// Despliega el modal compacto de Acceso rápido (autocompletado + nota local).
+  Future<void> _mostrarAccesoRapido() async {
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: CockpitColors.surfaceContainer,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(CockpitRadius.lg),
+            side: BorderSide(
+              color: CockpitColors.outlineVariant.withValues(alpha: 0.6),
+            ),
+          ),
+          title: Text(
+            'Acceso rápido',
+            style: CockpitText.titleMd.copyWith(color: CockpitColors.onSurface),
+          ),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 360),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                _AccesoRapido(
+                  alElegir: (String u, String c) {
+                    Navigator.of(dialogContext).pop();
+                    _rellenar(u, c);
+                  },
+                ),
+                const SizedBox(height: 14),
+                const _AvisoLocal(),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cerrar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  const _Marca(),
-                  const SizedBox(height: 28),
-                  _etiqueta('USUARIO'),
-                  TextField(
-                    key: const Key('login-usuario'),
-                    controller: _usuario,
-                    keyboardType: TextInputType.text,
-                    autocorrect: false,
-                    enableSuggestions: false,
-                    textInputAction: TextInputAction.next,
-                    style: CockpitText.bodyMd.copyWith(
-                      color: CockpitColors.onSurface,
-                    ),
-                    onChanged: (_) {
-                      if (_error != null) setState(() => _error = null);
-                    },
-                    decoration: _decoracion(
-                      icono: Icons.person_outline,
-                      hint: 'usuario',
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _etiqueta('CONTRASEÑA'),
-                  TextField(
-                    key: const Key('login-clave'),
-                    controller: _clave,
-                    obscureText: !_verClave,
-                    autocorrect: false,
-                    enableSuggestions: false,
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: (_) => _entrar(),
-                    onChanged: (_) {
-                      if (_error != null) setState(() => _error = null);
-                    },
-                    style: CockpitText.bodyMd.copyWith(
-                      color: CockpitColors.onSurface,
-                    ),
-                    decoration: _decoracion(
-                      icono: Icons.lock_outline,
-                      hint: '••••••••',
-                      error: _error,
-                      sufijo: IconButton(
-                        tooltip: _verClave
-                            ? 'Ocultar contraseña'
-                            : 'Mostrar contraseña',
-                        icon: Icon(
-                          _verClave
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                          size: 20,
-                          color: CockpitColors.onSurfaceVariant,
+        child: Stack(
+          children: <Widget>[
+            Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 64, 20, 20),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      const _Marca(),
+                      const SizedBox(height: 28),
+                      _etiqueta('USUARIO'),
+                      TextField(
+                        key: const Key('login-usuario'),
+                        controller: _usuario,
+                        keyboardType: TextInputType.text,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        textInputAction: TextInputAction.next,
+                        style: CockpitText.bodyMd.copyWith(
+                          color: CockpitColors.onSurface,
                         ),
-                        onPressed: () => setState(() => _verClave = !_verClave),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  _AccesoRapido(alElegir: _rellenar),
-                  const SizedBox(height: 12),
-                  const _AvisoLocal(),
-                  const SizedBox(height: 20),
-                  Pressable(
-                    child: FilledButton(
-                      key: const Key('login-entrar'),
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size.fromHeight(52),
-                        textStyle: const TextStyle(
-                          fontFamily: CockpitText.sans,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                        onChanged: (_) {
+                          if (_error != null) setState(() => _error = null);
+                        },
+                        decoration: _decoracion(
+                          icono: Icons.person_outline,
+                          hint: 'usuario',
                         ),
                       ),
-                      onPressed: _entrar,
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Text('Iniciar Sesión'),
-                          SizedBox(width: 8),
-                          Icon(Icons.arrow_forward, size: 18),
-                        ],
+                      const SizedBox(height: 16),
+                      _etiqueta('CONTRASEÑA'),
+                      TextField(
+                        key: const Key('login-clave'),
+                        controller: _clave,
+                        obscureText: !_verClave,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _entrar(),
+                        onChanged: (_) {
+                          if (_error != null) setState(() => _error = null);
+                        },
+                        style: CockpitText.bodyMd.copyWith(
+                          color: CockpitColors.onSurface,
+                        ),
+                        decoration: _decoracion(
+                          icono: Icons.lock_outline,
+                          hint: '••••••••',
+                          error: _error,
+                          sufijo: IconButton(
+                            tooltip: _verClave
+                                ? 'Ocultar contraseña'
+                                : 'Mostrar contraseña',
+                            icon: Icon(
+                              _verClave
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                              size: 20,
+                              color: CockpitColors.onSurfaceVariant,
+                            ),
+                            onPressed: () =>
+                                setState(() => _verClave = !_verClave),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    key: const Key('login-demo'),
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      minimumSize: const Size.fromHeight(52),
-                      textStyle: const TextStyle(
-                        fontFamily: CockpitText.sans,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                      const SizedBox(height: 22),
+                      Pressable(
+                        child: FilledButton(
+                          key: const Key('login-entrar'),
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size.fromHeight(52),
+                            textStyle: const TextStyle(
+                              fontFamily: CockpitText.sans,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          onPressed: _entrar,
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text('Iniciar Sesión'),
+                              SizedBox(width: 8),
+                              Icon(Icons.arrow_forward, size: 18),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                    onPressed: _entrarDemo,
-                    icon: const Icon(Icons.science_outlined, size: 18),
-                    label: const Text('Modo Demo (Offline)'),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Entra como Operador con telemetría simulada, sin red ni robot.',
-                    textAlign: TextAlign.center,
-                    style: CockpitText.bodySm.copyWith(
-                      color: CockpitColors.outline,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  const Center(child: PastillaMqtt()),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      'Universidad Católica Andrés Bello · Ingeniería',
-                      key: const Key('login-pie'),
-                      textAlign: TextAlign.center,
-                      softWrap: true,
-                      style: CockpitText.telemetrySm.copyWith(
-                        color: CockpitColors.outline,
+                      const SizedBox(height: 8),
+                      Center(
+                        child: TextButton.icon(
+                          key: const Key('login-acceso-rapido'),
+                          style: TextButton.styleFrom(
+                            minimumSize: const Size(44, 44),
+                            foregroundColor: CockpitColors.onSurfaceVariant,
+                            textStyle: CockpitText.bodySm.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          onPressed: _mostrarAccesoRapido,
+                          icon: const Icon(Icons.info_outline, size: 16),
+                          label: const Text('Acceso rápido'),
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 28),
+                      const Center(child: PastillaMqtt()),
+                      const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          'Universidad Católica Andrés Bello · Ingeniería',
+                          key: const Key('login-pie'),
+                          textAlign: TextAlign.center,
+                          softWrap: true,
+                          style: CockpitText.telemetrySm.copyWith(
+                            color: CockpitColors.outline,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+            Positioned(
+              top: 12,
+              right: 16,
+              child: Semantics(
+                button: true,
+                label: 'Entrar en Modo Demo (Offline)',
+                child: OutlinedButton.icon(
+                  key: const Key('login-demo'),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: CockpitColors.surfaceContainer.withValues(
+                      alpha: 0.85,
+                    ),
+                    foregroundColor: CockpitColors.onSurfaceVariant,
+                    minimumSize: const Size(44, 42),
+                    tapTargetSize: MaterialTapTargetSize.padded,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    shape: const StadiumBorder(),
+                    side: BorderSide(
+                      color: CockpitColors.outlineVariant.withValues(
+                        alpha: 0.6,
+                      ),
+                    ),
+                    textStyle: CockpitText.labelMd.copyWith(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  onPressed: _entrarDemo,
+                  icon: const Icon(
+                    Icons.science_outlined,
+                    size: 16,
+                    color: CockpitColors.primary,
+                  ),
+                  label: const Text('Demo'),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
