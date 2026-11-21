@@ -542,7 +542,7 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
         <p class="nota" id="ruta-ensenada">Sin captura aún</p>
       </div>
 
-      <details class="det" id="det-control">
+      <details class="det" id="det-control" hidden>
         <summary>Editor de cinta <small>T1–T4 · retirar 0,5 m · restaurar</small></summary>
         <div class="det-cuerpo">
           <div class="fila" id="cinta-tramos" aria-label="Tramos de cinta"></div>
@@ -1402,10 +1402,13 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
     if (al) { el.textContent = al.t; el.className = "alerta ver" + (al.n ? " " + al.n : ""); }
     else { el.textContent = "Sin alertas"; el.className = "alerta vacia"; }
 
-    /* Stepper 4 etapas + botón contextual + obstáculo */
+    /* Stepper 4 etapas + botón contextual + obstáculo + Editor de cinta (solo tras activar Torre B1) */
     actualizarStepper();
     actualizarBotonesContextuales();
     actualizarControlesObstaculo();
+    var detControl = $("det-control");
+    detControl.hidden = !ap.balizasActivas;
+    if (!ap.balizasActivas) detControl.open = false;
 
     $("ruta-ensenada").textContent = ap.viajeActivo && (ap.estado === "SLOW_READING" || ap.estado === "NORMAL_READING")
       ? (ap.estado === "SLOW_READING" ? "Lectura lenta… " : "Pasada normal… ") + Math.round(sim.s / sim.L * 100) + " %"
