@@ -201,8 +201,8 @@
   padding: 6px 12px;
   background: var(--s2-surf2);
   border-top: 1px solid var(--s2-borde);
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   align-items: center;
   box-sizing: border-box;
@@ -232,6 +232,11 @@
 .btn-freno-perm:hover { background: #dc2626; }
 .btn-freno-perm:active { transform: scale(0.985); }
 .btn-freno-perm:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+#btn-principal-ctx { flex: 1 1 220px; width: auto; }
+#btn-secundario { flex: 0 0 auto; width: auto; white-space: nowrap; }
+#btn-freno { flex: 0 0 auto; }
+.btn-ctx[hidden] { display: none; }
 
 /* ---- 6. Cajón deslizable ⚙ Ingeniería / Datos (nunca empuja el canvas ni pausa) ---- */
 .cajon-backdrop {
@@ -494,6 +499,7 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
     <!-- 5. Barra/Dock inferior único: 1 botón principal contextual + Freno Remoto -->
     <div class="acciones-barra" role="region" aria-label="Acciones principales">
       <button type="button" class="btn-ctx" id="btn-principal-ctx">🎓 Iniciar lectura lenta</button>
+      <button type="button" class="btn-ctx" id="btn-secundario" hidden>📡 Activar Torres de Control (opcional)</button>
       <button type="button" class="btn-freno-perm" id="btn-freno">⛔ Freno Remoto</button>
     </div>
   </section>
@@ -846,6 +852,15 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
     reproducir();
     refrescarDom(true);
   }
+  function iniciarPracticaObstaculos() {
+    S.nuevoViaje(sim, 1);
+    sim.velObjetivoMs = A.C.VEL_NORMAL_MS;
+    A.iniciarViaje(ap, "OBSTACLE_PRACTICE", pistaId, sim.L, sim.cinta.length);
+    S.registrar(sim, "Práctica de ruta con línea y obstáculo (sin cambiar validación de Fase 1)");
+    ponerModo("auto");
+    reproducir();
+    refrescarDom(true);
+  }
   function activarFase1() {
     if (!A.activarFase1(ap)) return;
     S.registrar(sim, "Fase 1 · inicializando balizas BLE B1 (Cuarto de Componentes) y B2 (Laboratorio 1)");
@@ -913,6 +928,7 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
       return;
     }
     if (b.accion === "activar_fase1") { activarFase1(); return; }
+    if (b.accion === "practicar_obstaculos") { iniciarPracticaObstaculos(); return; }
     if (b.accion === "sin_cinta") { iniciarPruebaSinCinta(); return; }
     if (b.accion === "esperar" || b.accion === "fase1_info") { refrescarDom(true); return; }
   }
@@ -964,9 +980,13 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
   function actualizarBotonesContextuales() {
     var b = A.etiquetaBoton(ap, corriendo, sim.frenoRemoto);
     var el = $("btn-principal-ctx");
-    el.textContent = b.accion === "activar_fase1" ? "📡 Activar Torres de Control (opcional)" : b.texto;
+    el.textContent = b.texto;
     el.className = b.clase;
     el.disabled = Boolean(b.disabled);
+
+    /* Secundaria: solo en PHASE1_READY, "Activar Torres de Control (opcional)". */
+    var sec = $("btn-secundario");
+    sec.hidden = !(!corriendo && !sim.frenoRemoto && ap.estado === "PHASE1_READY");
   }
 
   function abrirCajon(abrir) {
@@ -1006,6 +1026,7 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
       b.addEventListener("click", function () { cargarPista(b.getAttribute("data-pista")); refrescarDom(true); });
     });
     $("btn-principal-ctx").addEventListener("click", accionPrincipalContextual);
+  $("btn-secundario").addEventListener("click", activarFase1);
     $("btn-sig-viaje").addEventListener("click", ejecutarSiguienteViajeRapido);
     Array.prototype.forEach.call(document.querySelectorAll("[data-meta-viajes]"), function (b) {
       b.addEventListener("click", function () {
@@ -1131,7 +1152,19 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
     return { x: (cx - r.left - vista.ox) / vista.sc, y: (vista.oy - (cy - r.top)) / vista.sc, dentro: cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom };
   }
   function obstaculoPermitido() {
-    return Boolean(ap && ap.capturaLentaOk);
+    if (!ap) return false;
+    var est = ap.estado;
+    return est === "PHASE1_READY" || est === "BEACONS_STARTING" || est === "BEACONS_ACTIVE" || est === "NO_TAPE_TEST" || est === "PHASE1_VALIDATED";
+  }
+  /* 3 puntos de control siempre (PC1/PC2/PC3): usa los de la pista B o calcula 3 para la A. */
+  function puntosDeControlDibujo() {
+    if (pistaObj.puntosDeControl && pistaObj.puntosDeControl.length === 3) return pistaObj.puntosDeControl;
+    var L = sim.L || tr.L || 9;
+    return [
+      { id: "PC1", posicionM: L * 0.33 },
+      { id: "PC2", posicionM: L * 0.5 },
+      { id: "PC3", posicionM: L * 0.75 }
+    ];
   }
   function actualizarControlesObstaculo() {
     var permitido = obstaculoPermitido();
@@ -1247,6 +1280,7 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
         : { n: "ok", t: "TORRES B1/B2 ANUNCIANDO · Pista A solo cinta (geometría curva)" };
     }
     if (ap.estado === "TWIN_CREATING") return { n: "ok", t: "GEMELO V1 · BASE CREADA (captura lenta + normal validadas)" };
+    if (ap.estado === "NORMAL_READING") return { n: "ok", t: "PASADA NORMAL (0,41 m/s) · detalla la pista y calibra la firma de paredes del radar delantero (HC-SR04P) para evitar falsos positivos al operar" };
     if (ap.estado === "PHASE1_READY") return { n: "ok", t: "FUNCIONAMIENTO MÍNIMO COMPLETADO · ruta validada con seguidor de línea · Torres de Control (adicional) disponibles" };
     if (sim.llegadaCompleta) return { n: "ok", t: ap.balizasActivas ? "LLEGADA VALIDADA POR BALIZA BLE · viaje registrado" : "VUELTA COMPLETADA · viaje registrado (seguidor de línea)" };
     return null;
@@ -1637,12 +1671,12 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
         var p = tr.puntoEn(centro), ang = tr.rumboPistaGrados(centro) * Math.PI / 180;
         c.fillStyle = "#94a3b8"; c.fillText(t.id, VX(p.x) + Math.sin(ang) * 18, VY(p.y) - Math.cos(ang) * 18);
       });
-      pistaObj.puntosDeControl.forEach(function (pc) {
+      puntosDeControlDibujo().forEach(function (pc) {
         if (pc.posicionM > sim.s) return;
         var p = tr.puntoEn(pc.posicionM), x = VX(p.x), y = VY(p.y);
-        c.fillStyle = "#0b1220"; c.strokeStyle = "#a78bfa"; c.lineWidth = 2;
-        c.beginPath(); c.moveTo(x, y - 8); c.lineTo(x + 6, y); c.lineTo(x, y + 8); c.lineTo(x - 6, y); c.closePath(); c.fill(); c.stroke();
-        c.fillStyle = "#c4b5fd"; c.fillText(pc.id, x, y + 18);
+        c.fillStyle = "#000"; c.strokeStyle = "rgba(203,213,225,0.8)"; c.lineWidth = 1.5;
+        c.fillRect(x - 6, y - 6, 12, 12); c.strokeRect(x - 6, y - 6, 12, 12);
+        c.fillStyle = "#e2e8f0"; c.fillText(pc.id, x, y + 18);
       });
     } else {
       /* Mapa completo (Gemelo V1 creado en adelante) */
@@ -1666,11 +1700,11 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
         var p = tr.puntoEn((t.desdeM + t.hastaM) / 2), ang = tr.rumboPistaGrados((t.desdeM + t.hastaM) / 2) * Math.PI / 180;
         c.fillStyle = "#94a3b8"; c.fillText(t.id, VX(p.x) + Math.sin(ang) * 18, VY(p.y) - Math.cos(ang) * 18);
       });
-      pistaObj.puntosDeControl.forEach(function (pc) {
+      puntosDeControlDibujo().forEach(function (pc) {
         var p = tr.puntoEn(pc.posicionM), x = VX(p.x), y = VY(p.y);
-        c.fillStyle = "#0b1220"; c.strokeStyle = "#a78bfa"; c.lineWidth = 2;
-        c.beginPath(); c.moveTo(x, y - 8); c.lineTo(x + 6, y); c.lineTo(x, y + 8); c.lineTo(x - 6, y); c.closePath(); c.fill(); c.stroke();
-        c.fillStyle = "#c4b5fd"; c.fillText(pc.id, x, y + 18);
+        c.fillStyle = "#000"; c.strokeStyle = "rgba(203,213,225,0.8)"; c.lineWidth = 1.5;
+        c.fillRect(x - 6, y - 6, 12, 12); c.strokeRect(x - 6, y - 6, 12, 12);
+        c.fillStyle = "#e2e8f0"; c.fillText(pc.id, x, y + 18);
       });
       var mostrarTorres = ap.estado === "PHASE1_READY" || ap.estado === "BEACONS_STARTING" || ap.estado === "BEACONS_ACTIVE" || ap.estado === "NO_TAPE_TEST" || ap.estado === "PHASE1_VALIDATED" || ap.balizasActivas;
       if (mostrarTorres) dibujarTorresBLE(c, ahora, w);

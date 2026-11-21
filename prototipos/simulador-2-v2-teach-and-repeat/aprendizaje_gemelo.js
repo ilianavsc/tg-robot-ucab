@@ -101,6 +101,9 @@
     } else if (tipo === "NO_TAPE_TEST") {
       ap.estado = "NO_TAPE_TEST";
       ap.madurez = "Validado Fase 1";
+    } else if (tipo === "OBSTACLE_PRACTICE") {
+      ap.estado = "PHASE1_READY";
+      ap.madurez = "Validado Fase 1";
     } else {
       ap.estado = "ADJUSTING";
       ap.madurez = "En ajuste";
@@ -168,6 +171,15 @@
     var va = ap.viajeActivo;
     if (!va) return null;
     ap.viajeActivo = null;
+
+    /* Práctica con obstáculos (PHASE1_READY): no cuenta para validación ni puede fallar. */
+    if (va.trip_type === "OBSTACLE_PRACTICE") {
+      var regP = construirRegistro(va, ap.modeloDinamico.wheel_tau_s, true, stopReason || "none");
+      ap.viajes.push(regP);
+      ap.estado = "PHASE1_READY";
+      ap.madurez = "Validado Fase 1";
+      return regP;
+    }
 
     var cov = Math.min(100, (va.nCeldasVistas / va.numCeldas) * 100);
     var valido = Boolean(llego) && (!stopReason || stopReason === "none") && cov >= C.UMBRAL_COBERTURA_PCT;
@@ -367,7 +379,7 @@
     }
     if (ap.estado === "EVALUATION_PENDING") return { texto: "📊 Evaluar gemelo", clase: "btn-ctx ok", accion: "evaluar", disabled: false };
     if (ap.estado === "ADJUSTMENT_REQUIRED") return { texto: "🔧 Continuar ajustes", clase: "btn-ctx aviso", accion: "ajuste", disabled: false };
-    if (ap.estado === "PHASE1_READY") return { texto: "📡 Activar Fase 1", clase: "btn-ctx ok", accion: "activar_fase1", disabled: false };
+    if (ap.estado === "PHASE1_READY") return { texto: "🛤️ Probar ruta con obstáculos", clase: "btn-ctx ok", accion: "practicar_obstaculos", disabled: false };
     if (ap.estado === "BEACONS_STARTING") return { texto: "⏳ Inicializando balizas…", clase: "btn-ctx aviso", accion: "esperar", disabled: true };
     if (ap.estado === "BEACONS_ACTIVE") {
       if (!ap.permiteSinCinta) return { texto: "✓ Balizas activas (solo cinta en Pista A)", clase: "btn-ctx", accion: "fase1_info", disabled: true };
