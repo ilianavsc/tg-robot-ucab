@@ -326,6 +326,12 @@
 .estados-chips span.pausa { border-color: var(--s2-warn); background: rgba(245, 158, 11, 0.16); color: #fde68a; }
 
 .lecturas-bar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.esp-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-top: 6px; }
+.esp-card { background: var(--s2-bg); border: 1px solid var(--s2-borde); border-radius: 8px; padding: 7px 9px; min-width: 0; }
+.esp-card small { display: block; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--s2-muted); margin-bottom: 2px; }
+.esp-card strong { display: block; font-family: var(--font-mono); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; color: #e2e8f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.esp-card strong.cyan { color: #7dd3fc; }
+.esp-card strong.ok { color: #86efac; }
 .lectura-celda { background: var(--s2-bg); border: 1px solid var(--s2-borde); border-radius: 8px; padding: 6px 8px; min-width: 0; }
 .lectura-celda small { display: block; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--s2-muted); margin-bottom: 2px; }
 .lectura-celda strong { display: block; font-family: var(--font-mono); font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--s2-txt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -570,12 +576,17 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
       </details>
     </section>
 
-    <!-- Pestaña 2: Diagnóstico -->
+    <!-- Pestaña 2: Diagnóstico (Tablero ESP32 virtual · solo telemetría y estado en vivo) -->
     <section class="tab-panel" id="tab-diagnostico" role="tabpanel" aria-labelledby="tbtn-diagnostico">
+      <!-- 1. Estado del sistema -->
       <div class="panel">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
-          <h3 style="margin:0">Estados (14 aprendizaje + 5 núcleo)</h3>
+          <h3 style="margin:0">ESP32 virtual · Estado del sistema</h3>
           <span class="estado-badge" id="estado-activo" aria-live="polite">—</span>
+        </div>
+        <div class="esp-grid" style="margin-top:0;margin-bottom:8px">
+          <div class="esp-card"><small>Aprendizaje (14 est.)</small><strong class="cyan" id="diag-ap-estado">INITIAL</strong></div>
+          <div class="esp-card"><small>Modo / Pista</small><strong id="diag-modo-pista">AUTO · Pista B</strong></div>
         </div>
         <div class="estados-chips" id="estados-ap-chips" aria-label="14 estados de aprendizaje" style="margin-bottom:6px"></div>
         <div class="estados-chips" id="estados-chips" aria-label="5 estados del núcleo"></div>
@@ -583,46 +594,63 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
         <p class="nota" id="barra-resumen">—</p>
       </div>
 
-      <div class="lecturas-bar" aria-label="Lecturas en tiempo real">
+      <!-- 2. Sensores en vivo (solo lectura) -->
+      <div class="tel">
+        <div class="panel">
+          <h3>Línea · 4 × TCRT5000 (izq → der)</h3>
+          <div class="tcrt" id="tcrt-bin" aria-live="off"></div>
+          <div class="sub" id="tcrt-txt">[—]</div>
+        </div>
+
+        <div class="panel">
+          <h3>Ultrasonidos (HC-SR04P) · Velocidad y odometría</h3>
+          <div class="esp-grid" style="margin-top:0">
+            <div class="esp-card"><small>HC-SR04P Frontal</small><div class="val" id="us-frente">—</div></div>
+            <div class="esp-card"><small>HC-SR04P Trasero</small><div class="val" id="us-atras">—</div></div>
+            <div class="esp-card"><small>Velocidad lineal</small><div class="val" id="mov-vel">—</div></div>
+            <div class="esp-card"><small>Odometría (s / L)</small><strong class="cyan" id="diag-odom">0,00 / 9,00 m</strong></div>
+          </div>
+          <div class="sub" id="mov-detalle">—</div>
+        </div>
+
+        <div class="panel">
+          <h3>Inercial · MPU-6050 (rumbo y vel. angular)</h3>
+          <div class="esp-grid" style="margin-top:0">
+            <div class="esp-card"><small>Rumbo (Yaw)</small><div class="val" id="mpu-rumbo">—</div></div>
+            <div class="esp-card"><small>Vel. angular (ω)</small><strong class="cyan" id="diag-omega">0,0 °/s</strong></div>
+          </div>
+          <div class="sub" id="mpu-deriva">Deriva en HEADING_HOLD: —</div>
+          <div class="barra"><i id="mpu-barra"></i></div>
+        </div>
+
+        <!-- 3. Comunicaciones / Balizas -->
+        <div class="panel">
+          <h3>Comunicaciones · MQTT y Balizas BLE</h3>
+          <div class="esp-card" style="margin-bottom:6px">
+            <small>Enlace MQTT (respaldo)</small>
+            <strong class="ok" id="diag-mqtt-estado">En espera · HiveMQ → EMQX → Mosquitto</strong>
+          </div>
+          <div class="sub" id="ble-torres-mqtt">Torres de Control MQTT: en espera (respaldo HiveMQ → EMQX → Mosquitto).</div>
+          <div id="diag-torres-bloque" hidden style="margin-top:8px;padding-top:8px;border-top:1px solid var(--s2-borde)">
+            <div class="val sin" id="ble-rssi">—</div>
+            <div class="barra"><i id="ble-barra"></i></div>
+            <div class="torres-pills">
+              <span class="torre-pill apagada" id="torre-b1">B1 Cuarto Comp. · apagada</span>
+              <span class="torre-pill apagada" id="torre-b2">B2 Lab 1 · apagada</span>
+            </div>
+            <div class="sub" id="ble-validacion">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lecturas-bar" hidden aria-hidden="true">
         <div class="lectura-celda"><small>TCRT</small><strong id="bar-tcrt">[0, 1, 1, 0]</strong></div>
         <div class="lectura-celda"><small>Ultrasónicos</small><strong id="bar-us">F — · A —</strong></div>
         <div class="lectura-celda"><small>MPU + BLE</small><strong id="bar-mpu-ble">0,0° · BLE apagada</strong></div>
         <div class="lectura-celda"><small>Error gemelo</small><strong id="bar-err">0,0 cm · 0,00 m/s</strong></div>
       </div>
 
-      <div class="tel">
-        <div class="panel">
-          <h3>4 × TCRT5000 (izq → der)</h3>
-          <div class="tcrt" id="tcrt-bin" aria-live="off"></div>
-          <div class="sub" id="tcrt-txt">[—]</div>
-        </div>
-        <div class="panel">
-          <h3>2 × HC-SR04P y movimiento</h3>
-          <div class="val" id="us-frente">—</div>
-          <div class="val" id="us-atras" style="margin-top:4px">—</div>
-          <div class="val" id="mov-vel" style="margin-top:6px">—</div>
-          <div class="sub" id="mov-detalle">—</div>
-        </div>
-        <div class="panel">
-          <h3>MPU-6050 (rumbo relativo)</h3>
-          <div class="val" id="mpu-rumbo">—</div>
-          <div class="sub" id="mpu-deriva">Deriva en HEADING_HOLD: —</div>
-          <div class="barra"><i id="mpu-barra"></i></div>
-        </div>
-        <div class="panel">
-          <h3>BLE RSSI · Torres de Control (B1/B2)</h3>
-          <div class="val sin" id="ble-rssi">—</div>
-          <div class="barra"><i id="ble-barra"></i></div>
-          <div class="torres-pills">
-            <span class="torre-pill apagada" id="torre-b1">B1 Cuarto Comp. · apagada</span>
-            <span class="torre-pill apagada" id="torre-b2">B2 Lab 1 · apagada</span>
-          </div>
-          <div class="sub" id="ble-validacion">—</div>
-          <div class="sub" id="ble-torres-mqtt">Torres de Control MQTT: en espera (respaldo HiveMQ → EMQX → Mosquitto).</div>
-        </div>
-      </div>
-
-      <details class="det" id="det-fallas">
+      <details class="det" id="det-fallas" hidden aria-hidden="true">
         <summary>Inyección de fallos <small>obstáculo · deriva · empujón</small></summary>
         <div class="det-cuerpo">
           <div class="fila">
@@ -1328,6 +1356,8 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
     var estEl = $("estado-activo");
     estEl.textContent = texto;
     estEl.className = "estado-badge" + (alertaSeg || (sim.ultimaSalida && sim.ultimaSalida.frenadoCritico) ? " alerta" : (sim.frenoRemoto || manual ? " aviso" : (sim.llegadaCompleta ? " ok" : "")));
+    $("diag-ap-estado").textContent = ap.estado;
+    $("diag-modo-pista").textContent = (manual ? "MANUAL" : "AUTO") + " · Pista " + tr.id;
 
     estadosApChips.forEach(function (c, i) {
       var st = A.ESTADOS[i];
@@ -1338,25 +1368,30 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
     });
     $("evento-actual").textContent = "Evento del núcleo: " + (sim.ultimaSalida && sim.ultimaSalida.evento ? sim.ultimaSalida.evento : "—") +
       (sim.ultimaSalida && sim.ultimaSalida.precaucion ? " · precaución (×0,5)" : "");
-    $("barra-resumen").textContent = tr.id + " · " + fmt(sim.t, 1) + " s · " + fmt(sim.s, 2) + "/" + fmt(sim.L, 2) + " m";
+    $("barra-resumen").textContent = "Pista " + tr.id + " · t = " + fmt(sim.t, 1) + " s · s = " + fmt(sim.s, 2) + "/" + fmt(sim.L, 2) + " m";
 
     var sens = sim.sensores || S.sensoresActuales(sim);
     tcrtEls.forEach(function (e, i) { e.className = "s" + (sens.bin[i] ? " on" : ""); e.firstChild.nodeValue = "S" + (i + 1) + " " + sens.bin[i]; e.lastChild.textContent = sens.n[i].toFixed(2); });
     $("tcrt-txt").textContent = "[" + sens.bin.join(", ") + "] · línea " + (sens.hayCinta ? "detectada" : "perdida") + " · línea_mm = " + (sens.bin.some(function (b) { return b; }) ? fmt(nucleo.posicionLinea(sens.n).linea_mm, 1) : "—") + " mm";
 
     var ym = S.yawMedido(sim);
-    $("mpu-rumbo").textContent = fmt(ym, 1) + "° medido · " + fmt(sim.yawAbs, 1) + "° real";
+    var omegaDps = (sim.vIzq - sim.vDer) * S.P.V_MAX_MS / S.P.ANCHO_EJES_M * 180 / Math.PI;
+    $("mpu-rumbo").textContent = fmt(ym, 1) + "°";
+    $("diag-omega").textContent = fmt(omegaDps, 1) + " °/s";
     var enHold = sim.nav.estado === nucleo.ESTADO.HEADING_HOLD && !manual;
     var err = nucleo.anguloNormalizado(ym - sim.nav.rumboObjetivo);
-    $("mpu-deriva").textContent = "Deriva en HEADING_HOLD: " + fmt(sim.derivaEnHoldGrados, 2) + "° (pico " + fmt(sim.derivaPicoGrados, 2) + "°) · sesgo " + fmt(sim.sesgoDps, 2) + " °/s" + (enHold ? " · error " + fmt(err, 2) + "°" : "");
+    $("mpu-deriva").textContent = "Deriva en HEADING_HOLD: " + fmt(sim.derivaEnHoldGrados, 2) + "° (pico " + fmt(sim.derivaPicoGrados, 2) + "°) · real " + fmt(sim.yawAbs, 1) + "°" + (enHold ? " · error " + fmt(err, 2) + "°" : "");
     $("mpu-barra").style.width = Math.min(100, Math.abs(enHold ? err : 0) / C.DRIFT_MAX_GRADOS * 100) + "%";
 
     var f = S.frenteActualCm(sim), a = S.atrasActualCm(sim);
     var zf = S.zonaFrente(sim, f), za = S.zonaFrente(sim, a);
     $("us-frente").className = "val " + zf; $("us-atras").className = "val " + za;
-    $("us-frente").textContent = "Frente: " + (f > 0 ? fmt(f, 0) + " cm" : "sin eco") + " · " + zonaTxt(zf);
-    $("us-atras").textContent = "Atrás: " + fmt(a, 0) + " cm · " + zonaTxt(za);
+    $("us-frente").textContent = (f > 0 ? fmt(f, 0) + " cm" : "sin eco");
+    $("us-atras").textContent = fmt(a, 0) + " cm";
+    $("diag-odom").textContent = fmt(sim.s, 2) + " / " + fmt(sim.L, 2) + " m";
 
+    var mostrarTorresDiag = ap.estado === "PHASE1_READY" || ap.estado === "BEACONS_STARTING" || ap.estado === "BEACONS_ACTIVE" || ap.estado === "NO_TAPE_TEST" || ap.estado === "PHASE1_VALIDATED" || ap.balizasActivas;
+    $("diag-torres-bloque").hidden = !mostrarTorresDiag;
     var rs = S.rssiActual(sim);
     var hay = ap.balizasActivas && rs.rssi >= C.RSSI_DETECTA_DBM;
     var stB1 = A.estadoBaliza(ap, "B1", rs, C.RSSI_DETECTA_DBM, C.RSSI_LLEGADA_DBM);
@@ -1371,9 +1406,12 @@ details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--
     $("torre-b2").textContent = "B2 Lab 1 · " + (stB2 === "rssi_valido" ? fmt(rs.rssi, 0) + " dBm" : txtB[stB2]);
     var lleg = sim.llegadaCompleta ? "LLEGADA VALIDADA por RSSI" : (sim.nav.estado === nucleo.ESTADO.WAIT_BEACON ? "WAIT_BEACON: esperando ≥ " + C.RSSI_LLEGADA_DBM + " dBm" : "solo anuncios BLE sin GATT (circuito cerrado: B1/B2 coinciden en origen)");
     $("ble-validacion").textContent = "Detecta ≥ " + C.RSSI_DETECTA_DBM + " dBm · llegada ≥ " + C.RSSI_LLEGADA_DBM + " dBm · " + lleg + ".";
+    $("diag-mqtt-estado").textContent = ap.mqttTorres.activo
+      ? ("Activo (" + ap.mqttTorres.broker + ") · " + ap.mqttTorres.descargas + " viajes")
+      : ("En espera · " + ap.mqttTorres.respaldo);
     $("ble-torres-mqtt").textContent = ap.mqttTorres.activo
       ? "Torres de Control MQTT activo (" + ap.mqttTorres.respaldo + ") · descarga sincronizada del gemelo (" + ap.mqttTorres.descargas + " viajes)."
-      : "Torres de Control MQTT: en espera de Fase 1 (respaldo " + ap.mqttTorres.respaldo + ").";
+      : "Enlace MQTT listo para Torres de Control (respaldo " + ap.mqttTorres.respaldo + ").";
 
     var vel = fmt(Math.abs(sim.vLineal), 2);
     $("mov-vel").textContent = vel + " m/s";
