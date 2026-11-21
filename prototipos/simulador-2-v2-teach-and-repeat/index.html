@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="../../assets/css/style.css">
 <style>
 /* ======================================================================
-   Simulador 2 V2 · Etapa 1: Cockpit + Stepper 4 etapas + Dock móvil + 3 paneles
+   Simulador 2 V2 · Etapa 4: Poda UI/UX Canvas-First + HUD mínimo + Cajón Ingeniería
    ====================================================================== */
 :root {
   --s2-bg: #0B1220;
@@ -25,80 +25,94 @@
   --s2-err: #EF4444;
 }
 
-.s2-wrap { max-width: 1220px; margin: 0 auto; padding: 10px 16px 24px; }
-.s2-volver { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--text-muted); text-decoration: none; margin-bottom: 8px; min-height: 36px; }
-.s2-volver:hover { color: var(--accent-primary); }
+#menu { display: none; }
+.s2-wrap { max-width: 1248px; margin: 0 auto; padding: 6px 12px 10px; }
 
-#aviso-carga { margin: 0 0 10px; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--s2-warn); background: rgba(245, 158, 11, 0.12); color: #fde68a; font-family: var(--font-mono); font-size: 12px; }
+#aviso-carga { margin: 0 0 8px; padding: 8px 12px; border-radius: 10px; border: 1.5px solid var(--s2-warn); background: rgba(245, 158, 11, 0.12); color: #fde68a; font-family: var(--font-mono); font-size: 12px; }
 #aviso-carga.error { border-color: var(--s2-err); background: rgba(239, 68, 68, 0.16); color: #fecaca; }
 #aviso-carga.listo { display: none; }
 
 .sim2 {
   background: var(--s2-surf);
   color: var(--s2-txt);
-  border: 2px solid var(--s2-borde);
+  border: 1.5px solid var(--s2-borde);
   border-radius: 12px;
   box-shadow: 0 12px 32px rgba(2, 6, 23, 0.35);
   overflow: hidden;
-  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
 }
 
-/* ---- 1. Cabecera Cockpit compacta ---- */
+/* ---- 1. Cabecera compacta 44 px ---- */
 .cockpit-hdr {
+  height: 44px;
+  min-height: 44px;
   background: var(--s2-surf2);
-  padding: 10px 16px;
+  padding: 0 10px;
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px 14px;
+  gap: 8px;
   border-bottom: 1px solid var(--s2-borde);
+  box-sizing: border-box;
 }
-.cockpit-id { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; min-width: 0; }
-.cockpit-titulo { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 17px; color: #fff; line-height: 1.15; }
+.cockpit-id { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.btn-ret {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 36px; min-height: 36px; padding: 0 8px; border-radius: 8px;
+  color: var(--s2-muted); text-decoration: none; font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+  border: 1px solid transparent; transition: background-color 0.14s, color 0.14s;
+}
+.btn-ret:hover { color: #fff; background: rgba(56, 189, 248, 0.14); border-color: var(--s2-borde); }
+.cockpit-titulo { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 15.5px; color: #fff; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .badge-sil {
-  font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
-  padding: 3px 8px; border-radius: 999px; background: rgba(56, 189, 248, 0.16); border: 1px solid var(--s2-prim); color: #7dd3fc;
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em;
+  padding: 2px 7px; border-radius: 999px; background: rgba(56, 189, 248, 0.16); border: 1px solid var(--s2-prim); color: #7dd3fc; flex: none;
 }
-.estado-badge {
-  font-family: var(--font-mono); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums;
-  padding: 4px 10px; border-radius: 999px; background: var(--s2-bg); border: 1.5px solid var(--s2-prim); color: #e0f2fe;
-  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.estado-badge.alerta { border-color: var(--s2-err); background: rgba(239, 68, 68, 0.18); color: #fecaca; }
-.estado-badge.aviso { border-color: var(--s2-warn); background: rgba(245, 158, 11, 0.16); color: #fde68a; }
-.estado-badge.ok { border-color: var(--s2-ok); background: rgba(34, 197, 94, 0.16); color: #bbf7d0; }
 
-.cockpit-hdr-der { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-#barra-resumen { font-family: var(--font-mono); font-size: 11.5px; font-variant-numeric: tabular-nums; color: var(--s2-muted); white-space: nowrap; }
+.cockpit-hdr-der { display: flex; align-items: center; gap: 8px; flex: none; }
 .vel-seg {
-  display: inline-flex; background: var(--s2-bg); border: 1.5px solid var(--s2-borde); border-radius: 10px; overflow: hidden;
+  display: inline-flex; background: var(--s2-bg); border: 1px solid var(--s2-borde); border-radius: 8px; overflow: hidden;
 }
 .vel-seg button {
-  font-family: var(--font-mono); font-size: 12px; font-weight: 700; min-width: 44px; min-height: 44px;
-  padding: 0 10px; border: none; border-right: 1px solid var(--s2-borde); background: transparent; color: var(--s2-muted);
+  font-family: var(--font-mono); font-size: 11.5px; font-weight: 700; min-width: 38px; min-height: 36px;
+  padding: 0 8px; border: none; border-right: 1px solid var(--s2-borde); background: transparent; color: var(--s2-muted);
   cursor: pointer; touch-action: manipulation; transition: background-color 0.14s ease-out, color 0.14s ease-out;
 }
 .vel-seg button:last-child { border-right: none; }
 .vel-seg button.sel, .vel-seg button[aria-pressed="true"] { background: rgba(56, 189, 248, 0.22); color: #e0f2fe; }
 .vel-seg button:focus-visible { outline: 2px solid var(--s2-prim); outline-offset: -2px; }
 
-/* ---- 2. Selector de pista segmentado ---- */
-.pista-bar {
+.btn-ing {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-width: 44px; min-height: 44px; height: 44px; padding: 0 12px;
+  border: none; border-left: 1px solid var(--s2-borde); margin-right: -10px;
+  background: rgba(56, 189, 248, 0.12); color: #e0f2fe;
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  cursor: pointer; touch-action: manipulation; white-space: nowrap;
+  transition: background-color 0.14s ease-out;
+}
+.btn-ing:hover { background: rgba(56, 189, 248, 0.24); }
+.btn-ing[aria-expanded="true"] { background: var(--s2-prim); color: #0b1220; }
+.btn-ing:focus-visible { outline: 2px solid var(--s2-prim); outline-offset: -2px; }
+
+/* ---- 2. Fila compacta 42 px: Selector de pista + Stepper 4 etapas en 1 sola línea ---- */
+.pista-stepper-row {
+  min-height: 42px;
   background: var(--s2-bg);
-  padding: 8px 16px;
+  padding: 4px 10px;
   border-bottom: 1px solid var(--s2-borde);
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px 14px;
+  gap: 10px;
+  box-sizing: border-box;
 }
 .pista-seg {
-  display: inline-flex; background: var(--s2-surf); border: 1.5px solid var(--s2-borde); border-radius: 10px; overflow: hidden;
+  display: inline-flex; background: var(--s2-surf); border: 1px solid var(--s2-borde); border-radius: 8px; overflow: hidden; flex: none;
 }
 .pista-seg .pista-op {
-  font-family: var(--font-mono); font-size: 12px; font-weight: 700; min-height: 44px; padding: 6px 14px;
+  font-family: var(--font-mono); font-size: 11.5px; font-weight: 700; min-height: 34px; padding: 4px 11px;
   border: none; border-right: 1px solid var(--s2-borde); background: transparent; color: var(--s2-muted);
   cursor: pointer; touch-action: manipulation; white-space: nowrap;
   transition: background-color 0.14s ease-out, color 0.14s ease-out;
@@ -106,151 +120,94 @@
 .pista-seg .pista-op:last-child { border-right: none; }
 .pista-seg .pista-op.sel, .pista-seg .pista-op[aria-pressed="true"] { background: rgba(56, 189, 248, 0.22); color: #fff; box-shadow: inset 0 -2px 0 var(--s2-prim); }
 .pista-seg .pista-op:focus-visible { outline: 2px solid var(--s2-prim); outline-offset: -2px; }
-.pista-nota { margin: 0; font-family: var(--font-mono); font-size: 11.5px; color: var(--s2-muted); }
 
-/* ---- 3. Ranura fija de alertas (visibility, nunca hidden -> delta = 0 px) ---- */
-.alerta-slot { height: 62px; padding: 8px 16px; display: flex; align-items: center; box-sizing: border-box; background: var(--s2-surf); }
+/* Stepper 4 etapas en 1 línea */
+.stepper-linea {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden;
+}
+.step-item {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 9px; border-radius: 999px;
+  background: var(--s2-surf); border: 1px solid var(--s2-borde);
+  font-family: var(--font-mono); font-size: 11px; color: var(--s2-muted);
+  white-space: nowrap; transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+.step-item.activo { border-color: var(--s2-prim); background: rgba(56, 189, 248, 0.16); color: #e0f2fe; font-weight: 700; }
+.step-item.hecho { border-color: rgba(34, 197, 94, 0.6); color: #86efac; }
+.step-item.creando { border-color: var(--s2-ok); background: rgba(34, 197, 94, 0.2); color: #bbf7d0; }
+.step-item.fallo { border-color: var(--s2-err); background: rgba(239, 68, 68, 0.18); color: #fecaca; }
+.step-item.bloqueado { opacity: 0.6; border-style: dashed; }
+.step-num {
+  width: 20px; height: 20px; border-radius: 50%; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+  border: 1px solid var(--s2-borde); color: var(--s2-muted); background: var(--s2-bg);
+}
+.step-item.activo .step-num { border-color: var(--s2-prim); color: #e0f2fe; background: rgba(56, 189, 248, 0.22); }
+.step-item.hecho .step-num { border-color: var(--s2-ok); background: var(--s2-ok); color: #052e16; }
+.step-nom { line-height: 1; }
+
+/* ---- 3. Ranura fija de alertas (altura fija 62px / 46px, visibility, delta = 0 px) ---- */
+.alerta-slot { height: 62px; padding: 8px 12px; display: flex; align-items: center; box-sizing: border-box; background: var(--s2-surf); border-bottom: 1px solid rgba(51, 65, 85, 0.5); }
 .alerta { width: 100%; height: 46px; box-sizing: border-box; overflow: hidden; line-height: 1.2; display: flex; align-items: center; justify-content: center; text-align: center; padding: 6px 12px; border-radius: 10px; border: 1.5px solid var(--s2-borde); background: var(--s2-surf2); color: var(--s2-muted); font-family: var(--font-mono); font-weight: 700; font-size: 12.5px; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; overflow-wrap: anywhere; visibility: visible; transition: background-color 0.16s ease-out, border-color 0.16s ease-out, color 0.16s ease-out; }
 .alerta.vacia { visibility: hidden; }
 .alerta.ver { border-color: var(--s2-err); background: rgba(185, 28, 28, 0.92); color: #fff; }
 .alerta.aviso { background: rgba(180, 83, 9, 0.92); border-color: var(--s2-warn); color: #fff; }
 .alerta.ok { background: rgba(21, 128, 61, 0.92); border-color: var(--s2-ok); color: #fff; }
 
-/* ---- 4. Cuerpo Cockpit: 2 columnas en Desktop (canvas ~820px + stepper ~320px) ---- */
-.sim2-cuerpo { padding: 0 16px 16px; display: grid; gap: 14px; min-width: 0; }
-.cockpit-main {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 14px;
-  align-items: start;
-  min-width: 0;
-}
-.cockpit-canvas-col { display: grid; gap: 10px; min-width: 0; }
-
-/* Radar y Canvas */
-.radar-escena { position: relative; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--s2-borde); background: var(--s2-bg); }
+/* ---- 4. Canvas dominante (full width, 600 px desktop / >= 500 px móvil) ---- */
+.radar-escena { position: relative; background: var(--s2-bg); width: 100%; overflow: hidden; }
 .lienzo { display: block; width: 100%; background: var(--s2-bg); }
-#lienzo-pista { height: 350px; touch-action: pan-y; cursor: default; }
+#lienzo-pista { height: 600px; touch-action: pan-y; cursor: default; }
 #lienzo-pista.modo-colocar { cursor: crosshair; touch-action: none; }
-#lienzo-zoom { height: 150px; border: 1.5px solid var(--s2-borde); border-radius: 10px; }
+#lienzo-zoom { height: 140px; border: 1.5px solid var(--s2-borde); border-radius: 10px; }
 
-/* Velocímetro SVG (0,00 - 0,46 m/s) */
+/* HUD mínimo flotante: Velocímetro SVG (abajo-izq) + Control único Obstáculo (abajo-der) */
 .velo {
-  position: absolute; bottom: 8px; left: 8px; width: 92px; padding: 6px 8px 5px; border-radius: 10px;
+  position: absolute; bottom: 10px; left: 10px; width: 88px; padding: 5px 7px 4px; border-radius: 10px;
   background: rgba(11, 18, 32, 0.88); border: 1.5px solid rgba(148, 163, 184, 0.3); text-align: center; pointer-events: none;
 }
-.velo svg { width: 76px; height: 42px; display: block; margin: 0 auto; overflow: visible; }
+.velo svg { width: 72px; height: 40px; display: block; margin: 0 auto; overflow: visible; }
 .velo-pista { fill: none; stroke: var(--s2-surf2); stroke-width: 6; stroke-linecap: round; }
 .velo-arco { fill: none; stroke: var(--s2-ok); stroke-width: 6; stroke-linecap: round; transition: stroke 0.2s ease-out; }
 .velo-aguja { stroke: #f8fafc; stroke-width: 2.2; stroke-linecap: round; }
 .velo-pivote { fill: #f8fafc; }
-.velo-val { font-family: var(--font-mono); font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums; color: #86efac; line-height: 1.1; }
-.velo-val small { font-size: 9.5px; font-weight: 600; color: var(--s2-muted); margin-left: 2px; }
-.velo-esc { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 8.5px; color: #64748b; padding: 0 6px; }
+.velo-val { font-family: var(--font-mono); font-weight: 700; font-size: 11.5px; font-variant-numeric: tabular-nums; color: #86efac; line-height: 1.1; }
+.velo-val small { font-size: 9px; font-weight: 600; color: var(--s2-muted); margin-left: 2px; }
+.velo-esc { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 8px; color: #64748b; padding: 0 5px; }
 
-/* Ficha obstáculo Desktop (arrastrable >= 44x44 + acción Mover / Quitar) */
-.obs-dock {
-  position: absolute; right: 8px; bottom: 8px; display: flex; align-items: center; gap: 6px; z-index: 2;
-}
+/* Control flotante único Obstáculo (drag en desktop + tap en móvil, >= 48x48) */
 .obs-base {
-  display: inline-flex; align-items: center; gap: 8px; min-width: 44px; min-height: 44px; padding: 4px 12px 4px 6px;
-  border-radius: 999px; background: rgba(11, 18, 32, 0.9); border: 1.5px dashed var(--s2-err); color: #fecaca;
-  font-family: var(--font-mono); font-size: 11.5px; font-weight: 700; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+  position: absolute; right: 10px; bottom: 10px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 8px;
+  min-width: 48px; min-height: 48px; padding: 4px 13px 4px 8px;
+  border-radius: 999px; background: rgba(11, 18, 32, 0.92); border: 1.5px dashed var(--s2-err); color: #fecaca;
+  font-family: var(--font-mono); font-size: 11.5px; font-weight: 700;
+  cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+  box-shadow: 0 4px 14px rgba(2, 6, 23, 0.55);
+  transition: background-color 0.14s, border-color 0.14s, color 0.14s;
 }
 .obs-base:focus-visible { outline: 2px solid var(--s2-prim); outline-offset: 2px; }
-.obs-ficha { width: 26px; height: 26px; border-radius: 50%; background: var(--s2-err); border: 2px solid #fff; flex: none; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25); }
-.obs-base.usado .obs-ficha { opacity: 0.35; }
-.obs-quitar {
-  display: none; min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1.5px solid var(--s2-borde);
-  background: rgba(11, 18, 32, 0.92); color: var(--s2-txt); font-family: var(--font-mono); font-size: 11px; font-weight: 700; cursor: pointer;
-}
-.obs-quitar.visible { display: inline-flex; align-items: center; }
-.obs-quitar:hover { border-color: var(--s2-err); color: #fecaca; }
+.obs-base.colocando { background: rgba(239, 68, 68, 0.92); border-style: solid; border-color: #fff; color: #fff; }
+.obs-base.usado { border-style: solid; background: rgba(127, 29, 29, 0.86); }
+.obs-ficha { width: 22px; height: 22px; border-radius: 50%; background: var(--s2-err); border: 2px solid #fff; flex: none; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25); }
+.obs-base.usado .obs-ficha { opacity: 0.45; }
 
-/* Botón móvil + Obstáculo (48x48, tap en la pista sin depender del drag) */
-.btn-obs-movil {
-  display: none; position: absolute; right: 8px; top: 8px; z-index: 2;
-  min-width: 48px; min-height: 48px; padding: 0 12px; border-radius: 12px;
-  border: 1.5px solid var(--s2-err); background: rgba(11, 18, 32, 0.92); color: #fecaca;
-  font-family: var(--font-mono); font-size: 11.5px; font-weight: 700; cursor: pointer; touch-action: manipulation;
-  box-shadow: 0 4px 12px rgba(2, 6, 23, 0.5);
-}
-.btn-obs-movil.colocando { background: rgba(239, 68, 68, 0.92); color: #fff; border-color: #fff; }
-.btn-obs-movil:focus-visible { outline: 2px solid var(--s2-prim); outline-offset: 2px; }
-
-.leyenda-us { display: flex; flex-wrap: wrap; gap: 6px 14px; font-family: var(--font-mono); font-size: 11px; color: var(--s2-muted); }
-.leyenda-us i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
-
-/* ---- 5. Barra compacta de lecturas en tiempo real ---- */
-.lecturas-bar {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-}
-.lectura-celda {
-  background: var(--s2-surf2); border: 1px solid var(--s2-borde); border-radius: 10px; padding: 8px 10px; min-width: 0;
-}
-.lectura-celda small { display: block; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--s2-muted); margin-bottom: 3px; }
-.lectura-celda strong { display: block; font-family: var(--font-mono); font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--s2-txt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lectura-celda strong.ok { color: #86efac; }
-.lectura-celda strong.aviso { color: #fde68a; }
-.lectura-celda strong.critica { color: #fecaca; }
-
-/* ---- 6. Columna derecha: Stepper 4 etapas + Botón contextual + Freno Remoto ---- */
-.cockpit-side {
+/* ---- 5. Barra inferior única: 1 CTA contextual + Freno Remoto (60 px desktop / fixed dock móvil) ---- */
+.acciones-barra {
+  min-height: 60px;
+  padding: 6px 12px;
   background: var(--s2-surf2);
-  border: 1.5px solid var(--s2-borde);
-  border-radius: 12px;
-  padding: 10px 12px;
+  border-top: 1px solid var(--s2-borde);
   display: grid;
-  gap: 8px;
-  min-width: 0;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  box-sizing: border-box;
 }
-.stepper-titulo { margin: 0; font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--s2-muted); }
-.stepper { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.step-item {
-  background: var(--s2-surf);
-  border: 1.5px solid var(--s2-borde);
-  border-radius: 10px;
-  padding: 6px 9px;
-  transition: border-color 0.16s ease-out, background-color 0.16s ease-out;
-}
-.step-item.activo { border-color: var(--s2-prim); background: rgba(56, 189, 248, 0.09); }
-.step-item.hecho { border-color: rgba(34, 197, 94, 0.55); }
-.step-item.bloqueado { opacity: 0.65; border-style: dashed; }
-.step-cab { display: flex; align-items: center; gap: 8px; }
-.step-num {
-  width: 24px; height: 24px; border-radius: 50%; flex: none;
-  display: inline-flex; align-items: center; justify-content: center;
-  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
-  border: 1.5px solid var(--s2-borde); color: var(--s2-muted); background: var(--s2-bg);
-}
-.step-item.activo .step-num { border-color: var(--s2-prim); color: #e0f2fe; background: rgba(56, 189, 248, 0.2); }
-.step-item.hecho .step-num { border-color: var(--s2-ok); background: var(--s2-ok); color: #052e16; }
-.step-nom { font-family: var(--font-display); font-weight: 700; font-size: 13.5px; color: #fff; line-height: 1.2; }
-.step-desc { margin: 4px 0 0 32px; font-family: var(--font-mono); font-size: 11px; color: var(--s2-muted); line-height: 1.35; }
-.step-sub { display: flex; flex-wrap: wrap; gap: 4px 8px; margin: 5px 0 0 32px; font-family: var(--font-mono); font-size: 10.5px; color: #7dd3fc; }
-.step-sub span { padding: 2px 6px; border-radius: 6px; background: rgba(11, 18, 32, 0.7); border: 1px solid var(--s2-borde); }
-.step-sub span.ok { border-color: var(--s2-ok); color: #86efac; background: rgba(34, 197, 94, 0.14); }
-.step-item.creando { border-color: var(--s2-ok); background: rgba(34, 197, 94, 0.16); box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3); }
-.step-item.fallo { border-color: var(--s2-err); background: rgba(239, 68, 68, 0.12); }
-.step-accion-inline { margin: 6px 0 0 32px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.meta-seg { display: inline-flex; background: var(--s2-bg); border: 1px solid var(--s2-borde); border-radius: 8px; overflow: hidden; }
-.meta-seg button { font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; min-height: 30px; padding: 2px 8px; border: none; border-right: 1px solid var(--s2-borde); background: transparent; color: var(--s2-muted); cursor: pointer; }
-.meta-seg button:last-child { border-right: none; }
-.meta-seg button.sel { background: rgba(56, 189, 248, 0.22); color: #e0f2fe; }
-.viajes-lista { display: grid; gap: 6px; font-family: var(--font-mono); font-size: 11px; font-variant-numeric: tabular-nums; }
-.viaje-row { background: var(--s2-bg); border: 1px solid var(--s2-borde); border-radius: 8px; padding: 7px 10px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; justify-content: space-between; }
-.viaje-row.invalido { border-color: rgba(239, 68, 68, 0.55); color: #fecaca; }
-.viaje-row.valido { border-color: rgba(34, 197, 94, 0.45); }
-.madurez-pill { display: inline-block; font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--s2-borde); color: var(--s2-muted); background: var(--s2-bg); }
-.madurez-pill.ajuste { border-color: var(--s2-warn); color: #fde68a; }
-.madurez-pill.validado { border-color: var(--s2-ok); color: #86efac; background: rgba(34, 197, 94, 0.14); }
-
-/* Botón contextual principal + Freno Remoto */
-.acciones-fijas { display: grid; gap: 8px; }
 .btn-ctx {
-  width: 100%; min-height: 48px; padding: 10px 14px; border-radius: 10px;
+  width: 100%; min-height: 48px; padding: 8px 16px; border-radius: 10px;
   border: 2px solid var(--s2-prim); background: #0284c7; color: #fff;
   font-family: var(--font-display); font-weight: 800; font-size: 15px;
   cursor: pointer; touch-action: manipulation; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -259,30 +216,73 @@
 .btn-ctx:hover { background: #0369a1; }
 .btn-ctx:disabled { opacity: 0.55; cursor: not-allowed; }
 .btn-ctx.ok { background: #15803d; border-color: var(--s2-ok); }
-.torres-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 5px 0; font-family: var(--font-mono); font-size: 10.5px; }
-.torre-pill { padding: 2px 7px; border-radius: 6px; border: 1px solid var(--s2-borde); background: var(--s2-bg); color: var(--s2-muted); }
-.torre-pill.apagada { color: #94a3b8; border-color: #475569; }
-.torre-pill.encendiendo { color: #fde68a; border-color: var(--s2-warn); background: rgba(245, 158, 11, 0.14); }
-.torre-pill.anunciando { color: #67e8f9; border-color: #00f2fe; background: rgba(0, 242, 254, 0.12); }
-.torre-pill.detectada { color: #93c5fd; border-color: #38bdf8; background: rgba(56, 189, 248, 0.16); }
-.torre-pill.rssi_valido { color: #86efac; border-color: var(--s2-ok); background: rgba(34, 197, 94, 0.18); }
 .btn-ctx.ok:hover { background: #166534; }
 .btn-ctx.aviso { background: #b45309; border-color: var(--s2-warn); }
-.btn-ctx:active { transform: scale(0.98); }
+.btn-ctx:active { transform: scale(0.985); }
 .btn-ctx:focus-visible { outline: 2px solid var(--s2-prim); outline-offset: 2px; }
 
 .btn-freno-perm {
-  width: 100%; min-height: 48px; padding: 10px 14px; border-radius: 10px;
+  min-height: 48px; padding: 8px 18px; border-radius: 10px;
   border: 2px solid #f87171; background: var(--s2-err); color: #fff;
   font-family: var(--font-display); font-weight: 800; font-size: 14.5px;
   cursor: pointer; touch-action: manipulation; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  transition: transform 0.14s ease-out, background-color 0.15s ease-out;
+  white-space: nowrap; transition: transform 0.14s ease-out, background-color 0.15s ease-out;
 }
 .btn-freno-perm:hover { background: #dc2626; }
-.btn-freno-perm:active { transform: scale(0.98); }
+.btn-freno-perm:active { transform: scale(0.985); }
 .btn-freno-perm:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
-/* ---- 7. Botones genéricos, paneles y 3 <details> agrupados ---- */
+/* ---- 6. Cajón deslizable ⚙ Ingeniería / Datos (nunca empuja el canvas ni pausa) ---- */
+.cajon-backdrop {
+  position: fixed; inset: 0; z-index: 55;
+  background: rgba(2, 6, 23, 0.55);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.18s ease-out;
+}
+.cajon-backdrop.abierto { opacity: 1; pointer-events: auto; }
+
+.cajon-ing {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 60;
+  width: min(460px, 94vw);
+  background: var(--s2-surf);
+  color: var(--s2-txt);
+  border-left: 1.5px solid var(--s2-borde);
+  box-shadow: -12px 0 36px rgba(2, 6, 23, 0.65);
+  display: flex; flex-direction: column;
+  transform: translateX(102%);
+  transition: transform 0.2s ease-out;
+}
+.cajon-ing.abierto { transform: translateX(0); }
+
+.cajon-hdr {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 10px 14px; background: var(--s2-surf2); border-bottom: 1px solid var(--s2-borde); flex: none;
+}
+.cajon-hdr h2 { margin: 0; font-family: var(--font-display); font-size: 15px; font-weight: 800; color: #fff; }
+.cajon-cerrar {
+  min-width: 44px; min-height: 44px; border-radius: 10px; border: 1px solid var(--s2-borde);
+  background: var(--s2-bg); color: var(--s2-txt); font-family: var(--font-mono); font-size: 16px; font-weight: 700;
+  cursor: pointer; touch-action: manipulation;
+}
+.cajon-cerrar:hover { border-color: var(--s2-prim); color: #fff; }
+
+.cajon-tabs {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  background: var(--s2-bg); border-bottom: 1px solid var(--s2-borde); flex: none;
+}
+.cajon-tab {
+  min-height: 44px; border: none; border-bottom: 2px solid transparent;
+  background: transparent; color: var(--s2-muted);
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  cursor: pointer; touch-action: manipulation;
+}
+.cajon-tab[aria-selected="true"] { color: #e0f2fe; border-bottom-color: var(--s2-prim); background: rgba(56, 189, 248, 0.1); }
+
+.cajon-cuerpo { flex: 1 1 auto; overflow-y: auto; padding: 12px; display: grid; gap: 10px; align-content: start; }
+.tab-panel { display: none; gap: 10px; }
+.tab-panel.activo { display: grid; }
+
+/* ---- Controles internos del Cajón Ingeniería ---- */
 .b { font-family: var(--font-mono); font-size: 12px; font-weight: 700; min-height: 44px; padding: 8px 12px; border-radius: 10px; border: 1.5px solid #475569; background: var(--s2-surf); color: var(--s2-txt); cursor: pointer; touch-action: manipulation; text-align: left; overflow-wrap: anywhere; max-width: 100%; }
 .b:disabled { opacity: 0.45; cursor: not-allowed; }
 .b.ok { border-color: var(--s2-ok); color: #86efac; }
@@ -294,111 +294,134 @@
 .b:focus-visible { outline: 2px solid var(--s2-prim); outline-offset: 2px; }
 @media (hover: hover) and (pointer: fine) { .b:not(:disabled):hover { background: #243247; } }
 .b:not(:disabled):active { transform: scale(0.97); }
-.b-sm { min-height: 44px; padding: 6px 10px; font-size: 11.5px; }
 
 .fila { display: flex; flex-wrap: wrap; gap: 8px; }
-.panel { background: var(--s2-surf); border: 1.5px solid var(--s2-borde); border-radius: 12px; padding: 12px; min-width: 0; }
-.sim2 h3 { color: #cbd5e1; margin: 0 0 8px; font-family: var(--font-mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
-.sim2 p.nota { margin: 4px 0 0; font-family: var(--font-mono); font-size: 11.5px; color: var(--s2-muted); overflow-wrap: anywhere; }
+.panel { background: var(--s2-surf2); border: 1px solid var(--s2-borde); border-radius: 10px; padding: 10px; min-width: 0; }
+.cajon-ing h3 { color: #cbd5e1; margin: 0 0 8px; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
+.cajon-ing p.nota { margin: 4px 0 0; font-family: var(--font-mono); font-size: 11px; color: var(--s2-muted); overflow-wrap: anywhere; }
 
-.estados-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.estados-chips span { font-family: var(--font-mono); font-size: 11px; padding: 4px 9px; border-radius: 999px; border: 1px solid #475569; color: var(--s2-muted); background: var(--s2-bg); }
+.meta-seg { display: inline-flex; background: var(--s2-bg); border: 1px solid var(--s2-borde); border-radius: 8px; overflow: hidden; }
+.meta-seg button { font-family: var(--font-mono); font-size: 11.5px; font-weight: 700; min-height: 44px; padding: 4px 12px; border: none; border-right: 1px solid var(--s2-borde); background: transparent; color: var(--s2-muted); cursor: pointer; }
+.meta-seg button:last-child { border-right: none; }
+.meta-seg button.sel { background: rgba(56, 189, 248, 0.22); color: #e0f2fe; }
+
+.estado-badge {
+  display: inline-block; font-family: var(--font-mono); font-size: 11.5px; font-weight: 700;
+  padding: 3px 9px; border-radius: 999px; background: var(--s2-bg); border: 1.5px solid var(--s2-prim); color: #e0f2fe;
+}
+.estado-badge.alerta { border-color: var(--s2-err); background: rgba(239, 68, 68, 0.18); color: #fecaca; }
+.estado-badge.aviso { border-color: var(--s2-warn); background: rgba(245, 158, 11, 0.16); color: #fde68a; }
+.estado-badge.ok { border-color: var(--s2-ok); background: rgba(34, 197, 94, 0.16); color: #bbf7d0; }
+
+.estados-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.estados-chips span { font-family: var(--font-mono); font-size: 10.5px; padding: 3px 8px; border-radius: 999px; border: 1px solid #475569; color: var(--s2-muted); background: var(--s2-bg); }
 .estados-chips span.activo { border-color: var(--s2-prim); background: rgba(56, 189, 248, 0.18); color: #e0f2fe; }
 .estados-chips span.alerta { border-color: var(--s2-err); background: rgba(239, 68, 68, 0.18); color: #fecaca; }
 .estados-chips span.pausa { border-color: var(--s2-warn); background: rgba(245, 158, 11, 0.16); color: #fde68a; }
 
-.dpad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; max-width: 260px; }
+.lecturas-bar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.lectura-celda { background: var(--s2-bg); border: 1px solid var(--s2-borde); border-radius: 8px; padding: 6px 8px; min-width: 0; }
+.lectura-celda small { display: block; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--s2-muted); margin-bottom: 2px; }
+.lectura-celda strong { display: block; font-family: var(--font-mono); font-size: 11.5px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--s2-txt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lectura-celda strong.ok { color: #86efac; }
+.lectura-celda strong.aviso { color: #fde68a; }
+.lectura-celda strong.critica { color: #fecaca; }
+
+.torres-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 5px 0; font-family: var(--font-mono); font-size: 10.5px; }
+.torre-pill { padding: 2px 7px; border-radius: 6px; border: 1px solid var(--s2-borde); background: var(--s2-bg); color: var(--s2-muted); }
+.torre-pill.apagada { color: #94a3b8; border-color: #475569; }
+.torre-pill.encendiendo { color: #fde68a; border-color: var(--s2-warn); background: rgba(245, 158, 11, 0.14); }
+.torre-pill.anunciando { color: #67e8f9; border-color: #00f2fe; background: rgba(0, 242, 254, 0.12); }
+.torre-pill.detectada { color: #93c5fd; border-color: #38bdf8; background: rgba(56, 189, 248, 0.16); }
+.torre-pill.rssi_valido { color: #86efac; border-color: var(--s2-ok); background: rgba(34, 197, 94, 0.18); }
+
+.madurez-pill { display: inline-block; font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--s2-borde); color: var(--s2-muted); background: var(--s2-bg); }
+.madurez-pill.ajuste { border-color: var(--s2-warn); color: #fde68a; }
+.madurez-pill.validado { border-color: var(--s2-ok); color: #86efac; background: rgba(34, 197, 94, 0.14); }
+
+.dpad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; max-width: 240px; }
 .dpad .b { text-align: center; padding: 8px 4px; }
 .dpad .vacio { visibility: hidden; }
-.rango { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-family: var(--font-mono); font-size: 12px; color: #cbd5e1; }
-.rango input[type=range] { flex: 1 1 140px; min-width: 0; min-height: 36px; }
-.rango output { min-width: 64px; color: #7dd3fc; font-variant-numeric: tabular-nums; }
-.tel { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; min-width: 0; }
-.tcrt { display: flex; gap: 6px; margin: 4px 0 6px; }
-.tcrt .s { flex: 1 1 0; min-width: 0; text-align: center; font-family: var(--font-mono); font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; padding: 8px 2px; border-radius: 8px; border: 1.5px solid #475569; background: var(--s2-bg); color: #64748b; }
+.rango { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-family: var(--font-mono); font-size: 11.5px; color: #cbd5e1; }
+.rango input[type=range] { flex: 1 1 130px; min-width: 0; min-height: 36px; }
+.rango output { min-width: 60px; color: #7dd3fc; font-variant-numeric: tabular-nums; }
+.tel { display: grid; gap: 8px; min-width: 0; }
+.tcrt { display: flex; gap: 5px; margin: 4px 0 6px; }
+.tcrt .s { flex: 1 1 0; min-width: 0; text-align: center; font-family: var(--font-mono); font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums; padding: 6px 2px; border-radius: 8px; border: 1.5px solid #475569; background: var(--s2-bg); color: #64748b; }
 .tcrt .s.on { background: #0f9d84; border-color: #5eead4; color: #fff; }
-.tcrt .s small { display: block; font-size: 10px; font-weight: 400; color: inherit; opacity: 0.85; }
-.val { font-family: var(--font-mono); font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; color: #7dd3fc; overflow-wrap: anywhere; }
+.tcrt .s small { display: block; font-size: 9.5px; font-weight: 400; color: inherit; opacity: 0.85; }
+.val { font-family: var(--font-mono); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; color: #7dd3fc; overflow-wrap: anywhere; }
 .val.libre { color: #86efac; }
 .val.precaucion { color: #fde68a; }
 .val.critica { color: #fecaca; }
 .val.sin { color: var(--s2-muted); }
-.sub { font-family: var(--font-mono); font-size: 11px; color: var(--s2-muted); overflow-wrap: anywhere; margin-top: 4px; font-variant-numeric: tabular-nums; }
-.barra { height: 8px; border-radius: 8px; background: var(--s2-bg); border: 1px solid var(--s2-borde); margin-top: 6px; overflow: hidden; }
+.sub { font-family: var(--font-mono); font-size: 10.5px; color: var(--s2-muted); overflow-wrap: anywhere; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.barra { height: 7px; border-radius: 7px; background: var(--s2-bg); border: 1px solid var(--s2-borde); margin-top: 5px; overflow: hidden; }
 .barra > i { display: block; height: 100%; width: 0; background: var(--s2-prim); transition: width 0.12s linear; }
-.log { max-height: 190px; overflow: auto; font-family: var(--font-mono); font-size: 11.5px; color: #cbd5e1; display: grid; gap: 3px; font-variant-numeric: tabular-nums; }
+.viajes-lista { display: grid; gap: 6px; font-family: var(--font-mono); font-size: 10.5px; font-variant-numeric: tabular-nums; }
+.viaje-row { background: var(--s2-bg); border: 1px solid var(--s2-borde); border-radius: 8px; padding: 7px 9px; display: flex; flex-wrap: wrap; gap: 3px 8px; align-items: center; justify-content: space-between; }
+.viaje-row.invalido { border-color: rgba(239, 68, 68, 0.55); color: #fecaca; }
+.viaje-row.valido { border-color: rgba(34, 197, 94, 0.45); }
+.log { max-height: 170px; overflow: auto; font-family: var(--font-mono); font-size: 11px; color: #cbd5e1; display: grid; gap: 3px; font-variant-numeric: tabular-nums; }
 .log div { overflow-wrap: anywhere; }
 .log b { color: #7dd3fc; }
-.json { white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 11.5px; color: #a5f3fc; background: var(--s2-bg); border: 1px solid var(--s2-borde); border-radius: 10px; padding: 10px; max-height: 240px; overflow: auto; }
+.json { white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 11px; color: #a5f3fc; background: var(--s2-bg); border: 1px solid var(--s2-borde); border-radius: 8px; padding: 8px; max-height: 220px; overflow: auto; }
 
-.paneles-3 { display: grid; gap: 10px; }
-details.det { background: var(--s2-surf2); border: 1.5px solid var(--s2-borde); border-radius: 12px; }
-details.det > summary { list-style: none; cursor: pointer; min-height: 46px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 14.5px; font-weight: 700; color: var(--s2-txt); }
+details.det { background: var(--s2-surf2); border: 1px solid var(--s2-borde); border-radius: 10px; }
+details.det > summary { list-style: none; cursor: pointer; min-height: 44px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--s2-txt); }
 details.det > summary::-webkit-details-marker { display: none; }
 details.det > summary::after { content: "▾"; margin-left: auto; color: var(--s2-muted); transition: transform 0.2s ease-out; }
 details.det[open] > summary::after { transform: rotate(180deg); }
-details.det > summary:focus-visible { outline: 2px solid var(--s2-prim); outline-offset: -2px; }
-details.det > summary small { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--s2-muted); }
-.det-cuerpo { padding: 4px 14px 14px; display: grid; gap: 12px; min-width: 0; }
-details.det[data-sub="1"] { background: var(--s2-surf); border: 1px solid var(--s2-borde); border-radius: 10px; }
-details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #cbd5e1; }
+details.det > summary small { font-size: 10.5px; font-weight: 500; color: var(--s2-muted); }
+.det-cuerpo { padding: 4px 10px 10px; display: grid; gap: 10px; min-width: 0; }
 
-/* ---- 8. Dock inferior fijo (solo móvil <= 768px) ---- */
-.movil-dock {
-  display: none;
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  z-index: 40;
-  background: rgba(15, 23, 42, 0.96);
-  backdrop-filter: blur(10px);
-  border-top: 1.5px solid var(--s2-borde);
-  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-  gap: 8px;
-  grid-template-columns: 1fr auto;
-  box-shadow: 0 -6px 20px rgba(2, 6, 23, 0.5);
-}
-.movil-dock .btn-ctx, .movil-dock .btn-freno-perm { min-height: 48px; font-size: 14px; padding: 8px 12px; }
-.movil-dock .btn-freno-perm { width: auto; white-space: nowrap; }
-
-/* ---- Responsive Móvil (390x844) ---- */
-@media (max-width: 960px) {
-  .cockpit-main { grid-template-columns: 1fr; }
-  .cockpit-side { order: -1; }
-}
+/* ---- Responsive Móvil (390x844): cabecera 44 -> pista 42 -> stepper 36 -> alertas 62 -> canvas >= 500 -> dock 68 + safe-area ---- */
 @media (max-width: 768px) {
-  body { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
-  .s2-wrap { padding: 6px 10px 18px; }
-  .cockpit-hdr { padding: 10px 12px; }
-  .cockpit-id { width: 100%; }
-  .estado-badge { flex: 1 0 100%; text-align: center; }
-  .cockpit-titulo { font-size: 15.5px; }
-  #barra-resumen { display: none; }
-  .pista-bar { padding: 8px 12px; }
-  .pista-seg { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
-  .pista-seg .pista-op { padding: 6px 8px; font-size: 11.5px; text-align: center; white-space: normal; }
-  .alerta-slot { padding: 8px 12px; }
-  .alerta { font-size: 11.5px; padding: 4px 10px; }
-  .sim2-cuerpo { padding: 0 12px 14px; gap: 12px; }
-  /* Stepper horizontal de 4 iconos en móvil: solo etapa activa expandida */
-  .cockpit-side { padding: 10px; gap: 8px; }
-  .cockpit-side .acciones-fijas { display: none; }
-  .stepper { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-  .step-item { padding: 6px; text-align: center; }
-  .step-cab { flex-direction: column; gap: 4px; }
-  .step-nom { font-size: 10.5px; }
-  .step-desc, .step-sub, .step-accion-inline { display: none; }
-  .step-item.activo { grid-column: 1 / -1; text-align: left; padding: 8px 10px; order: 2; }
-  .step-item.activo .step-cab { flex-direction: row; }
-  .step-item.activo .step-nom { font-size: 13px; }
-  .step-item.activo .step-desc, .step-item.activo .step-sub, .step-item.activo .step-accion-inline { display: flex; }
-  .step-item.activo .step-desc { display: block; }
-  #lienzo-pista { height: 240px; }
-  .velo { width: 78px; padding: 4px 6px; }
-  .velo svg { width: 64px; height: 35px; }
-  .obs-dock { display: none; }
-  .btn-obs-movil { display: inline-flex; align-items: center; justify-content: center; }
-  .lecturas-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .movil-dock { display: grid; }
+  body { padding-bottom: calc(74px + env(safe-area-inset-bottom)); }
+  .s2-wrap { padding: 4px 6px 10px; }
+  .cockpit-hdr { padding: 0 8px; gap: 6px; }
+  .cockpit-titulo { font-size: 14px; }
+  .cockpit-titulo .tit-largo { display: none; }
+  .btn-ing .ing-txt { display: none; }
+  .btn-ing { margin-right: -8px; padding: 0; width: 44px; }
+  .vel-seg button { min-width: 34px; padding: 0 6px; font-size: 11px; }
+
+  .pista-stepper-row { flex-direction: column; align-items: stretch; padding: 0; gap: 0; }
+  .pista-seg { width: 100%; height: 42px; display: grid; grid-template-columns: 1fr 1fr; border: none; border-bottom: 1px solid var(--s2-borde); border-radius: 0; }
+  .pista-seg .pista-op { min-height: 42px; font-size: 11.5px; padding: 0 6px; text-align: center; }
+
+  .stepper-linea { height: 36px; padding: 0 5px; justify-content: space-between; gap: 3px; background: var(--s2-surf); }
+  .step-item { flex: 1 1 0; justify-content: center; gap: 4px; padding: 3px 4px; font-size: 9.5px; min-width: 0; }
+  .step-nom { overflow: hidden; text-overflow: ellipsis; }
+  .step-num { width: 17px; height: 17px; font-size: 9.5px; }
+
+  .alerta-slot { padding: 8px 8px; }
+  .alerta { font-size: 11px; padding: 4px 8px; }
+
+  #lienzo-pista { height: clamp(500px, calc(100dvh - 266px), 576px); }
+  .velo { width: 76px; padding: 4px 5px; bottom: 8px; left: 8px; }
+  .velo svg { width: 62px; height: 34px; }
+  .obs-base { right: 8px; bottom: 8px; padding: 4px 10px 4px 7px; font-size: 11px; }
+
+  .acciones-barra {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    min-height: 68px;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+    background: rgba(15, 23, 42, 0.96);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -6px 20px rgba(2, 6, 23, 0.5);
+  }
+  .btn-ctx, .btn-freno-perm { min-height: 48px; font-size: 14px; padding: 8px 12px; }
+
+  /* Hoja inferior <= 85vh en móvil */
+  .cajon-ing {
+    top: auto; left: 0; right: 0; bottom: 0;
+    width: 100%; height: 82vh; max-height: 85vh;
+    border-left: none; border-top: 1.5px solid var(--s2-borde);
+    border-radius: 16px 16px 0 0;
+    transform: translateY(102%);
+  }
+  .cajon-ing.abierto { transform: translateY(0); }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
@@ -409,287 +432,244 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
 <header id="menu"></header>
 
 <main class="s2-wrap">
-  <a class="s2-volver" href="../index.html">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-    Catálogo de prototipos
-  </a>
-
   <p id="aviso-carga" role="status">Cargando núcleo teach-and-repeat y pistas de SIM1…</p>
 
   <section class="sim2" aria-labelledby="t-sim">
-    <!-- 1. Cabecera Cockpit compacta -->
+    <!-- 1. Cabecera 44 px: retorno + nombre + SIL + velocidad + ⚙ Ingeniería -->
     <div class="cockpit-hdr">
       <div class="cockpit-id">
-        <h1 class="cockpit-titulo" id="t-sim">Sim 2 · Teach &amp; Repeat</h1>
+        <a class="btn-ret" href="../index.html" aria-label="Volver al catálogo de prototipos" title="Catálogo de prototipos">←</a>
+        <h1 class="cockpit-titulo" id="t-sim">Sim 2<span class="tit-largo"> · Teach &amp; Repeat</span></h1>
         <span class="badge-sil">SIL</span>
-        <span class="estado-badge" id="estado-activo" aria-live="polite">—</span>
       </div>
       <div class="cockpit-hdr-der">
-        <span id="barra-resumen">—</span>
         <div class="vel-seg" role="group" aria-label="Velocidad de reproducción SIL">
           <button type="button" class="sel" data-vel="1" aria-pressed="true">×1</button>
           <button type="button" data-vel="2" aria-pressed="false">×2</button>
           <button type="button" data-vel="5" aria-pressed="false">×5</button>
         </div>
+        <button type="button" class="btn-ing" id="btn-ing" aria-expanded="false" aria-controls="cajon-ing">⚙<span class="ing-txt"> Ingeniería</span></button>
       </div>
     </div>
 
-    <!-- 2. Selector de pista segmentado -->
-    <div class="pista-bar">
+    <!-- 2. Fila compacta 42 px: Pista segmentada + Stepper 4 etapas en 1 línea -->
+    <div class="pista-stepper-row">
       <div class="pista-seg" role="group" aria-label="Pista del simulador">
         <button class="pista-op" type="button" data-pista="A" aria-pressed="false">PISTA A · 8,05 m</button>
         <button class="pista-op sel" type="button" data-pista="B" aria-pressed="true">PISTA B · 9,00 m</button>
       </div>
-      <p class="pista-nota" id="pista-nota">Pista B (Pasillo UCAB): permite retirar cinta en T2 recto.</p>
+      <ol class="stepper-linea" id="stepper-4" aria-label="Progreso Teach and Repeat">
+        <li class="step-item activo" id="step-1"><span class="step-num" id="flujo-1">1</span><span class="step-nom">Captura</span></li>
+        <li class="step-item" id="step-2"><span class="step-num" id="flujo-2">2</span><span class="step-nom">Gemelo V1</span></li>
+        <li class="step-item" id="step-3"><span class="step-num" id="flujo-3">3</span><span class="step-nom">Ajuste</span></li>
+        <li class="step-item" id="step-4"><span class="step-num" id="flujo-4">4</span><span class="step-nom">Fase 1</span></li>
+      </ol>
     </div>
 
     <!-- 3. Ranura fija de alertas (altura fija 62px / 46px, visibility, delta = 0 px) -->
     <div class="alerta-slot" aria-live="polite"><div class="alerta vacia" id="alerta" role="status">Sin alertas</div></div>
 
-    <div class="sim2-cuerpo">
-      <!-- 4. Layout Cockpit 2 columnas (Desktop) / Columna única (Móvil) -->
-      <div class="cockpit-main">
-        <!-- Columna izquierda: Canvas + radar P13 + barra de lecturas -->
-        <div class="cockpit-canvas-col">
-          <div class="radar-escena">
-            <canvas class="lienzo" id="lienzo-pista" role="img" aria-label="Vista cenital de la pista con el robot, la cinta, los puntos de control, los conos de los dos ultrasonidos y el obstáculo arrastrable"></canvas>
+    <!-- 4. Canvas dominante (full width) + HUD mínimo (Velocímetro + 1 control Obstáculo) -->
+    <div class="radar-escena">
+      <canvas class="lienzo" id="lienzo-pista" role="img" aria-label="Vista cenital de la pista con el robot, la cinta, los puntos de control, los conos de los dos ultrasonidos y el obstáculo arrastrable"></canvas>
 
-            <div class="velo" id="velocimetro" aria-label="Velocímetro del robot, de 0,00 a 0,46 metros por segundo">
-              <svg viewBox="0 0 80 46" aria-hidden="true">
-                <path class="velo-pista" d="M 10 40 A 30 30 0 0 1 70 40"/>
-                <path id="velo-arco" class="velo-arco" d="M 10 40 A 30 30 0 0 1 70 40" stroke-dasharray="94.25" stroke-dashoffset="94.25"/>
-                <line id="velo-aguja" class="velo-aguja" x1="40" y1="40" x2="40" y2="15" transform="rotate(-90 40 40)"/>
-                <circle class="velo-pivote" cx="40" cy="40" r="3"/>
-              </svg>
-              <div class="velo-esc" aria-hidden="true"><span>0.00</span><span>0.46</span></div>
-              <div class="velo-val" id="velo-val">0.00<small>m/s</small></div>
-            </div>
-
-            <!-- Desktop: ficha roja arrastrable + acción contextual Quitar -->
-            <div class="obs-dock">
-              <div class="obs-base" id="base-obstaculo" role="button" tabindex="0" aria-label="Obstáculo: arrástralo sobre la pista, o pulsa Enter para colocarlo delante; Supr lo retira">
-                <span class="obs-ficha" aria-hidden="true"></span><span class="txt" id="etiqueta-obs">Mover</span>
-              </div>
-              <button type="button" class="obs-quitar" id="btn-obs-quitar" aria-label="Quitar obstáculo de la pista">Quitar</button>
-            </div>
-
-            <!-- Móvil: botón + Obstáculo (48x48) para colocar/mover por tap en la pista -->
-            <button type="button" class="btn-obs-movil" id="btn-obs-movil" aria-pressed="false">+ Obstáculo</button>
-          </div>
-
-          <div class="leyenda-us">
-            <span><i style="background:#22c55e"></i>Libre (&gt; 50 cm)</span>
-            <span><i style="background:#f59e0b"></i>Precaución (20–50 cm)</span>
-            <span><i style="background:#ef4444"></i>Crítica (&lt; 20 cm)</span>
-            <span>Conos ±15° + eco P13</span>
-          </div>
-
-          <!-- Barra inferior compacta de lecturas en tiempo real -->
-          <div class="lecturas-bar" aria-label="Lecturas en tiempo real">
-            <div class="lectura-celda"><small>TCRT</small><strong id="bar-tcrt">[0, 1, 1, 0]</strong></div>
-            <div class="lectura-celda"><small>Ultrasónicos</small><strong id="bar-us">F — · A —</strong></div>
-            <div class="lectura-celda"><small>MPU + BLE</small><strong id="bar-mpu-ble">0,0° · sin señal</strong></div>
-            <div class="lectura-celda"><small>Error gemelo</small><strong id="bar-err">0,0 cm · 0,00 m/s</strong></div>
-          </div>
-        </div>
-
-        <!-- Columna derecha: Stepper 4 etapas + Botón contextual + Freno Remoto -->
-        <aside class="cockpit-side" aria-label="Flujo de 4 etapas y control">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-            <p class="stepper-titulo">Progreso Teach &amp; Repeat</p>
-            <span class="madurez-pill" id="madurez-pill">En construcción</span>
-          </div>
-          <ol class="stepper" id="stepper-4">
-            <li class="step-item activo" id="step-1">
-              <div class="step-cab"><span class="step-num" id="flujo-1">1</span><span class="step-nom">Captura</span></div>
-              <div class="step-sub"><span id="sub-lenta">Lenta 0,16 m/s</span><span id="sub-normal">Normal 0,41 m/s</span></div>
-              <p class="step-desc" id="ruta-ensenada">Sin captura aún</p>
-            </li>
-            <li class="step-item" id="step-2">
-              <div class="step-cab"><span class="step-num" id="flujo-2">2</span><span class="step-nom">Nacimiento Gemelo V1</span></div>
-              <p class="step-desc" id="step-2-desc">Pendiente de captura lenta y normal.</p>
-            </li>
-            <li class="step-item" id="step-3">
-              <div class="step-cab"><span class="step-num" id="flujo-3">3</span><span class="step-nom">Viajes de ajuste</span></div>
-              <p class="step-desc" id="step-3-desc">0/3 viajes válidos · referencia geométrica fija.</p>
-              <div class="step-accion-inline">
-                <div class="meta-seg" role="group" aria-label="Cantidad de viajes de ajuste">
-                  <button type="button" class="sel" data-meta-viajes="3" aria-pressed="true">3 (Demo)</button>
-                  <button type="button" data-meta-viajes="5" aria-pressed="false">5 (SIL)</button>
-                </div>
-              </div>
-            </li>
-            <li class="step-item" id="step-4">
-              <div class="step-cab"><span class="step-num" id="flujo-4">4</span><span class="step-nom">Fase 1 (BLE + sin cinta)</span></div>
-              <p class="step-desc" id="step-4-desc">Se desbloquea al validar el Gemelo V1.</p>
-              <div class="step-sub" id="step-4-torres">
-                <span id="sub-b1" class="apagada">B1 apagada</span>
-                <span id="sub-b2" class="apagada">B2 apagada</span>
-              </div>
-              <div class="step-accion-inline" id="step-4-acciones">
-                <button type="button" class="b b-sm aviso" id="btn-t2-rapido">Quitar cinta T2</button>
-              </div>
-            </li>
-          </ol>
-
-          <div class="acciones-fijas">
-            <button type="button" class="btn-ctx" id="btn-principal-ctx">🎓 Iniciar lectura lenta</button>
-            <button type="button" class="btn-freno-perm" id="btn-freno">⛔ Freno Remoto</button>
-          </div>
-        </aside>
+      <div class="velo" id="velocimetro" aria-label="Velocímetro del robot, de 0,00 a 0,46 metros por segundo">
+        <svg viewBox="0 0 80 46" aria-hidden="true">
+          <path class="velo-pista" d="M 10 40 A 30 30 0 0 1 70 40"/>
+          <path id="velo-arco" class="velo-arco" d="M 10 40 A 30 30 0 0 1 70 40" stroke-dasharray="94.25" stroke-dashoffset="94.25"/>
+          <line id="velo-aguja" class="velo-aguja" x1="40" y1="40" x2="40" y2="15" transform="rotate(-90 40 40)"/>
+          <circle class="velo-pivote" cx="40" cy="40" r="3"/>
+        </svg>
+        <div class="velo-esc" aria-hidden="true"><span>0.00</span><span>0.46</span></div>
+        <div class="velo-val" id="velo-val">0.00<small>m/s</small></div>
       </div>
 
-      <!-- 5. Tres paneles <details> agrupados, cerrados por defecto -->
-      <div class="paneles-3">
-        <!-- Panel 1: Control y ejecución -->
-        <details class="det" id="det-control">
-          <summary>Control y ejecución <small>velocidad SIL · pasos · vuelta · cinta · manual D-Pad</small></summary>
-          <div class="det-cuerpo">
-            <div class="fila">
-              <button class="b info" id="btn-sig-viaje" type="button">⚡ Ejecutar siguiente viaje</button>
-              <button class="b info" id="btn-ensenar" type="button">🎓 Enseñar la ruta</button>
-              <button class="b ok" id="btn-viaje-ida" type="button">▶ Repetir la ruta</button>
-              <button class="b" id="btn-play" type="button" aria-pressed="false">▶ Iniciar</button>
-              <button class="b ok" id="btn-reanudar" type="button">▶ Reanudar (auto)</button>
-            </div>
-            <div class="fila">
-              <button class="b" id="btn-paso" type="button">⏭ Paso (20 ms)</button>
-              <button class="b" id="btn-paso-medio" type="button">⏭ +0,5 s</button>
-              <button class="b info" id="btn-viaje-vuelta" type="button">🔙 Viaje de vuelta</button>
-              <button class="b" id="btn-rearmar" type="button">♻️ Reiniciar viaje</button>
-            </div>
-            <div class="panel">
-              <h3>Tramos de cinta</h3>
-              <div class="fila" id="cinta-tramos" aria-label="Tramos de cinta"></div>
-              <div class="fila" style="margin-top:8px">
-                <button class="b aviso" id="btn-retiro-progresivo" type="button">➖ Retirar 0,5 m por delante</button>
-                <button class="b ok" id="btn-restaurar-cinta" type="button">♻️ Restaurar cinta</button>
-              </div>
-              <p class="nota" id="nota-cinta">Solo se pueden retirar tramos RECTOS que la pasada de enseñanza recorrió.</p>
-            </div>
-
-            <details class="det" data-sub="1" id="det-manual">
-              <summary>Control manual y D-Pad <small>pruebas de fail-safe</small></summary>
-              <div class="det-cuerpo">
-                <div class="fila" role="group" aria-label="Modo de control">
-                  <button class="b sel" id="modo-auto" type="button" aria-pressed="true">🤖 Teach-and-repeat (automático)</button>
-                  <button class="b" id="modo-manual" type="button" aria-pressed="false">🎮 Manual / pruebas</button>
-                </div>
-                <div class="dpad" id="dpad" aria-label="Controles manuales">
-                  <span class="vacio b"></span><button class="b" type="button" data-cmd="adelante">▲ Adelante</button><span class="vacio b"></span>
-                  <button class="b" type="button" data-cmd="izquierda">◀ Izq.</button><button class="b peligro" type="button" data-cmd="frenar">■ Frenar</button><button class="b" type="button" data-cmd="derecha">Der. ▶</button>
-                  <span class="vacio b"></span><button class="b" type="button" data-cmd="atras">▼ Atrás</button><span class="vacio b"></span>
-                </div>
-                <p class="nota">En manual el núcleo queda en pausa; siguen activos los fail-safe frontal y trasero (&lt; 20 cm).</p>
-              </div>
-            </details>
-          </div>
-        </details>
-
-        <!-- Panel 2: Sensores y diagnóstico -->
-        <details class="det" id="det-sensores">
-          <summary>Sensores y diagnóstico <small>TCRT · ultrasónicos · MPU · BLE · fallas · estados del núcleo</small></summary>
-          <div class="det-cuerpo">
-            <div class="panel">
-              <h3>Estados del núcleo teach-and-repeat</h3>
-              <div class="estados-chips" id="estados-chips" aria-label="Estados de la máquina de estados"></div>
-              <p class="nota" id="evento-actual">Evento: —</p>
-            </div>
-
-            <div class="tel">
-              <div class="panel">
-                <h3>4 × TCRT5000 (izq → der)</h3>
-                <div class="tcrt" id="tcrt-bin" aria-live="off"></div>
-                <div class="sub" id="tcrt-txt">[—]</div>
-              </div>
-              <div class="panel">
-                <h3>2 × HC-SR04P y movimiento</h3>
-                <div class="val" id="us-frente">—</div>
-                <div class="val" id="us-atras" style="margin-top:4px">—</div>
-                <div class="val" id="mov-vel" style="margin-top:6px">—</div>
-                <div class="sub" id="mov-detalle">—</div>
-              </div>
-              <div class="panel">
-                <h3>MPU-6050 (rumbo relativo)</h3>
-                <div class="val" id="mpu-rumbo">—</div>
-                <div class="sub" id="mpu-deriva">Deriva en HEADING_HOLD: —</div>
-                <div class="barra"><i id="mpu-barra"></i></div>
-                <div class="sub">Sin magnetómetro: 0° = inicio del viaje. Límite: 30°. <b>[PENDIENTE DE INTEGRACIÓN EN FIRMWARE]</b></div>
-              </div>
-              <div class="panel">
-                <h3>BLE RSSI · Torres de Control (B1/B2)</h3>
-                <div class="val sin" id="ble-rssi">—</div>
-                <div class="barra"><i id="ble-barra"></i></div>
-                <div class="torres-pills">
-                  <span class="torre-pill apagada" id="torre-b1">B1 Cuarto Comp. · apagada</span>
-                  <span class="torre-pill apagada" id="torre-b2">B2 Lab 1 · apagada</span>
-                </div>
-                <div class="sub" id="ble-validacion">—</div>
-                <div class="sub" id="ble-torres-mqtt">Torres de Control MQTT: en espera (respaldo HiveMQ → EMQX → Mosquitto).</div>
-              </div>
-            </div>
-
-            <details class="det" data-sub="1" id="det-fallas">
-              <summary>Inyección de fallas <small>obstáculos fijos · deriva · empujón</small></summary>
-              <div class="det-cuerpo">
-                <div class="fila">
-                  <button class="b peligro" id="ctl-obstaculo-critico" type="button">🧱 Lectura frontal 12 cm</button>
-                  <button class="b aviso" id="ctl-obstaculo-precaucion" type="button">⚠️ Lectura frontal 35 cm</button>
-                  <button class="b ok" id="ctl-quitar-obstaculo" type="button">✔ Quitar obstáculo</button>
-                </div>
-                <div class="rango"><label for="ctl-deriva">Deriva del giroscopio</label><input type="range" id="ctl-deriva" min="-3" max="3" step="0.25" value="0"><output id="ctl-deriva-v" for="ctl-deriva">0,00 °/s</output></div>
-                <div class="fila">
-                  <button class="b aviso" id="ctl-empujon" type="button">👋 Empujón +35° de rumbo</button>
-                  <button class="b aviso" id="ctl-empujon-neg" type="button">👋 Empujón −35°</button>
-                </div>
-              </div>
-            </details>
-
-            <details class="det" data-sub="1" id="det-zoom">
-              <summary>Vista ampliada de la cinta <small>4 × TCRT5000 a escala</small></summary>
-              <div class="det-cuerpo">
-                <canvas class="lienzo" id="lienzo-zoom" role="img" aria-label="Vista ampliada del robot sobre la cinta con los 4 sensores TCRT5000"></canvas>
-              </div>
-            </details>
-          </div>
-        </details>
-
-        <!-- Panel 3: Datos y registro -->
-        <details class="det" id="det-datos">
-          <summary>Datos y registro <small>historial por viaje · RMS · contrato JSON · eventos</small></summary>
-          <div class="det-cuerpo">
-            <div class="panel">
-              <h3>Historial de viajes y métricas RMS</h3>
-              <p class="nota" id="metricas-resumen">Estado aprendizaje: INITIAL · Madurez: En construcción</p>
-              <div class="viajes-lista" id="historial-viajes" style="margin-top:8px"></div>
-            </div>
-
-            <details class="det" data-sub="1" id="det-contrato">
-              <summary>Contrato del gemelo digital <small>JSON · puente con el mapa de la app</small></summary>
-              <div class="det-cuerpo">
-                <div class="json" id="contrato-json" aria-label="Estado del gemelo digital">—</div>
-                <p class="nota">Estado del gemelo: <code>pista, x, y, angulo, velocidad_ms, frente_cm, atras_cm, alerta, s_m</code>. Solo <code>estado</code> y <code>ultimo ultrasonido</code> existen en el firmware real (SIL).</p>
-              </div>
-            </details>
-
-            <details class="det" data-sub="1" id="det-registro">
-              <summary>Registro de eventos <small>últimos 8</small></summary>
-              <div class="det-cuerpo"><div class="log" id="log-eventos" aria-live="polite"></div></div>
-            </details>
-          </div>
-        </details>
+      <!-- Control único flotante Obstáculo (drag en desktop + tap para colocar/quitar en móvil) -->
+      <div class="obs-base" id="base-obstaculo" role="button" tabindex="0" aria-pressed="false" aria-label="Obstáculo: arrástralo sobre la pista en escritorio o toca para colocar y quitar">
+        <span class="obs-ficha" aria-hidden="true"></span><span class="txt" id="etiqueta-obs">Obstáculo</span>
       </div>
+    </div>
 
-      <p class="nota">Simulación (SIL), no HIL. Física calibrada con SIM1 (JGA25-371 a 11,1 V: 0,457 m/s en recta con PWM 0,8, ruedas de 0,18 s, 0,18 m entre ruedas). Núcleo <code>specs/navegacion/teach_and_repeat.js</code> + <code>specs/pista_canonica.json</code>. Hardware: 1 ESP32 móvil (4× TCRT5000, 2× HC-SR04P, MPU-6050, 3S Li-Ion) y 2 balizas BLE fijas en extremos.</p>
+    <!-- 5. Barra/Dock inferior único: 1 botón principal contextual + Freno Remoto -->
+    <div class="acciones-barra" role="region" aria-label="Acciones principales">
+      <button type="button" class="btn-ctx" id="btn-principal-ctx">🎓 Iniciar lectura lenta</button>
+      <button type="button" class="btn-freno-perm" id="btn-freno">⛔ Freno Remoto</button>
     </div>
   </section>
 </main>
 
-<!-- Dock inferior fijo en móvil (botones >= 48px) -->
-<div class="movil-dock" role="region" aria-label="Acciones principales móviles">
-  <button type="button" class="btn-ctx" id="btn-principal-dock">🎓 Iniciar lectura lenta</button>
-  <button type="button" class="btn-freno-perm" id="btn-freno-dock">⛔ Freno Remoto</button>
-</div>
+<!-- Cajón deslizable ⚙ Ingeniería / Datos (lateral en desktop / hoja <= 85vh en móvil) -->
+<div class="cajon-backdrop" id="cajon-backdrop" aria-hidden="true"></div>
+<aside class="cajon-ing" id="cajon-ing" role="dialog" aria-modal="false" aria-label="Panel de Ingeniería y Datos" aria-hidden="true">
+  <div class="cajon-hdr">
+    <h2>⚙ Ingeniería / Datos</h2>
+    <button type="button" class="cajon-cerrar" id="btn-cajon-cerrar" aria-label="Cerrar panel Ingeniería">✕</button>
+  </div>
+  <div class="cajon-tabs" role="tablist" aria-label="Secciones de Ingeniería">
+    <button type="button" class="cajon-tab" role="tab" id="tbtn-ejecucion" aria-selected="true" aria-controls="tab-ejecucion" data-tab="ejecucion">Ejecución</button>
+    <button type="button" class="cajon-tab" role="tab" id="tbtn-diagnostico" aria-selected="false" aria-controls="tab-diagnostico" data-tab="diagnostico">Diagnóstico</button>
+    <button type="button" class="cajon-tab" role="tab" id="tbtn-datos" aria-selected="false" aria-controls="tab-datos" data-tab="datos">Datos</button>
+  </div>
+  <div class="cajon-cuerpo">
+    <!-- Pestaña 1: Ejecución -->
+    <section class="tab-panel activo" id="tab-ejecucion" role="tabpanel" aria-labelledby="tbtn-ejecucion">
+      <div class="panel">
+        <h3>Avance y reinicio</h3>
+        <div class="fila">
+          <button class="b info" id="btn-sig-viaje" type="button">⚡ Siguiente viaje</button>
+          <button class="b" id="btn-paso" type="button">⏭ 20 ms</button>
+          <button class="b" id="btn-paso-medio" type="button">⏭ +0,5 s</button>
+          <button class="b" id="btn-rearmar" type="button">♻️ Reiniciar viaje</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Meta de viajes de ajuste</h3>
+        <div class="fila" style="align-items:center;justify-content:space-between">
+          <div class="meta-seg" role="group" aria-label="Cantidad de viajes de ajuste">
+            <button type="button" class="sel" data-meta-viajes="3" aria-pressed="true">3 (Demo)</button>
+            <button type="button" data-meta-viajes="5" aria-pressed="false">5 (SIL)</button>
+          </div>
+          <span class="madurez-pill" id="madurez-pill">En construcción</span>
+        </div>
+        <p class="nota" id="ruta-ensenada">Sin captura aún</p>
+      </div>
+
+      <details class="det" id="det-control">
+        <summary>Editor de cinta y comandos <small>tramos · ida/vuelta · pausa</small></summary>
+        <div class="det-cuerpo">
+          <div class="fila" id="cinta-tramos" aria-label="Tramos de cinta"></div>
+          <div class="fila">
+            <button class="b aviso" id="btn-retiro-progresivo" type="button">➖ Retirar 0,5 m</button>
+            <button class="b ok" id="btn-restaurar-cinta" type="button">♻️ Restaurar cinta</button>
+          </div>
+          <p class="nota" id="nota-cinta">Solo se pueden retirar tramos RECTOS recorridos en enseñanza.</p>
+          <div class="fila">
+            <button class="b info" id="btn-ensenar" type="button">🎓 Enseñar ruta</button>
+            <button class="b ok" id="btn-viaje-ida" type="button">▶ Repetir ruta</button>
+            <button class="b info" id="btn-viaje-vuelta" type="button">🔙 Viaje de vuelta</button>
+            <button class="b" id="btn-play" type="button" aria-pressed="false">▶ Iniciar</button>
+            <button class="b ok" id="btn-reanudar" type="button">▶ Reanudar (auto)</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="det" id="det-manual">
+        <summary>Modo manual y D-Pad <small>pruebas fail-safe</small></summary>
+        <div class="det-cuerpo">
+          <div class="fila" role="group" aria-label="Modo de control">
+            <button class="b sel" id="modo-auto" type="button" aria-pressed="true">🤖 Teach-and-repeat</button>
+            <button class="b" id="modo-manual" type="button" aria-pressed="false">🎮 Manual</button>
+          </div>
+          <div class="dpad" id="dpad" aria-label="Controles manuales">
+            <span class="vacio b"></span><button class="b" type="button" data-cmd="adelante">▲ Adelante</button><span class="vacio b"></span>
+            <button class="b" type="button" data-cmd="izquierda">◀ Izq.</button><button class="b peligro" type="button" data-cmd="frenar">■ Frenar</button><button class="b" type="button" data-cmd="derecha">Der. ▶</button>
+            <span class="vacio b"></span><button class="b" type="button" data-cmd="atras">▼ Atrás</button><span class="vacio b"></span>
+          </div>
+          <p class="nota">En manual el núcleo queda en pausa; siguen activos los fail-safe frontal y trasero (&lt; 20 cm).</p>
+        </div>
+      </details>
+    </section>
+
+    <!-- Pestaña 2: Diagnóstico -->
+    <section class="tab-panel" id="tab-diagnostico" role="tabpanel" aria-labelledby="tbtn-diagnostico">
+      <div class="panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
+          <h3 style="margin:0">Estados (14 aprendizaje + 5 núcleo)</h3>
+          <span class="estado-badge" id="estado-activo" aria-live="polite">—</span>
+        </div>
+        <div class="estados-chips" id="estados-ap-chips" aria-label="14 estados de aprendizaje" style="margin-bottom:6px"></div>
+        <div class="estados-chips" id="estados-chips" aria-label="5 estados del núcleo"></div>
+        <p class="nota" id="evento-actual">Evento: —</p>
+        <p class="nota" id="barra-resumen">—</p>
+      </div>
+
+      <div class="lecturas-bar" aria-label="Lecturas en tiempo real">
+        <div class="lectura-celda"><small>TCRT</small><strong id="bar-tcrt">[0, 1, 1, 0]</strong></div>
+        <div class="lectura-celda"><small>Ultrasónicos</small><strong id="bar-us">F — · A —</strong></div>
+        <div class="lectura-celda"><small>MPU + BLE</small><strong id="bar-mpu-ble">0,0° · BLE apagada</strong></div>
+        <div class="lectura-celda"><small>Error gemelo</small><strong id="bar-err">0,0 cm · 0,00 m/s</strong></div>
+      </div>
+
+      <div class="tel">
+        <div class="panel">
+          <h3>4 × TCRT5000 (izq → der)</h3>
+          <div class="tcrt" id="tcrt-bin" aria-live="off"></div>
+          <div class="sub" id="tcrt-txt">[—]</div>
+        </div>
+        <div class="panel">
+          <h3>2 × HC-SR04P y movimiento</h3>
+          <div class="val" id="us-frente">—</div>
+          <div class="val" id="us-atras" style="margin-top:4px">—</div>
+          <div class="val" id="mov-vel" style="margin-top:6px">—</div>
+          <div class="sub" id="mov-detalle">—</div>
+        </div>
+        <div class="panel">
+          <h3>MPU-6050 (rumbo relativo)</h3>
+          <div class="val" id="mpu-rumbo">—</div>
+          <div class="sub" id="mpu-deriva">Deriva en HEADING_HOLD: —</div>
+          <div class="barra"><i id="mpu-barra"></i></div>
+        </div>
+        <div class="panel">
+          <h3>BLE RSSI · Torres de Control (B1/B2)</h3>
+          <div class="val sin" id="ble-rssi">—</div>
+          <div class="barra"><i id="ble-barra"></i></div>
+          <div class="torres-pills">
+            <span class="torre-pill apagada" id="torre-b1">B1 Cuarto Comp. · apagada</span>
+            <span class="torre-pill apagada" id="torre-b2">B2 Lab 1 · apagada</span>
+          </div>
+          <div class="sub" id="ble-validacion">—</div>
+          <div class="sub" id="ble-torres-mqtt">Torres de Control MQTT: en espera (respaldo HiveMQ → EMQX → Mosquitto).</div>
+        </div>
+      </div>
+
+      <details class="det" id="det-fallas">
+        <summary>Inyección de fallos <small>obstáculo · deriva · empujón</small></summary>
+        <div class="det-cuerpo">
+          <div class="fila">
+            <button class="b peligro" id="ctl-obstaculo-critico" type="button">🧱 Frente 12 cm</button>
+            <button class="b aviso" id="ctl-obstaculo-precaucion" type="button">⚠️ Frente 35 cm</button>
+            <button class="b ok" id="ctl-quitar-obstaculo" type="button">✔ Quitar</button>
+          </div>
+          <div class="rango"><label for="ctl-deriva">Deriva giroscopio</label><input type="range" id="ctl-deriva" min="-3" max="3" step="0.25" value="0"><output id="ctl-deriva-v" for="ctl-deriva">0,00 °/s</output></div>
+          <div class="fila">
+            <button class="b aviso" id="ctl-empujon" type="button">👋 Empujón +35°</button>
+            <button class="b aviso" id="ctl-empujon-neg" type="button">👋 Empujón −35°</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="det" id="det-zoom">
+        <summary>Cinta ampliada <small>4 × TCRT5000 a escala</small></summary>
+        <div class="det-cuerpo">
+          <canvas class="lienzo" id="lienzo-zoom" role="img" aria-label="Vista ampliada del robot sobre la cinta con los 4 sensores TCRT5000"></canvas>
+        </div>
+      </details>
+    </section>
+
+    <!-- Pestaña 3: Datos -->
+    <section class="tab-panel" id="tab-datos" role="tabpanel" aria-labelledby="tbtn-datos">
+      <div class="panel">
+        <h3>Historial de viajes y métricas RMS</h3>
+        <p class="nota" id="metricas-resumen">Estado: INITIAL · Madurez: En construcción</p>
+        <div class="viajes-lista" id="historial-viajes" style="margin-top:8px"></div>
+      </div>
+
+      <details class="det" id="det-contrato">
+        <summary>Contrato del gemelo digital <small>JSON</small></summary>
+        <div class="det-cuerpo">
+          <div class="json" id="contrato-json" aria-label="Estado del gemelo digital">—</div>
+          <p class="nota">Núcleo <code>specs/navegacion/teach_and_repeat.js</code> + <code>specs/pista_canonica.json</code> (SIL calibrado con SIM1).</p>
+        </div>
+      </details>
+
+      <details class="det" id="det-registro">
+        <summary>Registro de eventos <small>últimos 8</small></summary>
+        <div class="det-cuerpo"><div class="log" id="log-eventos" aria-live="polite"></div></div>
+      </details>
+    </section>
+  </div>
+</aside>
 
 <footer id="pie"></footer>
 
@@ -736,7 +716,8 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
     avisoEl.className = "error";
     avisoEl.textContent = "No se pudo cargar specs/ ni las pistas de SIM1 (" + e.message + "). Abre el sitio por http, no con file://.";
   });
-  var estadosChips, tcrtEls = [];
+  var estadosChips, estadosApChips = [], tcrtEls = [];
+  var cajonAbierto = false, tabActiva = "ejecucion";
 
   function cargarPista(id) {
     pistaId = id;
@@ -757,9 +738,6 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
       b.classList.toggle("sel", on);
       b.setAttribute("aria-pressed", String(on));
     });
-    $("pista-nota").textContent = id === "A"
-      ? "Pista A (8,05 m, curvas continuas): no permite retirar cinta."
-      : "Pista B (9,00 m, Pasillo UCAB): permite retirar cinta en tramo recto T2.";
     ponerModo("auto");
     construirBotonesCinta();
     ajustarVista();
@@ -767,6 +745,7 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
   }
 
   function iniciar() {
+    estadosApChips = A.ESTADOS.map(function (n) { var s = document.createElement("span"); s.textContent = n; $("estados-ap-chips").appendChild(s); return s; });
     estadosChips = nucleo.NOMBRE_ESTADO.map(function (n) { var s = document.createElement("span"); s.textContent = n; $("estados-chips").appendChild(s); return s; });
     for (var i = 0; i < 4; i++) {
       var d = document.createElement("div"); d.className = "s"; d.innerHTML = "S" + (i + 1) + "<small>0.00</small>";
@@ -983,20 +962,49 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
 
   function actualizarBotonesContextuales() {
     var b = A.etiquetaBoton(ap, corriendo, sim.frenoRemoto);
-    ["btn-principal-ctx", "btn-principal-dock"].forEach(function (id) {
-      var el = $(id);
-      el.textContent = b.texto;
-      el.className = b.clase;
-      el.disabled = Boolean(b.disabled);
+    var el = $("btn-principal-ctx");
+    el.textContent = b.texto;
+    el.className = b.clase;
+    el.disabled = Boolean(b.disabled);
+  }
+
+  function abrirCajon(abrir) {
+    cajonAbierto = Boolean(abrir);
+    $("cajon-ing").classList.toggle("abierto", cajonAbierto);
+    $("cajon-ing").setAttribute("aria-hidden", String(!cajonAbierto));
+    $("cajon-backdrop").classList.toggle("abierto", cajonAbierto);
+    $("cajon-backdrop").setAttribute("aria-hidden", String(!cajonAbierto));
+    $("btn-ing").setAttribute("aria-expanded", String(cajonAbierto));
+    if (cajonAbierto) {
+      if (tabActiva === "diagnostico" && $("det-zoom").open) dimZ = ajustar(cvZ);
+      refrescarDom(true);
+    }
+  }
+  function activarTab(nombre) {
+    tabActiva = nombre;
+    Array.prototype.forEach.call(document.querySelectorAll("[data-tab]"), function (b) {
+      var on = b.getAttribute("data-tab") === nombre;
+      b.setAttribute("aria-selected", String(on));
     });
+    ["ejecucion", "diagnostico", "datos"].forEach(function (t) {
+      $("tab-" + t).classList.toggle("activo", t === nombre);
+    });
+    if (nombre === "diagnostico" && $("det-zoom").open) dimZ = ajustar(cvZ);
+    refrescarDom(true);
   }
 
   function enlazar() {
+    $("btn-ing").addEventListener("click", function () { abrirCajon(!cajonAbierto); });
+    $("btn-cajon-cerrar").addEventListener("click", function () { abrirCajon(false); });
+    $("cajon-backdrop").addEventListener("click", function () { abrirCajon(false); });
+    window.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && cajonAbierto) abrirCajon(false); });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-tab]"), function (b) {
+      b.addEventListener("click", function () { activarTab(b.getAttribute("data-tab")); });
+    });
     Array.prototype.forEach.call(document.querySelectorAll("[data-pista]"), function (b) {
       b.addEventListener("click", function () { cargarPista(b.getAttribute("data-pista")); refrescarDom(true); });
     });
     $("btn-principal-ctx").addEventListener("click", accionPrincipalContextual);
-    $("btn-principal-dock").addEventListener("click", accionPrincipalContextual);
     $("btn-sig-viaje").addEventListener("click", ejecutarSiguienteViajeRapido);
     Array.prototype.forEach.call(document.querySelectorAll("[data-meta-viajes]"), function (b) {
       b.addEventListener("click", function () {
@@ -1011,7 +1019,6 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
       });
     });
     $("btn-freno").addEventListener("click", accionFreno);
-    $("btn-freno-dock").addEventListener("click", accionFreno);
     $("btn-ensenar").addEventListener("click", accionEnsenar);
     $("btn-viaje-ida").addEventListener("click", accionRepetir);
     $("btn-reanudar").addEventListener("click", accionReanudar);
@@ -1021,15 +1028,6 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
         if (sim.llegadaCompleta || sim.nav.paradaSeguridad) S.nuevoViaje(sim, sim.dir);
         reproducir();
       }
-      refrescarDom(true);
-    });
-    $("btn-t2-rapido").addEventListener("click", function () {
-      var t2 = pistaObj.tramos.filter(function (t) { return t.id === "T2"; })[0];
-      if (!t2 || !tr.rectoEn(t2.desdeM, t2.hastaM)) return;
-      var con = S.tramoConCinta(sim, t2.desdeM, t2.hastaM);
-      S.setCinta(sim, t2.desdeM, t2.hastaM, !con);
-      S.registrar(sim, (con ? "Cinta retirada en " : "Cinta puesta en ") + t2.id);
-      resincronizar();
       refrescarDom(true);
     });
     $("btn-paso").addEventListener("click", function () { detener(); S.paso(sim, TICK_MS); refrescarDom(true); });
@@ -1125,52 +1123,59 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
     });
   }
 
-  /* ---- 4) Obstáculo: drag en desktop (Mover / Quitar) + tap en móvil (+ Obstáculo 48x48) ---- */
-  var arrastre = null;
+  /* ---- 4) Control único Obstáculo (drag en desktop + tap para colocar/quitar en móvil) ---- */
+  var arrastre = null, obsInicio = null, obsArrastro = false;
   function aMundo(cx, cy) {
     var r = cvP.getBoundingClientRect();
     return { x: (cx - r.left - vista.ox) / vista.sc, y: (vista.oy - (cy - r.top)) / vista.sc, dentro: cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom };
   }
   function actualizarControlesObstaculo() {
     var hay = sim.obstaculos.length > 0;
-    $("base-obstaculo").classList.toggle("usado", hay);
-    $("etiqueta-obs").textContent = hay ? "Mover" : "Obstáculo";
-    $("btn-obs-quitar").classList.toggle("visible", hay);
-    var bm = $("btn-obs-movil");
-    bm.classList.toggle("colocando", modoColocarObs);
-    bm.setAttribute("aria-pressed", String(modoColocarObs || hay));
-    bm.textContent = modoColocarObs ? "Toca pista" : (hay ? "✕ Obstáculo" : "+ Obstáculo");
+    var base = $("base-obstaculo");
+    base.classList.toggle("usado", hay);
+    base.classList.toggle("colocando", modoColocarObs);
+    base.setAttribute("aria-pressed", String(modoColocarObs || hay));
+    $("etiqueta-obs").textContent = modoColocarObs ? "Toca pista" : (hay ? "✕ Obstáculo" : "Obstáculo");
     cvP.classList.toggle("modo-colocar", modoColocarObs);
   }
   function enlazarObstaculo() {
     var base = $("base-obstaculo");
-    function empezar(ev) {
-      arrastre = true; ev.preventDefault();
-      if (base.setPointerCapture && ev.pointerId !== undefined && ev.currentTarget === base) { try { base.setPointerCapture(ev.pointerId); } catch (e) { /* ignora */ } }
+    function empezarDesdeBase(ev) {
+      arrastre = "base"; obsInicio = { x: ev.clientX, y: ev.clientY }; obsArrastro = false;
+      ev.preventDefault();
+      if (base.setPointerCapture && ev.pointerId !== undefined) { try { base.setPointerCapture(ev.pointerId); } catch (e) { /* ignora */ } }
+    }
+    function empezarDesdeCanvas(ev) {
+      arrastre = "canvas"; obsInicio = { x: ev.clientX, y: ev.clientY }; obsArrastro = true;
+      ev.preventDefault();
       mover(ev);
     }
     function mover(ev) {
       if (!arrastre) return;
+      if (arrastre === "base" && !obsArrastro && obsInicio) {
+        if (Math.hypot(ev.clientX - obsInicio.x, ev.clientY - obsInicio.y) < 8) return;
+        obsArrastro = true;
+        modoColocarObs = false;
+      }
       var m = aMundo(ev.clientX, ev.clientY);
       if (m.dentro) { S.colocarObstaculo(sim, m.x, m.y); actualizarControlesObstaculo(); }
     }
     function soltar(ev) {
       if (!arrastre) return;
-      arrastre = false;
+      var origen = arrastre;
+      arrastre = null;
+      if (origen === "base" && !obsArrastro) {
+        /* Tap / click sin arrastrar: si hay obstáculo lo quita; si no, activa modo colocar por tap */
+        if (sim.obstaculos.length && !modoColocarObs) { S.quitarObstaculo(sim); }
+        else { modoColocarObs = !modoColocarObs; }
+        refrescarDom(true);
+        return;
+      }
       var m = aMundo(ev.clientX, ev.clientY);
       if (!m.dentro) { S.quitarObstaculo(sim); }
       refrescarDom(true);
     }
-    base.addEventListener("pointerdown", empezar);
-    $("btn-obs-quitar").addEventListener("click", function () { S.quitarObstaculo(sim); modoColocarObs = false; refrescarDom(true); });
-    $("btn-obs-movil").addEventListener("click", function () {
-      if (sim.obstaculos.length && !modoColocarObs) {
-        S.quitarObstaculo(sim);
-      } else {
-        modoColocarObs = !modoColocarObs;
-      }
-      refrescarDom(true);
-    });
+    base.addEventListener("pointerdown", empezarDesdeBase);
     cvP.addEventListener("pointerdown", function (ev) {
       if (modoColocarObs) {
         var m = aMundo(ev.clientX, ev.clientY);
@@ -1183,7 +1188,7 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
       }
       if (!sim.obstaculos.length) return;
       var o = sim.obstaculos[0], px = vista.ox + o.x * vista.sc, py = vista.oy - o.y * vista.sc, r = cvP.getBoundingClientRect();
-      if (Math.hypot(ev.clientX - r.left - px, ev.clientY - r.top - py) <= 28) { empezar(ev); try { cvP.setPointerCapture(ev.pointerId); } catch (e) { /* ignora */ } }
+      if (Math.hypot(ev.clientX - r.left - px, ev.clientY - r.top - py) <= 28) { empezarDesdeCanvas(ev); try { cvP.setPointerCapture(ev.pointerId); } catch (e) { /* ignora */ } }
     });
     window.addEventListener("pointermove", mover);
     window.addEventListener("pointerup", soltar);
@@ -1199,7 +1204,7 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
         var p = S.poseMundo(sim), a = p.angulo * Math.PI / 180, d = 0.9;
         S.colocarObstaculo(sim, p.x + Math.cos(a) * d, p.y + Math.sin(a) * d); refrescarDom(true);
       } else if (ev.key === "Delete" || ev.key === "Backspace" || ev.key === "Escape") {
-        ev.preventDefault(); S.quitarObstaculo(sim); refrescarDom(true);
+        ev.preventDefault(); S.quitarObstaculo(sim); modoColocarObs = false; refrescarDom(true);
       }
     });
   }
@@ -1259,53 +1264,14 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
       $("flujo-" + n).textContent = hecho ? "✓" : String(n);
     });
 
-    $("sub-lenta").className = ap.capturaLentaOk ? "ok" : "";
-    $("sub-lenta").textContent = (ap.capturaLentaOk ? "✓ " : "") + "Lenta 0,16 m/s";
-    $("sub-normal").className = ap.capturaNormalOk ? "ok" : "";
-    $("sub-normal").textContent = (ap.capturaNormalOk ? "✓ " : "") + "Normal 0,41 m/s";
-
-    $("step-2-desc").textContent = est === "TWIN_CREATING"
-      ? "GEMELO V1 · BASE CREADA"
-      : (h2 ? "Gemelo V1 activo · ref. geométrica fija (" + fmt(sim.L, 2) + " m)." : "Se crea automáticamente al validar lenta + normal.");
-
     var met = A.resumenMetricas(ap);
     var madEl = $("madurez-pill");
     madEl.textContent = met.madurez;
     madEl.className = "madurez-pill" + ((met.madurez === "Validado Fase 1" || met.madurez === "Fase 1 validada") ? " validado" : (met.madurez === "En ajuste" ? " ajuste" : ""));
-
-    $("step-3-desc").textContent = ap.viajesAjusteValidos + "/" + ap.metaViajes + " viajes válidos" +
-      (met.rmsLatMm > 0 ? " · RMS " + fmt(met.rmsLatMm, 1) + " mm / " + fmt(met.rmsHeadDeg, 1) + "°" : "") +
-      (est === "EVALUATION_PENDING" ? " · listo para evaluar" : (est === "ADJUSTMENT_REQUIRED" ? " · ajuste requerido" : ""));
-
-    var C = nucleo.CFG, rs = S.rssiActual(sim);
-    var stB1 = A.estadoBaliza(ap, "B1", rs, C.RSSI_DETECTA_DBM, C.RSSI_LLEGADA_DBM);
-    var stB2 = A.estadoBaliza(ap, "B2", rs, C.RSSI_DETECTA_DBM, C.RSSI_LLEGADA_DBM);
-    var txtEst = { apagada: "apagada", encendiendo: "encendiendo…", anunciando: "anunciando", detectada: "detectada", rssi_valido: "RSSI válido" };
-    $("sub-b1").className = stB1 === "rssi_valido" ? "ok" : "";
-    $("sub-b1").textContent = "B1 " + (stB1 === "rssi_valido" ? fmt(rs.rssi, 0) + " dBm" : txtEst[stB1]);
-    $("sub-b2").className = stB2 === "rssi_valido" ? "ok" : "";
-    $("sub-b2").textContent = "B2 " + (stB2 === "rssi_valido" ? fmt(rs.rssi, 0) + " dBm" : txtEst[stB2]);
-
-    var btnT2 = $("btn-t2-rapido");
-    if (!puedeSinCinta) {
-      $("step-4-desc").textContent = ap.balizasActivas
-        ? "Balizas B1/B2 anunciando (MQTT activo). Sin cinta bloqueada en Pista A por geometría curva."
-        : "Balizas B1/B2 disponibles; sin cinta bloqueada en Pista A (sin recta ≥ 1,5 m).";
-      btnT2.style.display = "none";
-    } else {
-      var t2 = pistaObj.tramos.filter(function (t) { return t.id === "T2"; })[0];
-      var t2Con = t2 ? S.tramoConCinta(sim, t2.desdeM, t2.hastaM) : true;
-      $("step-4-desc").textContent = est === "PHASE1_VALIDATED"
-        ? "Fase 1 validada: T2 sin cinta superado con llegada RSSI por B2."
-        : (est === "NO_TAPE_TEST" ? "Ejecutando prueba sin cinta en T2 (HEADING_HOLD + BLE)…"
-        : (est === "BEACONS_ACTIVE" ? "Torres B1/B2 anunciando · MQTT " + ap.mqttTorres.broker + " · listo para probar T2 sin cinta."
-        : (est === "BEACONS_STARTING" ? "Inicializando Torres de Control B1/B2…"
-        : (est === "PHASE1_READY" ? "Gemelo validado · pulsa Activar Fase 1 para encender B1/B2."
-        : "Se desbloquea al validar el Gemelo en Etapa 3."))));
-      btnT2.style.display = "inline-flex";
-      btnT2.disabled = !(ap.capturaLentaOk && ap.capturaNormalOk);
-      btnT2.textContent = t2Con ? "➖ Quitar cinta T2" : "♻️ Restaurar cinta T2";
-    }
+    $("step-1").title = (ap.capturaLentaOk ? "✓ " : "") + "Lenta 0,16 m/s · " + (ap.capturaNormalOk ? "✓ " : "") + "Normal 0,41 m/s";
+    $("step-2").title = h2 ? "Gemelo V1 activo (" + fmt(sim.L, 2) + " m)" : "Pendiente de captura lenta y normal";
+    $("step-3").title = ap.viajesAjusteValidos + "/" + ap.metaViajes + " viajes válidos" + (met.rmsLatMm > 0 ? " · RMS " + fmt(met.rmsLatMm, 1) + " mm" : "");
+    $("step-4").title = !puedeSinCinta ? "Balizas B1/B2 · Pista A solo cinta" : ("Fase 1 · " + est);
   }
 
   function refrescarDom() {
@@ -1322,6 +1288,10 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
     estEl.textContent = texto;
     estEl.className = "estado-badge" + (alertaSeg || (sim.ultimaSalida && sim.ultimaSalida.frenadoCritico) ? " alerta" : (sim.frenoRemoto || manual ? " aviso" : (sim.llegadaCompleta ? " ok" : "")));
 
+    estadosApChips.forEach(function (c, i) {
+      var st = A.ESTADOS[i];
+      c.className = st === ap.estado ? (st === "FAULT" ? "alerta" : "activo") : "";
+    });
     estadosChips.forEach(function (c, i) {
       c.className = (!manual && !sim.frenoRemoto && i === sim.nav.estado) ? (alertaSeg ? "alerta" : "activo") : (i === sim.nav.estado ? "pausa" : "");
     });
@@ -1400,9 +1370,9 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
       ? (ap.estado === "SLOW_READING" ? "Lectura lenta… " : "Pasada normal… ") + Math.round(sim.s / sim.L * 100) + " %"
       : (ap.capturaLentaOk && ap.capturaNormalOk ? "Lenta + Normal validadas ✔" : (ap.capturaLentaOk ? "Lenta ✔ · falta pasada normal" : "Sin captura aún"));
 
-    if ($("det-datos").open) {
-      $("metricas-resumen").textContent = "Estado: " + ap.estado + " · Madurez: " + met.madurez +
-        " · RMS lat: " + fmt(met.rmsLatMm, 2) + " mm · RMS ang: " + fmt(met.rmsHeadDeg, 2) + "° · Mejora: " + fmt(met.mejoraPct, 1) + " % · tau: " + fmt(met.wheelTauS, 3) + " s";
+    $("metricas-resumen").textContent = "Estado: " + ap.estado + " · Madurez: " + met.madurez +
+      " · RMS lat: " + fmt(met.rmsLatMm, 2) + " mm · RMS ang: " + fmt(met.rmsHeadDeg, 2) + "° · Mejora: " + fmt(met.mejoraPct, 1) + " % · tau: " + fmt(met.wheelTauS, 3) + " s";
+    if (cajonAbierto && tabActiva === "datos") {
       var hv = $("historial-viajes");
       hv.innerHTML = ap.viajes.length
         ? ap.viajes.slice().reverse().map(function (trp) {
@@ -1427,19 +1397,18 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
   var cvP = $("lienzo-pista"), cvZ = $("lienzo-zoom"), ctxP = cvP.getContext("2d"), ctxZ = cvZ.getContext("2d");
   var dpr = Math.min(2, window.devicePixelRatio || 1);
   function ajustar(cv) { var r = cv.getBoundingClientRect(); cv.width = Math.max(1, Math.round(r.width * dpr)); cv.height = Math.max(1, Math.round(r.height * dpr)); return { w: r.width, h: r.height }; }
-  var dimP = { w: 300, h: 350 }, dimZ = { w: 300, h: 150 };
+  var dimP = { w: 300, h: 600 }, dimZ = { w: 300, h: 140 };
   var vista = { sc: 100, ox: 0, oy: 0 };
-  function redimensionar() { dimP = ajustar(cvP); if ($("det-zoom").open) dimZ = ajustar(cvZ); }
+  function redimensionar() { dimP = ajustar(cvP); if (cajonAbierto && tabActiva === "diagnostico" && $("det-zoom").open) dimZ = ajustar(cvZ); }
   $("det-zoom").addEventListener("toggle", function () { if ($("det-zoom").open) dimZ = ajustar(cvZ); });
-  $("det-datos").addEventListener("toggle", function () { if ($("det-datos").open) refrescarDom(true); });
   $("det-contrato").addEventListener("toggle", function () { if ($("det-contrato").open) refrescarDom(true); });
   $("det-registro").addEventListener("toggle", function () { if ($("det-registro").open) refrescarDom(true); });
 
   function ajustarVista() {
     if (!tr) return;
-    var b = tr.caja(), m = 28, w = dimP.w, h = dimP.h;
-    var sc = Math.min((w - 2 * m) / Math.max(0.5, b.x1 - b.x0), (h - 2 * m - 22) / Math.max(0.5, b.y1 - b.y0));
-    vista = { sc: sc, ox: (w - (b.x1 - b.x0) * sc) / 2 - b.x0 * sc, oy: (h + (b.y1 - b.y0) * sc) / 2 + b.y0 * sc + 6 };
+    var b = tr.caja(), m = 34, w = dimP.w, h = dimP.h;
+    var sc = Math.min((w - 2 * m) / Math.max(0.5, b.x1 - b.x0), (h - 2 * m - 54) / Math.max(0.5, b.y1 - b.y0));
+    vista = { sc: sc, ox: (w - (b.x1 - b.x0) * sc) / 2 - b.x0 * sc, oy: (h + (b.y1 - b.y0) * sc) / 2 + b.y0 * sc - 14 };
   }
   var VX = function (x) { return vista.ox + x * vista.sc; }, VY = function (y) { return vista.oy - y * vista.sc; };
 
@@ -1448,7 +1417,7 @@ details.det[data-sub="1"] > summary { min-height: 44px; font-family: var(--font-
   function dibujar(ahora) {
     if (!sim) return;
     dibujarPista(ahora);
-    if ($("det-sensores").open && $("det-zoom").open) dibujarZoom();
+    if (cajonAbierto && tabActiva === "diagnostico" && $("det-zoom").open) dibujarZoom();
   }
 
   function sector(c, rI, rF, semi, color, alfa) {
